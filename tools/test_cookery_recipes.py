@@ -138,7 +138,7 @@ class RecipeImportTest(unittest.TestCase):
     def test_optional_source_dependencies_are_reported_for_all_nine_unblocked_recipes(self):
         rows = [row for row in self.report['recipes'] if row.get('optionalTagAbsences')]
         self.assertEqual(9, len(rows))
-        self.assertEqual({'statusCounts': {'imported': 532, 'pending': 80}}, {'statusCounts': self.report['statusCounts']})
+        self.assertEqual({'statusCounts': {'imported': 535, 'pending': 77}}, {'statusCounts': self.report['statusCounts']})
         for row in rows:
             self.assertEqual('imported', row['status'])
             for absent in row['optionalTagAbsences']:

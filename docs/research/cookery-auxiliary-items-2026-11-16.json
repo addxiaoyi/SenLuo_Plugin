@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-16",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "status": "STATIC_EXPORT_AND_PYTHON_TESTED_RUNTIME_NOT_TESTED",
+  "input": {
+    "path": "build/acceptance/auxiliary-items-20261116.zip",
+    "sha256": "8bcd8171f58aeb80838a4f191b97d7bb66322a66d0d1aea72eacba434e9f47d6"
+  },
+  "counts": {
+    "items": 534,
+    "blocks": 62,
+    "models": 546,
+    "recipes": {
+      "teapot_result": 11,
+      "accurate_foods": 91,
+      "chopping_board_raws": 16,
+      "bamboo_tray_recipes": 28,
+      "stockpot_recipes": 101,
+      "pot_recipes": 221,
+      "recipes": 76
+    },
+    "recipeStatuses": {
+      "imported": 535,
+      "pending": 77
+    }
+  },
+  "auxiliaryItems": {
+    "farmer_boots": {
+      "material": "leather_boots",
+      "serverEffect": "KitchenEffectHandlers.farmerOutfit reads this ID",
+      "runtime": "NOT_TESTED"
+    },
+    "farmer_leggings": {
+      "material": "leather_leggings",
+      "serverEffect": "KitchenEffectHandlers.farmerOutfit reads this ID",
+      "runtime": "NOT_TESTED"
+    },
+    "farmer_chest_plate": {
+      "material": "leather_chestplate",
+      "serverEffect": "KitchenEffectHandlers.farmerOutfit reads this ID",
+      "runtime": "NOT_TESTED"
+    },
+    "straw_hat": {
+      "material": "leather_helmet",
+      "serverEffect": "KitchenEffectHandlers.farmerOutfit reads this ID",
+      "runtime": "NOT_TESTED"
+    },
+    "straw_hat_flower": {
+      "material": "leather_helmet",
+      "serverEffect": "KitchenEffectHandlers.farmerOutfit accepts this as head",
+      "runtime": "NOT_TESTED"
+    },
+    "sickle": {
+      "material": "iron_hoe",
+      "behavior": "sickle_range_harvest",
+      "runtime": "NOT_TESTED"
+    },
+    "kitchen_shovel": {
+      "material": "iron_shovel",
+      "behavior": "crafting item only; dedicated tool behavior remains pending",
+      "runtime": "NOT_TESTED"
+    }
+  },
+  "importedRecipes": [
+    "kaleidoscope_cookery:sickle",
+    "kaleidoscope_cookery:straw_hat",
+    "kaleidoscope_cookery:straw_hat_flower"
+  ],
+  "remaining": {
+    "tea_banner": "Requires face-attached block controller, dye/pattern PDC and block entity rendering",
+    "kitchen_shovel": "Requires item state/behavior parity and oil model transition",
+    "farmerArmorRecipes": "Forge iron tags remain unresolved; no substitute was invented"
+  },
+  "tests": {
+    "python": 103,
+    "jars": "NOT_RUN_AFTER_STATIC_EXPORT"
+  },
+  "limits": [
+    "No Paper/Folia runtime acceptance for this package",
+    "Tea banner does not claim placement/dye/pattern parity",
+    "Farmer armor slot/effects and sickle harvesting do not claim player acceptance"
+  ]
+}

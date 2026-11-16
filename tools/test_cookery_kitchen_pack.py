@@ -41,9 +41,26 @@ class KitchenPackTest(unittest.TestCase):
                     self.assertEqual(set(block['states']['properties']), {p.split('=')[0] for p in selector.split(',')})
                     self.assertIn(variant['appearance'], block['states']['appearances'])
 
+    def test_auxiliary_tools_and_farmer_wear_are_registered_for_existing_behaviors(self):
+        expected = {
+            'farmer_boots': 'leather_boots', 'farmer_leggings': 'leather_leggings',
+            'farmer_chest_plate': 'leather_chestplate', 'straw_hat': 'leather_helmet',
+            'straw_hat_flower': 'leather_helmet', 'kitchen_shovel': 'iron_shovel', 'sickle': 'iron_hoe'}
+        for name, material in expected.items():
+            with self.subTest(item=name):
+                item = self.config['items'][NAMESPACE + ':' + name]
+                self.assertEqual(material, item['material'])
+                self.assertEqual(1, item['data']['max_stack_size'])
+        self.assertEqual(NAMESPACE + ':sickle_range_harvest',
+                         self.config['items'][NAMESPACE + ':sickle']['behavior']['type'])
+        parity = json.loads(self.bundle[f'{PACK}/recipe-parity.json'])
+        imported = {row['sourceId'] for row in parity['recipes'] if row['status'] == 'imported'}
+        self.assertTrue({'kaleidoscope_cookery:sickle', 'kaleidoscope_cookery:straw_hat',
+                         'kaleidoscope_cookery:straw_hat_flower'} <= imported)
+
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
-        self.assertEqual(532, self.manifest['recipeStatuses']['imported'])
-        self.assertEqual(80, self.manifest['recipeStatuses']['pending'])
+        self.assertEqual(535, self.manifest['recipeStatuses']['imported'])
+        self.assertEqual(77, self.manifest['recipeStatuses']['pending'])
         parity = json.loads(self.bundle[f'{PACK}/recipe-parity.json'])
         tray_records = [row for row in parity['recipes']
                         if row.get('section') == 'bamboo_tray_recipes']

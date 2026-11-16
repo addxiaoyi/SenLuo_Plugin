@@ -325,6 +325,33 @@ def tools(items: dict, definitions: dict, names: dict) -> None:
             items[key]['material'] = ('golden' if metal == 'gold' else metal) + '_sword'
 
 
+def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
+    """Expose source tools and farmer wear so existing server behavior can see their IDs."""
+    materials = {
+        'farmer_boots': 'leather_boots',
+        'farmer_leggings': 'leather_leggings',
+        'farmer_chest_plate': 'leather_chestplate',
+        'straw_hat': 'leather_helmet',
+        'straw_hat_flower': 'leather_helmet',
+        'kitchen_shovel': 'iron_shovel',
+        'sickle': 'iron_hoe',
+    }
+    for name, material in materials.items():
+        key = NAMESPACE + ':' + name
+        model = ART + ':item/' + name
+        if model not in definitions:
+            raise AuditError(f'missing auxiliary item model: {model}')
+        items[key] = item(key, definitions[model], names.get(f'item.{ART}.{name}', name))
+        items[key]['material'] = material
+        items[key]['data']['max_stack_size'] = 1
+        if name == 'sickle':
+            items[key]['behavior'] = {
+                'type': NAMESPACE + ':sickle_range_harvest',
+                'radius': 2, 'height': 2, 'cooldown': 10,
+                'damage_item': True, 'durability_per_use': 1,
+            }
+
+
 def sound_aliases(assets: dict[str, bytes]) -> int:
     sounds = read_json(assets, ART + '/sounds.json')
     aliases = {}
@@ -357,6 +384,7 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
         if model not in definitions:
             raise AuditError(f'missing bamboo tray model: {model}')
     tools(items, definitions, names)
+    auxiliary_items(items, definitions, names)
     blocks = {}
     for name in APPLIANCES:
         key = NAMESPACE + ':' + name
