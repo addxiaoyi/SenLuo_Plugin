@@ -60,7 +60,7 @@ public final class TeaBannerController extends BlockEntityController {
             play("minecraft:item.dye.use");
             return InteractionResult.SUCCESS_AND_CANCEL;
         }
-        if (PATTERNS.containsKey(id)) {
+        if (PATTERNS.contains(id)) {
             if (held.isSimilar(pattern)) {
                 return InteractionResult.PASS;
             }
@@ -157,7 +157,7 @@ public final class TeaBannerController extends BlockEntityController {
         if (!COLORS.contains(color)) {
             color = "red";
         }
-        if (!pattern.isEmpty() && !PATTERNS.containsKey(pattern.id().asString())) {
+        if (!pattern.isEmpty() && !PATTERNS.contains(pattern.id().asString())) {
             pattern = Item.empty();
         }
     }
