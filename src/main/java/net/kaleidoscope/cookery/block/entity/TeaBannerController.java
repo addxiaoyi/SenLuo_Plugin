@@ -93,7 +93,7 @@ public final class TeaBannerController extends BlockEntityController {
     }
 
     private void play(String sound) {
-        blockEntity.world.playSound(Vec3d.atCenterOf(blockEntity.pos), Key.of(sound), 1, 1,
+        blockEntity.world.world().playSound(Vec3d.atCenterOf(blockEntity.pos), Key.of(sound), 1, 1,
                 net.momirealms.craftengine.core.sound.SoundSource.BLOCK);
     }
 
