@@ -180,7 +180,8 @@ public final class TeaBannerController extends BlockEntityController {
         if (blockEntity.world == null) {
             return;
         }
-        long phase = Math.floorMod(world().getGameTime() + blockEntity.pos.asLong(), 18L);
+        long gameTime = ((org.bukkit.World) blockEntity.world.world().platformWorld()).getGameTime();
+        long phase = Math.floorMod(gameTime + blockEntity.pos.asLong(), 18L);
         int next = phase < 6 ? 0 : phase < 12 ? 1 : 2;
         if (next == wave) {
             return;
