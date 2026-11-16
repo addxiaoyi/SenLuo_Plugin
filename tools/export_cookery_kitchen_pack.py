@@ -53,6 +53,7 @@ TEA_BANNER_COLORS = ('white', 'orange', 'magenta', 'light_blue', 'yellow', 'lime
                      'light_gray', 'cyan', 'purple', 'blue', 'brown', 'green', 'red', 'black')
 TEA_BANNER_PATTERNS = ('tea', 'creeper', 'skull', 'flower', 'mojang', 'globe', 'piglin')
 TEA_BANNER_FACES = ('floor', 'wall')
+TEA_BANNER_WAVES = ('still', 'left', 'right')
 PENDING = [
     'Tripwire-backed appliances have vanilla selection boxes and no solid collision; exact mod voxel shapes remain pending.',
     'Waterlogging is not enabled by this acceptance pack.',
@@ -90,33 +91,43 @@ def add_model(assets: dict[str, bytes], name: str, model: dict) -> str:
     return identifier
 
 
-def tea_banner_model(face: str, color: str, pattern: str) -> dict:
+def tea_banner_model(face: str, color: str, pattern: str, wave: str) -> dict:
     """Build a thin, double-sided banner mesh for one saved visual state."""
     base = f'{ART}:entity/banner/{color}'
     overlay = f'{ART}:entity/pattern/{pattern}'
-    depth = (7.5, 8.5) if face == 'floor' else (0.25, 0.75)
+    center = (7.5, 8.5) if face == 'floor' else (0.25, 0.75)
+    offsets = {'still': (0.0, 0.0, 0.0, 0.0),
+               'left': (-0.45, 0.35, 0.75, 0.35),
+               'right': (0.45, -0.35, -0.75, -0.35)}[wave]
+    segments = []
+    edges = (1.0, 4.5, 8.0, 11.5, 15.0)
+    for index, (start, end) in enumerate(zip(edges, edges[1:])):
+        z = (center[0] + center[1]) / 2 + offsets[index]
+        u0, u1 = index * 4, (index + 1) * 4
+        segments.extend((
+            {'from': [start, 0, z - 0.5], 'to': [end, 16, z + 0.5],
+             'faces': {'north': {'texture': '#base', 'uv': [u0, 0, u1, 16]},
+                       'south': {'texture': '#base', 'uv': [u1, 0, u0, 16]}}},
+            {'from': [start, 0, z - 0.55], 'to': [end, 16, z - 0.45],
+             'faces': {'north': {'texture': '#pattern', 'uv': [u0, 0, u1, 16]},
+                       'south': {'texture': '#pattern', 'uv': [u1, 0, u0, 16]}}},
+        ))
     return {
         'ambientocclusion': False,
         'textures': {'base': base, 'pattern': overlay, 'particle': base},
-        'elements': [
-            {'from': [1, 0, depth[0]], 'to': [15, 16, depth[1]],
-             'faces': {'north': {'texture': '#base', 'uv': [0, 0, 16, 16]},
-                       'south': {'texture': '#base', 'uv': [16, 0, 0, 16]}}},
-            {'from': [1, 0, depth[0] - 0.05], 'to': [15, 16, depth[0] + 0.05],
-             'faces': {'north': {'texture': '#pattern', 'uv': [0, 0, 16, 16]},
-                       'south': {'texture': '#pattern', 'uv': [16, 0, 0, 16]}}},
-        ],
+        'elements': segments,
     }
 
 
-def tea_banner_models(assets: dict[str, bytes]) -> dict[tuple[str, int, int], str]:
+def tea_banner_models(assets: dict[str, bytes]) -> dict[tuple[str, int, int, int], str]:
     models = {}
     for face in TEA_BANNER_FACES:
         for color_index, color in enumerate(TEA_BANNER_COLORS):
             for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
-                name = f'tea_banner/{face}_{color}_{pattern}'
-                models[(face, color_index, pattern_index)] = add_model(
-                    assets, name, tea_banner_model(face, color, pattern))
+                for wave_index, wave in enumerate(TEA_BANNER_WAVES):
+                    name = f'tea_banner/{face}_{color}_{pattern}_{wave}'
+                    models[(face, color_index, pattern_index, wave_index)] = add_model(
+                        assets, name, tea_banner_model(face, color, pattern, wave))
     return models
 
 
@@ -445,14 +456,16 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
         for facing_index, facing in enumerate(FACING):
             for color_index, color in enumerate(TEA_BANNER_COLORS):
                 for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
-                    appearance = f'{face}_{facing}_color_{color_index}_pattern_{pattern_index}'
-                    tea_appearances[appearance] = {
-                        'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
-                        'model': {'path': tea_visual_models[(face, color_index, pattern_index)],
-                                  'y': facing_index * 90},
-                    }
-                    tea_variants[f'face={face},facing={facing},color={color_index},pattern={pattern_index}'] = {
-                        'appearance': appearance}
+                    for wave_index, wave in enumerate(TEA_BANNER_WAVES):
+                        appearance = f'{face}_{facing}_color_{color_index}_pattern_{pattern_index}_wave_{wave_index}'
+                        tea_appearances[appearance] = {
+                            'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
+                            'model': {'path': tea_visual_models[(face, color_index, pattern_index, wave_index)],
+                                      'y': facing_index * 90},
+                        }
+                        tea_variants[
+                            f'face={face},facing={facing},color={color_index},pattern={pattern_index},wave={wave_index}'
+                        ] = {'appearance': appearance}
     blocks[tea_banner_key] = {
         'settings': {'item': tea_banner_key, 'hardness': 1, 'resistance': 1,
                      'push_reaction': 'destroy', 'can_occlude': False,
@@ -466,7 +479,8 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
                        'face': {'type': 'anchor_type', 'default': 'floor'},
                        'facing': {'type': 'horizontal_direction', 'default': 'north'},
                        'color': {'type': 'int', 'range': '0~15', 'default': 14},
-                       'pattern': {'type': 'int', 'range': '0~6', 'default': 0}},
+                       'pattern': {'type': 'int', 'range': '0~6', 'default': 0},
+                       'wave': {'type': 'int', 'range': '0~2', 'default': 0}},
                    'appearances': tea_appearances, 'variants': tea_variants}}
     for name in APPLIANCES:
         key = NAMESPACE + ':' + name

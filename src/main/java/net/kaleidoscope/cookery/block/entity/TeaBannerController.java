@@ -39,6 +39,7 @@ public final class TeaBannerController extends BlockEntityController {
     private final TeaBannerBehavior behavior;
     private String color = "red";
     private Item pattern = Item.empty();
+    private int wave;
 
     public TeaBannerController(BlockEntity blockEntity, TeaBannerBehavior behavior) {
         super(blockEntity);
@@ -136,13 +137,14 @@ public final class TeaBannerController extends BlockEntityController {
 
     @Override
     public void onLoad() {
+        wave = BlockStates.value(blockEntity.blockState, behavior.waveProperty(), 0);
         syncVisual();
     }
 
     @Override
     public <C extends BlockEntityController> BlockEntityTicker<C> createBlockEntityTicker(CEWorld world,
                                                                                            ImmutableBlockState state) {
-        return null;
+        return createTickerHelper((w, pos, current, controller) -> tick());
     }
 
     @Override
@@ -174,6 +176,19 @@ public final class TeaBannerController extends BlockEntityController {
         }
     }
 
+    private void tick() {
+        if (blockEntity.world == null) {
+            return;
+        }
+        long phase = Math.floorMod(world().getGameTime() + blockEntity.pos.asLong(), 18L);
+        int next = phase < 6 ? 0 : phase < 12 ? 1 : 2;
+        if (next == wave) {
+            return;
+        }
+        wave = next;
+        syncVisual();
+    }
+
     private void syncVisual() {
         if (blockEntity.world == null) {
             return;
@@ -183,6 +198,7 @@ public final class TeaBannerController extends BlockEntityController {
         int patternIndex = pattern.isEmpty() ? 0 : PATTERNS.indexOf(pattern.id().asString()) + 1;
         ImmutableBlockState next = BlockStates.with(state, behavior.colorProperty(), colorIndex);
         next = BlockStates.with(next, behavior.patternProperty(), patternIndex);
+        next = BlockStates.with(next, behavior.waveProperty(), wave);
         BlockStates.sync(blockEntity, next);
     }
 }

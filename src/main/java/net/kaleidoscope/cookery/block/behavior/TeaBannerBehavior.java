@@ -26,6 +26,7 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
     private Property<AnchorType> anchorTypeProperty;
     private Property<Integer> colorProperty;
     private Property<Integer> patternProperty;
+    private Property<Integer> waveProperty;
 
     private TeaBannerBehavior(BlockDefinition blockDefinition) {
         super(blockDefinition);
@@ -66,6 +67,10 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
         return patternProperty;
     }
 
+    public Property<Integer> waveProperty() {
+        return waveProperty;
+    }
+
     @Override
     public void initControllerId(int id) {
         controllerId = id;
@@ -78,6 +83,7 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
             behavior.anchorTypeProperty = BlockBehaviorFactory.getProperty(section.path(), block, "face", AnchorType.class);
             behavior.colorProperty = BlockBehaviorFactory.getProperty(section.path(), block, "color", Integer.class);
             behavior.patternProperty = BlockBehaviorFactory.getProperty(section.path(), block, "pattern", Integer.class);
+            behavior.waveProperty = BlockBehaviorFactory.getProperty(section.path(), block, "wave", Integer.class);
             return behavior;
         }
     }

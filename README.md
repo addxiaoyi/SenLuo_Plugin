@@ -20,7 +20,7 @@ Cookery 厨房 · Doll 玩偶 · Tavern 酒馆 · Deco 装饰 · MusicPlus 音�
 
 | 插件 | JAR | CE 内容包 | 当前证据 | 主要缺口 |
 | --- | --- | --- | --- | --- |
-| Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 完整厨房包 534 物品、63 方块、2,338 状态，536/612 来源配方已导入；319 Java/104 Python、茶旗控制器与地面/墙面×4 向×16 色×7 图案状态模型、38 种大菜与 5 种盖饭 native recipe 各完成 Paper/Folia 三轮严格探针；旧厨房、取物盘、竹筛回归通过 | 茶旗旗杆摆动、真人营养/效果、Shift/自动合成、玩家/客户端、76 条 pending 配方、完整天气/自动化、保护/多人、卸载/跨区 |
+| Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 完整厨房包 534 物品、63 方块、4,130 状态，536/612 来源配方已导入；319 Java/104 Python、茶旗控制器与地面/墙面×4 向×16 色×7 图案×3 波形状态模型、38 种大菜与 5 种盖饭 native recipe 各完成 Paper/Folia 三轮严格探针；旧厨房、取物盘、竹筛回归通过 | 茶旗原版旗杆摆动、真人营养/效果、Shift/自动合成、玩家/客户端、76 条 pending 配方、完整天气/自动化、保护/多人、卸载/跨区 |
 | Doll | `KaleidoscopeDoll-0.1.0-dev.jar` | `doll-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 精确物理、Bedrock 模型、玩家流程 |
 | Tavern | `KaleidoscopeTavern-0.1.0-dev.jar` | `tavern-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 葡萄世界生成、复杂家具、饮用和多人 |
 | Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 418 条聚合缺口、脚本事件、座位/碰撞 |
@@ -59,9 +59,9 @@ SenLuo_Plugin/
 
 ## 厨房开发检查点（2026-11-15）
 
-完整厨房包包含 534 物品、63 方块、2,338 状态、1 石磨家具和 770 个已检查模型。固定源码的 612 条配方中，536 条已导入、76 条 pending；包括茶旗配方、28 条竹筛配方、5 条盖饭 native recipe 和 73 条原版/合成配方配置（53 合成、20 炉具）。来源记录、模型引用和包内文件哈希仍严格校验。
+完整厨房包包含 534 物品、63 方块、4,130 状态、1 石磨家具和 1,218 个已检查模型。固定源码的 612 条配方中，536 条已导入、76 条 pending；包括茶旗配方、28 条竹筛配方、5 条盖饭 native recipe 和 73 条原版/合成配方配置（53 合成、20 炉具）。来源记录、模型引用和包内文件哈希仍严格校验。
 
-2026-11-16 附属物品静态导出已补入农夫靴、护腿、胸甲、草帽、花草帽、镰刀、厨铲和茶旗。镰刀配置连接现有范围收割行为；茶旗控制器支持 16 色、6 种原版旗帜图案、剪刀取下、物品状态存档和带状态掉落，资源包按地面/墙面、方向、颜色与图案生成 224 个模型状态。锅铲基础/沾油 ID 与运行时代码一致，油态旧 ID 由 CE 生成独立 item-model；茶旗配方随本轮导入。新导出包为 534 物品、63 方块、770 个已检查模型、536 imported/76 pending。旗杆摆动、原版客户端实机资源包、实际锅铲交互和农夫装备槽效果仍待实测，证据见 [附属物品审计](docs/research/cookery-auxiliary-items-2026-11-16.json) 和 [双端启动摘要](docs/research/cookery-shovel-runtime-2026-11-16.json)。
+2026-11-16 附属物品静态导出已补入农夫靴、护腿、胸甲、草帽、花草帽、镰刀、厨铲和茶旗。镰刀配置连接现有范围收割行为；茶旗控制器支持 16 色、6 种原版旗帜图案、剪刀取下、物品状态存档和带状态掉落，资源包按地面/墙面、方向、颜色、图案和三段波形生成 672 个模型状态。锅铲基础/沾油 ID 与运行时代码一致，油态旧 ID 由 CE 生成独立 item-model；茶旗配方随本轮导入。新导出包为 534 物品、63 方块、1,218 个已检查模型、536 imported/76 pending。原版旗杆摆动、原版客户端实机资源包、实际锅铲交互和农夫装备槽效果仍待实测，证据见 [附属物品审计](docs/research/cookery-auxiliary-items-2026-11-16.json) 和 [双端启动摘要](docs/research/cookery-shovel-runtime-2026-11-16.json)。
 
 38 种直接食用大菜（`FoodBiteRegistry` 注册表 37＋`ModBlocks` 冷切火腿片 1）已接入 CE 代码与导出：34 种单格、3 种双格、1 种九格，共 49 个放置单元、1,024 个状态。每口快照、品质、多格归属、耗尽后保留容器和整菜/额外掉落已有实现；消费提交检查同步重入、过期回调和可取消饥饿事件。319 项 Java、102 项 Python 通过，盖饭 v2 Paper/Folia 各三轮 native 探针 PASS 并正常停服，`25583/25584` 已释放；详见 [大菜验收摘要](docs/research/cookery-placed-meals-acceptance-2026-11-15.json)。
 

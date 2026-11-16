@@ -78,18 +78,19 @@ class KitchenPackTest(unittest.TestCase):
             {'type': key},
         ], block['behaviors'])
         self.assertEqual({'pools': []}, block['loot'])
-        self.assertEqual({'face', 'facing', 'color', 'pattern'}, set(block['states']['properties']))
+        self.assertEqual({'face', 'facing', 'color', 'pattern', 'wave'}, set(block['states']['properties']))
         self.assertEqual('floor', block['states']['properties']['face']['default'])
         self.assertEqual('north', block['states']['properties']['facing']['default'])
         self.assertEqual(14, block['states']['properties']['color']['default'])
         self.assertEqual(0, block['states']['properties']['pattern']['default'])
-        self.assertEqual(2 * 4 * 16 * 7, len(block['states']['variants']))
-        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/floor_red_tea',
-                         block['states']['appearances']['floor_north_color_14_pattern_0']['model']['path'])
-        self.assertEqual(0, block['states']['appearances']['floor_north_color_14_pattern_0']['model']['y'])
-        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/wall_black_piglin',
-                         block['states']['appearances']['wall_west_color_15_pattern_6']['model']['path'])
-        self.assertEqual(270, block['states']['appearances']['wall_west_color_15_pattern_6']['model']['y'])
+        self.assertEqual(0, block['states']['properties']['wave']['default'])
+        self.assertEqual(2 * 4 * 16 * 7 * 3, len(block['states']['variants']))
+        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/floor_red_tea_still',
+                         block['states']['appearances']['floor_north_color_14_pattern_0_wave_0']['model']['path'])
+        self.assertEqual(0, block['states']['appearances']['floor_north_color_14_pattern_0_wave_0']['model']['y'])
+        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/wall_black_piglin_right',
+                         block['states']['appearances']['wall_west_color_15_pattern_6_wave_2']['model']['path'])
+        self.assertEqual(270, block['states']['appearances']['wall_west_color_15_pattern_6_wave_2']['model']['y'])
 
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
         self.assertEqual(536, self.manifest['recipeStatuses']['imported'])
