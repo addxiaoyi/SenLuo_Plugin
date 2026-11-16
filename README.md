@@ -83,6 +83,41 @@ SenLuo_Plugin/
 
 官方源码需要放在仓库同级 `.references/`，路径和提交以锁定文件为准。准备 Python 环境后执行：
 
+```powershell
+$referenceRoot = Join-Path (Split-Path -Parent (Get-Location).Path) '.references'
+New-Item -ItemType Directory -Force -Path $referenceRoot | Out-Null
+$checkouts = @(
+    @{ Name = 'KaleidoscopeCookery'; Branch = 'main'; Url = 'https://github.com/KaleidoscopeMods/KaleidoscopeCookery.git'; Commit = '2f4e386ce23f49a385ddf003c67fc6415c55417a' },
+    @{ Name = 'KaleidoscopeDoll'; Branch = '1.20-forge'; Url = 'https://github.com/KaleidoscopeMods/KaleidoscopeDoll.git'; Commit = '62303aa58bbd5ee52498f3ad0fbf4a0c7d04c183' },
+    @{ Name = 'KaleidoscopeTavern'; Branch = 'main'; Url = 'https://github.com/KaleidoscopeMods/KaleidoscopeTavern.git'; Commit = 'c4ec1880bd44cf3139d3ba744ab30bb379cf1416' },
+    @{ Name = 'KaleidoscopeDeco'; Branch = 'master'; Url = 'https://github.com/KaleidoscopeMods/KaleidoscopeDeco.git'; Commit = '6ce180e1226ce93b0fb0d45ea80e0ed5b01b1dc0' },
+    @{ Name = 'MusicPlus'; Branch = 'main'; Url = 'https://github.com/KaleidoscopeMods/MusicPlus.git'; Commit = 'cc84f29e2a1abe79805567fddd218b3a7b252655' }
+)
+foreach ($checkout in $checkouts) {
+    $path = Join-Path $referenceRoot $checkout.Name
+    if (-not (Test-Path $path)) {
+        git clone --branch $checkout.Branch $checkout.Url $path
+        if ($LASTEXITCODE -ne 0) { throw "Clone failed: $($checkout.Name)" }
+    }
+    $head = (git -C $path rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0) { throw "Not a Git checkout: $path" }
+    if ($head -ne $checkout.Commit) {
+        if (git -C $path status --porcelain) { throw "Refusing to move dirty checkout: $path" }
+        git -C $path fetch origin $checkout.Commit
+        if ($LASTEXITCODE -ne 0) { throw "Fetch failed: $($checkout.Name)" }
+        git -C $path checkout --detach $checkout.Commit
+        if ($LASTEXITCODE -ne 0) { throw "Checkout failed: $($checkout.Name)" }
+    }
+    if ((git -C $path rev-parse HEAD).Trim() -ne $checkout.Commit) {
+        throw "Pinned commit mismatch: $($checkout.Name)"
+    }
+}
+
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r tools\requirements.txt -r series\tools\requirements.txt
+$env:PYTHONPATH = 'tools;series/tools'
+```
+
 ```bash
 python -m venv .venv
 .venv/bin/python -m pip install -r tools/requirements.txt -r series/tools/requirements.txt
