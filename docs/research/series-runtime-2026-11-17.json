@@ -1,0 +1,1203 @@
+{
+  "date": "2026-11-17",
+  "baselineCommit": "251ad5a58afc7b8033a63b80fb10d891633af346",
+  "status": "PARTIAL_RUNTIME_RESOURCE_WARNINGS_AND_FOLIA_WATCHDOG_OPEN",
+  "install": {
+    "created_at": "2026-11-16T14:15:17.930160+00:00",
+    "scope": "isolated installation preparation; server and vanilla-client acceptance not run",
+    "minecraft": "1.21.11",
+    "java": 21,
+    "craftEngine": "26.9.1",
+    "independence": {
+      "plugins": [
+        {
+          "module": "doll",
+          "name": "KaleidoscopeDollPlugin",
+          "pack_namespace": "kseries_doll",
+          "metadata": "doll\\src\\main\\resources\\plugin.yml"
+        },
+        {
+          "module": "tavern",
+          "name": "KaleidoscopeTavernPlugin",
+          "pack_namespace": "kseries_tavern",
+          "metadata": "tavern\\src\\main\\resources\\plugin.yml"
+        },
+        {
+          "module": "deco",
+          "name": "KaleidoscopeDecoPlugin",
+          "pack_namespace": "kseries_deco",
+          "metadata": "deco\\src\\main\\resources\\plugin.yml"
+        },
+        {
+          "module": "music",
+          "name": "KaleidoscopeMusicPlugin",
+          "pack_namespace": "kseries_music",
+          "metadata": "music\\src\\main\\resources\\plugin.yml"
+        }
+      ],
+      "modules": 4,
+      "errors": [],
+      "scope": "plugin metadata, optional JAR/CE pack independence; no server/client runtime"
+    },
+    "artifacts": {
+      "plugins/KaleidoscopeDoll-0.1.0-dev.jar": {
+        "kind": "plugin",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\build\\acceptance\\a251\\KaleidoscopeDoll-0.1.0-dev.jar",
+        "sha256": "3558d2e910007c6ce10abbc82f298d9eac49e5d69b63ceae7457eb131caeccba",
+        "bytes": 160942
+      },
+      "plugins/CraftEngine/resources/doll": {
+        "kind": "ce-pack",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\series\\build\\packs253\\doll-ce-pack-0.1.0-dev.zip",
+        "sha256": "531804e5fe4f6a9b65ad6adee75eb1c3d478691ee4d686054676b69a7d5561f4",
+        "bytes": 3276649
+      },
+      "plugins/KaleidoscopeTavern-0.1.0-dev.jar": {
+        "kind": "plugin",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\build\\acceptance\\a251\\KaleidoscopeTavern-0.1.0-dev.jar",
+        "sha256": "83f89968093636792d8bded1c9c0e96966adee6d4e10fe8341d597f3095ffff1",
+        "bytes": 214453
+      },
+      "plugins/CraftEngine/resources/tavern": {
+        "kind": "ce-pack",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\series\\build\\packs253\\tavern-ce-pack-0.1.0-dev.zip",
+        "sha256": "58d5e371126eb86429e25b6b7ca6fef7bc37a88161fe1d922f2dddf2ff747391",
+        "bytes": 885142
+      },
+      "plugins/KaleidoscopeDeco-0.1.0-dev.jar": {
+        "kind": "plugin",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\build\\acceptance\\a251\\KaleidoscopeDeco-0.1.0-dev.jar",
+        "sha256": "d2010574797ba673ff0929065eeb898a609934c4367f1c857a12bdb05e296013",
+        "bytes": 139427
+      },
+      "plugins/CraftEngine/resources/deco": {
+        "kind": "ce-pack",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\series\\build\\packs253\\deco-ce-pack-0.1.0-dev.zip",
+        "sha256": "7d046b072f9fceb24742cbd10dc79f1487748ae42c7616b80b8c5aabae832ec3",
+        "bytes": 4677416
+      },
+      "plugins/KaleidoscopeMusic-0.1.0-dev.jar": {
+        "kind": "plugin",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\build\\acceptance\\a251\\KaleidoscopeMusic-0.1.0-dev.jar",
+        "sha256": "0069ea41e5229b45f87af15b4242e28db0eb9f1b6cb5a185fd1ec38346e105e5",
+        "bytes": 129356
+      },
+      "plugins/CraftEngine/resources/music": {
+        "kind": "ce-pack",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\series\\build\\packs253\\music-ce-pack-0.1.0-dev.zip",
+        "sha256": "9da6cc08367f1f338932b0d7028ef79132fa95ecffe745e35c1082a95b53e735",
+        "bytes": 5701
+      },
+      "plugins/CraftEngine/resources/shared": {
+        "kind": "shared-pack",
+        "source": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\series\\build\\packs253\\shared-ce-pack-0.1.0-dev.zip",
+        "sha256": "360e18a61bdb37713e5368d733385ae2f3c5f223b358ddd6ed4bf07092fc8622",
+        "bytes": 490
+      },
+      "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": {
+        "kind": "plugin",
+        "source": "build\\acceptance\\a251\\KaleidoscopeCookeryPlugin-1.3.0.jar",
+        "sha256": "de53ee860361a074e43f9ab4fbf69d4e2a2811578dee9f2e79515e690b600eda",
+        "bytes": 1504552
+      },
+      "plugins/CraftEngine/resources/cookery_kitchen": {
+        "kind": "cookery-pack",
+        "source": "build\\acceptance\\ck251.zip",
+        "sha256": "1fad97aa1b3169319ee653ce71c4510a46eb6456145c52ec390677e144d2fc01",
+        "bytes": 2889281
+      },
+      "plugins/craft-engine-paper-plugin-26.9.1.jar": {
+        "kind": "runtime",
+        "source": "build\\acceptance\\runtime\\craft-engine-paper-plugin-26.9.1.jar",
+        "sha256": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "bytes": 10981948
+      }
+    },
+    "base_resources": [
+      {
+        "name": "default_assets",
+        "source": "build\\acceptance\\b251\\default_assets"
+      },
+      {
+        "name": "default_feature_populator",
+        "source": "build\\acceptance\\b251\\default_feature_populator"
+      },
+      {
+        "name": "default_templates",
+        "source": "build\\acceptance\\b251\\default_templates"
+      },
+      {
+        "name": "internal",
+        "source": "build\\acceptance\\b251\\internal"
+      },
+      {
+        "name": "legacy_armor",
+        "source": "build\\acceptance\\b251\\legacy_armor"
+      },
+      {
+        "name": "remove_shulker_head",
+        "source": "build\\acceptance\\b251\\remove_shulker_head"
+      }
+    ],
+    "instances": {
+      "paper": {
+        "directory": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\build\\acceptance\\i254\\paper",
+        "port": 25591,
+        "serverJar": "build\\acceptance\\runtime\\paper-1.21.11-132.jar",
+        "eulaAccepted": true,
+        "startup": "NOT_RUN",
+        "resourcePack": "NOT_RUN",
+        "vanillaClient": "NOT_RUN",
+        "plugins": {
+          "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3558d2e910007c6ce10abbc82f298d9eac49e5d69b63ceae7457eb131caeccba",
+          "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "83f89968093636792d8bded1c9c0e96966adee6d4e10fe8341d597f3095ffff1",
+          "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "d2010574797ba673ff0929065eeb898a609934c4367f1c857a12bdb05e296013",
+          "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "0069ea41e5229b45f87af15b4242e28db0eb9f1b6cb5a185fd1ec38346e105e5",
+          "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "de53ee860361a074e43f9ab4fbf69d4e2a2811578dee9f2e79515e690b600eda",
+          "plugins/craft-engine-paper-plugin-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f"
+        },
+        "cePacks": {
+          "plugins/CraftEngine/resources/doll": "531804e5fe4f6a9b65ad6adee75eb1c3d478691ee4d686054676b69a7d5561f4",
+          "plugins/CraftEngine/resources/tavern": "58d5e371126eb86429e25b6b7ca6fef7bc37a88161fe1d922f2dddf2ff747391",
+          "plugins/CraftEngine/resources/deco": "7d046b072f9fceb24742cbd10dc79f1487748ae42c7616b80b8c5aabae832ec3",
+          "plugins/CraftEngine/resources/music": "9da6cc08367f1f338932b0d7028ef79132fa95ecffe745e35c1082a95b53e735",
+          "plugins/CraftEngine/resources/shared": "360e18a61bdb37713e5368d733385ae2f3c5f223b358ddd6ed4bf07092fc8622",
+          "plugins/CraftEngine/resources/cookery_kitchen": "1fad97aa1b3169319ee653ce71c4510a46eb6456145c52ec390677e144d2fc01"
+        }
+      },
+      "folia": {
+        "directory": "D:\\qwq\\项目\\luosen-plugins\\luosengchufang\\build\\acceptance\\i254\\folia",
+        "port": 25592,
+        "serverJar": "build\\acceptance\\runtime\\folia-1.21.11-14.jar",
+        "eulaAccepted": true,
+        "startup": "NOT_RUN",
+        "resourcePack": "NOT_RUN",
+        "vanillaClient": "NOT_RUN",
+        "plugins": {
+          "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3558d2e910007c6ce10abbc82f298d9eac49e5d69b63ceae7457eb131caeccba",
+          "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "83f89968093636792d8bded1c9c0e96966adee6d4e10fe8341d597f3095ffff1",
+          "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "d2010574797ba673ff0929065eeb898a609934c4367f1c857a12bdb05e296013",
+          "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "0069ea41e5229b45f87af15b4242e28db0eb9f1b6cb5a185fd1ec38346e105e5",
+          "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "de53ee860361a074e43f9ab4fbf69d4e2a2811578dee9f2e79515e690b600eda",
+          "plugins/craft-engine-paper-plugin-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f"
+        },
+        "cePacks": {
+          "plugins/CraftEngine/resources/doll": "531804e5fe4f6a9b65ad6adee75eb1c3d478691ee4d686054676b69a7d5561f4",
+          "plugins/CraftEngine/resources/tavern": "58d5e371126eb86429e25b6b7ca6fef7bc37a88161fe1d922f2dddf2ff747391",
+          "plugins/CraftEngine/resources/deco": "7d046b072f9fceb24742cbd10dc79f1487748ae42c7616b80b8c5aabae832ec3",
+          "plugins/CraftEngine/resources/music": "9da6cc08367f1f338932b0d7028ef79132fa95ecffe745e35c1082a95b53e735",
+          "plugins/CraftEngine/resources/shared": "360e18a61bdb37713e5368d733385ae2f3c5f223b358ddd6ed4bf07092fc8622",
+          "plugins/CraftEngine/resources/cookery_kitchen": "1fad97aa1b3169319ee653ce71c4510a46eb6456145c52ec390677e144d2fc01"
+        }
+      }
+    },
+    "craftEngineConfig": {
+      "path": "plugins/CraftEngine/config.yml",
+      "serverBlocks": 6000,
+      "sha256": "ea9c100ba775444a82bfba2a7626fce8564374912117675a61d2a105f48a55ed"
+    }
+  },
+  "pythonTests": {
+    "cookery": 104,
+    "series": 54,
+    "failures": 0
+  },
+  "javaTests": {
+    "doll": {
+      "name": "KaleidoscopeDoll-0.1.0-dev.jar",
+      "sha256": "3558d2e910007c6ce10abbc82f298d9eac49e5d69b63ceae7457eb131caeccba",
+      "tests": {
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "tavern": {
+      "name": "KaleidoscopeTavern-0.1.0-dev.jar",
+      "sha256": "83f89968093636792d8bded1c9c0e96966adee6d4e10fe8341d597f3095ffff1",
+      "tests": {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "deco": {
+      "name": "KaleidoscopeDeco-0.1.0-dev.jar",
+      "sha256": "d2010574797ba673ff0929065eeb898a609934c4367f1c857a12bdb05e296013",
+      "tests": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "music": {
+      "name": "KaleidoscopeMusic-0.1.0-dev.jar",
+      "sha256": "0069ea41e5229b45f87af15b4242e28db0eb9f1b6cb5a185fd1ec38346e105e5",
+      "tests": {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "cookery": {
+      "name": "KaleidoscopeCookeryPlugin-1.3.0.jar",
+      "sha256": "de53ee860361a074e43f9ab4fbf69d4e2a2811578dee9f2e79515e690b600eda",
+      "tests": {
+        "tests": 319,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "common": {
+      "tests": {
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "platforms": {
+    "paper": {
+      "states": {
+        "complete": true,
+        "instance": "build\\acceptance\\i254\\paper",
+        "capacity": 6000,
+        "cacheEntries": 5920,
+        "expectedBlocks": 63,
+        "expected": 5474,
+        "loaded": 5474,
+        "missing": [],
+        "extra": [],
+        "blocks": [
+          {
+            "id": "kaleidoscopecookery:apple_platter",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:bamboo_tray",
+            "expected": 2,
+            "loaded": 2,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:baozi_plate",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:berry_platter",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:blaze_lamb_chop",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:braised_pork_ribs",
+            "expected": 40,
+            "loaded": 40,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:brown_mushroom_pot_soup",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:buddha_jumps_over_the_wall",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:candied_potato",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:chopping_board",
+            "expected": 4,
+            "loaded": 4,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:chorus_fried_egg",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:chorus_fruit_platter",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:cold_cut_ham_slices",
+            "expected": 324,
+            "loaded": 324,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:cold_roasted_meat",
+            "expected": 32,
+            "loaded": 32,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:cold_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:crimson_fungus_pot_soup",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:crystal_lamb_chop",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:dark_cuisine",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:desert_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:dongpo_pork",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:dough_drop_soup",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:enamel_basin",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:end_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fondant_pie",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fondant_spider_eye",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:four_joy_meatball_soup",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fried_caterpillar",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fried_spring_roll",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:frost_lamb_chop",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fruit_basket",
+            "expected": 4,
+            "loaded": 4,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:golden_salad",
+            "expected": 28,
+            "loaded": 28,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:kitchenware_racks",
+            "expected": 4,
+            "loaded": 4,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:nether_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:numbing_spicy_chicken",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:oil_pot",
+            "expected": 8,
+            "loaded": 8,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:oil_splashed_fish",
+            "expected": 48,
+            "loaded": 48,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:pan_seared_knight_steak",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:pot",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:qingtuan_plate",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:red_mushroom_pot_soup",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:shawarma_spit",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:shengjian_mantou_plate",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:slime_ball_meal",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:spicy_blood_stew",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:spicy_chicken",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:spicy_rabbit_head",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:stargazy_pie",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:steamer",
+            "expected": 48,
+            "loaded": 48,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:sticky_candy_plate",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:sticky_rice_cake_plate",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:stockpot",
+            "expected": 32,
+            "loaded": 32,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:stove",
+            "expected": 8,
+            "loaded": 8,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:stuffed_tiger_skin_pepper",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:suspicious_stir_fry",
+            "expected": 8,
+            "loaded": 8,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:sweet_and_sour_ender_pearls",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:tea_banner",
+            "expected": 4032,
+            "loaded": 4032,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:teacup_coaster",
+            "expected": 4,
+            "loaded": 4,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:teapot",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:tomato_platter",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:tundra_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:warped_fungus_pot_soup",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:watermelon_platter",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:zongzi_plate",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          }
+        ],
+        "cacheSha256": "bb7e026f6846fe13e27f40132df7799f5620707b1f471b975a65dc0dbcef51b9",
+        "scope": "CE declared properties compared with internal state cache; registration only, no placement or client proof"
+      },
+      "logSha256": "daee7567c933a1b6ff84a1bbacb5ce4135fc37af6119bc3b27252b7981648577",
+      "logPath": "build/acceptance/i254/paper/logs/latest.log",
+      "registered": {
+        "items": 3137,
+        "furniture": 1556,
+        "blocks": 103,
+        "recipes": 239
+      },
+      "loadedPacks": [
+        "cookery_kitchen",
+        "deco",
+        "default_assets",
+        "default_feature_populator",
+        "default_templates",
+        "doll",
+        "internal",
+        "legacy_armor",
+        "music",
+        "remove_shulker_head",
+        "shared",
+        "tavern"
+      ],
+      "watchdog": [],
+      "resourceWarnings": [
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:slime_ball_meal]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/item/slime_ball_meal.json”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:mysterious]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/item/mysterious.json”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:frogspawn_jelly]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kaleidoscope_tavern:block/deco/bell_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/bell_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/top]”缺少纹理“assets/minecraft/textures/block/chain.png”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:icons/cookery]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/icons/cookery.png”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope:block/doll/s/__waht]”缺少纹理“assets/minecraft/textures/block/waht.png”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:gui/button/page_left]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_left.png”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:gui/button/page_right]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_right.png”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:meals/gui/dark]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/block/bowl.png”",
+        "[22:28:13] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_bar:item/cabinet/bottles/left/artistic2, kdeco_kaleidoscope_bar:item/cabinet/bottles/right/artistic2]”缺少纹理“assets/minecraft/textures/雪婆婆.png”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:slime_ball_meal]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/item/slime_ball_meal.json”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:mysterious]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/item/mysterious.json”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:frogspawn_jelly]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kaleidoscope_tavern:block/deco/bell_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/bell_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/top]”缺少纹理“assets/minecraft/textures/block/chain.png”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:icons/cookery]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/icons/cookery.png”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope:block/doll/s/__waht]”缺少纹理“assets/minecraft/textures/block/waht.png”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:gui/button/page_left]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_left.png”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:gui/button/page_right]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_right.png”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:meals/gui/dark]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/block/bowl.png”",
+        "[22:28:14] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_bar:item/cabinet/bottles/left/artistic2, kdeco_kaleidoscope_bar:item/cabinet/bottles/right/artistic2]”缺少纹理“assets/minecraft/textures/雪婆婆.png”"
+      ],
+      "packSha256": "8be93f95ef6fa6281b31c015612f55e7e2aa5426ec36c4863ba18e22e6527cd4",
+      "packBytes": 12659504,
+      "workflowCompleted": true,
+      "shutdownSaved": true
+    },
+    "folia": {
+      "states": {
+        "complete": true,
+        "instance": "build\\acceptance\\i254\\folia",
+        "capacity": 6000,
+        "cacheEntries": 5920,
+        "expectedBlocks": 63,
+        "expected": 5474,
+        "loaded": 5474,
+        "missing": [],
+        "extra": [],
+        "blocks": [
+          {
+            "id": "kaleidoscopecookery:apple_platter",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:bamboo_tray",
+            "expected": 2,
+            "loaded": 2,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:baozi_plate",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:berry_platter",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:blaze_lamb_chop",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:braised_pork_ribs",
+            "expected": 40,
+            "loaded": 40,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:brown_mushroom_pot_soup",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:buddha_jumps_over_the_wall",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:candied_potato",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:chopping_board",
+            "expected": 4,
+            "loaded": 4,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:chorus_fried_egg",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:chorus_fruit_platter",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:cold_cut_ham_slices",
+            "expected": 324,
+            "loaded": 324,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:cold_roasted_meat",
+            "expected": 32,
+            "loaded": 32,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:cold_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:crimson_fungus_pot_soup",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:crystal_lamb_chop",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:dark_cuisine",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:desert_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:dongpo_pork",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:dough_drop_soup",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:enamel_basin",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:end_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fondant_pie",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fondant_spider_eye",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:four_joy_meatball_soup",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fried_caterpillar",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fried_spring_roll",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:frost_lamb_chop",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:fruit_basket",
+            "expected": 4,
+            "loaded": 4,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:golden_salad",
+            "expected": 28,
+            "loaded": 28,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:kitchenware_racks",
+            "expected": 4,
+            "loaded": 4,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:nether_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:numbing_spicy_chicken",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:oil_pot",
+            "expected": 8,
+            "loaded": 8,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:oil_splashed_fish",
+            "expected": 48,
+            "loaded": 48,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:pan_seared_knight_steak",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:pot",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:qingtuan_plate",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:red_mushroom_pot_soup",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:shawarma_spit",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:shengjian_mantou_plate",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:slime_ball_meal",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:spicy_blood_stew",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:spicy_chicken",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:spicy_rabbit_head",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:stargazy_pie",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:steamer",
+            "expected": 48,
+            "loaded": 48,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:sticky_candy_plate",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:sticky_rice_cake_plate",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:stockpot",
+            "expected": 32,
+            "loaded": 32,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:stove",
+            "expected": 8,
+            "loaded": 8,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:stuffed_tiger_skin_pepper",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:suspicious_stir_fry",
+            "expected": 8,
+            "loaded": 8,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:sweet_and_sour_ender_pearls",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:tea_banner",
+            "expected": 4032,
+            "loaded": 4032,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:teacup_coaster",
+            "expected": 4,
+            "loaded": 4,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:teapot",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:tomato_platter",
+            "expected": 24,
+            "loaded": 24,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:tundra_style_sashimi",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:warped_fungus_pot_soup",
+            "expected": 12,
+            "loaded": 12,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:watermelon_platter",
+            "expected": 16,
+            "loaded": 16,
+            "missing": 0
+          },
+          {
+            "id": "kaleidoscopecookery:zongzi_plate",
+            "expected": 20,
+            "loaded": 20,
+            "missing": 0
+          }
+        ],
+        "cacheSha256": "7e88c91fdad85551f7603bcd4841dc96825bcc29cd4793345003f1472268262d",
+        "scope": "CE declared properties compared with internal state cache; registration only, no placement or client proof"
+      },
+      "logSha256": "128e3e177653e92ed01b61ba85a1478250d4ec6741da669bb9527719f2a3b5a6",
+      "logPath": "build/acceptance/i254/folia/logs/latest.log",
+      "registered": {
+        "items": 3137,
+        "furniture": 1556,
+        "blocks": 103,
+        "recipes": 239
+      },
+      "loadedPacks": [
+        "cookery_kitchen",
+        "deco",
+        "default_assets",
+        "default_feature_populator",
+        "default_templates",
+        "doll",
+        "internal",
+        "legacy_armor",
+        "music",
+        "remove_shulker_head",
+        "shared",
+        "tavern"
+      ],
+      "watchdog": [
+        "[22:32:44] [Folia Watchdog Thread/ERROR]: [io.papermc.paper.threadedregions.FoliaWatchdogThread] Global region has not responded in 5.9980694s:"
+      ],
+      "resourceWarnings": [
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:slime_ball_meal]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/item/slime_ball_meal.json”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:mysterious]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/item/mysterious.json”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:frogspawn_jelly]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kaleidoscope_tavern:block/deco/bell_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/bell_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/top]”缺少纹理“assets/minecraft/textures/block/chain.png”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:icons/cookery]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/icons/cookery.png”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope:block/doll/s/__waht]”缺少纹理“assets/minecraft/textures/block/waht.png”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:gui/button/page_left]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_left.png”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:gui/button/page_right]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_right.png”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:meals/gui/dark]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/block/bowl.png”",
+        "[22:33:50] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_bar:item/cabinet/bottles/left/artistic2, kdeco_kaleidoscope_bar:item/cabinet/bottles/right/artistic2]”缺少纹理“assets/minecraft/textures/雪婆婆.png”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:slime_ball_meal]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/item/slime_ball_meal.json”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:mysterious]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/item/mysterious.json”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 物品“[kdeco_kaleidoscope_cookery:frogspawn_jelly]”缺少模型文件“assets/kdeco_kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kaleidoscope_tavern:block/deco/bell_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/bell_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/top]”缺少纹理“assets/minecraft/textures/block/chain.png”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:icons/cookery]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/icons/cookery.png”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope:block/doll/s/__waht]”缺少纹理“assets/minecraft/textures/block/waht.png”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:gui/button/page_left]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_left.png”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:gui/button/page_right]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_right.png”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_cookery:meals/gui/dark]”缺少纹理“assets/kdeco_kaleidoscope_cookery/textures/block/bowl.png”",
+        "[22:33:51] [craft-engine-common-worker-0/WARN]: [CraftEngine] 模型“[kdeco_kaleidoscope_bar:item/cabinet/bottles/left/artistic2, kdeco_kaleidoscope_bar:item/cabinet/bottles/right/artistic2]”缺少纹理“assets/minecraft/textures/雪婆婆.png”"
+      ],
+      "packSha256": "8a118edd0c50812f8ad4d5edfe0c2e72a3a1d4eb55f7a568fd4c4c3adcf2d485",
+      "packBytes": 12659496,
+      "workflowCompleted": true,
+      "shutdownSaved": true,
+      "jfr": {
+        "path": "build/acceptance/i254/folia/startup.jfr",
+        "sha256": "16df4d5fc3f0cb157bb2f0d39e916be0837ec345f47f2b7985603b08ddc13082",
+        "bytes": 13685319,
+        "analysis": "PENDING"
+      }
+    }
+  },
+  "autoStates": {
+    "equivalent": true,
+    "block": "minecraft:brown_mushroom_block",
+    "appearances": 23,
+    "changedSlots": [
+      "default:chessboard_block[appearance=east]",
+      "default:chessboard_block[appearance=north]",
+      "default:chessboard_block[appearance=south]",
+      "default:chessboard_block[appearance=west]",
+      "default:chinese_lantern",
+      "default:gunpowder_block",
+      "default:hami_melon",
+      "default:palm_log[appearance=axisX]",
+      "default:palm_log[appearance=axisY]",
+      "default:palm_log[appearance=axisZ]",
+      "default:palm_planks",
+      "default:palm_wood[appearance=axisX]",
+      "default:palm_wood[appearance=axisY]",
+      "default:palm_wood[appearance=axisZ]",
+      "default:stripped_palm_log[appearance=axisX]",
+      "default:stripped_palm_log[appearance=axisY]",
+      "default:stripped_palm_log[appearance=axisZ]",
+      "default:topaz_ore"
+    ],
+    "differences": [],
+    "inputs": [
+      {
+        "instance": "build\\acceptance\\i254\\paper",
+        "cacheSha256": "1b42743753dd0102d0987ec55c7fa076f0fd5508413e6841e947e1b110adf225",
+        "packSha256": "8be93f95ef6fa6281b31c015612f55e7e2aa5426ec36c4863ba18e22e6527cd4"
+      },
+      {
+        "instance": "build\\acceptance\\i254\\folia",
+        "cacheSha256": "f49f0d40eabfe8bed90c8a72f84ff46681c191759e41283652f009c0f2b0f8b9",
+        "packSha256": "8a118edd0c50812f8ad4d5edfe0c2e72a3a1d4eb55f7a568fd4c4c3adcf2d485"
+      }
+    ],
+    "scope": "CE visual cache joined to generated variants by appearance; no server placement or client proof"
+  },
+  "client": "NOT_TESTED"
+}

@@ -161,7 +161,8 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/prepare_independent_server
   --craft-engine build/acceptance/runtime/craft-engine-paper-plugin-26.9.1.jar \
   --base-resources build/acceptance/runtime/craftengine-resources \
   --paper-jar build/acceptance/runtime/paper-1.21.11-132.jar \
-  --folia-jar build/acceptance/runtime/folia-1.21.11-14.jar
+  --folia-jar build/acceptance/runtime/folia-1.21.11-14.jar \
+  --server-blocks 6000
 ```
 
 安装、升级和回滚说明见 [`docs/install-guide.md`](docs/install-guide.md) 与 [`docs/upgrade-guide.md`](docs/upgrade-guide.md)。
@@ -211,3 +212,6 @@ git log -1 --oneline
 ```
 
 先恢复 `.references/`，运行上面的严格导入和构建命令，再从 [厨房验证记录](docs/VALIDATION.md) 和 [移植矩阵](series/docs/PORTING-MATRIX.md) 的最新检查点继续。保留未提交改动与历史失败记录；已通过的服务端探针不把完整玩家闭环升级为 `accepted`。
+
+
+2026-11-17 交接增量：已从 `251ad5a` 重建并运行 Paper/Folia 五插件整合服。修复 CE 系列 ZIP 未解包、JAR 命名识别、旧资源覆盖和 Tavern 1.21.11 原料名称；使用 `--server-blocks 6000` 完整注册厨房 63 方块/5,474 内部状态（4,130 个显式外观组合不等于内部状态数，茶旗 anchor_type 包含 ceiling）。根 Python 104 项、系列 Python 54 项通过。两端包加载、生成和状态注册已有证据，但 Folia watchdog 和缺模型/纹理警告仍 OPEN，客户端/玩家流程未验收。详见 [当前交接](docs/HANDOFF.md) 与 [本轮证据](docs/research/series-runtime-2026-11-17.json)。

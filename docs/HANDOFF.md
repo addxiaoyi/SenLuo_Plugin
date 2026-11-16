@@ -39,3 +39,10 @@ Set-Location SenLuo_Plugin
 2. **关闭两个运行差异。** Folia 的 CraftEngine tag packet 启动 watchdog 仍待定因，保留失败栈和耗时。对比 Paper/Folia 生成包中 `brown_mushroom_block` 的映射和实际模型，核对是否影响原版客户端显示。
 3. **验收玩家闭环。** 原版客户端接包后验证五个插件的新旧行为。使用两名普通玩家覆盖保护、满背包、取消交互、重复点击、跨区及区块重载。重点验证茶旗、玩偶、果盆、展板和演奏在拆装或重启后的结果。
 4. **继续补功能与交付。** 优先推进厨房缺失内容再导入受阻配方，继续酒馆葡萄与家具、玩偶实体、Deco 脚本与模型、MusicPlus 演奏替代。记录高密度家具和多人时的 MSPT、内存、资源包体积，完成八个上游仓库的分发许可复核后再做正式版本。
+
+## 2026-11-17 验收增量
+
+- 当前工作区以 `251ad5a` 为基线。本轮新增的隔离服工具会把四个系列 ZIP 和 shared ZIP 解包到 CraftEngine 可加载的目录，并拒绝旧 JAR 名称混用、恶意 ZIP 路径和 base resource 覆盖 managed pack；还支持从 CraftEngine 26.9.1 默认配置复制 `block.serverside-blocks`。
+- `build/acceptance/i254` 使用 Paper/Folia 1.21.11、Java 21、CraftEngine 26.9.1、`server-blocks=6000` 启动。两端真实加载 `cookery_kitchen`、`doll`、`tavern`、`deco`、`music` 和 `shared` 六个 CE 目录；Paper/Folia 均登记 63 个厨房方块、5,474 个厨房内部状态，茶旗 4,032 个状态，缺失/多余均为 0。状态检查器范围是注册与存档缓存，不包含方块放置或客户端证明。
+- Paper/Folia 的 `ce workflow default` 均生成、验证、压缩并托管资源包。`brown_mushroom_block` 两端有自动槽位变化，但 23 个 appearance 的模型、旋转和 uvlock 语义等价；比较器明确不证明客户端显示或跨服资源包可互换。Folia 仍有约 5.998 秒 CraftEngine 延迟加载 watchdog，保持 OPEN。
+- 当前 Python 门禁为根工具 104 项、系列工具 54 项，均通过；固定 Cookery catalog 与系列导入检查通过。资源包校验仍报告部分上游 Deco/旧 Cookery 模型或纹理缺失，原版客户端和玩家闭环尚未验收。

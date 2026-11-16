@@ -31,3 +31,6 @@
 - [可随 Git 获取的交接证据](handoff/2026-11-07/README.md)
 
 下一步验证大菜真人营养/效果、主副手、FOOD 效果桥、保护/多人和客户端，继续剩余 80 条配方及未覆盖的跨区/卸载场景。当前 [大菜 v5 摘要](research/cookery-placed-meals-acceptance-2026-11-15.json)、前序 [取物盘证据](research/cookery-plate-acceptance-2026-11-15.json) 与 [竹筛摘要](research/cookery-bamboo-acceptance.json) 均是局部服务端证据，不能提升为全系列或完整玩家闭环验收。v4 Folia 第三轮 5.1581751 秒启动 watchdog 失败仍 OPEN；保留固定源码与旧厨房语义，不操作生产服。
+
+
+2026-11-17 交接增量：已从 `251ad5a` 重建并运行 Paper/Folia 五插件整合服。修复 CE 系列 ZIP 未解包、JAR 命名识别、旧资源覆盖和 Tavern 1.21.11 原料名称；使用 `--server-blocks 6000` 完整注册厨房 63 方块/5,474 内部状态（4,130 个显式外观组合不等于内部状态数，茶旗 anchor_type 包含 ceiling）。根 Python 104 项、系列 Python 54 项通过。两端包加载、生成和状态注册已有证据，但 Folia watchdog 和缺模型/纹理警告仍 OPEN，客户端/玩家流程未验收。详见 [当前交接](HANDOFF.md) 与 [本轮证据](research/series-runtime-2026-11-17.json)。

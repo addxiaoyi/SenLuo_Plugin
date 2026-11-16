@@ -286,3 +286,6 @@ python -X utf8 tools/run_enchantment_acceptance.py --accept-eula --root build/ac
 独立示例模型和精确碰撞仍有差异；每槽数量堆叠已接入并有单元测试，原版客户端画面尚未验收。完整森罗系列中的自定义效果、玩偶、酒馆等工作保留在 [实施表](IMPLEMENTATION-ROADMAP.md)，不得标记为已复刻。
 
 2026-11-04 历史基线：竹筛 `build` 含 Javadoc 通过，29 Java / 15 Python；当时 JAR SHA-256 `3971624172afb5020885f3d6891a8ec443c8e2f8960a4487de06ed843db52ab3`，日志 `build-bamboo-tray.log`。该旧产物不代表本轮附魔代码。
+
+
+2026-11-17 交接增量：已从 `251ad5a` 重建并运行 Paper/Folia 五插件整合服。修复 CE 系列 ZIP 未解包、JAR 命名识别、旧资源覆盖和 Tavern 1.21.11 原料名称；使用 `--server-blocks 6000` 完整注册厨房 63 方块/5,474 内部状态（4,130 个显式外观组合不等于内部状态数，茶旗 anchor_type 包含 ceiling）。根 Python 104 项、系列 Python 54 项通过。两端包加载、生成和状态注册已有证据，但 Folia watchdog 和缺模型/纹理警告仍 OPEN，客户端/玩家流程未验收。详见 [当前交接](HANDOFF.md) 与 [本轮证据](research/series-runtime-2026-11-17.json)。

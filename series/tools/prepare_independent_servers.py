@@ -9,10 +9,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from zipfile import BadZipFile, ZipFile
 
 from check_independence import check as check_independence
@@ -28,15 +29,28 @@ def digest(path: Path) -> str:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def archive_member(name: str) -> PurePosixPath:
+    member = PurePosixPath(name)
+    parts = name.rstrip("/").split("/")
+    if (not name or member.is_absolute() or "\\" in name or ":" in name
+            or any(part in ("", ".", "..") for part in parts)):
+        raise ValueError(f"unsafe archive path: {name!r}")
+    return member
+
+
 def verify_zip(path: Path, required: tuple[str, ...]) -> None:
     try:
         with ZipFile(path) as archive:
-            names = set(archive.namelist())
+            # ZipInfo.filename replaces Windows backslashes before validation.
+            entries = [entry.orig_filename for entry in archive.infolist()]
+            names = set(entries)
             missing = [entry for entry in required if entry not in names]
             if missing:
                 raise ValueError(f"{path.name}: missing {missing}")
-            if any(name.startswith("/") or ".." in Path(name).parts for name in names):
-                raise ValueError(f"{path.name}: unsafe archive path")
+            if len(names) != len(entries):
+                raise ValueError(f"{path.name}: duplicate archive entries")
+            for name in names:
+                archive_member(name)
             bad = archive.testzip()
             if bad:
                 raise ValueError(f"{path.name}: CRC failed for {bad}")
@@ -70,14 +84,14 @@ def required_artifacts(artifacts: Path, packs: Path, cookery_jar: Path | None,
         verify_zip(jar, ("plugin.yml",))
         verify_zip(pack, ("pack.yml", "configuration/content.yml"))
         found.extend(((f"plugins/{jar.name}", jar, "plugin"),
-                      (f"plugins/CraftEngine/resources/{pack.name}", pack, "ce-pack")))
+                      (f"plugins/CraftEngine/resources/{module}", pack, "ce-pack")))
     shared_matches = sorted(packs.glob("shared-ce-pack-*.zip"))
     if len(shared_matches) > 1:
         raise ValueError(f"ambiguous shared CE packs: {[path.name for path in shared_matches]}")
     if shared_matches:
         shared = shared_matches[0]
         verify_zip(shared, ("pack.yml",))
-        found.append((f"plugins/CraftEngine/resources/{shared.name}", shared, "shared-pack"))
+        found.append(("plugins/CraftEngine/resources/shared", shared, "shared-pack"))
     if cookery_jar:
         if not cookery_jar.is_file():
             raise ValueError(f"missing Cookery JAR: {cookery_jar}")
@@ -108,30 +122,37 @@ def _within(path: Path, parent: Path) -> bool:
 
 
 def install_artifact(root: Path, relative: str, source: Path, kind: str) -> Path:
+    archive_member(relative)
     destination = root / "artifacts" / relative
-    if kind != "cookery-pack":
+    if not _within(destination, root / "artifacts"):
+        raise ValueError(f"artifact destination escapes acceptance root: {relative}")
+    if kind not in ("ce-pack", "shared-pack", "cookery-pack"):
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, destination)
         return destination
-    destination.mkdir(parents=True, exist_ok=True)
+    prefix = "cookery_kitchen/" if kind == "cookery-pack" else ""
+    config = "configuration/kitchen.yml" if kind == "cookery-pack" else "configuration/content.yml"
+    required = (prefix + "pack.yml",) if kind == "shared-pack" else (prefix + "pack.yml", prefix + config)
+    verify_zip(source, required)
+    destination.mkdir(parents=True, exist_ok=False)
     with ZipFile(source) as archive:
-        prefix = "cookery_kitchen/"
         for name in archive.namelist():
             if not name.startswith(prefix) or name.endswith("/"):
                 continue
-            member = Path(name)
-            target = destination / member.relative_to("cookery_kitchen")
+            member = archive_member(name[len(prefix):])
+            target = destination / Path(*member.parts)
+            if not _within(target, destination):
+                raise ValueError(f"pack member escapes resource root: {name}")
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(archive.read(name))
-    if not (destination / "pack.yml").is_file() or not (destination / "configuration/kitchen.yml").is_file():
-        raise ValueError(f"Cookery pack did not extract a complete resources directory: {source}")
     return destination
 
 
 def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | None = None,
             cookery_pack: Path | None = None, accept_eula: bool = False,
             paper_jar: Path | None = None, folia_jar: Path | None = None,
-            craft_engine: Path | None = None, base_resources: Path | None = None) -> dict:
+            craft_engine: Path | None = None, base_resources: Path | None = None,
+            server_blocks: int | None = None) -> dict:
     root = root.resolve()
     allowed = WORKSPACE / "build" / "acceptance"
     # Keep test worlds out of the source tree and production locations.
@@ -147,6 +168,25 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
     files = required_artifacts(artifacts, packs, cookery_jar, cookery_pack, craft_engine)
     if base_resources and not base_resources.is_dir():
         raise ValueError(f"missing CraftEngine base resources directory: {base_resources}")
+    resource_prefix = "plugins/CraftEngine/resources/"
+    managed_roots = {relative[len(resource_prefix):].split("/", 1)[0].casefold()
+                     for relative, _, _ in files if relative.startswith(resource_prefix)}
+    base_entries = tuple(sorted(base_resources.iterdir())) if base_resources else ()
+    for source in base_entries:
+        if source.name.casefold() != "cookery_kitchen" and source.name.casefold() in managed_roots:
+            raise ValueError(f"base resources would overwrite managed pack {source.name}: {source}")
+    engine_config = None
+    if server_blocks is not None:
+        if type(server_blocks) is not int or not 1 <= server_blocks <= 100000 or craft_engine is None:
+            raise ValueError("server-blocks requires a count from 1 to 100000 and a CraftEngine runtime JAR")
+        with ZipFile(craft_engine) as archive:
+            if "config.yml" not in archive.namelist():
+                raise ValueError(f"CraftEngine runtime has no default config.yml: {craft_engine}")
+            engine_config = archive.read("config.yml").decode("utf-8")
+        engine_config, matches = re.subn(r"(?m)^(  serverside-blocks: )\d+(\s*)$",
+                                         lambda match: match[1] + str(server_blocks) + match[2], engine_config)
+        if matches != 1:
+            raise ValueError("CraftEngine config.yml must define exactly one block.serverside-blocks value")
     runtimes = {"paper": paper_jar, "folia": folia_jar}
     report = {
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -160,14 +200,22 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
         "instances": {},
     }
     root.mkdir(parents=True, exist_ok=False)
+    if engine_config is not None:
+        config_path = "plugins/CraftEngine/config.yml"
+        config_bytes = engine_config.encode("utf-8")
+        target = root / "artifacts" / config_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(config_bytes)
+        report["craftEngineConfig"] = {"path": config_path, "serverBlocks": server_blocks,
+                                      "sha256": hashlib.sha256(config_bytes).hexdigest()}
     for relative, source, kind in files:
         destination = install_artifact(root, relative, source, kind)
         report["artifacts"][relative] = {"kind": kind, "source": str(source),
                                           "sha256": digest(source), "bytes": source.stat().st_size}
     if base_resources:
         target_root = root / "artifacts/plugins/CraftEngine/resources"
-        for source in sorted(base_resources.iterdir()):
-            if source.name == "cookery_kitchen":
+        for source in base_entries:
+            if source.name.casefold() == "cookery_kitchen":
                 continue
             target = target_root / source.name
             if source.is_dir():
@@ -180,6 +228,10 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
         instance = root / platform
         plugins = instance / "plugins"
         plugins.mkdir(parents=True, exist_ok=True)
+        if engine_config is not None:
+            target = instance / report["craftEngineConfig"]["path"]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(engine_config.encode("utf-8"))
         runtime = runtimes[platform]
         if runtime:
             if not runtime.is_file():
@@ -245,6 +297,8 @@ def main() -> int:
     parser.add_argument("--paper-jar", type=Path)
     parser.add_argument("--folia-jar", type=Path)
     parser.add_argument("--craft-engine", type=Path, help="CraftEngine runtime plugin JAR")
+    parser.add_argument("--server-blocks", type=int,
+                        help="Override block.serverside-blocks in a copy of the runtime's default config")
     parser.add_argument("--base-resources", type=Path,
                         help="Prepared CraftEngine resources directory containing default packs")
     parser.add_argument("--accept-eula", action="store_true",
@@ -254,7 +308,8 @@ def main() -> int:
         report = prepare(args.root, args.artifacts, args.packs, cookery_jar=args.cookery_jar,
                          cookery_pack=args.cookery_pack, accept_eula=args.accept_eula,
                          paper_jar=args.paper_jar, folia_jar=args.folia_jar,
-                         craft_engine=args.craft_engine, base_resources=args.base_resources)
+                         craft_engine=args.craft_engine, base_resources=args.base_resources,
+                         server_blocks=args.server_blocks)
     except (OSError, ValueError, BadZipFile) as error:
         print(f"Independent server preparation failed: {error}", file=sys.stderr)
         return 1

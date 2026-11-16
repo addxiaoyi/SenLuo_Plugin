@@ -29,6 +29,8 @@ PACK_MODULES = ("doll", "tavern", "deco", "music", "shared")
 ID = re.compile(r"[a-z0-9_.-]+:[a-z0-9_./-]+")
 COLORS = ("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
           "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black")
+# The fixed mod sources predate these target 1.21.11 registry names.
+VANILLA_ITEM_ALIASES = {"minecraft:chain": "minecraft:iron_chain", "minecraft:grass": "minecraft:short_grass"}
 # Forge tags have no registry on a vanilla server; retain their vanilla members.
 VANILLA_TAG_MEMBERS = {
     **{f"forge:ingots/{metal}": [f"minecraft:{metal}_ingot"] for metal in ("iron", "gold", "copper")},
@@ -196,10 +198,10 @@ def crafting(tags: dict[str, bytes], items: dict[str, Any]) -> tuple[dict, list]
             id_ = value["item"]
             if not id_.startswith("minecraft:") and id_ not in items:
                 raise ValueError(f"Missing crafting input: {id_}")
-            return id_
+            return VANILLA_ITEM_ALIASES.get(id_, id_)
         if "tag" in value and value["tag"].startswith("minecraft:"):
             return "#" + value["tag"]
-        return resolve_ingredient(value, tags)
+        return [VANILLA_ITEM_ALIASES.get(id_, id_) for id_ in resolve_ingredient(value, tags)]
 
     for path, content in sorted(tags.items()):
         if "/recipes/" not in path or not path.endswith(".json"):
