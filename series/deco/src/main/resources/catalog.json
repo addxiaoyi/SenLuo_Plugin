@@ -9368,6 +9368,21 @@
         },
         {
           "inputs": [
+            "minecraft:orange_tulip",
+            "minecraft:pink_tulip",
+            "minecraft:red_tulip",
+            "minecraft:white_tulip"
+          ],
+          "wand": false,
+          "sneak": -1,
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/9",
+          "sounds": [
+            "minecraft:block.vine.place"
+          ],
+          "pending": false
+        },
+        {
+          "inputs": [
             "minecraft:torchflower"
           ],
           "wand": false,

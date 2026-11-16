@@ -1,13 +1,18 @@
 package net.kaleidoscope.doll;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.ItemState;
 import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.Menu;
 import net.kaleidoscope.series.SavedState;
+import net.kaleidoscope.series.SavedItems;
+import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.libraries.nbt.CompoundTag;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
@@ -20,13 +25,21 @@ public final class DollController extends InteractiveFurniture {
     private static final String[] AXIS_NAMES = {"宽度", "高度", "深度", "左右", "上下", "前后", "俯仰", "转向", "侧倾"};
     private DollPose pose = DollPose.origin();
     private final DollDisplay display = new DollDisplay(this);
-    public DollController(Furniture furniture, DollPlugin plugin) { super(furniture, plugin); }
+    private final NamespacedKey itemPoseKey;
+
+    public DollController(Furniture furniture, DollPlugin plugin) {
+        super(furniture, plugin);
+        itemPoseKey = new NamespacedKey(plugin, "pose_v1");
+    }
 
     DollPose pose() { return pose; }
 
     @Override public void gatherElements(java.util.function.Consumer<FurnitureElement> elements) { elements.accept(display); }
-    @Override public void onLoad() { display.rebuild(); }
-    @Override public void onPlace(net.momirealms.craftengine.core.entity.player.Player player) { display.rebuild(); }
+    @Override public void onLoad() {
+        updateSourceItem();
+        display.rebuild();
+    }
+    @Override public void onPlace(net.momirealms.craftengine.core.entity.player.Player player) { onLoad(); }
 
     @Override protected void interact(Player player) {
         if (Items.id(player.getInventory().getItemInMainHand()).equals("kaleidoscope_doll:tweaks_tool")) {
@@ -68,17 +81,62 @@ public final class DollController extends InteractiveFurniture {
     }
 
     private void refreshPose(Player player) {
+        updateSourceItem();
         changed();
         display.rebuild();
         editPose(player);
     }
 
-    @Override public void saveCustomData(CompoundTag root) {
-        if (preserveRejected(root)) return;
+    private void updateSourceItem() {
+        if (blocked()) return;
+        var source = furniture().sourceItem();
+        if (source != null && source.isEmpty()) source = null;
+        if (source == null && pose.isOrigin()) return;
+        var item = source == null ? Items.create(furniture().id().asString())
+                : ItemStackUtils.getBukkitStack(source).asQuantity(1);
+        var meta = item.getItemMeta();
+        boolean hasPose = meta.getPersistentDataContainer().has(itemPoseKey);
+        if (!pose.isOrigin()) {
+            furniture().setSourceItem(BukkitItemManager.instance().wrap(ItemState.write(item, itemPoseKey, poseData())));
+        } else if (hasPose) {
+            meta.getPersistentDataContainer().remove(itemPoseKey);
+            var defaultMeta = Items.create(furniture().id().asString()).getItemMeta();
+            meta.setMaxStackSize(defaultMeta.hasMaxStackSize() ? defaultMeta.getMaxStackSize() : null);
+            item.setItemMeta(meta);
+            furniture().setSourceItem(BukkitItemManager.instance().wrap(item));
+        }
+    }
+
+    @Override public void loadCustomDataFromItem(net.momirealms.craftengine.core.item.Item item) {
+        if (item.isEmpty()) return;
+        var stack = ItemStackUtils.getBukkitStack(item);
+        CompoundTag root = new CompoundTag();
+        CompoundTag snapshot = new CompoundTag();
+        SavedItems.put(snapshot, "source_item", stack);
+        root.put(SAVE_KEY, snapshot);
+        restoreSafely(root, SAVE_KEY, () -> {
+            CompoundTag saved = ItemState.read(stack, itemPoseKey);
+            if (saved != null) pose = readPose(saved);
+        });
+    }
+
+    private CompoundTag poseData() {
         CompoundTag saved = new CompoundTag();
         saved.putInt("version", 1);
         saved.putString("pose", pose.encode());
-        root.put(SAVE_KEY, SavedState.envelope(STATE_NAMESPACE, 1, SavedState.SERIES_SOURCE, saved));
+        return saved;
+    }
+
+    private static DollPose readPose(CompoundTag saved) {
+        if (saved == null || SavedState.integer(saved, "version") != 1) {
+            throw new IllegalArgumentException("Invalid doll pose save");
+        }
+        return DollPose.decode(SavedState.text(saved, "pose"));
+    }
+
+    @Override public void saveCustomData(CompoundTag root) {
+        if (preserveRejected(root)) return;
+        root.put(SAVE_KEY, SavedState.envelope(STATE_NAMESPACE, 1, SavedState.SERIES_SOURCE, poseData()));
     }
 
     @Override public void loadCustomData(CompoundTag root) {
@@ -86,8 +144,7 @@ public final class DollController extends InteractiveFurniture {
             if (!root.containsKey(SAVE_KEY)) return;
             CompoundTag saved = SavedState.payload(root.getCompound(SAVE_KEY), STATE_NAMESPACE,
                     SavedState.SERIES_SOURCE, 1, null);
-            if (saved == null || SavedState.integer(saved, "version") != 1) throw new IllegalArgumentException("Invalid doll pose save");
-            pose = DollPose.decode(SavedState.text(saved, "pose"));
+            pose = readPose(saved);
         });
     }
 }

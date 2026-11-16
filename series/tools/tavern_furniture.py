@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import json
 
 VANILLA_BOTTLES = {
     "minecraft:potion": "water_bottle",
@@ -45,6 +46,29 @@ def add_variants(items: dict, furnishings: dict, catalog: dict, assets: dict) ->
                 items[display] = visual(display, model)
             variant["elements"][0]["item"] = display
             bottle["variants"][output.replace(":", "/")] = variant
+    add_pressing_levels(items, furnishings["kaleidoscope_tavern:pressing_tub"], catalog["pressing"], assets)
+
+
+def add_pressing_levels(items: dict, tub: dict, recipes: list[dict], assets: dict) -> None:
+    for fluid in sorted({recipe["fluid"] for recipe in recipes}):
+        namespace, name = fluid.split(":", 1)
+        texture = f"block/{name}_still"
+        if f"{namespace}/textures/{texture}.png" not in assets:
+            raise ValueError(f"Missing pressing tub texture: {fluid}")
+        for level in range(1, 9):
+            model = f"block/brew/pressing_liquid/{name}_{level}"
+            height = 2 + level / 2
+            assets[f"{namespace}/models/{model}.json"] = json.dumps({
+                "ambientocclusion": False,
+                "textures": {"liquid": f"{namespace}:{texture}"},
+                "elements": [{"from": [2, height, 2], "to": [14, height, 14], "shade": False,
+                              "faces": {"up": {"texture": "#liquid", "uv": [0, 0, 16, 16]}}}],
+            }).encode("utf-8")
+            visual_id = f"kaleidoscope_tavern:visual/pressing_liquid/{name}_{level}"
+            items[visual_id] = visual(visual_id, f"{namespace}:{model}")
+            variant = copy.deepcopy(tub["variants"]["ground"])
+            variant["elements"].append({"item": visual_id, "display_transform": "none", "position": "0,0.5,0"})
+            tub["variants"][f"{namespace}/{name}/{level}"] = variant
 
 
 def visual(id_: str, model: str) -> dict:

@@ -8,9 +8,13 @@ import net.kaleidoscope.series.SeriesPlugin;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 import javax.sound.midi.MidiSystem;
 import java.nio.file.Files;
@@ -28,7 +32,8 @@ public final class MusicPlugin extends SeriesPlugin implements Listener {
     private static final long MAX_FILE_BYTES = 4 * 1024 * 1024;
     private static final String INSTRUMENT = "musicplus:handheld_instrument";
     private final Map<UUID, UUID> requests = new ConcurrentHashMap<>();
-    private final Map<UUID, ScheduledTask> playing = new ConcurrentHashMap<>();
+    private final Map<UUID, Playback> playing = new ConcurrentHashMap<>();
+    private record Playback(UUID token, ScheduledTask task) {}
     private ThreadPoolExecutor loader;
     private Path songs;
 
@@ -57,6 +62,15 @@ public final class MusicPlugin extends SeriesPlugin implements Listener {
     }
 
     private boolean holding(Player player) { return Items.id(player.getInventory().getItemInMainHand()).equals(INSTRUMENT); }
+
+    @EventHandler public void useInstrument(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        if (event.getHand() != EquipmentSlot.HAND || event.getAction() != Action.RIGHT_CLICK_AIR
+                || event.useItemInHand() == Event.Result.DENY || !holding(player)
+                || !player.hasPermission("kaleidoscopemusic.play")) return;
+        event.setUseItemInHand(Event.Result.DENY);
+        attempt(player, () -> keyboard(player));
+    }
 
     private void keyboard(Player player) {
         Menu menu = new Menu(player, this, "森罗乐器 · 点击音符演奏", 3);
@@ -116,21 +130,29 @@ public final class MusicPlugin extends SeriesPlugin implements Listener {
         long[] tick = {0};
         ScheduledTask task = player.getScheduler().runAtFixedRate(this, running -> {
             if (!isEnabled() || !holding(player) || !token.equals(requests.get(player.getUniqueId()))
-                    || !player.hasPermission("kaleidoscopemusic.play")) { stopSong(player.getUniqueId()); return; }
+                    || !player.hasPermission("kaleidoscopemusic.play")) {
+                stopSong(player.getUniqueId(), token);
+                running.cancel();
+                return;
+            }
             int sounds = 0;
             while (cursor[0] < song.notes().size() && song.notes().get(cursor[0]).tick() <= tick[0]) {
                 MidiSong.Note note = song.notes().get(cursor[0]++);
                 if (++sounds > 64) {
                     player.sendMessage("该 MIDI 同时发出的音符过多，播放已停止。");
-                    stopSong(player.getUniqueId());
+                    stopSong(player.getUniqueId(), token);
                     return;
                 }
                 playNote(player, note);
             }
-            if (cursor[0] == song.notes().size() && tick[0] >= song.durationTicks()) { stopSong(player.getUniqueId()); return; }
+            if (cursor[0] == song.notes().size() && tick[0] >= song.durationTicks()) {
+                stopSong(player.getUniqueId(), token);
+                return;
+            }
             tick[0]++;
-        }, () -> stopSong(player.getUniqueId()), 1, 1);
-        if (task != null) playing.put(player.getUniqueId(), task);
+        }, () -> stopSong(player.getUniqueId(), token), 1, 1);
+        if (task == null) requests.remove(player.getUniqueId(), token);
+        else playing.put(player.getUniqueId(), new Playback(token, task));
     }
 
     private void playNote(Player player, MidiSong.Note note) {
@@ -141,15 +163,23 @@ public final class MusicPlugin extends SeriesPlugin implements Listener {
 
     private void stopSong(UUID player) {
         requests.remove(player);
-        ScheduledTask task = playing.remove(player);
-        if (task != null) task.cancel();
+        Playback playback = playing.remove(player);
+        if (playback != null) playback.task().cancel();
+    }
+
+    private void stopSong(UUID player, UUID token) {
+        requests.remove(player, token);
+        Playback playback = playing.get(player);
+        if (playback != null && playback.token().equals(token) && playing.remove(player, playback)) {
+            playback.task().cancel();
+        }
     }
 
     @EventHandler public void left(PlayerQuitEvent event) { stopSong(event.getPlayer().getUniqueId()); }
 
     @Override protected void stop() {
         requests.clear();
-        playing.values().forEach(ScheduledTask::cancel);
+        playing.values().forEach(playback -> playback.task().cancel());
         playing.clear();
         if (loader != null) loader.shutdownNow();
     }

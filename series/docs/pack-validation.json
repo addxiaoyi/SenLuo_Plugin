@@ -1,8 +1,8 @@
 {
-  "items": 1774,
+  "items": 1822,
   "furniture": 1549,
   "recipes": 117,
-  "reachable_custom_models": 2711,
+  "reachable_custom_models": 2759,
   "errors": [],
   "scope": "Custom model parents, concrete texture references, item/furniture IDs and shared asset collisions; no server/render validation"
 }

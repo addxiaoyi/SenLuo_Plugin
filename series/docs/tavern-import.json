@@ -5,10 +5,10 @@
   "namespace": "kaleidoscope_tavern",
   "pack_namespace": "kseries_tavern",
   "converter": "tavern",
-  "item_definitions": 190,
+  "item_definitions": 238,
   "furniture_definitions": 39,
   "crafting_recipes": 114,
-  "assets": 1295,
+  "assets": 1343,
   "pending": [
     "kaleidoscope_tavern:shaker: uses base model in all views; Forge perspective renderer not ported",
     "handheld shaker uses vanilla use animation; native mod hand animation is unavailable",

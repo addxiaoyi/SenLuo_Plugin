@@ -82,10 +82,12 @@ public final class TeaBannerController extends BlockEntityController {
         if (id.equals("minecraft:shears") && !pattern.isEmpty()) {
             Item previous = pattern;
             pattern = Item.empty();
-            InventoryUtils.shrinkHeld(player, held, 1);
-            InventoryUtils.giveOrHold(player, hand, previous);
             syncVisual();
             changed();
+            DropUtils.dropAtCenter(blockEntity, previous);
+            if (!player.canInstabuild()) {
+                held.hurtAndBreak(1, player, null);
+            }
             play("minecraft:entity.sheep.shear");
             return InteractionResult.SUCCESS_AND_CANCEL;
         }

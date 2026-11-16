@@ -38,7 +38,50 @@ def function_sounds(files: dict[str, bytes], name: str) -> list[str]:
     return sounds
 
 
-def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: str) -> list[dict]:
+def item_tag_sources(files: dict[str, bytes]) -> dict[str, dict[str, dict]]:
+    tags = {}
+    for path, content in files.items():
+        match = re.fullmatch(r"src/([^/]+)/data/([^/]+)/tags/item/(.+)\.json", path)
+        if match:
+            module, namespace, name = match.groups()
+            tags.setdefault(f"{namespace}:{name}", {})[module] = json.loads(content)
+    return tags
+
+
+def tag_inputs(name: str, module: str, tags: dict, trail: tuple = ()) -> list[str]:
+    name = name if ":" in name else "minecraft:" + name
+    if name.startswith("minecraft:"):
+        return ["#" + name]
+    if name in trail:
+        raise ValueError(f"Cyclic interaction item tag: {name}")
+    sources = tags.get(name, {})
+    definition = sources.get(module)
+    if definition is None and sources:
+        first = next(iter(sources.values()))
+        if all(other == first for other in sources.values()):
+            definition = first
+    if not definition or set(definition) - {"values", "replace"} or not isinstance(definition.get("values"), list):
+        raise ValueError(f"Missing or ambiguous interaction item tag: {name}")
+    result = []
+    for member in definition["values"]:
+        if isinstance(member, dict) and set(member) == {"id", "required"} and member["required"] is False:
+            member = member["id"]
+        if not isinstance(member, str) or not re.fullmatch(r"#?(?:[a-z0-9_.-]+:)?[a-z0-9_./-]+", member):
+            raise ValueError(f"Unsupported member in interaction item tag: {name}")
+        if member.startswith("#"):
+            result.extend(tag_inputs(member[1:], module, tags, (*trail, name)))
+        else:
+            item = member if ":" in member else "minecraft:" + member
+            if not item.startswith("minecraft:"):
+                raise ValueError(f"Unmapped custom item in interaction item tag: {name}")
+            result.append(item)
+    if not result:
+        raise ValueError(f"Empty interaction item tag: {name}")
+    return sorted(set(result))
+
+
+def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: str,
+          module: str = "", tags: dict | None = None) -> list[dict]:
     click = definition.get("events", {}).get("right_click", {})
     converted = []
     for event in [*click.get("criteria", []), click.get("fallback", {})]:
@@ -53,6 +96,7 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
             rule["sneak"] = 0 if predicate.startswith("!") else 1
         condition = event.get("item", {})
         components = condition.get("components", {})
+        custom_tag = False
         if components:
             if components == {"minecraft:custom_data": {"kaleidoscope": "trans"}}:
                 rule["wand"] = True
@@ -64,11 +108,11 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
             if item == "*":
                 rule["inputs"] = ["*"]
             elif item.startswith("#"):
-                # Vanilla registry tags are checked by Bukkit; custom datapack tags are explicit pending rules.
-                if item.startswith("#minecraft:") or ":" not in item:
-                    rule["inputs"] = [item if ":" in item else "#minecraft:" + item[1:]]
-                else:
-                    pending.append(f"Interaction item tag pending: {item}")
+                custom_tag = ":" in item and not item.startswith("#minecraft:")
+                try:
+                    rule["inputs"] = tag_inputs(item[1:], module, tags or {})
+                except ValueError as error:
+                    pending.append(f"Interaction item tag pending: {error}")
                     continue
             else:
                 rule["inputs"] = [item if ":" in item else "minecraft:" + item]
@@ -95,10 +139,11 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
             if rule["target"] or rule["sounds"]:
                 converted.append(rule)
         except ValueError as error:
-            rule["target"] = ""
-            rule["sounds"] = []
-            rule["pending"] = True
-            converted.append(rule)
+            if not custom_tag:
+                rule["target"] = ""
+                rule["sounds"] = []
+                rule["pending"] = True
+                converted.append(rule)
             pending.append(f"Interaction action pending: {error}")
     return converted
 

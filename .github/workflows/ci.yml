@@ -68,17 +68,35 @@ jobs:
             series/tools/requirements.txt
       - name: Install tooling
         run: python -m pip install -r tools/requirements.txt -r series/tools/requirements.txt
-      - name: Restore pinned Cookery source
+      - name: Restore five pinned gameplay sources
         run: |
-          mkdir -p ../.references
-          git clone --branch main https://github.com/KaleidoscopeMods/KaleidoscopeCookery.git ../.references/KaleidoscopeCookery
-          git -C ../.references/KaleidoscopeCookery checkout --detach 2f4e386ce23f49a385ddf003c67fc6415c55417a
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          root = Path("../.references")
+          root.mkdir(exist_ok=True)
+          specs = json.loads(Path("series/tools/module-specs.json").read_text(encoding="utf-8"))
+          names = {"KaleidoscopeCookery", *(module["sourceRepository"] for module in specs["modules"])}
+          lock = json.loads(Path("docs/research/organization-checkouts.json").read_text(encoding="utf-8"))
+          records = {record["name"]: record for record in lock["repositories"]}
+          for name in sorted(names):
+              record = records[name]
+              target = root / name
+              subprocess.run(["git", "init", "-q", str(target)], check=True)
+              subprocess.run(["git", "-C", str(target), "fetch", "--depth=1", "--no-tags",
+                              record["clone_url"], record["commit"]], check=True)
+              subprocess.run(["git", "-C", str(target), "checkout", "--detach", record["commit"]], check=True)
+          PY
       - name: Run root tool tests
         run: python -m unittest discover -s tools -p 'test_*.py' -v
       - name: Run series tool tests
         env:
           PYTHONPATH: series/tools
         run: python -m unittest discover -s series/tools -p 'test_*.py' -v
+      - name: Verify generated series catalogs and resource references
+        run: python series/tools/import_sources.py --check
       - name: Validate feature ledger
         run: python tools/feature_ledger.py --report build/feature-ledger-summary.json
       - name: Inventory upstream license evidence

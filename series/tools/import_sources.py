@@ -6,7 +6,7 @@ Assets are local build outputs; their upstream licenses are kept with the packs.
 from __future__ import annotations
 
 import copy
-from deco_interactions import rules as deco_rules, link_variants, selected_model
+from deco_interactions import item_tag_sources, rules as deco_rules, link_variants, selected_model
 
 import argparse
 from dataclasses import dataclass
@@ -518,6 +518,7 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
     assets = {"kdeco_" + key: json_bytes(remap_deco(parse_json(content), namespaces))
               if key.endswith(".json") else content for key, content in original.items()}
     indexes, templates, tables, pending = deco_indexes(source)
+    tags = item_tag_sources(source.files)
     items, furnishings, entries, styles = {}, {}, [], []
     for index, (raw, path) in sorted(indexes.items()):
         id_ = "kaleidoscope_deco:" + index.replace(":", "/")
@@ -555,7 +556,7 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
             items[id_] = item_definition
             furnishings[id_] = furnishing
             entries.append({"id": id_, "category": path.split("/")[1], "source": path,
-                            "rules": deco_rules(definition, source.files, pending, index)})
+                            "rules": deco_rules(definition, source.files, pending, index, path.split("/")[1], tags)})
             if index == "kaleidoscope_bar:sofa":
                 for color in ("none", *COLORS):
                     for mode in ("single", "left", "right", "middle"):

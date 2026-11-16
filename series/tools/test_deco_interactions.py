@@ -1,9 +1,30 @@
 import unittest
 
-from deco_interactions import function_sounds, link_variants, rules, selected_model
+from deco_interactions import function_sounds, item_tag_sources, link_variants, rules, selected_model, tag_inputs
 
 
 class InteractionTests(unittest.TestCase):
+    def test_custom_tag_uses_its_module_and_does_not_guess_conflicting_overlays(self):
+        tags = item_tag_sources({
+            "src/cookery/data/demo/tags/item/fruit.json": b'{"values":["apple","#minecraft:flowers"]}',
+            "src/doll/data/demo/tags/item/fruit.json": b'{"values":[{"id":"sweet_berries","required":false}]}',
+        })
+        self.assertEqual(["#minecraft:flowers", "minecraft:apple"], tag_inputs("demo:fruit", "cookery", tags))
+        self.assertEqual(["minecraft:sweet_berries"], tag_inputs("demo:fruit", "doll", tags))
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            tag_inputs("demo:fruit", "other", tags)
+
+    def test_unported_custom_tag_action_leaves_fallback_reachable(self):
+        definition = {"events": {"right_click": {
+            "criteria": [{"event": "custom", "item": {"id": "#demo:fruit"}, "args": {"func": "demo:store"}}],
+            "fallback": {"event": "sound", "args": {"sound": "block.wood.place"}},
+        }}}
+        pending = []
+        parsed = rules(definition, {}, pending, "demo:chair", "other", {"demo:fruit": {"other": {"values": ["apple"]}}})
+        self.assertEqual(1, len(parsed))
+        self.assertEqual(["minecraft:block.wood.place"], parsed[0]["sounds"])
+        self.assertIn("demo:store", pending[0])
+
     def test_only_presentation_functions_can_be_used_as_simple_transitions(self):
         files = {"src/example/data/demo/function/simple.mcfunction": b"playsound block.wood.place block @a\nparticle flame ~ ~ ~ 0 0 0 0 1"}
         self.assertEqual(["minecraft:block.wood.place"], function_sounds(files, "demo:simple"))

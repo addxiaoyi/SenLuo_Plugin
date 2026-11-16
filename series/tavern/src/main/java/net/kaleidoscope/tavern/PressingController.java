@@ -28,6 +28,7 @@ public final class PressingController extends InteractiveFurniture {
     private ItemStack ingredients;
     private String fluid;
     private int amount;
+    private String shownVariant = "ground";
 
     public PressingController(Furniture furniture, TavernPlugin plugin) { super(furniture, plugin); tavern = plugin; }
 
@@ -51,6 +52,7 @@ public final class PressingController extends InteractiveFurniture {
             amount = 0;
             fluid = null;
             changed();
+            refreshLiquid();
             return;
         }
         if (ingredients != null && !ingredients.isSimilar(held)) { player.sendMessage("请先空手潜行取出原料。"); return; }
@@ -98,8 +100,20 @@ public final class PressingController extends InteractiveFurniture {
         ingredients.subtract();
         if (ingredients.isEmpty()) ingredients = null;
         changed();
+        refreshLiquid();
         location().getWorld().playSound(location(), Sound.BLOCK_SLIME_BLOCK_FALL, 0.6f, 1);
     }
+
+    private void refreshLiquid() {
+        String variant = amount == 0 ? "ground" : fluid.replace(':', '/') + "/" + Math.ceilDiv(amount, 125);
+        if (!variant.equals(shownVariant) && furniture().setVariant(variant)) shownVariant = variant;
+    }
+
+    @Override public void onLoad() {
+        if (!blocked() && amount > 0) refreshLiquid();
+    }
+
+    @Override public void onPlace(net.momirealms.craftengine.core.entity.player.Player player) { onLoad(); }
 
     @Override public void saveCustomData(CompoundTag root) {
         if (preserveRejected(root)) return;

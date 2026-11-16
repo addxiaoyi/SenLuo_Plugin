@@ -4,6 +4,7 @@ import java.util.Locale;
 
 public final class DollPose {
     public static final int AXES = 9;
+    private static final DollPose ORIGIN = new DollPose(new float[]{1, 1, 1, 0, 0, 0, 0, 0, 0});
     private final float[] values;
 
     private DollPose(float[] values) {
@@ -14,7 +15,8 @@ public final class DollPose {
         }
     }
 
-    public static DollPose origin() { return new DollPose(new float[]{1, 1, 1, 0, 0, 0, 0, 0, 0}); }
+    public static DollPose origin() { return ORIGIN; }
+    public boolean isOrigin() { return java.util.Arrays.equals(values, ORIGIN.values); }
     public float value(int axis) { return values[axis]; }
     public DollPose adjust(int axis, int direction) {
         if (axis < 0 || axis >= AXES || (direction != 1 && direction != -1)) throw new IllegalArgumentException("Invalid pose adjustment");

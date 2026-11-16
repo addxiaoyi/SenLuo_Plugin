@@ -44,15 +44,16 @@ def verify_zip(path: Path, required: tuple[str, ...]) -> None:
         raise ValueError(f"{path.name}: invalid ZIP: {error}") from error
 
 
-def single_match(roots: tuple[Path, ...], pattern: str, description: str) -> Path:
+def single_match(roots: tuple[Path, ...], patterns: tuple[str, ...], description: str) -> Path:
     matches: dict[Path, None] = {}
     for root in roots:
         if root.is_dir():
-            for candidate in root.glob(pattern):
-                if candidate.is_file():
-                    matches[candidate.resolve()] = None
+            for pattern in patterns:
+                for candidate in root.glob(pattern):
+                    if candidate.is_file():
+                        matches[candidate.resolve()] = None
     if not matches:
-        raise ValueError(f"missing {description} matching {pattern}")
+        raise ValueError(f"missing {description} matching {', '.join(patterns)}")
     if len(matches) > 1:
         raise ValueError(f"ambiguous {description}: {sorted(str(path) for path in matches)}")
     return next(iter(matches))
@@ -62,9 +63,10 @@ def required_artifacts(artifacts: Path, packs: Path, cookery_jar: Path | None,
                        cookery_pack: Path | None, craft_engine: Path | None) -> list[tuple[str, Path, str]]:
     found: list[tuple[str, Path, str]] = []
     for module in MODULES:
+        name = f"Kaleidoscope{module.capitalize()}"
         jar = single_match((artifacts / module / "build/libs", artifacts),
-                           f"Kaleidoscope{module.capitalize()}Plugin-*.jar", f"{module} JAR")
-        pack = single_match((packs,), f"{module}-ce-pack-*.zip", f"{module} CE pack")
+                           (f"{name}-*.jar", f"{name}Plugin-*.jar"), f"{module} JAR")
+        pack = single_match((packs,), (f"{module}-ce-pack-*.zip",), f"{module} CE pack")
         verify_zip(jar, ("plugin.yml",))
         verify_zip(pack, ("pack.yml", "configuration/content.yml"))
         found.extend(((f"plugins/{jar.name}", jar, "plugin"),

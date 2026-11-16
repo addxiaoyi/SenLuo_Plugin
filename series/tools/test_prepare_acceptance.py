@@ -41,7 +41,8 @@ class AcceptancePreparationTests(unittest.TestCase):
             artifacts.mkdir()
             packs.mkdir()
             for module in ("doll", "tavern", "deco", "music"):
-                jar = artifacts / f"Kaleidoscope{module.capitalize()}Plugin-0.1.0-dev.jar"
+                suffix = "Plugin" if module == "doll" else ""
+                jar = artifacts / f"Kaleidoscope{module.capitalize()}{suffix}-0.1.0-dev.jar"
                 with ZipFile(jar, "w") as archive:
                     archive.writestr("plugin.yml", "name: Test\n")
                 with ZipFile(packs / f"{module}-ce-pack-0.1.0-dev.zip", "w") as archive:

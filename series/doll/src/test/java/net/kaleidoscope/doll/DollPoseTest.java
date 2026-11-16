@@ -7,6 +7,8 @@ class DollPoseTest {
     @Test void roundTripsIndependentAxes() {
         DollPose pose = DollPose.origin().adjust(1, 1).adjust(4, -1).adjust(8, 1);
         assertEquals(pose.encode(), DollPose.decode(pose.encode()).encode());
+        assertFalse(pose.isOrigin());
+        assertTrue(DollPose.decode(DollPose.origin().encode()).isOrigin());
         assertEquals(1, pose.value(0));
         assertEquals(15, pose.value(8));
     }
