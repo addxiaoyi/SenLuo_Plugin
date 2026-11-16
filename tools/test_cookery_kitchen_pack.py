@@ -73,19 +73,23 @@ class KitchenPackTest(unittest.TestCase):
         block = self.config['blocks'][key]
         self.assertEqual({'type': 'block_item', 'block': key}, item['behavior'])
         self.assertEqual(1, item['data']['max_stack_size'])
-        self.assertEqual({'type': key}, block['behavior'])
+        self.assertEqual([
+            {'type': 'face_attached_horizontal_directional_block', 'blacklist': True},
+            {'type': key},
+        ], block['behaviors'])
         self.assertEqual({'pools': []}, block['loot'])
-        self.assertEqual({'facing', 'color', 'pattern'}, set(block['states']['properties']))
+        self.assertEqual({'face', 'facing', 'color', 'pattern'}, set(block['states']['properties']))
+        self.assertEqual('floor', block['states']['properties']['face']['default'])
         self.assertEqual('north', block['states']['properties']['facing']['default'])
         self.assertEqual(14, block['states']['properties']['color']['default'])
         self.assertEqual(0, block['states']['properties']['pattern']['default'])
-        self.assertEqual(4 * 16 * 7, len(block['states']['variants']))
-        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/red_tea',
-                         block['states']['appearances']['north_color_14_pattern_0']['model']['path'])
-        self.assertEqual(0, block['states']['appearances']['north_color_14_pattern_0']['model']['y'])
-        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/black_piglin',
-                         block['states']['appearances']['west_color_15_pattern_6']['model']['path'])
-        self.assertEqual(270, block['states']['appearances']['west_color_15_pattern_6']['model']['y'])
+        self.assertEqual(2 * 4 * 16 * 7, len(block['states']['variants']))
+        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/floor_red_tea',
+                         block['states']['appearances']['floor_north_color_14_pattern_0']['model']['path'])
+        self.assertEqual(0, block['states']['appearances']['floor_north_color_14_pattern_0']['model']['y'])
+        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/wall_black_piglin',
+                         block['states']['appearances']['wall_west_color_15_pattern_6']['model']['path'])
+        self.assertEqual(270, block['states']['appearances']['wall_west_color_15_pattern_6']['model']['y'])
 
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
         self.assertEqual(536, self.manifest['recipeStatuses']['imported'])
@@ -111,7 +115,8 @@ class KitchenPackTest(unittest.TestCase):
             'zongzi_plate': (4, ['kaleidoscopecookery:zongzi']),
         }
         plates = {key for key, block in self.config['blocks'].items()
-                  if isinstance(block['behavior'], list) and block['behavior'][0]['type'] == NAMESPACE + ':plate'}
+                  if isinstance(block.get('behavior', block.get('behaviors')), list)
+                  and block.get('behavior', block.get('behaviors'))[0]['type'] == NAMESPACE + ':plate'}
         self.assertEqual({NAMESPACE + ':' + name for name in expected}, plates)
         for name, (maximum, servings) in expected.items():
             with self.subTest(name=name):
@@ -124,7 +129,8 @@ class KitchenPackTest(unittest.TestCase):
 
     def test_placed_plates_start_with_all_official_portions(self):
         for key, block in self.config['blocks'].items():
-            if not isinstance(block['behavior'], list) or block['behavior'][0]['type'] != NAMESPACE + ':plate':
+            behaviors = block.get('behavior', block.get('behaviors'))
+            if not isinstance(behaviors, list) or behaviors[0]['type'] != NAMESPACE + ':plate':
                 continue
             with self.subTest(plate=key):
                 maximum = block['behavior'][0]['max_servings']
@@ -134,7 +140,8 @@ class KitchenPackTest(unittest.TestCase):
 
     def test_plate_removal_has_one_owner_for_portions_and_bowls(self):
         for key, block in self.config['blocks'].items():
-            if not isinstance(block['behavior'], list) or block['behavior'][0]['type'] != NAMESPACE + ':plate':
+            behaviors = block.get('behavior', block.get('behaviors'))
+            if not isinstance(behaviors, list) or behaviors[0]['type'] != NAMESPACE + ':plate':
                 continue
             with self.subTest(plate=key):
                 # A base item drop would recreate a full plate after the controller returns its remaining food.

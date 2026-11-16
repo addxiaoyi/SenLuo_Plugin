@@ -52,6 +52,7 @@ APPLIANCES = {
 TEA_BANNER_COLORS = ('white', 'orange', 'magenta', 'light_blue', 'yellow', 'lime', 'pink', 'gray',
                      'light_gray', 'cyan', 'purple', 'blue', 'brown', 'green', 'red', 'black')
 TEA_BANNER_PATTERNS = ('tea', 'creeper', 'skull', 'flower', 'mojang', 'globe', 'piglin')
+TEA_BANNER_FACES = ('floor', 'wall')
 PENDING = [
     'Tripwire-backed appliances have vanilla selection boxes and no solid collision; exact mod voxel shapes remain pending.',
     'Waterlogging is not enabled by this acceptance pack.',
@@ -89,31 +90,33 @@ def add_model(assets: dict[str, bytes], name: str, model: dict) -> str:
     return identifier
 
 
-def tea_banner_model(color: str, pattern: str) -> dict:
+def tea_banner_model(face: str, color: str, pattern: str) -> dict:
     """Build a thin, double-sided banner mesh for one saved visual state."""
     base = f'{ART}:entity/banner/{color}'
     overlay = f'{ART}:entity/pattern/{pattern}'
+    depth = (7.5, 8.5) if face == 'floor' else (0.25, 0.75)
     return {
         'ambientocclusion': False,
         'textures': {'base': base, 'pattern': overlay, 'particle': base},
         'elements': [
-            {'from': [1, 0, 7.5], 'to': [15, 16, 8.5],
+            {'from': [1, 0, depth[0]], 'to': [15, 16, depth[1]],
              'faces': {'north': {'texture': '#base', 'uv': [0, 0, 16, 16]},
                        'south': {'texture': '#base', 'uv': [16, 0, 0, 16]}}},
-            {'from': [1, 0, 7.45], 'to': [15, 16, 7.55],
+            {'from': [1, 0, depth[0] - 0.05], 'to': [15, 16, depth[0] + 0.05],
              'faces': {'north': {'texture': '#pattern', 'uv': [0, 0, 16, 16]},
                        'south': {'texture': '#pattern', 'uv': [16, 0, 0, 16]}}},
         ],
     }
 
 
-def tea_banner_models(assets: dict[str, bytes]) -> dict[tuple[int, int], str]:
+def tea_banner_models(assets: dict[str, bytes]) -> dict[tuple[str, int, int], str]:
     models = {}
-    for color_index, color in enumerate(TEA_BANNER_COLORS):
-        for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
-            name = f'tea_banner/{color}_{pattern}'
-            models[(color_index, pattern_index)] = add_model(
-                assets, name, tea_banner_model(color, pattern))
+    for face in TEA_BANNER_FACES:
+        for color_index, color in enumerate(TEA_BANNER_COLORS):
+            for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
+                name = f'tea_banner/{face}_{color}_{pattern}'
+                models[(face, color_index, pattern_index)] = add_model(
+                    assets, name, tea_banner_model(face, color, pattern))
     return models
 
 
@@ -438,24 +441,29 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
     items[tea_banner_key]['behavior'] = {'type': 'block_item', 'block': tea_banner_key}
     items[tea_banner_key]['data']['max_stack_size'] = 1
     tea_appearances, tea_variants = {}, {}
-    for facing_index, facing in enumerate(FACING):
-        for color_index, color in enumerate(TEA_BANNER_COLORS):
-            for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
-                appearance = f'{facing}_color_{color_index}_pattern_{pattern_index}'
-                tea_appearances[appearance] = {
-                    'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
-                    'model': {'path': tea_visual_models[(color_index, pattern_index)],
-                              'y': facing_index * 90},
-                }
-                tea_variants[f'facing={facing},color={color_index},pattern={pattern_index}'] = {
-                    'appearance': appearance}
+    for face in TEA_BANNER_FACES:
+        for facing_index, facing in enumerate(FACING):
+            for color_index, color in enumerate(TEA_BANNER_COLORS):
+                for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
+                    appearance = f'{face}_{facing}_color_{color_index}_pattern_{pattern_index}'
+                    tea_appearances[appearance] = {
+                        'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
+                        'model': {'path': tea_visual_models[(face, color_index, pattern_index)],
+                                  'y': facing_index * 90},
+                    }
+                    tea_variants[f'face={face},facing={facing},color={color_index},pattern={pattern_index}'] = {
+                        'appearance': appearance}
     blocks[tea_banner_key] = {
         'settings': {'item': tea_banner_key, 'hardness': 1, 'resistance': 1,
                      'push_reaction': 'destroy', 'can_occlude': False,
                      'is_suffocating': False, 'is_view_blocking': False},
-        'behavior': {'type': tea_banner_key},
+        'behaviors': [
+            {'type': 'face_attached_horizontal_directional_block', 'blacklist': True},
+            {'type': tea_banner_key},
+        ],
         'loot': {'pools': []},
         'states': {'properties': {
+                       'face': {'type': 'anchor_type', 'default': 'floor'},
                        'facing': {'type': 'horizontal_direction', 'default': 'north'},
                        'color': {'type': 'int', 'range': '0~15', 'default': 14},
                        'pattern': {'type': 'int', 'range': '0~6', 'default': 0}},

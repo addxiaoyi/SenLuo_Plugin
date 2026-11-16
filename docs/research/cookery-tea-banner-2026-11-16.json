@@ -20,8 +20,9 @@
     "shearsRemovePattern": true,
     "statePersistence": "CookeryBlockStateEnvelope and Sparrow item tag",
     "statefulDrop": true,
-    "visualModels": 112,
-    "placementStates": 448,
+    "visualModels": 224,
+    "placementStates": 896,
+    "attachmentFaces": ["floor", "wall"],
     "visualModel": "thin double-sided mesh using upstream banner and pattern textures",
     "visualStateSync": "CraftEngine int properties color=0..15 and pattern=0..6"
   },
