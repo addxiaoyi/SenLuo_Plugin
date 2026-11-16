@@ -75,14 +75,17 @@ class KitchenPackTest(unittest.TestCase):
         self.assertEqual(1, item['data']['max_stack_size'])
         self.assertEqual({'type': key}, block['behavior'])
         self.assertEqual({'pools': []}, block['loot'])
-        self.assertEqual({'color', 'pattern'}, set(block['states']['properties']))
+        self.assertEqual({'facing', 'color', 'pattern'}, set(block['states']['properties']))
+        self.assertEqual('north', block['states']['properties']['facing']['default'])
         self.assertEqual(14, block['states']['properties']['color']['default'])
         self.assertEqual(0, block['states']['properties']['pattern']['default'])
-        self.assertEqual(16 * 7, len(block['states']['variants']))
+        self.assertEqual(4 * 16 * 7, len(block['states']['variants']))
         self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/red_tea',
-                         block['states']['appearances']['color_14_pattern_0']['model']['path'])
+                         block['states']['appearances']['north_color_14_pattern_0']['model']['path'])
+        self.assertEqual(0, block['states']['appearances']['north_color_14_pattern_0']['model']['y'])
         self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/black_piglin',
-                         block['states']['appearances']['color_15_pattern_6']['model']['path'])
+                         block['states']['appearances']['west_color_15_pattern_6']['model']['path'])
+        self.assertEqual(270, block['states']['appearances']['west_color_15_pattern_6']['model']['y'])
 
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
         self.assertEqual(536, self.manifest['recipeStatuses']['imported'])

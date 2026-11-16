@@ -9,18 +9,22 @@ import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
+import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
+import net.kaleidoscope.cookery.util.BlockStates;
 
 /** Server-side state bridge for the Cookery tea banner. */
 public final class TeaBannerBehavior extends BukkitBlockBehavior implements EntityBlock {
     public static final BlockBehaviorFactory<TeaBannerBehavior> FACTORY = new Factory();
 
     private int controllerId;
+    private Property<Direction> facingProperty;
     private Property<Integer> colorProperty;
     private Property<Integer> patternProperty;
 
@@ -46,6 +50,11 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
     }
 
     @Override
+    public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
+        return BlockStates.with(state, facingProperty, context.getHorizontalDirection().opposite());
+    }
+
+    @Override
     public BlockEntityController createBlockEntityController(BlockEntity blockEntity) {
         return new TeaBannerController(blockEntity, this);
     }
@@ -58,6 +67,10 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
         return patternProperty;
     }
 
+    public Property<Direction> facingProperty() {
+        return facingProperty;
+    }
+
     @Override
     public void initControllerId(int id) {
         controllerId = id;
@@ -67,6 +80,7 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
         @Override
         public TeaBannerBehavior create(BlockDefinition block, ConfigSection section) {
             TeaBannerBehavior behavior = new TeaBannerBehavior(block);
+            behavior.facingProperty = BlockBehaviorFactory.getProperty(section.path(), block, "facing", Direction.class);
             behavior.colorProperty = BlockBehaviorFactory.getProperty(section.path(), block, "color", Integer.class);
             behavior.patternProperty = BlockBehaviorFactory.getProperty(section.path(), block, "pattern", Integer.class);
             return behavior;

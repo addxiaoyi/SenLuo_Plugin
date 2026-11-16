@@ -438,14 +438,17 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
     items[tea_banner_key]['behavior'] = {'type': 'block_item', 'block': tea_banner_key}
     items[tea_banner_key]['data']['max_stack_size'] = 1
     tea_appearances, tea_variants = {}, {}
-    for color_index, color in enumerate(TEA_BANNER_COLORS):
-        for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
-            appearance = f'color_{color_index}_pattern_{pattern_index}'
-            tea_appearances[appearance] = {
-                'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
-                'model': model_node(tea_visual_models[(color_index, pattern_index)]),
-            }
-            tea_variants[f'color={color_index},pattern={pattern_index}'] = {'appearance': appearance}
+    for facing_index, facing in enumerate(FACING):
+        for color_index, color in enumerate(TEA_BANNER_COLORS):
+            for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
+                appearance = f'{facing}_color_{color_index}_pattern_{pattern_index}'
+                tea_appearances[appearance] = {
+                    'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
+                    'model': {'path': tea_visual_models[(color_index, pattern_index)],
+                              'y': facing_index * 90},
+                }
+                tea_variants[f'facing={facing},color={color_index},pattern={pattern_index}'] = {
+                    'appearance': appearance}
     blocks[tea_banner_key] = {
         'settings': {'item': tea_banner_key, 'hardness': 1, 'resistance': 1,
                      'push_reaction': 'destroy', 'can_occlude': False,
@@ -453,6 +456,7 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
         'behavior': {'type': tea_banner_key},
         'loot': {'pools': []},
         'states': {'properties': {
+                       'facing': {'type': 'horizontal_direction', 'default': 'north'},
                        'color': {'type': 'int', 'range': '0~15', 'default': 14},
                        'pattern': {'type': 'int', 'range': '0~6', 'default': 0}},
                    'appearances': tea_appearances, 'variants': tea_variants}}
