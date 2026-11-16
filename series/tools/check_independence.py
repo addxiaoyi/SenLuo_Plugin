@@ -65,7 +65,7 @@ def check(source_root: Path = SUITE, artifacts: Path | None = None,
                         "metadata": str(metadata_path.relative_to(source_root))})
 
         if artifacts:
-            pattern = f"Kaleidoscope{module.capitalize()}-*.jar"
+            pattern = f"Kaleidoscope{module.capitalize()}Plugin-*.jar"
             jar, error = _single_match((artifacts, artifacts / module / "build/libs",
                                         source_root / module / "build/libs"), pattern)
             if error:

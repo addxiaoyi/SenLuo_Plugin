@@ -253,6 +253,13 @@ python -X utf8 tools/run_enchantment_acceptance.py --accept-eula --root build/ac
 
 脚本只创建全新隔离目录，拒绝覆盖旧证据；两次启动间检查物品二进制重读，处理带颜色的控制台日志，任何新增 ERROR 会失败。完整例外清单仅为上述 11 个缺失厨具定义，仍写入结果。Folia 冷启动耗时异常需要继续定位，后续成功不能抹去该失败。
 
+## 厨房附属物品双端启动（2026-11-16）
+
+- 运行准备：`series/tools/prepare_independent_servers.py` 创建全新 `build/acceptance/shovel-runtime-20261116/{paper,folia}`，仅使用已接受的隔离测试 EULA；端口为 `25591/25592`。固定 Java 21、Paper 1.21.11-132、Folia 1.21.11-14、CraftEngine 26.9.1 和 Cookery 包 SHA-256 `733d248134932462936fd48453bb588ad2fd1ea966c96a379f36a71690b1f51a`。
+- Paper 启动 PASS（38.694 秒），Folia 启动 PASS（33.817 秒）；两端均加载五个插件、CraftEngine 与 `cookery_kitchen`，Cookery 方块注册自检 11/11 通过，均通过 `stop` 正常保存并退出，进程退出码 0。启动日志位于隔离目录各自的 `logs/latest.log`。
+- 本轮修复 `check_independence.py` 和 `prepare_independent_servers.py` 的 JAR glob：构建产物名为 `Kaleidoscope<Module>Plugin-*.jar`。新增两项回归；`python -m unittest discover -s series/tools -p 'test_*.py' -v` 共 33 项通过。
+- **不代表资源包或玩家操作验收**：CraftEngine 的 `reload_pack` 工作流没有执行，最终 `generated/resource_pack.zip` 未生成；沾油 `item_model` 的客户端渲染和交互切换、茶旗、农夫装备效果均未测试。详见[启动摘要](research/cookery-shovel-runtime-2026-11-16.json)。
+
 ## 本地产物（历史附魔检查点）
 
 `build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar`

@@ -4,7 +4,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 from check_acceptance_matrix import load as load_matrix
-from prepare_independent_servers import _within, verify_zip
+from prepare_independent_servers import _within, required_artifacts, verify_zip
 
 
 class AcceptancePreparationTests(unittest.TestCase):
@@ -32,6 +32,24 @@ class AcceptancePreparationTests(unittest.TestCase):
             with ZipFile(archive, "w") as output:
                 output.writestr("paper-plugin.yml", "name: CraftEngine\n")
             verify_zip(archive, ("paper-plugin.yml",))
+
+    def test_runtime_preparation_finds_gradle_plugin_jar_names(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifacts = root / "artifacts"
+            packs = root / "packs"
+            artifacts.mkdir()
+            packs.mkdir()
+            for module in ("doll", "tavern", "deco", "music"):
+                jar = artifacts / f"Kaleidoscope{module.capitalize()}Plugin-0.1.0-dev.jar"
+                with ZipFile(jar, "w") as archive:
+                    archive.writestr("plugin.yml", "name: Test\n")
+                with ZipFile(packs / f"{module}-ce-pack-0.1.0-dev.zip", "w") as archive:
+                    archive.writestr("pack.yml", "namespace: test\n")
+                    archive.writestr("configuration/content.yml", "{}\n")
+            found = required_artifacts(artifacts, packs, None, None, None)
+            self.assertEqual(8, len(found))
+            self.assertEqual(4, sum(kind == "plugin" for _, _, kind in found))
 
 
 if __name__ == "__main__":

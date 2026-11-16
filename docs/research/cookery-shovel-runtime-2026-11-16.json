@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-16",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "cookeryPack": {
+    "path": "build/acceptance/auxiliary-items-20261116-v3.zip",
+    "sha256": "733d248134932462936fd48453bb588ad2fd1ea966c96a379f36a71690b1f51a"
+  },
+  "target": {
+    "java": "21.0.10",
+    "paper": "1.21.11-132-c5eb079",
+    "folia": "1.21.11-14-529aabc",
+    "craftEngine": "26.9.1"
+  },
+  "instances": {
+    "paper": {
+      "path": "build/acceptance/shovel-runtime-20261116/paper",
+      "port": 25591,
+      "startup": "PASS",
+      "startupSeconds": 38.694,
+      "cookeryPackLoaded": true,
+      "cookeryBlockRegistration": "11/11 PASS",
+      "shutdown": "PASS"
+    },
+    "folia": {
+      "path": "build/acceptance/shovel-runtime-20261116/folia",
+      "port": 25592,
+      "startup": "PASS",
+      "startupSeconds": 33.817,
+      "cookeryPackLoaded": true,
+      "cookeryBlockRegistration": "11/11 PASS",
+      "shutdown": "PASS"
+    }
+  },
+  "acceptance": {
+    "serverStartup": "PASS",
+    "craftEnginePackLoad": "PASS",
+    "resourcePackGeneration": "NOT_RUN",
+    "shovelOilStateInteraction": "NOT_RUN",
+    "vanillaClient": "NOT_TESTED"
+  },
+  "preparationTests": {
+    "command": "python -m unittest discover -s series/tools -p 'test_*.py' -v",
+    "tests": 33,
+    "failures": 0,
+    "errors": 0
+  }
+}

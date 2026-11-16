@@ -63,7 +63,7 @@ def required_artifacts(artifacts: Path, packs: Path, cookery_jar: Path | None,
     found: list[tuple[str, Path, str]] = []
     for module in MODULES:
         jar = single_match((artifacts / module / "build/libs", artifacts),
-                           f"Kaleidoscope{module.capitalize()}-*.jar", f"{module} JAR")
+                           f"Kaleidoscope{module.capitalize()}Plugin-*.jar", f"{module} JAR")
         pack = single_match((packs,), f"{module}-ce-pack-*.zip", f"{module} CE pack")
         verify_zip(jar, ("plugin.yml",))
         verify_zip(pack, ("pack.yml", "configuration/content.yml"))
