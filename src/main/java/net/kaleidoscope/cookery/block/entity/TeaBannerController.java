@@ -1,6 +1,7 @@
 package net.kaleidoscope.cookery.block.entity;
 
 import net.kaleidoscope.cookery.block.behavior.TeaBannerBehavior;
+import net.kaleidoscope.cookery.block.entity.render.TrackedPlayers;
 import net.kaleidoscope.cookery.util.BlockEntityNbt;
 import net.kaleidoscope.cookery.util.BlockStates;
 import net.kaleidoscope.cookery.util.CookeryBlockStateEnvelope;
@@ -185,7 +186,7 @@ public final class TeaBannerController extends BlockEntityController {
         long gameTime = ((org.bukkit.World) blockEntity.world.world().platformWorld()).getGameTime();
         long phase = Math.floorMod(gameTime + blockEntity.pos.asLong(), 18L);
         int next = phase < 6 ? 0 : phase < 12 ? 1 : 2;
-        if (next == wave) {
+        if (next == wave || TrackedPlayers.snapshotInRange(blockEntity, TrackedPlayers.DEFAULT_ANIM_CHUNK_RADIUS).isEmpty()) {
             return;
         }
         wave = next;

@@ -95,20 +95,20 @@ def tea_banner_model(face: str, color: str, pattern: str, wave: str) -> dict:
     """Build a thin, double-sided banner mesh for one saved visual state."""
     base = f'{ART}:entity/banner/{color}'
     overlay = f'{ART}:entity/pattern/{pattern}'
-    center = (7.5, 8.5) if face == 'floor' else (0.25, 0.75)
+    center = 8 if face == 'floor' else 14.5
     offsets = {'still': (0.0, 0.0, 0.0, 0.0),
                'left': (-0.45, 0.35, 0.75, 0.35),
                'right': (0.45, -0.35, -0.75, -0.35)}[wave]
     segments = []
     edges = (1.0, 4.5, 8.0, 11.5, 15.0)
     for index, (start, end) in enumerate(zip(edges, edges[1:])):
-        z = (center[0] + center[1]) / 2 + offsets[index]
+        z = center + offsets[index]
         u0, u1 = index * 4, (index + 1) * 4
         segments.extend((
             {'from': [start, 0, z - 0.5], 'to': [end, 16, z + 0.5],
              'faces': {'north': {'texture': '#base', 'uv': [u0, 0, u1, 16]},
                        'south': {'texture': '#base', 'uv': [u1, 0, u0, 16]}}},
-            {'from': [start, 0, z - 0.55], 'to': [end, 16, z - 0.45],
+            {'from': [start, 0, z - 0.52], 'to': [end, 16, z + 0.52],
              'faces': {'north': {'texture': '#pattern', 'uv': [u0, 0, u1, 16]},
                        'south': {'texture': '#pattern', 'uv': [u1, 0, u0, 16]}}},
         ))
@@ -460,8 +460,10 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
                         appearance = f'{face}_{facing}_color_{color_index}_pattern_{pattern_index}_wave_{wave_index}'
                         tea_appearances[appearance] = {
                             'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
-                            'model': {'path': tea_visual_models[(face, color_index, pattern_index, wave_index)],
-                                      'y': facing_index * 90},
+                            'transparent': True,
+                            'entity_renderer': display(
+                                assets, items, tea_visual_models[(face, color_index, pattern_index, wave_index)],
+                                facing_index * 90),
                         }
                         tea_variants[
                             f'face={face},facing={facing},color={color_index},pattern={pattern_index},wave={wave_index}'

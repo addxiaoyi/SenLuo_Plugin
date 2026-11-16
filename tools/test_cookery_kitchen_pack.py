@@ -85,12 +85,23 @@ class KitchenPackTest(unittest.TestCase):
         self.assertEqual(0, block['states']['properties']['pattern']['default'])
         self.assertEqual(0, block['states']['properties']['wave']['default'])
         self.assertEqual(2 * 4 * 16 * 7 * 3, len(block['states']['variants']))
-        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/floor_red_tea_still',
-                         block['states']['appearances']['floor_north_color_14_pattern_0_wave_0']['model']['path'])
-        self.assertEqual(0, block['states']['appearances']['floor_north_color_14_pattern_0_wave_0']['model']['y'])
-        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/wall_black_piglin_right',
-                         block['states']['appearances']['wall_west_color_15_pattern_6_wave_2']['model']['path'])
-        self.assertEqual(270, block['states']['appearances']['wall_west_color_15_pattern_6_wave_2']['model']['y'])
+        appearances = block['states']['appearances']
+        display_items = set()
+        for appearance in appearances.values():
+            self.assertEqual({'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'}, appearance['auto_state'])
+            self.assertTrue(appearance['transparent'])
+            self.assertNotIn('model', appearance)
+            display_items.add(appearance['entity_renderer']['item'])
+        self.assertEqual(2 * 16 * 7 * 3, len(display_items))
+        cases = [
+            ('floor_north_color_14_pattern_0_wave_0', 0, 'floor_red_tea_still'),
+            ('wall_west_color_15_pattern_6_wave_2', 270, 'wall_black_piglin_right'),
+        ]
+        for appearance, yaw, name in cases:
+            renderer = appearances[appearance]['entity_renderer']
+            self.assertEqual(yaw, renderer['yaw'])
+            path = f'{NAMESPACE}:block/imported/tea_banner/{name}'
+            self.assertEqual(path, self.config['items'][renderer['item']]['model']['path'])
 
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
         self.assertEqual(536, self.manifest['recipeStatuses']['imported'])

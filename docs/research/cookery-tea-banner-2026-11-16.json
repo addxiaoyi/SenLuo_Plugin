@@ -25,13 +25,13 @@
     "attachmentFaces": ["floor", "wall"],
     "waveStates": 3,
     "visualModel": "thin double-sided mesh using upstream banner and pattern textures",
-    "visualStateSync": "CraftEngine int properties color=0..15 and pattern=0..6"
+    "visualStateSync": "CraftEngine item displays reuse one transparent tripwire carrier. Wave updates require a nearby tracking player."
   },
   "verification": {
     "pythonTests": "104 passed",
-    "packItems": 534,
+    "packItems": 1206,
     "packBlocks": 63,
-    "packCheckedModels": 658,
+    "packCheckedModels": 1218,
     "recipeStatuses": {
       "imported": 536,
       "pending": 76
