@@ -1,0 +1,35 @@
+{
+  "feature": "tea_banner",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "target": {
+    "minecraft": "1.21.11",
+    "craftEngine": "26.9.1"
+  },
+  "implementation": {
+    "placement": "kaleidoscopecookery:tea_banner block_item",
+    "behavior": "kaleidoscopecookery:tea_banner",
+    "colors": 16,
+    "patterns": [
+      "minecraft:creeper_banner_pattern",
+      "minecraft:skull_banner_pattern",
+      "minecraft:flower_banner_pattern",
+      "minecraft:mojang_banner_pattern",
+      "minecraft:globe_banner_pattern",
+      "minecraft:piglin_banner_pattern"
+    ],
+    "shearsRemovePattern": true,
+    "statePersistence": "CookeryBlockStateEnvelope and Sparrow item tag",
+    "statefulDrop": true
+  },
+  "verification": {
+    "pythonTests": "104 passed",
+    "packItems": 535,
+    "packBlocks": 63,
+    "packCheckedModels": 547,
+    "recipeStatuses": {
+      "imported": 536,
+      "pending": 76
+    },
+    "clientVisual": "NOT_TESTED"
+  }
+}

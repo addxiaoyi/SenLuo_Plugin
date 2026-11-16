@@ -21,6 +21,7 @@ import net.kaleidoscope.cookery.block.behavior.CropHarvestBehavior;
 import net.kaleidoscope.cookery.block.behavior.TableBehavior;
 import net.kaleidoscope.cookery.block.behavior.BambooTrayBehavior;
 import net.kaleidoscope.cookery.block.behavior.PlateBehavior;
+import net.kaleidoscope.cookery.block.behavior.TeaBannerBehavior;
 
 // 方块行为注册
 public final class BlockBehaviors {
@@ -44,12 +45,15 @@ public final class BlockBehaviors {
     public static BlockBehaviorType<BambooTrayBehavior> BAMBOO_TRAY;
     public static BlockBehaviorType<PlateBehavior> PLATE;
     public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.PlacedMealBehavior> PLACED_MEAL;
+    public static BlockBehaviorType<TeaBannerBehavior> TEA_BANNER;
 
     private BlockBehaviors() {}
 
     public static void register() {
         if (PLACED_MEAL == null) PLACED_MEAL = RegistryUtils.registerBlockBehavior(
                 Key.of("kaleidoscopecookery:placed_meal"), net.kaleidoscope.cookery.block.behavior.PlacedMealBehavior.FACTORY);
+        if (TEA_BANNER == null) TEA_BANNER = RegistryUtils.registerBlockBehavior(
+                Key.of("kaleidoscopecookery:tea_banner"), TeaBannerBehavior.FACTORY);
         if (BAMBOO_TRAY == null) {
             BAMBOO_TRAY = RegistryUtils.registerBlockBehavior(
                     Key.of("kaleidoscopecookery:bamboo_tray"), BambooTrayBehavior.FACTORY);

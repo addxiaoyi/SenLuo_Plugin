@@ -92,6 +92,15 @@
       "evidence": ["src/main/java/net/kaleidoscope/cookery/recipe/RiceBowlRecipe.java", "docs/research/cookery-rice-bowls-acceptance-2026-11-16.json", "build/acceptance/rice-bowl-api-audit/summary.txt"]
     },
     {
+      "feature_id": "C12",
+      "module": "cookery",
+      "title": "茶旗放置、染色、图案存档与带状态掉落",
+      "parity_level": "B",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeCookery:TeaBannerBlock", "KaleidoscopeCookery:TeaBannerBlockEntity"],
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/block/behavior/TeaBannerBehavior.java", "src/main/java/net/kaleidoscope/cookery/block/entity/TeaBannerController.java", "tools/test_cookery_kitchen_pack.py", "docs/research/cookery-tea-banner-2026-11-16.json"]
+    },
+    {
       "feature_id": "C10",
       "module": "cookery",
       "title": "11种整份取物盘的服务端存取与掉落",

@@ -396,6 +396,25 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
     tools(items, definitions, names)
     auxiliary_items(items, definitions, names)
     blocks = {}
+    tea_banner_key = NAMESPACE + ':tea_banner'
+    tea_banner_model = ART + ':item/tea_banner'
+    tea_banner_block_model = ART + ':block/tea_banner'
+    for model in (tea_banner_model, tea_banner_block_model):
+        if model not in definitions:
+            raise AuditError(f'missing tea banner model: {model}')
+    items[tea_banner_key] = item(tea_banner_key, definitions[tea_banner_model], names.get('block.' + ART + '.tea_banner', '茶旗'))
+    items[tea_banner_key]['behavior'] = {'type': 'block_item', 'block': tea_banner_key}
+    items[tea_banner_key]['data']['max_stack_size'] = 1
+    blocks[tea_banner_key] = {
+        'settings': {'item': tea_banner_key, 'hardness': 1, 'resistance': 1,
+                     'push_reaction': 'destroy', 'can_occlude': False,
+                     'is_suffocating': False, 'is_view_blocking': False},
+        'behavior': {'type': tea_banner_key},
+        'loot': {'pools': []},
+        'states': {'appearances': {
+            'base': {'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
+                     'entity_renderer': display(assets, items, tea_banner_block_model)}},
+                   'variants': {'': {'appearance': 'base'}}}}
     for name in APPLIANCES:
         key = NAMESPACE + ':' + name
         model = model_node(parts['coaster']) if name == 'teacup_coaster' else definitions[ART + ':item/' + ('pot_has_oil' if name == 'oil_pot' else name)]

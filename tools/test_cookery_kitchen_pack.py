@@ -27,7 +27,7 @@ class KitchenPackTest(unittest.TestCase):
         cls.config = yaml.safe_load(cls.bundle[f'{PACK}/configuration/kitchen.yml'])
 
     def test_every_plugin_property_combination_has_an_appearance(self):
-        self.assertEqual(62, len(self.config['blocks']))
+        self.assertEqual(63, len(self.config['blocks']))
         self.assertEqual(28, len(self.config['bamboo_tray_recipes']))
         for name in APPLIANCES:
             with self.subTest(name=name):
@@ -67,9 +67,19 @@ class KitchenPackTest(unittest.TestCase):
         self.assertTrue({'kaleidoscope_cookery:sickle', 'kaleidoscope_cookery:straw_hat',
                          'kaleidoscope_cookery:straw_hat_flower'} <= imported)
 
+    def test_tea_banner_has_stateful_block_item_and_no_duplicate_base_drop(self):
+        key = NAMESPACE + ':tea_banner'
+        item = self.config['items'][key]
+        block = self.config['blocks'][key]
+        self.assertEqual({'type': 'block_item', 'block': key}, item['behavior'])
+        self.assertEqual(1, item['data']['max_stack_size'])
+        self.assertEqual({'type': key}, block['behavior'])
+        self.assertEqual({'pools': []}, block['loot'])
+        self.assertEqual([''], list(block['states']['variants']))
+
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
-        self.assertEqual(535, self.manifest['recipeStatuses']['imported'])
-        self.assertEqual(77, self.manifest['recipeStatuses']['pending'])
+        self.assertEqual(536, self.manifest['recipeStatuses']['imported'])
+        self.assertEqual(76, self.manifest['recipeStatuses']['pending'])
         parity = json.loads(self.bundle[f'{PACK}/recipe-parity.json'])
         tray_records = [row for row in parity['recipes']
                         if row.get('section') == 'bamboo_tray_recipes']
