@@ -100,7 +100,7 @@ Java 回归覆盖等级 0–3、越界、无附魔、错误附魔、重复附魔
 
 - 官方新增厨师职业、工作站 POI 与 1–5 级交易；插件未见职业/交易注册实现。证据：`U/init/ModVillager.java`、`U/init/ModPoi.java`、`U/event/ModTradesEvent.java:27-137`。
 - 官方将厨房加入平原、雪地、热带草原、沙漠、针叶林村庄结构池，各权重 4；插件无世界生成实现，也未携带这五个 NBT。证据：`U/event/AddVillageStructuresEvent.java:27-41` 与官方 `src/main/resources/data/kaleidoscope_cookery/structures/village/houses/`。
-- 茶旗已通过 `TeaBannerController` 保存颜色和图案物品，支持六种原版图案、剪刀取下、带状态掉落和重新放置恢复。当前 CE 仍使用静态茶旗模型，颜色与图案的动态客户端渲染待补。上游证据：`U/blockentity/decoration/TeaBannerBlockEntity.java:17-54`、`U/item/TeaBannerItem.java:20-32`。
+- 茶旗已通过 `TeaBannerController` 保存颜色和图案物品，支持六种原版图案、剪刀取下、带状态掉落和重新放置恢复。CE 方块状态按 16 种颜色与 7 种图案生成 112 个模型变体，染色和图案交互会同步状态。旗杆摆动与墙面朝向仍待客户端验收。上游证据：`U/blockentity/decoration/TeaBannerBlockEntity.java:17-54`、`U/item/TeaBannerItem.java:20-32`。
 - 官方全套农夫装备在水中每 20 tick 刷新 25 tick 海豚恩惠；当前插件未见对应套装规则，但可通过 CE 配置或后续插件逻辑实现，须核对现有资源。证据：`U/event/ArmorEffectEvent.java:16-31`。
 
 村民外观与自定义职业名称、世界生成时机、既有区块和新生成区块的差异，都需要单独验收，不能用放置几个静态 NPC 作为完整复刻。

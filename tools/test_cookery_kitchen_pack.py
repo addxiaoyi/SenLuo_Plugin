@@ -75,7 +75,14 @@ class KitchenPackTest(unittest.TestCase):
         self.assertEqual(1, item['data']['max_stack_size'])
         self.assertEqual({'type': key}, block['behavior'])
         self.assertEqual({'pools': []}, block['loot'])
-        self.assertEqual([''], list(block['states']['variants']))
+        self.assertEqual({'color', 'pattern'}, set(block['states']['properties']))
+        self.assertEqual(14, block['states']['properties']['color']['default'])
+        self.assertEqual(0, block['states']['properties']['pattern']['default'])
+        self.assertEqual(16 * 7, len(block['states']['variants']))
+        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/red_tea',
+                         block['states']['appearances']['color_14_pattern_0']['model']['path'])
+        self.assertEqual('kaleidoscopecookery:block/imported/tea_banner/black_piglin',
+                         block['states']['appearances']['color_15_pattern_6']['model']['path'])
 
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
         self.assertEqual(536, self.manifest['recipeStatuses']['imported'])

@@ -19,17 +19,20 @@
     ],
     "shearsRemovePattern": true,
     "statePersistence": "CookeryBlockStateEnvelope and Sparrow item tag",
-    "statefulDrop": true
+    "statefulDrop": true,
+    "visualStates": 112,
+    "visualModel": "thin double-sided mesh using upstream banner and pattern textures",
+    "visualStateSync": "CraftEngine int properties color=0..15 and pattern=0..6"
   },
   "verification": {
     "pythonTests": "104 passed",
-    "packItems": 535,
+    "packItems": 534,
     "packBlocks": 63,
-    "packCheckedModels": 547,
+    "packCheckedModels": 658,
     "recipeStatuses": {
       "imported": 536,
       "pending": 76
     },
-    "clientVisual": "NOT_TESTED"
+    "clientVisual": "MODEL_VARIANTS_GENERATED_CLIENT_NOT_TESTED"
   }
 }

@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 
 /** Server-side state bridge for the Cookery tea banner. */
@@ -20,6 +21,8 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
     public static final BlockBehaviorFactory<TeaBannerBehavior> FACTORY = new Factory();
 
     private int controllerId;
+    private Property<Integer> colorProperty;
+    private Property<Integer> patternProperty;
 
     private TeaBannerBehavior(BlockDefinition blockDefinition) {
         super(blockDefinition);
@@ -47,6 +50,14 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
         return new TeaBannerController(blockEntity, this);
     }
 
+    public Property<Integer> colorProperty() {
+        return colorProperty;
+    }
+
+    public Property<Integer> patternProperty() {
+        return patternProperty;
+    }
+
     @Override
     public void initControllerId(int id) {
         controllerId = id;
@@ -55,7 +66,10 @@ public final class TeaBannerBehavior extends BukkitBlockBehavior implements Enti
     private static final class Factory implements BlockBehaviorFactory<TeaBannerBehavior> {
         @Override
         public TeaBannerBehavior create(BlockDefinition block, ConfigSection section) {
-            return new TeaBannerBehavior(block);
+            TeaBannerBehavior behavior = new TeaBannerBehavior(block);
+            behavior.colorProperty = BlockBehaviorFactory.getProperty(section.path(), block, "color", Integer.class);
+            behavior.patternProperty = BlockBehaviorFactory.getProperty(section.path(), block, "pattern", Integer.class);
+            return behavior;
         }
     }
 }

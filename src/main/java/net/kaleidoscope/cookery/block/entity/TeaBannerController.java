@@ -2,6 +2,7 @@ package net.kaleidoscope.cookery.block.entity;
 
 import net.kaleidoscope.cookery.block.behavior.TeaBannerBehavior;
 import net.kaleidoscope.cookery.util.BlockEntityNbt;
+import net.kaleidoscope.cookery.util.BlockStates;
 import net.kaleidoscope.cookery.util.CookeryBlockStateEnvelope;
 import net.kaleidoscope.cookery.util.DropUtils;
 import net.kaleidoscope.cookery.util.InventoryUtils;
@@ -22,7 +23,6 @@ import net.momirealms.craftengine.libraries.nbt.CompoundTag;
 import net.momirealms.craftengine.libraries.nbt.Tag;
 
 import java.util.List;
-import java.util.Set;
 
 /** Persists tea-banner dye and pattern state across placement, saves and drops. */
 public final class TeaBannerController extends BlockEntityController {
@@ -31,16 +31,18 @@ public final class TeaBannerController extends BlockEntityController {
     private static final Key BANNER = Key.of("kaleidoscopecookery:tea_banner");
     private static final List<String> COLORS = List.of("white", "orange", "magenta", "light_blue", "yellow", "lime",
             "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
-    private static final Set<String> PATTERNS = Set.of(
+    private static final List<String> PATTERNS = List.of(
             "minecraft:creeper_banner_pattern", "minecraft:skull_banner_pattern",
             "minecraft:flower_banner_pattern", "minecraft:mojang_banner_pattern",
             "minecraft:globe_banner_pattern", "minecraft:piglin_banner_pattern");
 
+    private final TeaBannerBehavior behavior;
     private String color = "red";
     private Item pattern = Item.empty();
 
     public TeaBannerController(BlockEntity blockEntity, TeaBannerBehavior behavior) {
         super(blockEntity);
+        this.behavior = behavior;
     }
 
     public InteractionResult use(Player player, InteractionHand hand) {
@@ -56,6 +58,7 @@ public final class TeaBannerController extends BlockEntityController {
             }
             color = next;
             InventoryUtils.shrinkHeld(player, held, 1);
+            syncVisual();
             changed();
             play("minecraft:item.dye.use");
             return InteractionResult.SUCCESS_AND_CANCEL;
@@ -70,6 +73,7 @@ public final class TeaBannerController extends BlockEntityController {
             if (!previous.isEmpty()) {
                 DropUtils.dropAtCenter(blockEntity, previous);
             }
+            syncVisual();
             changed();
             play("minecraft:block.wool.place");
             return InteractionResult.SUCCESS_AND_CANCEL;
@@ -79,6 +83,7 @@ public final class TeaBannerController extends BlockEntityController {
             pattern = Item.empty();
             InventoryUtils.shrinkHeld(player, held, 1);
             InventoryUtils.giveOrHold(player, hand, previous);
+            syncVisual();
             changed();
             play("minecraft:entity.sheep.shear");
             return InteractionResult.SUCCESS_AND_CANCEL;
@@ -125,7 +130,13 @@ public final class TeaBannerController extends BlockEntityController {
             color = saved.getString("color", "red");
             pattern = BlockEntityNbt.getItem(saved, "pattern", Config.itemDataFixerUpperFallbackVersion());
             validate();
+            syncVisual();
         }
+    }
+
+    @Override
+    public void onLoad() {
+        syncVisual();
     }
 
     @Override
@@ -151,6 +162,7 @@ public final class TeaBannerController extends BlockEntityController {
         color = saved.getString("color", "red");
         pattern = BlockEntityNbt.getItem(saved, "pattern", BlockEntityNbt.dataVersion(saved));
         validate();
+        syncVisual();
     }
 
     private void validate() {
@@ -160,5 +172,17 @@ public final class TeaBannerController extends BlockEntityController {
         if (!pattern.isEmpty() && !PATTERNS.contains(pattern.id().asString())) {
             pattern = Item.empty();
         }
+    }
+
+    private void syncVisual() {
+        if (blockEntity.world == null) {
+            return;
+        }
+        ImmutableBlockState state = blockEntity.blockState;
+        int colorIndex = COLORS.indexOf(color);
+        int patternIndex = pattern.isEmpty() ? 0 : PATTERNS.indexOf(pattern.id().asString()) + 1;
+        ImmutableBlockState next = BlockStates.with(state, behavior.colorProperty(), colorIndex);
+        next = BlockStates.with(next, behavior.patternProperty(), patternIndex);
+        BlockStates.sync(blockEntity, next);
     }
 }

@@ -49,6 +49,9 @@ APPLIANCES = {
     'teacup_coaster': {},
     'oil_pot': {'has_oil': BOOL},
 }
+TEA_BANNER_COLORS = ('white', 'orange', 'magenta', 'light_blue', 'yellow', 'lime', 'pink', 'gray',
+                     'light_gray', 'cyan', 'purple', 'blue', 'brown', 'green', 'red', 'black')
+TEA_BANNER_PATTERNS = ('tea', 'creeper', 'skull', 'flower', 'mojang', 'globe', 'piglin')
 PENDING = [
     'Tripwire-backed appliances have vanilla selection boxes and no solid collision; exact mod voxel shapes remain pending.',
     'Waterlogging is not enabled by this acceptance pack.',
@@ -84,6 +87,34 @@ def add_model(assets: dict[str, bytes], name: str, model: dict) -> str:
         raise AuditError(f'duplicate generated model: {identifier}')
     assets[path] = json_bytes(model)
     return identifier
+
+
+def tea_banner_model(color: str, pattern: str) -> dict:
+    """Build a thin, double-sided banner mesh for one saved visual state."""
+    base = f'{ART}:entity/banner/{color}'
+    overlay = f'{ART}:entity/pattern/{pattern}'
+    return {
+        'ambientocclusion': False,
+        'textures': {'base': base, 'pattern': overlay, 'particle': base},
+        'elements': [
+            {'from': [1, 0, 7.5], 'to': [15, 16, 8.5],
+             'faces': {'north': {'texture': '#base', 'uv': [0, 0, 16, 16]},
+                       'south': {'texture': '#base', 'uv': [16, 0, 0, 16]}}},
+            {'from': [1, 0, 7.45], 'to': [15, 16, 7.55],
+             'faces': {'north': {'texture': '#pattern', 'uv': [0, 0, 16, 16]},
+                       'south': {'texture': '#pattern', 'uv': [16, 0, 0, 16]}}},
+        ],
+    }
+
+
+def tea_banner_models(assets: dict[str, bytes]) -> dict[tuple[int, int], str]:
+    models = {}
+    for color_index, color in enumerate(TEA_BANNER_COLORS):
+        for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
+            name = f'tea_banner/{color}_{pattern}'
+            models[(color_index, pattern_index)] = add_model(
+                assets, name, tea_banner_model(color, pattern))
+    return models
 
 
 def extract_parts(assets: dict[str, bytes], items: dict) -> dict[str, str]:
@@ -402,19 +433,29 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
     for model in (tea_banner_model, tea_banner_block_model):
         if model not in definitions:
             raise AuditError(f'missing tea banner model: {model}')
+    tea_visual_models = tea_banner_models(assets)
     items[tea_banner_key] = item(tea_banner_key, definitions[tea_banner_model], names.get('block.' + ART + '.tea_banner', '茶旗'))
     items[tea_banner_key]['behavior'] = {'type': 'block_item', 'block': tea_banner_key}
     items[tea_banner_key]['data']['max_stack_size'] = 1
+    tea_appearances, tea_variants = {}, {}
+    for color_index, color in enumerate(TEA_BANNER_COLORS):
+        for pattern_index, pattern in enumerate(TEA_BANNER_PATTERNS):
+            appearance = f'color_{color_index}_pattern_{pattern_index}'
+            tea_appearances[appearance] = {
+                'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
+                'model': model_node(tea_visual_models[(color_index, pattern_index)]),
+            }
+            tea_variants[f'color={color_index},pattern={pattern_index}'] = {'appearance': appearance}
     blocks[tea_banner_key] = {
         'settings': {'item': tea_banner_key, 'hardness': 1, 'resistance': 1,
                      'push_reaction': 'destroy', 'can_occlude': False,
                      'is_suffocating': False, 'is_view_blocking': False},
         'behavior': {'type': tea_banner_key},
         'loot': {'pools': []},
-        'states': {'appearances': {
-            'base': {'auto_state': {'type': 'lower_tripwire', 'id': 'cookery_kitchen_clear'},
-                     'entity_renderer': display(assets, items, tea_banner_block_model)}},
-                   'variants': {'': {'appearance': 'base'}}}}
+        'states': {'properties': {
+                       'color': {'type': 'int', 'range': '0~15', 'default': 14},
+                       'pattern': {'type': 'int', 'range': '0~6', 'default': 0}},
+                   'appearances': tea_appearances, 'variants': tea_variants}}
     for name in APPLIANCES:
         key = NAMESPACE + ':' + name
         model = model_node(parts['coaster']) if name == 'teacup_coaster' else definitions[ART + ':item/' + ('pot_has_oil' if name == 'oil_pot' else name)]
