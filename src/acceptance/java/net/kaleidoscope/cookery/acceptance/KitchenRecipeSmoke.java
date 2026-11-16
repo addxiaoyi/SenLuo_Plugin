@@ -36,6 +36,10 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.CampfireRecipe;
+import org.bukkit.inventory.CookingRecipe;
+import org.bukkit.inventory.FurnaceRecipe;
+import org.bukkit.inventory.SmokingRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.charset.StandardCharsets;
@@ -62,6 +66,7 @@ final class KitchenRecipeSmoke {
     private final List<String> failures = new ArrayList<>();
     private int checkedPlans;
     private int checkedCrafting;
+    private int checkedCooking;
 
     private KitchenRecipeSmoke(JavaPlugin plugin, World world) {
         this.plugin = plugin;
@@ -145,8 +150,24 @@ final class KitchenRecipeSmoke {
             Item output = ItemStackUtils.wrap(ItemStackUtils.unwrap(recipe.getResult()));
             check(output.id().asString().equals(row.getString("result.id"))
                     && output.count() == row.getInt("result.count"), id + ": native recipe output differs");
+            String type = row.getString("type", "");
+            Class<? extends CookingRecipe<?>> expectedCooking = switch (type) {
+                case "smelting", "minecraft:smelting" -> FurnaceRecipe.class;
+                case "smoking", "minecraft:smoking" -> SmokingRecipe.class;
+                case "campfire_cooking", "minecraft:campfire_cooking" -> CampfireRecipe.class;
+                default -> null;
+            };
+            if (expectedCooking != null) {
+                check(expectedCooking.isInstance(recipe), id + ": native cooking type differs");
+                CookingRecipe<?> cooking = (CookingRecipe<?>) recipe;
+                check(cooking.getCookingTime() == row.getInt("time"), id + ": native cooking duration differs");
+                check(Math.abs(cooking.getExperience() - row.getDouble("experience")) < 0.000001,
+                        id + ": native cooking experience differs");
+                checkedCooking++;
+            }
             checkedCrafting++;
         }
+        report.put("checkedCooking", checkedCooking);
         report.put("teaCups", registry.teaCupCount());
         report.put("soupBases", net.kaleidoscope.cookery.recipe.SoupBaseRegistry.instance().keys().size());
         verifyStockpotDefinitions();

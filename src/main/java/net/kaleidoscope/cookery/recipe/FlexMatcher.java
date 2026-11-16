@@ -180,6 +180,10 @@ public final class FlexMatcher {
         if (ItemUtils.isEmpty(item)) {
             return null;
         }
+        return applyQuality(item, result, quality);
+    }
+
+    static Item applyQuality(Item item, Key result, DishQuality quality) {
         Component base = item.hoverNameComponent()
                 .orElseGet(() -> Component.translatable(itemTranslationKey(result)));
         Component name = base.colorIfAbsent(NamedTextColor.NAMES.value(quality.color()))

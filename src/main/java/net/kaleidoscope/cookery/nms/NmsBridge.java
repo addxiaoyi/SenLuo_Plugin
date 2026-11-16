@@ -16,6 +16,8 @@ public interface NmsBridge {
 
     BambooTrayWeather bambooTrayWeather(Object level, int x, int y, int z);
 
+    Object createRiceBowlRecipe(net.kaleidoscope.cookery.recipe.RiceBowlRecipe recipe);
+
     default Player bukkitPlayer(Object nmsEntity) {
         Object bukkit = bukkitEntity(nmsEntity);
         return bukkit instanceof Player player ? player : null;

@@ -13,10 +13,13 @@ public final class ItemBehaviors {
     public static ItemBehaviorType<TeapotItemBehavior> TEAPOT;
     public static ItemBehaviorType<OilPotItemBehavior> OIL_POT;
     public static ItemBehaviorType<TransmutationLunchBagBehavior> TRANSMUTATION_LUNCH_BAG;
+    public static ItemBehaviorType<net.kaleidoscope.cookery.item.behavior.PlacedMealItemBehavior> PLACED_MEAL;
 
     private ItemBehaviors() {}
 
     public static void register() {
+        if (PLACED_MEAL == null) PLACED_MEAL = RegistryUtils.registerItemBehavior(
+                Key.of("kaleidoscopecookery:placed_meal_item"), net.kaleidoscope.cookery.item.behavior.PlacedMealItemBehavior.FACTORY);
         if (SICKLE_RANGE_HARVEST == null) {
             SICKLE_RANGE_HARVEST = RegistryUtils.registerItemBehavior(
                     Key.of("kaleidoscopecookery:sickle_range_harvest"),

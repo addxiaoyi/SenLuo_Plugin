@@ -6,6 +6,8 @@
 
 工程治理基线提交为 `aea96140d3c78395c1f8754fb4cb286d6e08ba92`。本地复核使用固定 JDK 25 执行根工程（17 个任务，成功）和系列工程（24 个任务，成功）；工具测试为根 76 项、系列 29 项，独立性与台账检查均为 0 errors。厨房状态信封迁移后根工程测试为 142 项通过。CI 会在新的提交上重复同一组命令；提交、工具链和产物 SHA-256 以 CI artifact 和发布包 `BUILD-MANIFEST.json` 为最终证据。
 
+2026-11-15：根工程 `test` 现在依赖最终 `shadowJar`，打包回归检查 Mojang 映射标记、九个 NMS 桥的方法/字段签名及 CraftBukkit 引用。Shadow 产物必须声明 `paperweight-mappings-namespace: mojang` 并把编译用的版本化 CraftBukkit 前缀转换成 Paper 包名；缺少标记曾导致 Paper 二次映射把滴水检测的 `Fluid` 返回值改成 `FluidState`，源码测试无法发现。最新测试数量、运行与产物证据见 [验证记录](VALIDATION.md)。
+
 ## 本地复现
 
 ```bash

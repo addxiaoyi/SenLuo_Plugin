@@ -8,15 +8,23 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import org.joml.Quaternionf;
+
+import java.util.List;
 
 public final class BambooTrayElement implements BlockEntityElement {
-    private static final float DISPLAY_HEIGHT = 3.0f / 16.0f;
-    private static final float DISPLAY_SCALE = 0.4f;
+    private static final float DEGREES_TO_RADIANS = (float) Math.PI / 180;
     private final BambooTrayController controller;
-    private final ItemDisplaySet displays = new ItemDisplaySet(BambooTrayContainer.SLOTS);
+    private final ItemDisplaySet displays = new ItemDisplaySet(BambooTrayLayout.SLOTS * BambooTrayLayout.MAX_COPIES);
+    private final Item[] previousItems = new Item[BambooTrayLayout.SLOTS];
+    private final int[] shownCopies = new int[BambooTrayLayout.SLOTS];
+    private final List<List<BambooTrayLayout.Copy>> positions;
 
     BambooTrayElement(BambooTrayController controller) {
         this.controller = controller;
+        var pos = controller.blockEntity().pos;
+        positions = java.util.stream.IntStream.range(0, BambooTrayLayout.SLOTS)
+                .mapToObj(slot -> BambooTrayLayout.positions(pos.x(), pos.y(), pos.z(), slot)).toList();
     }
 
     @Override
@@ -26,19 +34,29 @@ public final class BambooTrayElement implements BlockEntityElement {
 
     void refresh() {
         BlockEntity entity = controller.blockEntity();
-        for (int slot = 0; slot < displays.size(); slot++) {
+        for (int slot = 0; slot < BambooTrayLayout.SLOTS; slot++) {
             Item item = controller.item(slot);
-            if (item.isEmpty()) {
-                displays.clear(slot);
-                continue;
+            Item previous = previousItems[slot];
+            if (item.isEmpty() && previous == null) continue;
+            if (!item.isEmpty() && previous != null && previous.count() == item.count() && previous.isSimilar(item)) continue;
+
+            int copies = item.isEmpty() ? 0 : BambooTrayLayout.copies(item.count());
+            int start = slot * BambooTrayLayout.MAX_COPIES;
+            Item snapshot = copies == 0 ? null : item.copy();
+            for (int copy = 0; copy < copies; copy++) {
+                var position = positions.get(slot).get(copy);
+                WorldPosition pos = new WorldPosition(null,
+                        entity.pos.x() + position.x(), entity.pos.y() + position.y(), entity.pos.z() + position.z());
+                var rotation = new Quaternionf().rotateX(90 * DEGREES_TO_RADIANS)
+                        .rotateZ(position.angleDegrees() * DEGREES_TO_RADIANS);
+                ItemDisplayPackets packets = ItemDisplayPackets.at(pos).item(snapshot).scale(BambooTrayLayout.SCALE)
+                        .itemTransform(BambooTrayLayout.FIXED_TRANSFORM).leftRotation(rotation);
+                int index = start + copy;
+                displays.setPackets(index, packets.spawn(displays.id(index), displays.uuid(index)), packets.meta(displays.id(index)));
             }
-            WorldPosition pos = new WorldPosition(null,
-                    entity.pos.x() + 0.25f + (slot % 2) * 0.5f,
-                    entity.pos.y() + DISPLAY_HEIGHT,
-                    entity.pos.z() + 0.25f + (slot / 2) * 0.5f);
-            ItemDisplayPackets packets = ItemDisplayPackets.at(pos).item(item.copy()).scale(DISPLAY_SCALE)
-                    .itemTransform((byte) 0).rotation(0);
-            displays.setPackets(slot, packets.spawn(displays.id(slot), displays.uuid(slot)), packets.meta(displays.id(slot)));
+            for (int copy = copies; copy < shownCopies[slot]; copy++) displays.clear(start + copy);
+            shownCopies[slot] = copies;
+            previousItems[slot] = snapshot;
         }
     }
 

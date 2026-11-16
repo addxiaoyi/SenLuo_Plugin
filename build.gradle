@@ -66,6 +66,7 @@ dependencies {
     testImplementation(platform('org.junit:junit-bom:5.11.4'))
     testImplementation('org.junit.jupiter:junit-jupiter')
     testImplementation('org.mockito:mockito-core:5.15.2')
+    testImplementation('org.ow2.asm:asm:9.8')
     testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
     testImplementation("net.momirealms:craft-engine-core:${craftEngineVersion}")
@@ -119,11 +120,21 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     systemProperty 'file.encoding', 'UTF-8'
+    dependsOn(tasks.named('shadowJar'))
+    def pluginJar = tasks.named('shadowJar').get().archiveFile
+    inputs.file(pluginJar)
+    systemProperty 'cookery.pluginJar', pluginJar.get().asFile.absolutePath
 }
 
 shadowJar {
     archiveClassifier.set('')
     from(nmsVersions.keySet().collect { sourceSets.named(it).get().output })
+    // Paper must not interpret Mojang names as Spigot names and remap them a second time.
+    manifest.attributes('paperweight-mappings-namespace': 'mojang')
+    // Spigot's compiler JARs retain versioned CraftBukkit packages; Paper 1.21+ does not.
+    nmsVersions.values().findAll { it.path.startsWith('v1_21_') }.each { version ->
+        relocate "org.bukkit.craftbukkit.${version.path}", 'org.bukkit.craftbukkit'
+    }
     relocate 'net.momirealms.antigrieflib', 'net.kaleidoscope.cookery.libs.antigrieflib'
     relocate 'org.bstats', 'net.kaleidoscope.cookery.libs.bstats'
 }

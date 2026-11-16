@@ -43,10 +43,13 @@ public final class BlockBehaviors {
     public static BlockBehaviorType<TableBehavior> TABLE;
     public static BlockBehaviorType<BambooTrayBehavior> BAMBOO_TRAY;
     public static BlockBehaviorType<PlateBehavior> PLATE;
+    public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.PlacedMealBehavior> PLACED_MEAL;
 
     private BlockBehaviors() {}
 
     public static void register() {
+        if (PLACED_MEAL == null) PLACED_MEAL = RegistryUtils.registerBlockBehavior(
+                Key.of("kaleidoscopecookery:placed_meal"), net.kaleidoscope.cookery.block.behavior.PlacedMealBehavior.FACTORY);
         if (BAMBOO_TRAY == null) {
             BAMBOO_TRAY = RegistryUtils.registerBlockBehavior(
                     Key.of("kaleidoscopecookery:bamboo_tray"), BambooTrayBehavior.FACTORY);

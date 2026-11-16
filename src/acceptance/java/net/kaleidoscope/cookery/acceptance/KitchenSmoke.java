@@ -32,6 +32,9 @@ import java.util.logging.Level;
 
 /** Opt-in fixture that runs on the owning region and never uses a real player. */
 final class KitchenSmoke {
+    private static final int GRID_COLUMNS = 6;
+    private static final int BLOCK_SPACING = 2;
+    private static final int GRID_ORIGIN = 2;
     private record Appliance(String name, Class<?> controller, int states) {}
     private static final List<Appliance> APPLIANCES = List.of(
             new Appliance("chopping_board", ChoppingBoardController.class, 4),
@@ -90,7 +93,11 @@ final class KitchenSmoke {
     }
 
     private Location position(World world, int index) {
-        return new Location(world, 2 + index % 4 * 3, 120, 2 + index / 4 * 4);
+        int x = GRID_ORIGIN + index % GRID_COLUMNS * BLOCK_SPACING;
+        int z = GRID_ORIGIN + index / GRID_COLUMNS * BLOCK_SPACING;
+        // The fixture owns only chunk (0, 0); keep expansion from crossing a Folia region.
+        check(x >= 0 && x < 16 && z >= 0 && z < 16, "Kitchen fixture exceeded its scheduled chunk");
+        return new Location(world, x, 120, z);
     }
 
     private void place(World world) {

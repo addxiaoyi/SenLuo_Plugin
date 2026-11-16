@@ -71,16 +71,34 @@
       "parity_level": "B",
       "status": "implemented",
       "source_ids": ["KaleidoscopeCookery:bamboo-tray"],
-      "evidence": ["docs/COOKERY-PARITY.md", "docs/VALIDATION.md"]
+      "evidence": ["docs/COOKERY-PARITY.md", "docs/VALIDATION.md", "docs/research/cookery-bamboo-acceptance.json"]
     },
     {
       "feature_id": "C02",
       "module": "cookery",
-      "title": "摆盘与逐口取食",
+      "title": "38种直接食用大菜方块与逐口流程",
       "parity_level": "B",
-      "status": "implemented",
-      "source_ids": ["KaleidoscopeCookery:plate-serving"],
-      "evidence": ["src/main/java/net/kaleidoscope/cookery/util/PlateServingStore.java"]
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeCookery:FoodBiteRegistry", "KaleidoscopeCookery:cold_cut_ham_slices"],
+      "evidence": ["docs/research/cookery-placed-meals-acceptance-2026-11-15.json", "docs/VALIDATION.md", "src/main/java/net/kaleidoscope/cookery/block/entity/PlacedMealController.java"]
+    },
+    {
+      "feature_id": "C11",
+      "module": "cookery",
+      "title": "5种盖饭 native 合成与熟米饭余料",
+      "parity_level": "A",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeCookery:rice_bowl"],
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/recipe/RiceBowlRecipe.java", "docs/research/cookery-rice-bowls-acceptance-2026-11-16.json", "build/acceptance/rice-bowl-api-audit/summary.txt"]
+    },
+    {
+      "feature_id": "C10",
+      "module": "cookery",
+      "title": "11种整份取物盘的服务端存取与掉落",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeCookery:PlateRegistry"],
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/block/entity/PlateController.java", "docs/research/cookery-plate-acceptance-2026-11-15.json", "docs/VALIDATION.md"]
     },
     {
       "feature_id": "C03",
@@ -98,7 +116,7 @@
       "parity_level": "A",
       "status": "blocked",
       "source_ids": ["KaleidoscopeCookery:recipes-612"],
-      "evidence": ["docs/COOKERY-PARITY.md"]
+      "evidence": ["docs/COOKERY-PARITY.md", "docs/research/cookery-pending-recipes-2026-11-15.json"]
     },
     {
       "feature_id": "C09",

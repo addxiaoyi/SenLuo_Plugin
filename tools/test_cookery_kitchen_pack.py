@@ -11,6 +11,9 @@ from unittest.mock import patch
 import yaml
 
 from audit_upstream import AuditError
+from export_cookery_catalog import COMMIT, export
+from export_cookery_food_pack import source_assets
+from cookery_placed_meals import HAM_SOURCE, ham_parts, meal_states
 from export_cookery_kitchen_pack import (APPLIANCES, ART, NAMESPACE, PACK, build, source_model,
                                          source_states, write_archive)
 
@@ -24,7 +27,7 @@ class KitchenPackTest(unittest.TestCase):
         cls.config = yaml.safe_load(cls.bundle[f'{PACK}/configuration/kitchen.yml'])
 
     def test_every_plugin_property_combination_has_an_appearance(self):
-        self.assertEqual(24, len(self.config['blocks']))
+        self.assertEqual(62, len(self.config['blocks']))
         self.assertEqual(28, len(self.config['bamboo_tray_recipes']))
         for name in APPLIANCES:
             with self.subTest(name=name):
@@ -39,8 +42,8 @@ class KitchenPackTest(unittest.TestCase):
                     self.assertIn(variant['appearance'], block['states']['appearances'])
 
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
-        self.assertEqual(522, self.manifest['recipeStatuses']['imported'])
-        self.assertEqual(90, self.manifest['recipeStatuses']['pending'])
+        self.assertEqual(532, self.manifest['recipeStatuses']['imported'])
+        self.assertEqual(80, self.manifest['recipeStatuses']['pending'])
         parity = json.loads(self.bundle[f'{PACK}/recipe-parity.json'])
         tray_records = [row for row in parity['recipes']
                         if row.get('section') == 'bamboo_tray_recipes']
@@ -52,8 +55,18 @@ class KitchenPackTest(unittest.TestCase):
             'apple_platter': (4, ['minecraft:apple']),
             'berry_platter': (4, ['minecraft:sweet_berries', 'minecraft:glow_berries']),
             'baozi_plate': (5, ['kaleidoscopecookery:baozi']),
+            'chorus_fruit_platter': (5, ['minecraft:chorus_fruit']),
+            'qingtuan_plate': (4, ['kaleidoscopecookery:qingtuan']),
+            'shengjian_mantou_plate': (5, ['kaleidoscopecookery:shengjian_mantou']),
+            'sticky_candy_plate': (4, ['kaleidoscopecookery:sticky_candy']),
+            'sticky_rice_cake_plate': (5, ['kaleidoscopecookery:sticky_rice_cake']),
+            'tomato_platter': (5, ['kaleidoscopecookery:tomato']),
             'watermelon_platter': (3, ['minecraft:melon_slice']),
+            'zongzi_plate': (4, ['kaleidoscopecookery:zongzi']),
         }
+        plates = {key for key, block in self.config['blocks'].items()
+                  if isinstance(block['behavior'], list) and block['behavior'][0]['type'] == NAMESPACE + ':plate'}
+        self.assertEqual({NAMESPACE + ':' + name for name in expected}, plates)
         for name, (maximum, servings) in expected.items():
             with self.subTest(name=name):
                 block = self.config['blocks'][NAMESPACE + ':' + name]
@@ -62,6 +75,142 @@ class KitchenPackTest(unittest.TestCase):
                 self.assertEqual(maximum, block['behavior'][0]['max_servings'])
                 self.assertEqual(servings, block['behavior'][0]['serving_items'])
                 self.assertEqual({'facing', 'servings'}, set(block['states']['properties']))
+
+    def test_placed_plates_start_with_all_official_portions(self):
+        for key, block in self.config['blocks'].items():
+            if not isinstance(block['behavior'], list) or block['behavior'][0]['type'] != NAMESPACE + ':plate':
+                continue
+            with self.subTest(plate=key):
+                maximum = block['behavior'][0]['max_servings']
+                self.assertEqual(maximum, block['states']['properties']['servings']['default'])
+                self.assertIn(f'facing=north,servings={maximum}', block['states']['variants'])
+                self.assertIn('facing=north,servings=0', block['states']['variants'])
+
+    def test_plate_removal_has_one_owner_for_portions_and_bowls(self):
+        for key, block in self.config['blocks'].items():
+            if not isinstance(block['behavior'], list) or block['behavior'][0]['type'] != NAMESPACE + ':plate':
+                continue
+            with self.subTest(plate=key):
+                # A base item drop would recreate a full plate after the controller returns its remaining food.
+                self.assertEqual({'pools': []}, block['loot'])
+                self.assertEqual(['minecraft:bowl'], block['behavior'][0]['drops'])
+
+    def test_plate_manifest_preserves_every_catalog_portion_and_drop(self):
+        catalog = export(SOURCE, COMMIT)
+        expected = {entry['pluginId']: {field: entry['plate'][field] for field in ('maxServings', 'servings', 'drops')}
+                    for entry in catalog['entries'] if entry.get('plate')}
+        self.assertEqual(11, len(expected))
+        self.assertEqual(expected, self.manifest.get('plates'))
+        for key, plate in expected.items():
+            with self.subTest(plate=key):
+                behavior = self.config['blocks'][key]['behavior'][0]
+                self.assertEqual(plate['maxServings'], behavior['max_servings'])
+                self.assertEqual(plate['servings'], behavior['serving_items'])
+                self.assertEqual(plate['drops'], behavior['drops'])
+
+    def test_missing_plate_blockstate_rejects_the_pack(self):
+        assets, licenses = source_assets(SOURCE)
+        del assets[f'{ART}/blockstates/apple_platter.json']
+        with patch('export_cookery_kitchen_pack.source_assets', return_value=(assets, licenses)):
+            with self.assertRaisesRegex(AuditError, 'missing plate blockstate: apple_platter'):
+                build(SOURCE)
+
+    def test_all_catalogued_placed_meals_are_placeable_with_one_loot_owner(self):
+        catalog = export(SOURCE, COMMIT)
+        meals = {entry['pluginId']: entry for entry in catalog['entries'] if entry.get('bites')}
+        self.assertEqual(38, len(meals))
+        self.assertEqual(set(meals), set(self.manifest.get('placedMeals', {})))
+        counts = {'1x1': 0, '1x2': 0, '3x3': 0}
+        for key, entry in meals.items():
+            with self.subTest(meal=key):
+                bite = entry['bites']
+                counts[bite['layout']] += 1
+                block = self.config['blocks'][key]
+                behavior = block['behavior'][0]
+                self.assertEqual(NAMESPACE + ':placed_meal', behavior['type'])
+                self.assertEqual(key, behavior['food_id'])
+                self.assertEqual(bite['maxBites'], behavior['max_bites'])
+                self.assertEqual(bite['layout'], behavior['layout'])
+                self.assertEqual(bite['drops'], behavior['drops'])
+                self.assertEqual(bite['animation'], behavior['animation'])
+                self.assertEqual({'pools': []}, block['loot'])
+                self.assertEqual({'type': NAMESPACE + ':placed_meal_item', 'block': key},
+                                 self.config['items'][key]['behavior'])
+                properties = block['states']['properties']
+                self.assertNotIn('quality', properties)
+                self.assertEqual(0, properties['bites']['default'])
+                cells = {'1x1': 1, '1x2': 2, '3x3': 9}[bite['layout']]
+                self.assertEqual(cells * 4 * (bite['maxBites'] + 1), len(block['states']['variants']))
+                self.assertEqual(cells, self.manifest['placedMeals'][key]['cells'])
+        self.assertEqual({'1x1': 34, '1x2': 3, '3x3': 1}, counts)
+
+    def test_cold_cut_ham_has_nine_real_mesh_stages_only_on_the_center(self):
+        key = NAMESPACE + ':cold_cut_ham_slices'
+        self.assertIn(key, self.config['blocks'])
+        block = self.config['blocks'][key]
+        self.assertEqual('center', block['states']['properties']['part']['default'])
+        self.assertEqual(9, len(block['states']['properties']['part']['values']))
+        for bites in range(9):
+            with self.subTest(bites=bites):
+                variant = block['states']['variants'][f'facing=south,bites={bites},part=center']
+                renderer = block['states']['appearances'][variant['appearance']]['entity_renderer']
+                identifier = self.config['items'][renderer['item']]['model']['path']
+                namespace, model = identifier.split(':', 1)
+                mesh = json.loads(self.bundle[f'{PACK}/resourcepack/assets/{namespace}/models/{model}.json'])
+                self.assertNotIn('display', mesh)
+                self.assertNotIn('loader', mesh)
+                visible = {'base'} | {f'bite{number}' for number in range(1, 9) if bites < 9 - number}
+                self.assertEqual(visible, {cube['name'] for cube in mesh['elements']})
+                expected_cubes = 2 + sum(2 if number % 2 else 3 for number in range(1, 9) if bites < 9 - number)
+                self.assertEqual(expected_cubes, len(mesh['elements']))
+                side = block['states']['variants'][f'facing=south,bites={bites},part=left_up']
+                appearance = block['states']['appearances'][side['appearance']]
+                self.assertIn('auto_state', appearance)
+                self.assertNotIn('entity_renderer', appearance)
+
+    def test_placed_meal_import_rejects_missing_states_and_quality_visual_changes(self):
+        path = ART + '/blockstates/test_dish.json'
+        bite = {'maxBites': 1, 'layout': '1x1'}
+        with self.assertRaisesRegex(AuditError, 'missing placed meal asset'):
+            meal_states({}, 'test_dish', bite)
+        variants = {f'facing={facing},bites={bites},quality={quality}': {'model': ART + f':block/test_{bites}'}
+                    for facing in ('north', 'east', 'south', 'west') for bites in range(2) for quality in range(5)}
+        assets = {path: json.dumps({'variants': variants}).encode()}
+        collapsed, count = meal_states(assets, 'test_dish', bite)
+        self.assertEqual(40, count)
+        self.assertEqual(8, len(collapsed))
+        changed = copy.deepcopy(variants)
+        changed['facing=north,bites=0,quality=0']['model'] = ART + ':block/quality_specific'
+        with self.assertRaisesRegex(AuditError, 'quality changes placed meal visual'):
+            meal_states({path: json.dumps({'variants': changed}).encode()}, 'test_dish', bite)
+        del variants['facing=north,bites=0,quality=0']
+        with self.assertRaisesRegex(AuditError, 'incomplete placed meal states'):
+            meal_states({path: json.dumps({'variants': variants}).encode()}, 'test_dish', bite)
+
+    def test_cold_cut_ham_mesh_is_from_the_java_renderer_and_locked_to_source(self):
+        key = NAMESPACE + ':cold_cut_ham_slices'
+        provenance = self.manifest['placedMeals'][key]['javaModel']
+        self.assertEqual(HAM_SOURCE, provenance['path'])
+        self.assertEqual(22, provenance['sourceCubes'])
+        first = provenance['stageModels'][0]
+        namespace, model = first.split(':', 1)
+        mesh = json.loads(self.bundle[f'{PACK}/resourcepack/assets/{namespace}/models/{model}.json'])
+        self.assertEqual([-12, 0, -12], mesh['elements'][1]['from'])
+        self.assertEqual([28, 2, 28], mesh['elements'][1]['to'])
+        # This differs from the inventory JSON geometry; source Java parent pivots must not be skipped.
+        first_bite = mesh['elements'][2]
+        self.assertEqual([0, 3, 17], first_bite['from'])
+        self.assertEqual([9, 5, 24], first_bite['to'])
+        self.assertEqual({'origin': [3, 4, 21], 'axis': 'z', 'angle': 22.5, 'rescale': False}, first_bite['rotation'])
+        self.assertTrue(all(len(cube['faces']) == 6 for cube in mesh['elements']))
+        with self.assertRaisesRegex(AuditError, 'Java mesh changed'):
+            ham_parts(b'changed model')
+
+    def test_cold_cut_ham_recipe_keeps_all_eight_meats_and_bowl(self):
+        recipe = self.config['recipes'][NAMESPACE + ':upstream/kaleidoscope_cookery/cold_cut_ham_slices']
+        self.assertEqual('shapeless', recipe['type'])
+        self.assertEqual([NAMESPACE + ':cooked_pork_belly'] * 8 + ['minecraft:bowl'], recipe['ingredients'])
+        self.assertEqual({'id': NAMESPACE + ':cold_cut_ham_slices', 'count': 1}, recipe['result'])
 
     def test_basin_visual_levels_keep_old_plugin_oil_semantics(self):
         block = self.config['blocks'][NAMESPACE + ':enamel_basin']['states']

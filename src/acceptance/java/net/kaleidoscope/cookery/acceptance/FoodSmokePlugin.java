@@ -27,27 +27,84 @@ import java.util.logging.Level;
 
 /** Checks real CE construction and Bukkit component serialization, without simulating a player. */
 public final class FoodSmokePlugin extends JavaPlugin {
+    private static final long PROBE_POLL_TICKS = 20;
+    private static final long PROBE_WAIT_LIMIT = 20 * 240;
+
     @Override public void onEnable() {
+        long bootStarted = System.currentTimeMillis();
         Bukkit.getGlobalRegionScheduler().runDelayed(this, task -> {
             verify();
             EnchantmentSmoke.verify(this);
             long delay = 1;
+            boolean millstoneEnabled = getConfig().getBoolean("millstone-smoke.enabled", false);
+            boolean resumeMillstone = millstoneEnabled
+                    && Files.isRegularFile(getDataFolder().toPath().resolve("millstone-checkpoint.json"));
+            // Inspect restored animal progress before other probes consume its 40-second rotation.
+            if (resumeMillstone) {
+                startProbe("millstone smoke", delay, () -> MillstoneSmoke.start(this));
+            }
+            List<String> precedingReports = new ArrayList<>();
             if (getConfig().getBoolean("kitchen-smoke.enabled", false)) {
                 startProbe("kitchen smoke", delay, () -> KitchenSmoke.start(this));
+                precedingReports.add("kitchen-smoke.json");
                 delay += 200;
             }
             if (getConfig().getBoolean("recipe-smoke.enabled", false)) {
                 startProbe("recipe smoke", delay, () -> KitchenRecipeSmoke.start(this));
+                precedingReports.add("recipe-smoke.json");
                 delay += 200;
             }
             if (getConfig().getBoolean("pot-smoke.enabled", false)) {
                 startProbe("pot smoke", delay, () -> PotRecipeSmoke.start(this));
+                precedingReports.add("pot-smoke.json");
                 delay += 200;
             }
-            if (getConfig().getBoolean("millstone-smoke.enabled", false)) {
-                startProbe("millstone smoke", delay, () -> MillstoneSmoke.start(this));
+            if (getConfig().getBoolean("bamboo-smoke.enabled", false)) {
+                startProbe("bamboo smoke", delay, () -> BambooTraySmoke.start(this));
+                precedingReports.add("bamboo-smoke.json");
+                delay += 200;
+            }
+            if (getConfig().getBoolean("plate-smoke.enabled", false)) {
+                startProbe("plate smoke", delay, () -> PlateSmoke.start(this));
+                precedingReports.add("plate-smoke.json");
+                delay += 200;
+            }
+            if (getConfig().getBoolean("meal-smoke.enabled", false)) {
+                startProbe("placed meal smoke", delay, () -> PlacedMealSmoke.start(this));
+                precedingReports.add("meal-smoke.json");
+                delay += 200;
+            }
+            if (getConfig().getBoolean("rice-smoke.enabled", false)) {
+                startProbe("rice bowl smoke", delay, () -> RiceBowlSmoke.start(this));
+                precedingReports.add("rice-smoke.json");
+            }
+            if (millstoneEnabled && !resumeMillstone) {
+                awaitMillstoneStart(List.copyOf(precedingReports), bootStarted, 0);
             }
         }, 100);
+    }
+
+    private void awaitMillstoneStart(List<String> reports, long bootStarted, long waitedTicks) {
+        startProbe("millstone report barrier", PROBE_POLL_TICKS, () -> {
+            for (String name : reports) {
+                var path = getDataFolder().toPath().resolve(name);
+                boolean currentReport;
+                try {
+                    currentReport = Files.isRegularFile(path)
+                            && Files.getLastModifiedTime(path).toMillis() >= bootStarted;
+                } catch (java.io.IOException failure) {
+                    throw new IllegalStateException("Cannot inspect current acceptance report " + path, failure);
+                }
+                if (!currentReport) {
+                    check(waitedTicks < PROBE_WAIT_LIMIT, "Timed out waiting for current acceptance report " + name);
+                    awaitMillstoneStart(reports, bootStarted, waitedTicks + PROBE_POLL_TICKS);
+                    return;
+                }
+            }
+            // Completed reports also include failures; the runner decides acceptance without hiding them.
+            getLogger().info("Starting millstone after current probe reports; waitedTicks=" + waitedTicks);
+            MillstoneSmoke.start(this);
+        });
     }
 
     private void startProbe(String name, long delay, Runnable probe) {

@@ -151,7 +151,8 @@ class RecipeSources:
     origins: dict[str, dict]
     files: dict[str, str]
 
-    def expand(self, raw: dict, chain: tuple[str, ...] = (), vanilla_tags: bool = False) -> list[str]:
+    def expand(self, raw: dict, chain: tuple[str, ...] = (), vanilla_tags: bool = False,
+               omissions: list[dict] | None = None) -> list[str]:
         ingredient(raw)
         if 'item' in raw:
             return [mapped(raw['item'])]
@@ -164,12 +165,28 @@ class RecipeSources:
             raise MissingTag(f'required tag absent from pinned resources: {tag}')
         values = []
         for entry in self.tags[tag]['values']:
+            if not isinstance(entry, str) and (not isinstance(entry, dict) or set(entry) != {'id', 'required'}
+                                               or type(entry['required']) is not bool):
+                raise AuditError(f'{tag}: unsupported tag value {entry!r}')
             ref = entry if isinstance(entry, str) else entry['id']
+            identifier(ref.removeprefix('#'))
+            optional = isinstance(entry, dict) and not entry['required']
+            reason = None
+            if optional and ref.startswith('#') and ref[1:] not in self.tags and not ref.startswith('#minecraft:'):
+                reason = 'Optional tag is absent from the fixed source tree.'
+            elif optional and not ref.startswith(('#', 'minecraft:', ART + ':')):
+                reason = 'Optional external item has no mapping in the fixed plugin target.'
+            if reason is not None:
+                if omissions is not None:
+                    omission = {'tag': tag, 'reference': ref, 'required': False, 'reason': reason}
+                    if omission not in omissions:
+                        omissions.append(omission)
+                continue
             if not ref.startswith(('#', 'minecraft:', ART + ':')):
                 raise MissingTag(f'external tag alternative requires a mapping: {tag}/{ref}')
-            # Keep optional alternatives too; a partially available set is not a complete recipe.
+            # Present optional tags still enforce all of their required descendants.
             values.extend(self.expand({'tag': ref[1:]} if ref.startswith('#') else {'item': ref},
-                                      chain + (tag,), vanilla_tags))
+                                      chain + (tag,), vanilla_tags, omissions))
         return list(dict.fromkeys(values))
 
 
@@ -313,7 +330,7 @@ def cooking_recipes(sources: RecipeSources, records: list[dict]) -> tuple[dict[s
     type_names = {
         'minecraft:smelting': 'smelting',
         'minecraft:smoking': 'smoking',
-        'minecraft:campfire_cooking': 'campfire-cooking',
+        'minecraft:campfire_cooking': 'campfire_cooking',
     }
     for row in records:
         recipe_type = row['type']
@@ -349,8 +366,62 @@ def cooking_recipes(sources: RecipeSources, records: list[dict]) -> tuple[dict[s
     return recipes, required
 
 
+def rice_bowl_recipes(sources: RecipeSources, records: list[dict], available: set[str]) -> tuple[dict, dict]:
+    """Use the plugin's crafting adapter for source extra-slot and highest-quality semantics."""
+    rows = [row for row in records if row['type'] == ART + ':rice_bowl']
+    if len(rows) != 5:
+        raise AuditError(f'Expected five pinned rice-bowl recipes, found {len(rows)}')
+    recipes, manifest = {}, {}
+    for row in rows:
+        doc = row['original']
+        validate_recipe(doc)
+        if doc['category'] != 'misc' or set(doc['result']) != {'item'}:
+            raise AuditError(f'{row["sourceId"]}: rice-bowl category/result requires explicit conversion')
+        omissions = []
+        dishes = sources.expand(doc['ingredient'], omissions=omissions)
+        rice = sources.expand({'tag': 'forge:cooked_rice'}, omissions=omissions)
+        output = mapped(doc['result']['item'])
+        if not dishes or not rice or set(dishes) & set(rice):
+            raise AuditError(f'{row["sourceId"]}: empty or overlapping rice-bowl ingredient roles')
+        missing = sorted({item for item in dishes + rice + [output]
+                          if not item.startswith('minecraft:') and item not in available})
+        if missing:
+            raise AuditError(f'{row["sourceId"]}: uninstalled rice-bowl items: {missing}')
+        key = PLUGIN + ':upstream/' + row['sourceId'].replace(':', '/')
+        if key in recipes:
+            raise AuditError(f'duplicate rice-bowl recipe: {key}')
+        recipes[key] = {'type': PLUGIN + ':rice_bowl', 'category': 'misc',
+                        'ingredients': [dishes, rice], 'result': {'id': output, 'count': 1}}
+        manifest[key] = {'sourceId': row['sourceId'], 'sourceCommit': COMMIT, 'dishes': dishes, 'rice': rice,
+                         'result': output, 'recipeRemainder': 'minecraft:bowl',
+                         'matching': 'exactly_one_dish_slot_and_one_rice_slot_with_extras',
+                         'optionalTagAbsences': omissions}
+        row.update(status='imported', section='recipes', pluginIds=[key], optionalTagAbsences=omissions,
+                   reason='Dedicated rice-bowl crafting adapter retains extra slots, highest input quality and '
+                          'the cooked-rice bowl remainder. Optional external inputs absent from this fixed target '
+                          'are recorded; player acceptance pending.')
+    return recipes, manifest
+
+
 def recipe_report(sources: RecipeSources, records: list[dict], config: dict) -> dict:
+    for row in records:
+        if row['status'] != 'imported':
+            continue
+        omissions = list(row.get('optionalTagAbsences', []))
+        doc = row['original']
+        inputs = ([doc['ingredient']] if 'ingredient' in doc else doc.get('ingredients', []))
+        inputs = list(inputs) + list(doc.get('key', {}).values())
+        if 'carrier' in doc:
+            inputs.append(doc['carrier'])
+        for value in inputs:
+            sources.expand(value, vanilla_tags=True, omissions=omissions)
+        if omissions:
+            row['optionalTagAbsences'] = omissions
     return {'sourceCommit': COMMIT, 'sourceFiles': sources.files, 'recipes': records,
+            'optionalTagAbsences': {row['sourceId']: row['optionalTagAbsences'] for row in records if row.get('optionalTagAbsences')},
+            'optionalDependencyContext': {'externalItemMappings': {}, 'runtimePluginDiscovery': False,
+                                          'policy': 'Only explicitly optional references absent from this fixed target are omitted; '
+                                                    'installed external content requires an explicit mapping and a new import.'},
             'targetItemAliases': VANILLA_ALIASES,
             'sourceCount': len(records), 'statusCounts': dict(sorted(Counter(r['status'] for r in records).items())),
             'sourceTypes': dict(sorted(Counter(r['type'] for r in records).items())),

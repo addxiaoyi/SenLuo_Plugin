@@ -22,11 +22,12 @@ from cookery_models import (convert_models, geometry_part, group_indices, json_b
                             model_node, model_path, model_roots, verify_models)
 from export_cookery_catalog import COMMIT, export
 from export_cookery_food_pack import food_items, source_assets
-from cookery_recipes import read_sources, processing_recipes, cooking_recipes, crafting_recipes, recipe_report
+from cookery_recipes import read_sources, processing_recipes, cooking_recipes, crafting_recipes, rice_bowl_recipes, recipe_report
 from cookery_kitchen_displays import tea_cups, cutting_models, tea_bars, soup_models, stockpot_models
 from cookery_stockpot import stockpot_recipes
 from cookery_pot import pot_recipes
 from cookery_millstone import millstone_furniture
+from cookery_placed_meals import placed_meals
 from export_bamboo_tray import export as export_bamboo_tray
 
 NAMESPACE = 'kaleidoscopecookery'
@@ -205,12 +206,13 @@ def plate_block_definition(assets: dict[str, bytes], items: dict, name: str, pla
                      'is_suffocating': False, 'is_view_blocking': False},
         'behavior': [{'type': PLATE_BEHAVIOR,
                       'max_servings': max_servings,
-                      'serving_items': plate['servings'],
+                      'serving_items': list(plate['servings']),
                       'drops': plate['drops']}],
-        'loot': {'pools': [{'rolls': 1, 'entries': [{'type': 'item', 'item': key}]}]},
+        # The controller returns remaining portions and the bowl; a base item would duplicate a full plate.
+        'loot': {'pools': []},
         'states': {'properties': {
                        'facing': {'type': 'horizontal_direction', 'default': 'north'},
-                       'servings': {'type': 'int', 'range': f'0~{max_servings}', 'default': 0}},
+                       'servings': {'type': 'int', 'range': f'0~{max_servings}', 'default': max_servings}},
                    'appearances': appearances, 'variants': variants}}
 
 
@@ -369,12 +371,15 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
             items[key]['data']['max_damage'] = 256
         blocks[key] = block_definition(assets, items, parts, name)
     # Official serving plates use their source `servings` models while the
-    # plugin controller owns the quality snapshot and remaining bite count.
+    # plugin controller owns the portions and removal drops.
+    plates = {}
     for entry in catalog['entries']:
         plate = entry.get('plate')
         name = entry['sourceId'].split(':', 1)[1]
-        if not plate or f'{ART}/blockstates/{name}.json' not in assets:
+        if not plate:
             continue
+        if f'{ART}/blockstates/{name}.json' not in assets:
+            raise AuditError(f'missing plate blockstate: {name}')
         key = NAMESPACE + ':' + name
         if key not in items:
             model = ART + ':item/' + name
@@ -383,6 +388,11 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
             items[key] = item(key, definitions[model], names.get(f'item.{ART}.{name}', name))
         items[key]['behavior'] = {'type': 'block_item', 'block': key}
         blocks[key] = plate_block_definition(assets, items, name, plate)
+        plates[key] = {field: copy.deepcopy(plate[field]) for field in ('maxServings', 'servings', 'drops')}
+    meal_blocks, meal_manifest = placed_meals(source, catalog, assets, items, definitions, names, display)
+    if set(meal_blocks) & set(blocks):
+        raise AuditError('placed meal collides with an existing kitchen block')
+    blocks.update(meal_blocks)
     tray_key = NAMESPACE + ':bamboo_tray'
     items[tray_key] = item(tray_key, definitions[tray_base], names.get('block.' + ART + '.bamboo_tray', '竹筛'))
     items[tray_key]['behavior'] = {'type': 'block_item', 'block': tray_key}
@@ -435,7 +445,8 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
         if key not in registered or model not in definitions:
             raise AuditError(f'unregistered recipe ingredient or missing model: {key}')
         items[key] = item(key, definitions[model], names.get(f'item.{ART}.{name}', name))
-    recipes['recipes'] = {**cooking, **crafting_recipes(sources, records, set(items))}
+    rice_bowls, rice_manifest = rice_bowl_recipes(sources, records, set(items))
+    recipes['recipes'] = {**cooking, **crafting_recipes(sources, records, set(items)), **rice_bowls}
     recipe_manifest = recipe_report(sources, records, recipes)
     cups = tea_cups(assets, items, catalog)
     cutting_models(assets, items, records)
@@ -457,6 +468,11 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
                 'items': len(items), 'blocks': len(blocks), 'convertedPerspectives': converted, 'checkedModels': checked,
                 'furniture': len(furniture), 'millstoneModel': millstone_model,
                 'soundAliases': sounds, 'states': {key: len(value['states']['variants']) for key, value in blocks.items()},
+                'plates': plates,
+                'placedMeals': meal_manifest,
+                'riceBowls': rice_manifest,
+                'optionalTagAbsences': recipe_manifest['optionalTagAbsences'],
+                'optionalDependencyContext': recipe_manifest['optionalDependencyContext'],
                 'recipeSources': recipe_manifest['sourceCount'], 'recipeStatuses': recipe_manifest['statusCounts'],
                 'recipes': recipe_manifest['importedSections'], 'accurateAppliances': recipe_manifest['accurateAppliances'],
                 'teaCups': len(cups), 'images': len(images),

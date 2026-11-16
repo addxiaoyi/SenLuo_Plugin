@@ -9,7 +9,6 @@ import net.kaleidoscope.cookery.util.BlockEntityNbt;
 import net.kaleidoscope.cookery.util.CookeryBlockStateEnvelope;
 import net.kaleidoscope.cookery.util.DropUtils;
 import net.kaleidoscope.cookery.util.InventoryUtils;
-import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
@@ -24,6 +23,9 @@ import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.libraries.nbt.CompoundTag;
 import net.momirealms.craftengine.libraries.nbt.ListTag;
 import net.momirealms.craftengine.libraries.nbt.Tag;
+import net.momirealms.craftengine.libraries.nbt.IntTag;
+import net.momirealms.craftengine.libraries.nbt.IntArrayTag;
+import net.momirealms.craftengine.libraries.nbt.ByteArrayTag;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftInventoryProxy;
 import org.bukkit.inventory.Inventory;
 
@@ -300,10 +302,18 @@ public final class BambooTrayController extends BlockEntityController {
 
     @Override
     public void loadCustomData(CompoundTag tag) {
+        if (!tag.containsKey(CookeryBlockStateEnvelope.sidecar(DATA_KEY))) {
+            requireType(tag, DATA_KEY, CompoundTag.class);
+        }
         CompoundTag saved = CookeryBlockStateEnvelope.payload(tag, DATA_KEY);
         if (saved == null) {
             return;
         }
+        requireType(saved, "schema", IntTag.class);
+        requireType(saved, "data_version", IntTag.class);
+        requireType(saved, "items", ListTag.class);
+        requireType(saved, "progress", IntArrayTag.class);
+        requireType(saved, "completion", ByteArrayTag.class);
         int schema = saved.getInt("schema", SCHEMA_VERSION);
         if (schema != SCHEMA_VERSION) {
             throw new IllegalArgumentException("Unsupported bamboo tray schema " + schema + " at " + blockEntity.pos);
@@ -311,19 +321,24 @@ public final class BambooTrayController extends BlockEntityController {
         Item[] items = readItems(saved);
         int[] ticks = saved.getIntArray("progress", new int[progress.length]);
         byte[] completion = saved.getByteArray("completion", new byte[progress.length]);
+        if (ticks.length > progress.length || completion.length > progress.length) {
+            throw new IllegalArgumentException("Too many bamboo tray progress slots at " + blockEntity.pos);
+        }
         BambooTrayProgress[] loaded = new BambooTrayProgress[progress.length];
+        Item[] identities = new Item[progress.length];
         for (int slot = 0; slot < progress.length; slot++) {
             loaded[slot] = new BambooTrayProgress();
-            if (!items[slot].isEmpty()) {
-                loaded[slot].restore(slot < ticks.length ? ticks[slot] : 0,
-                        slot < completion.length ? completion[slot] : 0);
-            }
+            // Validate even empty-slot metadata before committing any inventory changes.
+            loaded[slot].restore(slot < ticks.length ? ticks[slot] : 0,
+                    slot < completion.length ? completion[slot] : 0);
+            if (items[slot].isEmpty()) loaded[slot].reset();
+            identities[slot] = items[slot].copy();
         }
         internalMutation = true;
         try {
             for (int slot = 0; slot < progress.length; slot++) {
                 container.setItem(slot, items[slot]);
-                processingItems[slot] = items[slot].copy();
+                processingItems[slot] = identities[slot];
                 progress[slot].restore(loaded[slot].ticks(), loaded[slot].completionCode());
             }
         } finally {
@@ -346,17 +361,29 @@ public final class BambooTrayController extends BlockEntityController {
             if (!(slotTag instanceof CompoundTag entry)) {
                 throw new IllegalArgumentException("Invalid bamboo tray inventory entry at " + blockEntity.pos);
             }
+            requireType(entry, "slot", IntTag.class);
             int slot = entry.getInt("slot", -1);
             if (slot < 0 || slot >= items.length || !occupied.add(slot)) {
                 throw new IllegalArgumentException("Invalid or duplicate bamboo tray slot " + slot + " at " + blockEntity.pos);
             }
             Tag itemTag = entry.get("item");
-            Object parsed = itemTag == null ? null : ItemStackUtils.parseMinecraftItem(itemTag, dataVersion);
-            if (parsed == null) {
+            if (itemTag == null) {
                 throw new IllegalArgumentException("Cannot load bamboo tray item in slot " + slot + " at " + blockEntity.pos);
             }
-            items[slot] = ItemStackUtils.wrap(parsed);
+            Item decoded = BlockEntityNbt.getItem(entry, "item", dataVersion);
+            if (decoded == null || decoded.isEmpty() || decoded.count() <= 0
+                    || decoded.count() > container.getMaxStackSize(decoded)) {
+                throw new IllegalArgumentException("Invalid bamboo tray item amount in slot " + slot + " at " + blockEntity.pos);
+            }
+            items[slot] = decoded;
         }
         return items;
+    }
+
+    private void requireType(CompoundTag saved, String key, Class<? extends Tag> type) {
+        Tag value = saved.get(key);
+        if (value != null && !type.isInstance(value)) {
+            throw new IllegalArgumentException("Invalid bamboo tray " + key + " type at " + blockEntity.pos);
+        }
     }
 }

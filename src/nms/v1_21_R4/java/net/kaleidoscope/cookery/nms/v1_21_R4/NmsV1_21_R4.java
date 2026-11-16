@@ -14,6 +14,11 @@ import org.bukkit.entity.Entity;
 
 public final class NmsV1_21_R4 implements NmsBridge {
     @Override
+    public Object createRiceBowlRecipe(net.kaleidoscope.cookery.recipe.RiceBowlRecipe recipe) {
+        return new RiceBowlNativeRecipe(recipe);
+    }
+
+    @Override
     public BambooTrayWeather bambooTrayWeather(Object level, int x, int y, int z) {
         if (!(level instanceof ServerLevel serverLevel)) {
             throw new IllegalArgumentException("Bamboo tray weather requires a ServerLevel");

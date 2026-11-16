@@ -8,7 +8,7 @@ import unittest
 import yaml
 
 from audit_upstream import AuditError
-from cookery_recipes import ART, RecipeSources, mapped, read_sources, processing_recipes, cooking_recipes, validate_recipe
+from cookery_recipes import ART, RecipeSources, mapped, read_sources, processing_recipes, cooking_recipes, rice_bowl_recipes, validate_recipe
 from cookery_stockpot import stockpot_recipes
 from cookery_pot import pot_recipes
 from export_cookery_kitchen_pack import build, PACK
@@ -60,6 +60,16 @@ class RecipeImportTest(unittest.TestCase):
             self.assertEqual(row['original']['experience'], recipe['experience'])
             self.assertEqual(mapped(row['original']['result']), recipe['result']['id'])
 
+    def test_cooking_serializer_keys_match_craftengine_26_9_1(self):
+        # CE RecipeSerializers requires the underscore key; a hyphen makes it skip campfire recipes.
+        cooking_types = {'minecraft:smelting', 'minecraft:smoking', 'minecraft:campfire_cooking'}
+        rows = [row for row in self.report['recipes'] if row['type'] in cooking_types]
+        self.assertEqual(7, sum(row['type'] == 'minecraft:campfire_cooking' for row in rows))
+        for row in rows:
+            with self.subTest(recipe=row['sourceId']):
+                recipe = self.config['recipes'][row['pluginIds'][0]]
+                self.assertEqual(row['type'], 'minecraft:' + recipe['type'])
+
     def test_stockpot_keeps_exact_counts_and_distinct_matching_separate(self):
         recipes = self.config.get('stockpot_recipes', {})
         self.assertEqual(101, len(recipes))
@@ -84,12 +94,12 @@ class RecipeImportTest(unittest.TestCase):
 
     def test_pot_import_preserves_every_alternative_and_official_batch_size(self):
         recipes = self.config.get('pot_recipes', {})
-        self.assertEqual(219, len(recipes))
+        self.assertEqual(221, len(recipes))
         rows = [r for r in self.report['recipes'] if r['type'] in (ART + ':pot', ART + ':flex_pot')]
         self.assertEqual(225, len(rows))
         for row in rows:
             if row['status'] != 'imported':
-                self.assertTrue('forge:mushrooms' in row['reason'] or 'farmersdelight:cooked_rice' in row['reason'])
+                self.assertIn('forge:mushrooms', row['reason'])
                 continue
             recipe = recipes[mapped(row['sourceId'])]
             original = row['original']
@@ -98,7 +108,66 @@ class RecipeImportTest(unittest.TestCase):
             self.assertEqual(original['stir_fry_count'], recipe['stir_fry_count'])
             self.assertEqual(original['time'], recipe['source_time'])
             self.assertEqual('distinct' if row['type'].endswith(':flex_pot') else 'exact', recipe['match'])
-        self.assertEqual(6, sum(row['status'] == 'pending' for row in rows))
+        self.assertEqual(4, sum(row['status'] == 'pending' for row in rows))
+
+    def test_rice_bowls_keep_custom_matching_quality_and_rice_only_remainder_contract(self):
+        rows = [row for row in self.report['recipes'] if row['type'] == ART + ':rice_bowl']
+        self.assertEqual(5, len(rows))
+        self.assertTrue(all(row['status'] == 'imported' for row in rows))
+        self.assertEqual(5, len(self.manifest.get('riceBowls', {})))
+        for row in rows:
+            with self.subTest(recipe=row['sourceId']):
+                key = row['pluginIds'][0]
+                recipe = self.config['recipes'][key]
+                self.assertEqual('kaleidoscopecookery:rice_bowl', recipe['type'])
+                self.assertEqual('misc', recipe['category'])
+                self.assertEqual([[mapped(row['original']['ingredient']['item'])], ['kaleidoscopecookery:cooked_rice']],
+                                 recipe['ingredients'])
+                self.assertEqual({'id': mapped(row['original']['result']['item']), 'count': 1}, recipe['result'])
+                meta = self.manifest['riceBowls'][key]
+                self.assertEqual(row['sourceId'], meta['sourceId'])
+                self.assertEqual(self.manifest['sourceCommit'], meta['sourceCommit'])
+                self.assertEqual('minecraft:bowl', meta['recipeRemainder'])
+                self.assertEqual('exactly_one_dish_slot_and_one_rice_slot_with_extras', meta['matching'])
+                self.assertEqual(recipe['ingredients'][0], meta['dishes'])
+                self.assertEqual(recipe['ingredients'][1], meta['rice'])
+                self.assertEqual(recipe['result']['id'], meta['result'])
+                self.assertEqual('farmersdelight:cooked_rice', row['optionalTagAbsences'][0]['reference'])
+                self.assertFalse(row['optionalTagAbsences'][0]['required'])
+
+    def test_optional_source_dependencies_are_reported_for_all_nine_unblocked_recipes(self):
+        rows = [row for row in self.report['recipes'] if row.get('optionalTagAbsences')]
+        self.assertEqual(9, len(rows))
+        self.assertEqual({'statusCounts': {'imported': 532, 'pending': 80}}, {'statusCounts': self.report['statusCounts']})
+        for row in rows:
+            self.assertEqual('imported', row['status'])
+            for absent in row['optionalTagAbsences']:
+                self.assertFalse(absent['required'])
+                self.assertTrue(absent['reason'])
+        for name in ('raw_meatball', 'stuffed_dough_food'):
+            row = next(row for row in rows if row['sourceId'] == ART + ':' + name)
+            self.assertEqual('#forge:crops/cabbage', row['optionalTagAbsences'][0]['reference'])
+        self.assertEqual({row['sourceId']: row['optionalTagAbsences'] for row in rows}, self.manifest['optionalTagAbsences'])
+
+    def test_rice_bowl_conversion_rejects_missing_roles_items_and_changed_output(self):
+        records = [copy.deepcopy(row) for row in self.report['recipes'] if row['type'] == ART + ':rice_bowl']
+        with self.assertRaisesRegex(AuditError, 'five pinned rice-bowl'):
+            rice_bowl_recipes(self.sources, records[:-1], set(self.config['items']))
+        with self.assertRaisesRegex(AuditError, 'uninstalled rice-bowl'):
+            rice_bowl_recipes(self.sources, copy.deepcopy(records), set())
+        altered = copy.deepcopy(records)
+        altered[0]['original']['result']['nbt'] = '{hidden_output:1}'
+        with self.assertRaisesRegex(AuditError, 'category/result'):
+            rice_bowl_recipes(self.sources, altered, set(self.config['items']))
+        altered = copy.deepcopy(records)
+        altered[0]['original']['ingredient'] = {'item': ART + ':cooked_rice'}
+        with self.assertRaisesRegex(AuditError, 'overlapping'):
+            rice_bowl_recipes(self.sources, altered, set(self.config['items']))
+        tags = copy.deepcopy(self.sources.tags)
+        tags['forge:cooked_rice'] = {'values': [{'id': '#test:missing', 'required': False}]}
+        source = RecipeSources(self.sources.recipes, tags, self.sources.origins, self.sources.files)
+        with self.assertRaisesRegex(AuditError, 'empty or overlapping'):
+            rice_bowl_recipes(source, copy.deepcopy(records), set(self.config['items']))
 
     def test_dough_tag_and_steamer_times_are_not_guessed(self):
         recipes = {key: row for key, row in self.config['accurate_foods'].items() if row['cook'] == 'STEAMER'}
@@ -207,6 +276,35 @@ class RecipeImportTest(unittest.TestCase):
                                    {ART + ':steamer/mantou': {}}, {})
             with self.subTest(tags=tags), self.assertRaises(AuditError):
                 processing_recipes(source)
+
+    def test_optional_missing_references_are_explicit_without_dropping_present_inputs(self):
+        source = RecipeSources({}, {'test:rice': {'values': [ART + ':cooked_rice',
+            {'id': 'farmersdelight:cooked_rice', 'required': False},
+            {'id': '#test:missing_optional', 'required': False}]}}, {}, {})
+        omissions = []
+        self.assertEqual(['kaleidoscopecookery:cooked_rice'], source.expand({'tag': 'test:rice'}, omissions=omissions))
+        self.assertEqual([
+            {'tag': 'test:rice', 'reference': 'farmersdelight:cooked_rice', 'required': False,
+             'reason': 'Optional external item has no mapping in the fixed plugin target.'},
+            {'tag': 'test:rice', 'reference': '#test:missing_optional', 'required': False,
+             'reason': 'Optional tag is absent from the fixed source tree.'}], omissions)
+
+    def test_present_optional_tag_does_not_hide_a_missing_required_descendant(self):
+        source = RecipeSources({}, {'test:root': {'values': [{'id': '#test:present', 'required': False}]},
+                                   'test:present': {'values': ['#test:required']}}, {}, {})
+        with self.assertRaisesRegex(AuditError, 'required tag absent.*test:required'):
+            source.expand({'tag': 'test:root'})
+        for reference in ('farmersdelight:cooked_rice', '#test:missing'):
+            source = RecipeSources({}, {'test:root': {'values': [{'id': reference, 'required': True}]}}, {}, {})
+            with self.subTest(reference=reference), self.assertRaises(AuditError):
+                source.expand({'tag': 'test:root'})
+
+    def test_optional_tag_cycles_and_unknown_entry_shapes_are_errors(self):
+        for entry in ({'id': '#test:root', 'required': False}, {'id': 'minecraft:stone', 'required': 'false'},
+                      {'id': 'minecraft:stone', 'required': False, 'hidden': True}):
+            source = RecipeSources({}, {'test:root': {'values': [entry]}}, {}, {})
+            with self.subTest(entry=entry), self.assertRaises(AuditError):
+                source.expand({'tag': 'test:root'})
 
     def test_processing_output_nbt_cannot_be_silently_discarded(self):
         doc = copy.deepcopy(self.sources.recipes[ART + ':steamer/mantou'])

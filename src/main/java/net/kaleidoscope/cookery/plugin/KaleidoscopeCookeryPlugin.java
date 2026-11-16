@@ -61,6 +61,9 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
     private static volatile KaleidoscopeCookeryPlugin instance;
     private net.kaleidoscope.cookery.effect.CookeryEffects cookeryEffects;
     private net.kaleidoscope.cookery.item.listener.CookeryConsumeListener cookeryConsumption;
+    private net.kaleidoscope.cookery.item.PlacedMealConsumption placedMealConsumption;
+
+    public net.kaleidoscope.cookery.item.PlacedMealConsumption placedMealConsumption() { return placedMealConsumption; }
     private AntiGriefLib antiGrief;
     private Metrics metrics;
     private Object placeholderExpansion;
@@ -74,6 +77,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         var cookeryCatalog = net.kaleidoscope.cookery.catalog.CookeryCatalog.bundled();
         net.kaleidoscope.cookery.item.CookeryFoodItems.initialize(cookeryCatalog);
         cookeryEffects = new net.kaleidoscope.cookery.effect.CookeryEffects(this);
+        placedMealConsumption = new net.kaleidoscope.cookery.item.PlacedMealConsumption(cookeryEffects);
         cookeryConsumption = new net.kaleidoscope.cookery.item.listener.CookeryConsumeListener(this, cookeryEffects);
         getServer().getPluginManager().registerEvents(cookeryEffects, this);
         getServer().getPluginManager().registerEvents(cookeryConsumption, this);
@@ -88,6 +92,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
                 .bypassPermission("kaleidoscopecookery.antigrief.bypass")
                 .build();
         FoodRecipeManager.registerParsers();
+        net.kaleidoscope.cookery.recipe.RiceBowlRecipe.register();
         MillstoneAnimals.registerParser();
         ItemTags.registerParser();
         FoodGroups.registerParser();
@@ -103,6 +108,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SteamerFallingBlockListener(), this);
         steamerTransients = new SteamerTransientBlockListener(this);
         getServer().getPluginManager().registerEvents(new CustomBlockPlaceProtectionListener(), this);
+        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.PlacedMealBreakListener(), this);
         getServer().getPluginManager().registerEvents(new FruitBasketCatListener(this), this);
         getServer().getPluginManager().registerEvents(new TrashCanListener(), this);
         if (UniverseSpigotUtil.isUniverseSpigot()) {
