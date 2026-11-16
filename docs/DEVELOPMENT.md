@@ -4,7 +4,7 @@
 
 ## 当前基线
 
-- 仓库：`addxiaoyi/KaleidoscopeCookery_Plugin`；本地目录：`D:\qwq\项目\luosen-plugins\luosengchufang`。
+- 仓库：`addxiaoyi/SenLuo_Plugin`（原 `addxiaoyi/KaleidoscopeCookery_Plugin`）；本地目录：`D:\qwq\项目\luosen-plugins\luosengchufang`。
 - 分支：`main`；提交：`7a2f8427cbbdbd08d6ceef2e4b80ddc8536d1f23`，提交日期 2026-10-07；接手时已用 `git ls-remote --symref origin HEAD` 核对远端默认分支及提交一致。
 - 插件版本 `1.3.0`；225 个主 Java 源文件和 9 个 NMS 适配源文件。
 - 已克隆、建立 CodeGraph 索引、追踪实现、修复构建并新增竹筛首批实现；尚未提交/推送或安装到服务器。全系列范围和后续阶段见 [IMPLEMENTATION-ROADMAP.md](IMPLEMENTATION-ROADMAP.md)。

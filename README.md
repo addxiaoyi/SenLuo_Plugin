@@ -155,7 +155,7 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/prepare_independent_server
 ## 继续开发
 
 ```bash
-git clone --branch main https://github.com/addxiaoyi/KaleidoscopeCookery_Plugin.git luosengchufang
+git clone --branch main https://github.com/addxiaoyi/SenLuo_Plugin.git luosengchufang
 cd luosengchufang
 git status --short --branch
 git log -1 --oneline

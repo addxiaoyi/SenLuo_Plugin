@@ -28,7 +28,7 @@
 
 ## 1. 对照基线
 
-- 插件：`addxiaoyi/KaleidoscopeCookery_Plugin`，`main`，`7a2f8427cbbdbd08d6ceef2e4b80ddc8536d1f23`，版本 `1.3.0`。
+- 插件：`addxiaoyi/SenLuo_Plugin`（原 `KaleidoscopeCookery_Plugin`），`main`，`7a2f8427cbbdbd08d6ceef2e4b80ddc8536d1f23`，版本 `1.3.0`。
 - 官方模组：`KaleidoscopeMods/KaleidoscopeCookery`，已实时核对默认分支为 `main`，HEAD 为 `2f4e386ce23f49a385ddf003c67fc6415c55417a`，提交日期 `2026-09-26`。
 - 该提交的标签：`snapshot-2026-09-26-13-50-42`、`snapshot-2026-09-26-14-06-32`。这是默认分支及指向标签核对，不将其等同于正式发布版本查询。
 - 官方 `gradle.properties` 声明 `1.6.0-forge+mc1.20.1`。参考 checkout 为 `../.references/KaleidoscopeCookery`，保留原仓库与干净工作树。
