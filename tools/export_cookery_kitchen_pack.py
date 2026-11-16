@@ -325,7 +325,7 @@ def tools(items: dict, definitions: dict, names: dict) -> None:
             items[key]['material'] = ('golden' if metal == 'gold' else metal) + '_sword'
 
 
-def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
+def auxiliary_items(items: dict, definitions: dict, names: dict, assets: dict[str, bytes]) -> None:
     """Expose source tools and farmer wear so existing server behavior can see their IDs."""
     materials = {
         'farmer_boots': 'leather_boots',
@@ -337,8 +337,9 @@ def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
         'sickle': 'iron_hoe',
     }
     for name, material in materials.items():
-        key = NAMESPACE + ':' + name
-        model = ART + ':item/' + name
+        item_name = 'kitchen_shovel_no_oil' if name == 'kitchen_shovel' else name
+        key = NAMESPACE + ':' + item_name
+        model = ART + ':item/' + item_name
         if model not in definitions:
             raise AuditError(f'missing auxiliary item model: {model}')
         items[key] = item(key, definitions[model], names.get(f'item.{ART}.{name}', name))
@@ -350,6 +351,13 @@ def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
                 'radius': 2, 'height': 2, 'cooldown': 10,
                 'damage_item': True, 'durability_per_use': 1,
             }
+    oil_model = ART + ':item/kitchen_shovel_has_oil'
+    if oil_model not in definitions:
+        raise AuditError(f'missing auxiliary item model: {oil_model}')
+    oil_model_path = f'{NAMESPACE}/items/kitchen_shovel_has_oil.json'
+    if oil_model_path in assets:
+        raise AuditError(f'duplicate item model definition: {oil_model_path}')
+    assets[oil_model_path] = json_bytes({'model': {'type': 'minecraft:model', 'model': oil_model}})
 
 
 def sound_aliases(assets: dict[str, bytes]) -> int:
@@ -384,7 +392,7 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
         if model not in definitions:
             raise AuditError(f'missing bamboo tray model: {model}')
     tools(items, definitions, names)
-    auxiliary_items(items, definitions, names)
+    auxiliary_items(items, definitions, names, assets)
     blocks = {}
     for name in APPLIANCES:
         key = NAMESPACE + ':' + name

@@ -45,12 +45,18 @@ class KitchenPackTest(unittest.TestCase):
         expected = {
             'farmer_boots': 'leather_boots', 'farmer_leggings': 'leather_leggings',
             'farmer_chest_plate': 'leather_chestplate', 'straw_hat': 'leather_helmet',
-            'straw_hat_flower': 'leather_helmet', 'kitchen_shovel': 'iron_shovel', 'sickle': 'iron_hoe'}
+            'straw_hat_flower': 'leather_helmet', 'kitchen_shovel_no_oil': 'iron_shovel', 'sickle': 'iron_hoe'}
         for name, material in expected.items():
             with self.subTest(item=name):
                 item = self.config['items'][NAMESPACE + ':' + name]
                 self.assertEqual(material, item['material'])
                 self.assertEqual(1, item['data']['max_stack_size'])
+        shovel = self.config['items'][NAMESPACE + ':kitchen_shovel_no_oil']
+        self.assertEqual({'type': 'minecraft:model', 'path': ART + ':item/kitchen_shovel_no_oil'}, shovel['model'])
+        oil_model_path = f'{PACK}/resourcepack/assets/{NAMESPACE}/items/kitchen_shovel_has_oil.json'
+        self.assertEqual({'model': {'type': 'minecraft:model', 'model': ART + ':item/kitchen_shovel_has_oil'}},
+                         json.loads(self.bundle[oil_model_path]))
+        self.assertIn(f'{PACK}/resourcepack/assets/{ART}/models/item/kitchen_shovel_has_oil.json', self.bundle)
         self.assertEqual(NAMESPACE + ':sickle_range_harvest',
                          self.config['items'][NAMESPACE + ':sickle']['behavior']['type'])
         parity = json.loads(self.bundle[f'{PACK}/recipe-parity.json'])

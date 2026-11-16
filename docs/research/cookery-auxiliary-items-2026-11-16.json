@@ -4,13 +4,13 @@
   "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
   "status": "STATIC_EXPORT_AND_PYTHON_TESTED_RUNTIME_NOT_TESTED",
   "input": {
-    "path": "build/acceptance/auxiliary-items-20261116.zip",
-    "sha256": "8bcd8171f58aeb80838a4f191b97d7bb66322a66d0d1aea72eacba434e9f47d6"
+    "path": "build/acceptance/auxiliary-items-20261116-v2.zip",
+    "sha256": "733d248134932462936fd48453bb588ad2fd1ea966c96a379f36a71690b1f51a"
   },
   "counts": {
-    "items": 534,
+    "items": 533,
     "blocks": 62,
-    "models": 546,
+    "models": 545,
     "recipes": {
       "teapot_result": 11,
       "accurate_foods": 91,
@@ -69,7 +69,7 @@
   ],
   "remaining": {
     "tea_banner": "Requires face-attached block controller, dye/pattern PDC and block entity rendering",
-    "kitchen_shovel": "Requires item state/behavior parity and oil model transition",
+    "kitchen_shovel": "Base ID and oily item_model are exported; Paper/Folia state-switch and interaction acceptance remain pending",
     "farmerArmorRecipes": "Forge iron tags remain unresolved; no substitute was invented"
   },
   "tests": {
