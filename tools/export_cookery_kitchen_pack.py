@@ -325,7 +325,7 @@ def tools(items: dict, definitions: dict, names: dict) -> None:
             items[key]['material'] = ('golden' if metal == 'gold' else metal) + '_sword'
 
 
-def auxiliary_items(items: dict, definitions: dict, names: dict, assets: dict[str, bytes]) -> None:
+def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
     """Expose source tools and farmer wear so existing server behavior can see their IDs."""
     materials = {
         'farmer_boots': 'leather_boots',
@@ -354,10 +354,12 @@ def auxiliary_items(items: dict, definitions: dict, names: dict, assets: dict[st
     oil_model = ART + ':item/kitchen_shovel_has_oil'
     if oil_model not in definitions:
         raise AuditError(f'missing auxiliary item model: {oil_model}')
-    oil_model_path = f'{NAMESPACE}/items/kitchen_shovel_has_oil.json'
-    if oil_model_path in assets:
-        raise AuditError(f'duplicate item model definition: {oil_model_path}')
-    assets[oil_model_path] = json_bytes({'model': {'type': 'minecraft:model', 'model': oil_model}})
+    oiled_key = NAMESPACE + ':kitchen_shovel_has_oil'
+    oiled_shovel = items.get(oiled_key)
+    if oiled_shovel is None or oiled_shovel.get('model') != definitions[oil_model]:
+        raise AuditError(f'missing legacy shovel model item: {oiled_key}')
+    oiled_shovel['material'] = 'iron_shovel'
+    oiled_shovel['data']['max_stack_size'] = 1
 
 
 def sound_aliases(assets: dict[str, bytes]) -> int:
@@ -392,7 +394,7 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
         if model not in definitions:
             raise AuditError(f'missing bamboo tray model: {model}')
     tools(items, definitions, names)
-    auxiliary_items(items, definitions, names, assets)
+    auxiliary_items(items, definitions, names)
     blocks = {}
     for name in APPLIANCES:
         key = NAMESPACE + ':' + name

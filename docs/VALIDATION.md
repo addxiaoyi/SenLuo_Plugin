@@ -255,10 +255,11 @@ python -X utf8 tools/run_enchantment_acceptance.py --accept-eula --root build/ac
 
 ## 厨房附属物品双端启动（2026-11-16）
 
-- 运行准备：`series/tools/prepare_independent_servers.py` 创建全新 `build/acceptance/shovel-runtime-20261116/{paper,folia}`，仅使用已接受的隔离测试 EULA；端口为 `25591/25592`。固定 Java 21、Paper 1.21.11-132、Folia 1.21.11-14、CraftEngine 26.9.1 和 Cookery 包 SHA-256 `733d248134932462936fd48453bb588ad2fd1ea966c96a379f36a71690b1f51a`。
-- Paper 启动 PASS（38.694 秒），Folia 启动 PASS（33.817 秒）；两端均加载五个插件、CraftEngine 与 `cookery_kitchen`，Cookery 方块注册自检 11/11 通过，均通过 `stop` 正常保存并退出，进程退出码 0。启动日志位于隔离目录各自的 `logs/latest.log`。
-- 本轮修复 `check_independence.py` 和 `prepare_independent_servers.py` 的 JAR glob：构建产物名为 `Kaleidoscope<Module>Plugin-*.jar`。新增两项回归；`python -m unittest discover -s series/tools -p 'test_*.py' -v` 共 33 项通过。
-- **不代表资源包或玩家操作验收**：CraftEngine 的 `reload_pack` 工作流没有执行，最终 `generated/resource_pack.zip` 未生成；沾油 `item_model` 的客户端渲染和交互切换、茶旗、农夫装备效果均未测试。详见[启动摘要](research/cookery-shovel-runtime-2026-11-16.json)。
+- 运行准备：`series/tools/prepare_independent_servers.py` 在全新 `build/acceptance/shovel-v2/{paper,folia}` 创建隔离实例，EULA 已由服主接受，端口 `25591/25592`。固定 Java 21、Paper 1.21.11-132、Folia 1.21.11-14、CraftEngine 26.9.1；输入 Cookery 包 SHA-256 `0618e04492e7b7d7f0d8317934a6aaaf8b9c5bd66a055a1c79ead015a011b011`。
+- Paper 启动 PASS（49.321 秒），Folia 启动 PASS（43.493 秒）；两端加载五个插件、CraftEngine 与 `cookery_kitchen`，Cookery 方块注册自检 11/11。通过控制台 `ce workflow default` 运行生成、格式校验、压缩和托管，Paper/Folia 均 PASS，之后都通过 `stop` 正常保存并退出。服务器日志在各自的 `logs/latest.log`。
+- 两端生成 ZIP 分别为 SHA-256 `8b2e995efec368c3c39275cb709932a1f54f8700a80e6f640c1ef60f3de1b27c`（2,507,044 bytes）和 `d874cd0edd76421fe60c4213e2ffb9d8ac5843e7d2597ed374c6de3b956ce38a`（2,507,037 bytes）。两包均有 3,020 entries；唯一内容差异是 CraftEngine 默认资源 `assets/minecraft/blockstates/brown_mushroom_block.json`。锅铲无油/油态 item definitions、两套模型及油态贴图均在包中，之前的 item-model 文件冲突警告已消失。
+- Folia 冷启动有 5.0093117 秒 global-region watchdog 记录，栈位于 CraftEngine `TagUtils.createUpdateTagsPacket` / `BukkitNetworkManager.resendTags`；服务器随后启动并完成资源包 workflow。该 watchdog 根因仍 OPEN，不能因后续成功关闭历史告警。
+- `python -m unittest discover -s series/tools -p 'test_*.py' -v` 共 33 项通过。原版客户端没有连接；锅铲实际涂油/倒油和客户端显示尚未验收。详见[双端验收摘要](research/cookery-shovel-runtime-2026-11-16.json)。
 
 ## 本地产物（历史附魔检查点）
 

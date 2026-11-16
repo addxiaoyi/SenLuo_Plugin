@@ -4,8 +4,8 @@
   "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
   "status": "STATIC_EXPORT_AND_PYTHON_TESTED_RUNTIME_NOT_TESTED",
   "input": {
-    "path": "build/acceptance/auxiliary-items-20261116-v2.zip",
-    "sha256": "733d248134932462936fd48453bb588ad2fd1ea966c96a379f36a71690b1f51a"
+    "path": "build/acceptance/auxiliary-items-20261116-v4.zip",
+    "sha256": "0618e04492e7b7d7f0d8317934a6aaaf8b9c5bd66a055a1c79ead015a011b011"
   },
   "counts": {
     "items": 533,
@@ -69,7 +69,7 @@
   ],
   "remaining": {
     "tea_banner": "Requires face-attached block controller, dye/pattern PDC and block entity rendering",
-    "kitchen_shovel": "Base ID and oily item_model are exported; Paper/Folia state-switch and interaction acceptance remain pending",
+    "kitchen_shovel": "Base and legacy oily IDs are CE items; Paper/Folia generated and validated both item-model definitions; player interaction acceptance remains pending",
     "farmerArmorRecipes": "Forge iron tags remain unresolved; no substitute was invented"
   },
   "tests": {
