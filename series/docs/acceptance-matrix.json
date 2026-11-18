@@ -21,8 +21,8 @@
       "pack": "cookery-ce-pack-1.3.0.zip",
       "required_levels": ["L1", "L2", "L3", "L4", "L5", "L6"],
       "status": "runtime-tested",
-      "evidence": ["../../docs/VALIDATION.md", "../../docs/research/series-five-runtime-acceptance-2026-11-08.json"],
-      "open": ["player-flow", "vanilla-client", "folia-watchdog"]
+      "evidence": ["../../docs/VALIDATION.md", "../../docs/research/series-five-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json"],
+      "open": ["player-flow", "vanilla-client", "folia-connected-player-hits", "folia-native-recipe-watchdog"]
     },
     {
       "module": "doll",
@@ -30,8 +30,8 @@
       "pack": "doll-ce-pack-0.1.0-dev.zip",
       "required_levels": ["L1", "L2", "L3", "L4", "L5", "L6"],
       "status": "runtime-tested",
-      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json"],
-      "open": ["server-start", "player-flow", "vanilla-client"]
+      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json"],
+      "open": ["player-flow", "vanilla-client"]
     },
     {
       "module": "tavern",
@@ -39,8 +39,8 @@
       "pack": "tavern-ce-pack-0.1.0-dev.zip",
       "required_levels": ["L1", "L2", "L3", "L4", "L5", "L6"],
       "status": "runtime-tested",
-      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json"],
-      "open": ["server-start", "player-flow", "vanilla-client"]
+      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json"],
+      "open": ["player-flow", "vanilla-client"]
     },
     {
       "module": "deco",
@@ -48,8 +48,8 @@
       "pack": "deco-ce-pack-0.1.0-dev.zip",
       "required_levels": ["L1", "L2", "L3", "L4", "L5", "L6"],
       "status": "runtime-tested",
-      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json"],
-      "open": ["server-start", "player-flow", "vanilla-client"]
+      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json"],
+      "open": ["player-flow", "vanilla-client"]
     },
     {
       "module": "music",
@@ -57,8 +57,8 @@
       "pack": "music-ce-pack-0.1.0-dev.zip",
       "required_levels": ["L1", "L2", "L3", "L4", "L5", "L6"],
       "status": "runtime-tested",
-      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json"],
-      "open": ["server-start", "player-flow", "vanilla-client"]
+      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json"],
+      "open": ["player-flow", "vanilla-client"]
     }
   ]
 }

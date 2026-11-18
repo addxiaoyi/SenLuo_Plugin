@@ -1,5 +1,7 @@
 # 本地验证记录
 
+2026-11-18 的目标版本、五插件整合记录及仍需玩家操作的项目见仓库根目录的[验收记录](../../docs/VALIDATION.md)。
+
 ## 2026-11-08 四插件运行加载
 
 Paper 1.21.11 build 132 和 Folia 1.21.11 build 14 在独立目录中分别加载 CraftEngine 26.9.1、Doll、Tavern、Deco、Music 四个系列插件并正常停服。日志中未出现 Unknown plugin 或插件启用异常。运行证据和所有 JAR/CE 包哈希见 [`docs/research/series-runtime-acceptance-2026-11-08.json`](../../docs/research/series-runtime-acceptance-2026-11-08.json)。玩家流程、资源包下载和原版客户端显示仍需单独验收。

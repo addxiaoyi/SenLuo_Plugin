@@ -90,8 +90,15 @@ class NmsArtifactTest {
                 }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
             }
         }
-        // These descriptors were checked against all nine compiler JARs and the 1.21.11 Paper runtime.
-        assertEquals(PAPER_ABI, members, "Shipped NMS member descriptors differ: " + version);
+        Map<String, String> expected = new HashMap<>(PAPER_ABI);
+        expected.put(NMS + "world/level/Level.isOutsideBuildHeight", "(" + POS + ")Z");
+        expected.put(NMS + "world/level/Level.getWorldBorder", "()L" + NMS + "world/level/border/WorldBorder;");
+        expected.put(NMS + "world/level/border/WorldBorder.isWithinBounds", "(" + POS + ")Z");
+        expected.put(NMS + "world/phys/shapes/Shapes.box", "(DDDDDD)L" + NMS + "world/phys/shapes/VoxelShape;");
+        expected.put(NMS + "world/level/Level.isUnobstructed", "(" + ENTITY + "L" + NMS + "world/phys/shapes/VoxelShape;)Z");
+        expected.put(NMS + "core/Direction.UP", "L" + NMS + "core/Direction;");
+        expected.put(NMS + "world/entity/player/Player.mayUseItemAt", "(" + POS + "L" + NMS + "core/Direction;L" + NMS + "world/item/ItemStack;)Z");
+        assertEquals(expected, members, "Shipped NMS member descriptors differ: " + version);
         assertTrue(types.stream().noneMatch(type -> type.startsWith(CRAFT + "v")),
                 "Paper does not provide versioned CraftBukkit packages: " + types);
         assertTrue(types.contains(NMS + "network/protocol/game/ServerboundTeleportToEntityPacket"));

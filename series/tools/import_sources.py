@@ -300,14 +300,21 @@ def resolve_ingredient(value: Any, tags: dict[str, bytes], trail: tuple[str, ...
         tags, (*trail, tag))})
 
 
+COMPAT_TEXTURES = Path(__file__).with_name("compat-textures")
+
+
 def tavern(source: Source) -> tuple[dict, dict, dict, list]:
     assets, tags = source.resources("assets"), source.resources("data")
+    # The base sign has no floral overlay. Child models override layer1 with their own motifs.
+    board = "kaleidoscope_tavern/textures/block/deco/sandwich_board/base.png"
+    if board not in assets:
+        assets[board] = (COMPAT_TEXTURES / "undecorated_board.png").read_bytes()
     for path, content in list(assets.items()):
         if "/models/" in path and path.endswith(".json"):
             model = parse_json(content)
             if "textures" in model:
                 textures = model["textures"]
-                model["textures"] = {key: "minecraft:block/iron_chain" if value == "minecraft:block/chain" else value
+                model["textures"] = {key: "minecraft:block/iron_chain" if value in ("block/chain", "minecraft:block/chain") else value
                                      for key, value in textures.items()}
                 if model["textures"] != textures:
                     assets[path] = json_bytes(model)
@@ -520,12 +527,26 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
                 raise ValueError(f"Conflicting base Deco assets: {key}")
             original[key] = content
     namespaces = {key.split("/")[0] for key in original}
+    # The pinned frame tool spells ItemDisplayContext.ON_SHELF as "shelf".
+    frame_tool = "kaleidoscope_frame/items/test.json"
+    selector = parse_json(original[frame_tool])
+    for case in selector["model"]["cases"]:
+        case["when"] = ["on_shelf" if context == "shelf" else context for context in case["when"]]
+    original[frame_tool] = json_bytes(selector)
     # These two upstream models still use the pre-move texture paths.
     for plate in ("plate", "porcelain_plate"):
         old = f"kaleidoscope_cookery/textures/block/{plate}.png"
         new = f"kaleidoscope_cookery/textures/block/meals/{plate}.png"
         if old not in original and new in original:
             original[old] = original[new]
+    # Keep the original item models and their GUI transforms when supplying missing sprites.
+    for direction in ("left", "right"):
+        path = f"kaleidoscope_cookery/textures/item/ui/page_{direction}.png"
+        if path not in original:
+            original[path] = (COMPAT_TEXTURES / f"page_{direction}.png").read_bytes()
+    icon = "kaleidoscope_cookery/textures/item/icons/cookery.png"
+    if icon not in original:
+        original[icon] = original["kaleidoscope_cookery/textures/item/icons/cookbook.png"]
     # Retain the old source item IDs while redirecting moved item geometry.
     for name in ("slime_ball_meal", "mysterious"):
         old = f"kaleidoscope_cookery/models/item/{name}.json"
@@ -537,6 +558,17 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
         mesh = parse_json(original["kaleidoscope_cookery/models/meals/block/frogspawn_jelly/0.json"])
         gui = parse_json(original["kaleidoscope_cookery/models/meals/gui/root.json"])
         original[old] = json_bytes({**mesh, "display": gui["display"]})
+    # The two cabinet views use the same UV atlas as the freestanding artistic2 bottle.
+    # The special doll ships without a skin. Use Deco's own unknown-doll skin.
+    fixes = {
+        "kaleidoscope/models/block/doll/s/__waht.json": ("block/waht", "kaleidoscope:block/doll/s/unknown"),
+        **{f"kaleidoscope_bar/models/item/cabinet/bottles/{side}/artistic2.json":
+           ("雪婆婆", "kaleidoscope_bar:item/bottles/s") for side in ("left", "right")},
+    }
+    for path, (missing, replacement) in fixes.items():
+        model = parse_json(original[path])
+        model["textures"] = {key: replacement if value == missing else value for key, value in model["textures"].items()}
+        original[path] = json_bytes(model)
     for path, content in list(original.items()):
         if "/models/" in path and path.endswith(".json"):
             model = parse_json(content)

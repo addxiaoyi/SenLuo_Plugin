@@ -85,7 +85,7 @@ class AcceptancePreparationTests(unittest.TestCase):
                 archive.writestr("manifest.json", "{}\n")
             destination = root / "build/acceptance/runtime"
             engine = root / "craft-engine.jar"
-            engine_config = "block:\n  serverside-blocks: 2000\nmisc:\n  delay-configuration-load: true\n"
+            engine_config = "block:\n  serverside-blocks: 2000\nresource-pack:\n  cache-resource-files: true\nmisc:\n  delay-configuration-load: true\n"
             with ZipFile(engine, "w") as archive:
                 archive.writestr("plugin.yml", "name: CraftEngine\n")
                 archive.writestr("config.yml", engine_config)
@@ -99,8 +99,8 @@ class AcceptancePreparationTests(unittest.TestCase):
             with patch("prepare_independent_servers.WORKSPACE", root), \
                     patch("prepare_independent_servers.SUITE", sources):
                 report = prepare(destination, artifacts, packs, cookery_pack=cookery,
-                                 craft_engine=engine, server_blocks=3000, base_resources=base_resources)
-            config_sha = hashlib.sha256(engine_config.replace("2000", "3000").encode()).hexdigest()
+                                 craft_engine=engine, server_blocks=3000, base_resources=base_resources, early_pack_load=True)
+            config_sha = hashlib.sha256(engine_config.replace("2000", "3000").replace(": true", ": false").encode()).hexdigest()
             self.assertEqual(config_sha, report["craftEngineConfig"]["sha256"])
             prepared_config = destination / "artifacts" / report["craftEngineConfig"]["path"]
             self.assertEqual(config_sha, hashlib.sha256(prepared_config.read_bytes()).hexdigest())
@@ -117,7 +117,7 @@ class AcceptancePreparationTests(unittest.TestCase):
                 self.assertEqual([], list(resources.glob("*.zip")))
                 self.assertEqual(6, len(report["instances"][platform]["cePacks"]))
                 config = destination / platform / "plugins/CraftEngine/config.yml"
-                self.assertEqual(engine_config.replace("2000", "3000"), config.read_text())
+                self.assertEqual(engine_config.replace("2000", "3000").replace(": true", ": false"), config.read_text())
                 self.assertEqual(3000, report["craftEngineConfig"]["serverBlocks"])
                 self.assertEqual(config_sha, hashlib.sha256(config.read_bytes()).hexdigest())
 

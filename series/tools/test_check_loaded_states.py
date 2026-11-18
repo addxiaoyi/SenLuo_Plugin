@@ -9,6 +9,17 @@ from check_loaded_states import RegistrationError, check
 
 
 class LoadedStateTests(unittest.TestCase):
+    def test_axis_requires_all_three_orientations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.instance(root, {"axis": {"type": "axis", "default": "y"}},
+                          {"kaleidoscopecookery:fixture[axis=y]": 0})
+            report = check(root)
+            self.assertFalse(report["complete"])
+            self.assertEqual(3, report["expected"])
+            self.assertEqual(["kaleidoscopecookery:fixture[axis=x]",
+                              "kaleidoscopecookery:fixture[axis=z]"], report["missing"])
+
     def instance(self, root, properties, states, capacity=100):
         engine = root / "plugins/CraftEngine"
         (engine / "resources/cookery_kitchen/configuration").mkdir(parents=True)

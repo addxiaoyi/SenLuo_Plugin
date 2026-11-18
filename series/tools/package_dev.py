@@ -138,9 +138,10 @@ def main() -> None:
     entries['organization-checkouts.json'] = (ROOT / 'docs/research/organization-checkouts.json').read_bytes()
     manifest = {
         'created_at': datetime.now().astimezone().isoformat(),
-        'status': 'development; server and vanilla-client acceptance not performed',
+        'status': 'development',
         'baseline_commit': subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip(),
-        'uncommitted_work': True,
+        'uncommitted_work': bool(subprocess.check_output(
+            ['git', '-C', str(ROOT), 'status', '--porcelain'], text=True).strip()),
         'compile_target': {'java': 21, 'paper_api': '1.21.11', 'craftengine_api': '26.9.1'},
         'java_tests': java_tests,
         'pack_validation': validation,

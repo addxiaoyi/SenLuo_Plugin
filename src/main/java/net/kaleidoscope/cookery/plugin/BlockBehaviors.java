@@ -42,14 +42,28 @@ public final class BlockBehaviors {
     public static BlockBehaviorType<RiceCropBehavior> RICE_CROP;
     public static BlockBehaviorType<CropHarvestBehavior> CROP_HARVEST;
     public static BlockBehaviorType<TableBehavior> TABLE;
+    public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.EightImmortalsTableBehavior> EIGHT_IMMORTALS_TABLE;
+    public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.LongBenchBehavior> LONG_BENCH;
     public static BlockBehaviorType<BambooTrayBehavior> BAMBOO_TRAY;
     public static BlockBehaviorType<PlateBehavior> PLATE;
     public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.PlacedMealBehavior> PLACED_MEAL;
     public static BlockBehaviorType<TeaBannerBehavior> TEA_BANNER;
 
+    public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.StrawBlockBehavior> STRAW_BLOCK;
+
+    public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.OilBlockBehavior> OIL_BLOCK;
+
     private BlockBehaviors() {}
 
     public static void register() {
+        if (EIGHT_IMMORTALS_TABLE == null) EIGHT_IMMORTALS_TABLE = RegistryUtils.registerBlockBehavior(
+                Key.of("kaleidoscopecookery:eight_immortals_table"), net.kaleidoscope.cookery.block.behavior.EightImmortalsTableBehavior.FACTORY);
+        if (LONG_BENCH == null) LONG_BENCH = RegistryUtils.registerBlockBehavior(
+                Key.of("kaleidoscopecookery:long_bench"), net.kaleidoscope.cookery.block.behavior.LongBenchBehavior.FACTORY);
+        if (OIL_BLOCK == null) OIL_BLOCK = RegistryUtils.registerBlockBehavior(
+                Key.of("kaleidoscopecookery:oil_block"), net.kaleidoscope.cookery.block.behavior.OilBlockBehavior.FACTORY);
+        if (STRAW_BLOCK == null) STRAW_BLOCK = RegistryUtils.registerBlockBehavior(
+                Key.of("kaleidoscopecookery:straw_block"), net.kaleidoscope.cookery.block.behavior.StrawBlockBehavior.FACTORY);
         if (PLACED_MEAL == null) PLACED_MEAL = RegistryUtils.registerBlockBehavior(
                 Key.of("kaleidoscopecookery:placed_meal"), net.kaleidoscope.cookery.block.behavior.PlacedMealBehavior.FACTORY);
         if (TEA_BANNER == null) TEA_BANNER = RegistryUtils.registerBlockBehavior(

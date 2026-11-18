@@ -3,12 +3,14 @@ package net.kaleidoscope.cookery.nms;
 import org.bukkit.Bukkit;
 
 public final class NmsBridgeProvider {
-    private static final NmsBridge BRIDGE = create();
+    private static final class Holder {
+        private static final NmsBridge BRIDGE = create();
+    }
 
     private NmsBridgeProvider() {}
 
     public static NmsBridge bridge() {
-        return BRIDGE;
+        return Holder.BRIDGE;
     }
 
     private static NmsBridge create() {

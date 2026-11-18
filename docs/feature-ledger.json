@@ -44,7 +44,7 @@
       "parity_level": "C",
       "status": "runtime_tested",
       "source_ids": ["acceptance:paper-folia-client"],
-      "evidence": ["series/docs/ACCEPTANCE.md", "series/docs/acceptance-matrix.json", "series/tools/prepare_independent_servers.py", "docs/research/series-runtime-acceptance-2026-11-08.json", "docs/research/series-five-runtime-acceptance-2026-11-08.json"]
+      "evidence": ["series/docs/ACCEPTANCE.md", "series/docs/acceptance-matrix.json", "series/tools/prepare_independent_servers.py", "docs/research/series-runtime-acceptance-2026-11-08.json", "docs/research/series-five-runtime-acceptance-2026-11-08.json", "docs/research/series-runtime-2026-11-18.json"]
     },
     {
       "feature_id": "E05",

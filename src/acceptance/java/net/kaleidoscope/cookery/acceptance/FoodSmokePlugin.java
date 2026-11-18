@@ -1,8 +1,6 @@
 package net.kaleidoscope.cookery.acceptance;
 
 import com.google.gson.GsonBuilder;
-import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect;
 import net.kaleidoscope.cookery.catalog.BakedFood;
 import net.kaleidoscope.cookery.catalog.BiteState;
 import net.kaleidoscope.cookery.catalog.CookeryCatalog;
@@ -35,6 +33,8 @@ public final class FoodSmokePlugin extends JavaPlugin {
         Bukkit.getGlobalRegionScheduler().runDelayed(this, task -> {
             verify();
             EnchantmentSmoke.verify(this);
+            if (getConfig().getBoolean("smithing-smoke.enabled", false)) SmithingSmoke.verify(this);
+            if (getConfig().getBoolean("steamer-item-smoke.enabled", false)) SteamerItemSmoke.verify(this);
             long delay = 1;
             boolean millstoneEnabled = getConfig().getBoolean("millstone-smoke.enabled", false);
             boolean resumeMillstone = millstoneEnabled
@@ -44,6 +44,21 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 startProbe("millstone smoke", delay, () -> MillstoneSmoke.start(this));
             }
             List<String> precedingReports = new ArrayList<>();
+            if (getConfig().getBoolean("scarecrow-hit-smoke.enabled", false)) {
+                startProbe("scarecrow hit smoke", delay, () -> ScarecrowHitSmoke.start(this));
+                precedingReports.add("scarecrow-hit-smoke.json");
+                delay += 200;
+            }
+            if (getConfig().getBoolean("scarecrow-smoke.enabled", false)) {
+                startProbe("scarecrow smoke", delay, () -> ScarecrowSmoke.start(this));
+                precedingReports.add("scarecrow-smoke.json");
+                delay += 200;
+            }
+            if (getConfig().getBoolean("trashcan-smoke.enabled", false)) {
+                startProbe("trash can smoke", delay, () -> TrashCanSmoke.start(this));
+                precedingReports.add("trashcan-smoke.json");
+                delay += 200;
+            }
             if (getConfig().getBoolean("kitchen-smoke.enabled", false)) {
                 startProbe("kitchen smoke", delay, () -> KitchenSmoke.start(this));
                 precedingReports.add("kitchen-smoke.json");
@@ -139,16 +154,26 @@ public final class FoodSmokePlugin extends JavaPlugin {
             if (expected == null) continue;
             try {
                 var buildable = BukkitItemManager.instance().getBuildableItem(Key.of(entry.id())).orElseThrow();
-                ItemStack direct = ItemStackUtils.getBukkitStack(buildable.buildItem((net.momirealms.craftengine.core.entity.player.Player) null).minecraftItem());
+                var built = buildable.buildItem((net.momirealms.craftengine.core.entity.player.Player) null);
+                ItemStack direct = ItemStackUtils.getBukkitStack(built.minecraftItem());
                 check(expected.equals(CookeryFoodItems.read(direct)), entry.id() + ": direct CE build omitted/changed food PDC");
                 check(direct.getItemMeta().getFood().getNutrition() == expected.food().nutrition(), entry.id() + ": wrong food component");
                 ItemStack restored = ItemStack.deserializeBytes(direct.serializeAsBytes());
                 check(expected.equals(CookeryFoodItems.read(restored)), entry.id() + ": serialization lost food snapshot");
-                var consumable = direct.getData(DataComponentTypes.CONSUMABLE);
-                check(consumable != null, entry.id() + ": missing consumable");
+                // 1.21.1 stores eating effects in food; later versions use consumable.
+                boolean modern = net.momirealms.craftengine.core.util.VersionHelper.isOrAbove1_21_2;
+                var raw = built.getComponentAsJson(Key.of(modern ? "minecraft:consumable" : "minecraft:food"));
+                check(raw != null && raw.isJsonObject(), entry.id() + ": missing consumption component");
+                var component = raw.getAsJsonObject();
+                long actual = 0;
+                String effectsField = modern ? "on_consume_effects" : "effects";
+                if (component.has(effectsField)) {
+                    for (var effect : component.getAsJsonArray(effectsField)) {
+                        if (!modern || "minecraft:apply_effects".equals(effect.getAsJsonObject().get("type").getAsString())) actual++;
+                    }
+                }
                 long vanilla = expected.food().effects().stream().filter(effect -> effect.id().startsWith("minecraft:")).count();
-                check(consumable.consumeEffects().stream().filter(effect -> effect instanceof ConsumeEffect.ApplyStatusEffects).count() == vanilla,
-                        entry.id() + ": duplicated/missing vanilla effects");
+                check(actual == vanilla, entry.id() + ": duplicated/missing vanilla effects");
                 var created = InventoryUtils.createOrEmpty(Key.of(entry.id()));
                 var quality = CookeryFoodItems.bake(created, QualityProfile.of(DishQuality.STANDARD));
                 var scaled = CookeryFoodItems.read(ItemStackUtils.getBukkitStack(quality.minecraftItem()));

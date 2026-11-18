@@ -27,7 +27,7 @@ class KitchenPackTest(unittest.TestCase):
         cls.config = yaml.safe_load(cls.bundle[f'{PACK}/configuration/kitchen.yml'])
 
     def test_every_plugin_property_combination_has_an_appearance(self):
-        self.assertEqual(63, len(self.config['blocks']))
+        self.assertEqual(81, len(self.config['blocks']))
         self.assertEqual(28, len(self.config['bamboo_tray_recipes']))
         for name in APPLIANCES:
             with self.subTest(name=name):
@@ -40,6 +40,273 @@ class KitchenPackTest(unittest.TestCase):
                 for selector, variant in block['states']['variants'].items():
                     self.assertEqual(set(block['states']['properties']), {p.split('=')[0] for p in selector.split(',')})
                     self.assertIn(variant['appearance'], block['states']['appearances'])
+
+    def test_lunch_bag_has_real_storage_and_consumption_forms_and_source_recipe(self):
+        key = NAMESPACE + ':transmutation_lunch_bag'
+        bag, eating = self.config['items'][key], self.config['items'][key + '_eating']
+        self.assertEqual('bundle', bag['material'])
+        self.assertEqual({'type': key}, bag['behavior'])
+        self.assertEqual([], bag['data']['components']['minecraft:bundle_contents'])
+        self.assertEqual(1, bag['data']['max_stack_size'])
+        self.assertEqual('minecraft:bundle/fullness', bag['model']['property'])
+        self.assertTrue(bag['model']['fallback']['path'].endswith('transmutation_lunch_bag_no_items'))
+        self.assertTrue(bag['model']['entries'][0]['model']['path'].endswith('transmutation_lunch_bag_has_items'))
+        self.assertEqual('paper', eating['material'])
+        self.assertEqual(1, eating['data']['max_stack_size'])
+        self.assertEqual(1.6, eating['data']['components']['minecraft:consumable']['consume_seconds'])
+        self.assertEqual(0, eating['data']['food']['nutrition'])
+        self.assertTrue(eating['data']['food']['can_always_eat'])
+        recipe = self.config['recipes'][NAMESPACE + ':upstream/' + ART + '/transmutation_lunch_bag']
+        self.assertEqual([' L ', 'LSL', 'LLL'], recipe['pattern'])
+        self.assertEqual({'L': 'minecraft:leather', 'S': 'minecraft:amethyst_shard'}, recipe['ingredients'])
+
+    def test_storage_blocks_have_source_physics_axes_and_reversible_recipes(self):
+        oil = self.config['blocks'][NAMESPACE + ':oil_block']
+        straw = self.config['blocks'][NAMESPACE + ':straw_block']
+        self.assertEqual(.985, oil['settings']['friction'])
+        self.assertEqual(0, oil['settings']['hardness'])
+        self.assertEqual(['minecraft:infiniburn_' + d for d in ('overworld', 'nether', 'end')], oil['settings']['tags'])
+        self.assertEqual([{'type': NAMESPACE + ':oil_block'}], oil['behavior'])
+        self.assertEqual([{'type': NAMESPACE + ':straw_block'}], straw['behavior'])
+        self.assertEqual({'axis': {'type': 'axis', 'default': 'y'}}, straw['states']['properties'])
+        self.assertEqual({'axis=x', 'axis=y', 'axis=z'}, set(straw['states']['variants']))
+        for axis in ('x', 'y', 'z'):
+            app = straw['states']['appearances'][straw['states']['variants']['axis=' + axis]['appearance']]
+            self.assertEqual('note_block', app['auto_state'])
+            self.assertEqual(0 if axis == 'y' else 90, app['model'].get('x', 0))
+            self.assertEqual(90 if axis == 'x' else 0, app['model'].get('y', 0))
+        for raw, packed in [('oil', 'oil_block'), ('rice_panicle', 'straw_block')]:
+            base = NAMESPACE + ':upstream/' + ART + '/'
+            compression = self.config['recipes'][base + packed]
+            expansion = self.config['recipes'][base + raw]
+            self.assertEqual({'id': NAMESPACE + ':' + packed, 'count': 1}, compression['result'])
+            self.assertEqual({'id': NAMESPACE + ':' + raw, 'count': 9}, expansion['result'])
+            self.assertEqual(9, sum(len(row.strip()) for row in compression['pattern']))
+        self.assertEqual('NOT_TESTED', self.manifest['storageBlocks']['runtime'])
+
+    def test_hanging_strings_preserve_stages_harvest_loot_and_recipes(self):
+        for name, harvest in [('chili_ristra', NAMESPACE + ':red_chili'),
+                              ('strung_mushrooms', 'minecraft:brown_mushroom')]:
+            key = NAMESPACE + ':' + name
+            block = self.config['blocks'][key]
+            self.assertEqual({'type': NAMESPACE + ':hanging_string', 'harvest_item': harvest,
+                              'harvest_amount': 3}, block['behavior'][0])
+            self.assertEqual('destroy', block['settings']['push_reaction'])
+            self.assertEqual(0, block['settings']['hardness'])
+            self.assertEqual(4, len(block['states']['variants']))
+            for head in ('false', 'true'):
+                for sheared in ('false', 'true'):
+                    app = block['states']['appearances'][block['states']['variants'][
+                        f'is_head={head},sheared={sheared}']['appearance']]
+                    model_item = self.config['items'][app['entity_renderer']['item']]
+                    self.assertEqual(ART + ':block/' + name + '/' + ('head' if head == 'true' else 'body')
+                                     + ('_sheared' if sheared == 'true' else ''), model_item['model']['path'])
+            for sheared, count in [('false', 6), ('true', 3)]:
+                matches = [p for p in block['loot']['pools']
+                           if {'type': 'match_block_property', 'properties': {'sheared': sheared}} in p['conditions']]
+                self.assertEqual(1, len(matches))
+                self.assertIn({'type': 'survives_explosion'}, matches[0]['conditions'])
+                self.assertEqual([{'type': 'item', 'item': harvest, 'functions': [{'type': 'set_count', 'count': count}]}],
+                                 matches[0]['entries'])
+            self.assertEqual({'id': key, 'count': 1}, self.config['recipes'][NAMESPACE + ':upstream/' + ART + '/' + name]['result'])
+
+    def test_hanging_strings_reject_unhandled_source_visual_state(self):
+        from cookery_hanging_strings import hanging_strings
+        assets, _ = source_assets(SOURCE)
+        states = json.loads(assets[ART + '/blockstates/chili_ristra.json'])
+        states['variants']['is_head=true,sheared=true']['y'] = 90
+        assets[ART + '/blockstates/chili_ristra.json'] = json.dumps(states).encode()
+        with self.assertRaisesRegex(AuditError, 'unsupported source states'):
+            hanging_strings(SOURCE, assets, {}, {}, {}, None)
+
+    def test_storage_blocks_reject_unhandled_source_axis_rotation(self):
+        from cookery_storage_blocks import storage_blocks
+        from cookery_models import convert_models
+        assets, _ = source_assets(SOURCE)
+        definitions, _ = convert_models(assets)
+        states = json.loads(assets[ART + '/blockstates/oil_block.json'])
+        states['variants']['']['y'] = 90
+        assets[ART + '/blockstates/oil_block.json'] = json.dumps(states).encode()
+        with self.assertRaisesRegex(AuditError, 'unsupported source states'):
+            storage_blocks(SOURCE, assets, {}, definitions, {})
+
+    def test_all_tables_preserve_connections_carpet_models_and_recipes(self):
+        from cookery_seating import WOODS, COLORS
+        for wood in WOODS:
+            key = NAMESPACE + ':table_' + wood
+            table = self.config['blocks'][key]
+            self.assertEqual([{'type': NAMESPACE + ':table'}], table['behavior'])
+            self.assertEqual({'type': 'block_item', 'block': key}, self.config['items'][key]['behavior'])
+            self.assertEqual(key, table['loot']['pools'][0]['entries'][0]['item'])
+            self.assertEqual(8, len(table['states']['variants']))
+            self.assertEqual('0~1', table['states']['properties']['line']['range'])
+            self.assertEqual('0~3', table['states']['properties']['position']['range'])
+            for line, axis in enumerate(('x', 'z')):
+                for pos, shape in enumerate(('single', 'right', 'middle', 'left')):
+                    variant = table['states']['variants'][f'line={line},position={pos}']
+                    appearance = table['states']['appearances'][variant['appearance']]
+                    model = self.config['items'][appearance['entity_renderer']['item']]['model']['path']
+                    expected = ART + ':block/table/' + wood + '_' + shape
+                    if axis == 'z' and pos: expected += '_rot'
+                    self.assertEqual(expected, model)
+            recipe = self.config['recipes'][NAMESPACE + ':upstream/' + ART + '/table_' + wood]
+            self.assertEqual({'id': key, 'count': 1}, recipe['result'])
+        for color in COLORS:
+            for shape in ('single', 'left', 'middle', 'right'):
+                model = self.config['items'][f'show:table_carpet_{color}_{shape}']['model']['path']
+                self.assertEqual(f'{ART}:block/carpet/table/{color}_{shape}', model)
+        self.assertEqual(11, self.manifest['tables']['tables'])
+        self.assertEqual('NOT_TESTED', self.manifest['tables']['runtime'])
+
+    def test_long_bench_preserves_horizontal_axis_source_end_signs_loot_and_recipe(self):
+        key = NAMESPACE + ':long_bench'
+        bench = self.config['blocks'][key]
+        self.assertEqual([{'type': key}], bench['behavior'])
+        self.assertEqual({'type': 'axis', 'values': ['x', 'z'], 'default': 'x'}, bench['states']['properties']['axis'])
+        self.assertEqual(8, len(bench['states']['variants']))
+        for axis in ('x', 'z'):
+            for position, shape in enumerate(('single', 'left', 'middle', 'right')):
+                app = bench['states']['variants'][f'axis={axis},position={position}']['appearance']
+                renderer = bench['states']['appearances'][app]['entity_renderer']
+                self.assertEqual(0 if axis == 'x' else 90, renderer['yaw'])
+                self.assertEqual(ART + ':block/long_bench/' + shape,
+                                 self.config['items'][renderer['item']]['model']['path'])
+        pool = bench['loot']['pools'][0]
+        self.assertEqual([{'type': 'survives_explosion'}], pool['conditions'])
+        self.assertEqual([{'type': 'item', 'item': key}], pool['entries'])
+        self.assertEqual({'id': key, 'count': 1}, self.config['recipes'][NAMESPACE + ':upstream/' + ART + '/long_bench']['result'])
+        self.assertEqual('NOT_TESTED', self.manifest['longBench']['runtime'])
+
+    def test_long_bench_rejects_changed_rotation_and_new_source_axes(self):
+        from cookery_long_bench import long_bench
+        for selector in ('axis=z,position=1', 'axis=y,position=0'):
+            assets, _ = source_assets(SOURCE)
+            states = json.loads(assets[ART + '/blockstates/long_bench.json'])
+            states['variants'][selector] = {'model': ART + ':block/long_bench/left', 'y': 270}
+            assets[ART + '/blockstates/long_bench.json'] = json.dumps(states).encode()
+            with self.assertRaisesRegex(AuditError, 'unsupported source states'):
+                long_bench(SOURCE, assets, {}, {}, {}, None)
+
+    def test_eight_immortals_table_exports_all_parts_with_transactional_item_and_source_loot(self):
+        key = NAMESPACE + ':eight_immortals_table'
+        table = self.config['blocks'][key]
+        self.assertEqual({'type': NAMESPACE + ':eight_immortals_table_item', 'block': key}, self.config['items'][key]['behavior'])
+        self.assertEqual([{'type': key}], table['behavior'])
+        self.assertEqual('block', table['settings']['push_reaction'])
+        self.assertEqual('minecraft:block.bamboo_wood.break', table['settings']['sounds']['break'])
+        self.assertEqual('right_bottom', table['states']['properties']['part']['default'])
+        self.assertEqual(16, len(table['states']['variants']))
+        for facing, yaw in [('north', 180), ('east', 270), ('south', 0), ('west', 90)]:
+            for part in ('right_bottom', 'left_bottom', 'right_top', 'left_top'):
+                app = table['states']['variants'][f'facing={facing},part={part}']['appearance']
+                renderer = table['states']['appearances'][app]['entity_renderer']
+                self.assertEqual(yaw, renderer['yaw'])
+                self.assertEqual(ART + ':block/eight_immortals_table/' + part, self.config['items'][renderer['item']]['model']['path'])
+        self.assertEqual([{'type': 'survives_explosion'}], table['loot']['pools'][0]['conditions'])
+        self.assertEqual([{'type': 'item', 'item': key}], table['loot']['pools'][0]['entries'])
+        self.assertEqual({'id': key, 'count': 1}, self.config['recipes'][NAMESPACE + ':upstream/' + ART + '/eight_immortals_table']['result'])
+        self.assertEqual('NOT_TESTED', self.manifest['eightImmortalsTable']['runtime'])
+
+    def test_eight_immortals_table_rejects_missing_part_and_changed_source_loot(self):
+        from cookery_eight_immortals_table import eight_immortals_table
+        assets, _ = source_assets(SOURCE)
+        states = json.loads(assets[ART + '/blockstates/eight_immortals_table.json'])
+        del states['variants']['facing=north,part=left_top']
+        assets[ART + '/blockstates/eight_immortals_table.json'] = json.dumps(states).encode()
+        with self.assertRaisesRegex(AuditError, 'unsupported source states'):
+            eight_immortals_table(SOURCE, assets, {}, {}, {}, None)
+        assets, _ = source_assets(SOURCE)
+        from cookery_eight_immortals_table import SOURCES
+        with patch('cookery_eight_immortals_table.read_blobs', return_value={SOURCES[-1]: b'{}'}):
+            with self.assertRaisesRegex(AuditError, 'unsupported source loot'):
+                eight_immortals_table(SOURCE, assets, {}, {}, {}, None)
+
+    def test_red_lantern_has_source_light_sound_model_loot_and_versioned_chain_recipe(self):
+        key = NAMESPACE + ':red_lantern'
+        block = self.config['blocks'][key]
+        self.assertEqual(14, block['settings']['luminance'])
+        self.assertEqual(.3, block['settings']['hardness'])
+        self.assertEqual(.3, block['settings']['resistance'])
+        self.assertEqual('normal', block['settings']['push_reaction'])
+        self.assertEqual('minecraft:block.wool.break', block['settings']['sounds']['break'])
+        self.assertEqual({}, block['states']['properties'])
+        self.assertEqual([{'type': 'survives_explosion'}], block['loot']['pools'][0]['conditions'])
+        self.assertEqual([{'type': 'item', 'item': key}], block['loot']['pools'][0]['entries'])
+        renderer = block['states']['appearances']['default']['entity_renderer']
+        self.assertEqual(ART + ':block/red_lantern', self.config['items'][renderer['item']]['model']['path'])
+        recipe_id = NAMESPACE + ':upstream/' + ART + '/red_lantern'
+        recipe = self.config['recipes'][recipe_id]
+        self.assertEqual(['PCP', 'DLD', 'PDP'], recipe['pattern'])
+        self.assertEqual({'id': key, 'count': 1}, recipe['result'])
+        self.assertEqual('minecraft:iron_chain', recipe['ingredients']['C'])
+        self.assertEqual('NOT_TESTED', self.manifest['redLantern']['runtime'])
+
+    def test_red_lantern_rejects_state_and_loot_changes(self):
+        from cookery_red_lantern import red_lantern, SOURCES
+        assets, _ = source_assets(SOURCE)
+        path = ART + '/blockstates/red_lantern.json'
+        original = assets[path]
+        assets[path] = json.dumps({'variants': {'hanging=true': {'model': ART + ':block/red_lantern'}}}).encode()
+        with self.assertRaisesRegex(AuditError, 'unsupported source states'):
+            red_lantern(SOURCE, assets, {}, {}, {}, None)
+        assets[path] = original
+        with patch('cookery_red_lantern.read_blobs', return_value={SOURCES[-1]: b'{}'}):
+            with self.assertRaisesRegex(AuditError, 'unsupported source loot'):
+                red_lantern(SOURCE, assets, {}, {}, {}, None)
+
+    def test_table_export_rejects_unhandled_source_geometry(self):
+        from cookery_tables import table_blocks
+        from export_cookery_kitchen_pack import display
+        from cookery_models import convert_models
+        assets, _ = source_assets(SOURCE)
+        definitions, _ = convert_models(assets)
+        state_key = ART + '/blockstates/table_oak.json'
+        states = json.loads(assets[state_key])
+        first = next(iter(states['variants']))
+        states['variants'][first]['y'] = 90
+        assets[state_key] = json.dumps(states).encode()
+        with self.assertRaisesRegex(AuditError, 'unsupported source geometry'):
+            table_blocks(SOURCE, assets, {}, definitions, {}, display)
+
+    def test_all_source_chairs_and_stools_have_seats_loot_and_crafting(self):
+        from cookery_seating import WOODS, COLORS
+        for family in ('chair', 'cook_stool'):
+            for wood in WOODS:
+                name = family + '_' + wood
+                key = NAMESPACE + ':' + name
+                furniture = self.config['furniture'][key]
+                item = self.config['items'][key]
+                self.assertEqual(key, item['behavior']['furniture'])
+                self.assertEqual('four', item['behavior']['rules']['ground']['rotation'])
+                variant = furniture['variants']['ground']
+                self.assertEqual('0,0.5,0', variant['elements'][0]['position'])
+                self.assertEqual('none', variant['elements'][0]['display_transform'])
+                seat = variant['hitboxes'][0]['seats'][0]
+                self.assertEqual('0,-0.3375,0 180 false' if family == 'chair' else '0,-0.4125,0 180 false', seat)
+                self.assertEqual(key, furniture['loot']['pools'][0]['entries'][0]['item'])
+                recipe = self.config['recipes'][NAMESPACE + ':upstream/' + ART + '/' + name]
+                self.assertEqual({'id': key, 'count': 1}, recipe['result'])
+                if family == 'chair':
+                    self.assertEqual(NAMESPACE + ':chair', furniture['behavior'][0]['type'])
+                else:
+                    self.assertNotIn('behavior', furniture)
+        for color in COLORS:
+            model = self.config['items']['show:chair_carpet_' + color]['model']
+            self.assertEqual(ART + ':block/carpet/chair/' + color, model['path'])
+        self.assertEqual(11, self.manifest['seating']['chairs'])
+        self.assertEqual(11, self.manifest['seating']['stools'])
+        self.assertEqual('NOT_TESTED', self.manifest['seating']['runtime'])
+
+    def test_seating_rejects_unconverted_model_branches(self):
+        from cookery_seating import seating_furniture
+        assets, _ = source_assets(SOURCE)
+        path = ART + '/blockstates/chair_oak.json'
+        states = json.loads(assets[path])
+        next(iter(states['variants'].values()))['x'] = 90
+        assets[path] = json.dumps(states).encode()
+        definitions = {ART + ':item/chair_oak': {}}
+        with self.assertRaisesRegex(AuditError, 'unhandled model variant'):
+            seating_furniture(SOURCE, assets, {}, definitions, {})
 
     def test_auxiliary_tools_and_farmer_wear_are_registered_for_existing_behaviors(self):
         expected = {
@@ -104,8 +371,8 @@ class KitchenPackTest(unittest.TestCase):
             self.assertEqual(path, self.config['items'][renderer['item']]['model']['path'])
 
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
-        self.assertEqual(558, self.manifest['recipeStatuses']['imported'])
-        self.assertEqual(54, self.manifest['recipeStatuses']['pending'])
+        self.assertEqual(612, self.manifest['recipeStatuses']['imported'])
+        self.assertEqual(0, self.manifest['recipeStatuses'].get('pending', 0))
         parity = json.loads(self.bundle[f'{PACK}/recipe-parity.json'])
         tray_records = [row for row in parity['recipes']
                         if row.get('section') == 'bamboo_tray_recipes']
@@ -284,14 +551,17 @@ class KitchenPackTest(unittest.TestCase):
             display = block['appearances'][variant['appearance']]['entity_renderer']['item']
             self.assertEqual(ART + ':block/enamel_basin/' + expected, self.config['items'][display]['model']['path'])
 
-    def test_steamer_maps_slab_type_and_preserves_double_drop(self):
+    def test_steamer_maps_slab_type_and_owns_portable_layer_drops(self):
         block = self.config['blocks'][NAMESPACE + ':steamer']
         for slab, suffix, lift in (('bottom', 'half', '0,0,0'), ('top', 'half', '0,0.5,0'), ('double', 'full', '0,0,0')):
             variant = block['states']['variants'][f'facing=north,type={slab},has_base=false,has_lid=false']
             renderer = block['states']['appearances'][variant['appearance']]['entity_renderer']
             self.assertEqual(lift, renderer['translation'])
             self.assertEqual(ART + ':block/steamer_' + suffix, self.config['items'][renderer['item']]['model']['path'])
-        self.assertEqual('double', block['behavior'][1]['extra_drops'][0]['value'])
+        self.assertEqual(1, len(block['behavior']))
+        self.assertTrue(block['behavior'][0]['portable_contents'])
+        self.assertEqual({'pools': []}, block['loot'])
+        self.assertEqual(NAMESPACE + ':steamer_item', self.config['items'][NAMESPACE + ':steamer']['behavior']['type'])
 
     def test_filled_containers_and_double_block_do_not_duplicate_base_drops(self):
         for name in ('teapot', 'oil_pot'):
@@ -328,7 +598,7 @@ class KitchenPackTest(unittest.TestCase):
         key = NAMESPACE + ':millstone'
         self.assertNotIn(key, self.config['blocks'])
         furniture = self.config['furniture'][key]
-        self.assertEqual(1, self.manifest['furniture'])
+        self.assertEqual(25, self.manifest['furniture'])
         self.assertEqual(key, furniture['behavior'][0]['type'])
         self.assertEqual('furniture_item', self.config['items'][key]['behavior']['type'])
         counts = []

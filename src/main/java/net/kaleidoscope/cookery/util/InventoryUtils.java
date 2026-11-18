@@ -16,6 +16,8 @@ public final class InventoryUtils {
     public static ItemStack bukkitCopy(Item item) {
         return ItemStackUtils.getBukkitStack(item).clone();
     }
+    public static Item wrap(ItemStack stack) { return BukkitItemManager.instance().wrap(stack); }
+
     private InventoryUtils() {}
 
     // 按 key 建物品 无效 key 收口成空物品 调用方一律用 isEmpty 判断

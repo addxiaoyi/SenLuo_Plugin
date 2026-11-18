@@ -1,5 +1,8 @@
 package net.kaleidoscope.cookery.block.listener;
 import net.kaleidoscope.cookery.util.FoliaUtil;
+import net.kaleidoscope.cookery.block.entity.SteamerWorld;
+import net.kaleidoscope.cookery.nms.NmsBridgeProvider;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import net.kaleidoscope.cookery.block.behavior.SteamerBehavior;
@@ -53,21 +56,29 @@ public class SteamerFallingBlockListener implements Listener {
         if (data == null) return;
 
         Block block = event.getBlock();
-        BukkitWorld world = BukkitWorldManager.instance().getWorld(block.getWorld().getUID());
+        BukkitWorld world = BukkitAdaptor.adapt(block.getWorld());
         if (world == null) return;
         CEWorld ceWorld = world.storageWorld();
         Object level = ceWorld.world().minecraftWorld();
         Object landingPos = LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ());
         Object belowPos = LocationUtils.toBlockPos(block.getX(), block.getY() - 1, block.getZ());
 
-        if (isLandingSupported(level, belowPos, data.steamerState.owner().value())) {
-            // 落点受支撑 强制放行落地 由 CE 的 onLand 还原状态与 NBT
-            event.setCancelled(false);
-        } else {
-            // 落点不受支撑 蒸笼绝不能变成地面方块 立刻取消落地并掉落
+        if (!SteamerWorld.landingSupported(level, belowPos)) {
             event.setCancelled(true);
-            SteamerBehavior.dropPendingSteamer(level, landingPos, nmsEntity);
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onCancelledLanding(EntityChangeBlockEvent event) {
+        if (!event.isCancelled() || !(event.getEntity() instanceof FallingBlock fb)) return;
+        Object handle = getNmsHandle(fb);
+        if (handle == null || !SteamerBehavior.pendingData.containsKey(handle)) return;
+        Block block = event.getBlock();
+        BukkitWorld world = BukkitAdaptor.adapt(block.getWorld());
+        if (world == null) return;
+        // Preserve other plugins' cancellation, transfer the saved contents once, then retire the falling entity.
+        SteamerBehavior.dropPendingSteamer(world.minecraftWorld(), LocationUtils.toBlockPos(block.getX(), block.getY(), block.getZ()), handle);
+        fb.remove();
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -81,7 +92,7 @@ public class SteamerFallingBlockListener implements Listener {
         if (!SteamerBehavior.pendingData.containsKey(nmsEntity)) return;
         Location loc = fb.getLocation();
         World bukkitWorld = loc.getWorld();
-        BukkitWorld world = bukkitWorld == null ? null : BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
+        BukkitWorld world = bukkitWorld == null ? null : BukkitAdaptor.adapt(bukkitWorld);
         CEWorld ceWorld = world == null ? null : world.storageWorld();
         if (ceWorld == null) {
             SteamerBehavior.pendingData.remove(nmsEntity);
@@ -98,16 +109,7 @@ public class SteamerFallingBlockListener implements Listener {
         }, 1L, ceWorld.world(), loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
     }
 
-    private boolean isLandingSupported(Object level, Object belowPos, BlockDefinition steamerDef) {
-        if (HeatSourceUtils.isHeatSource(level, belowPos)) return true;
-        Object belowState = BlockGetterProxy.INSTANCE.getBlockState(level, belowPos);
-        ImmutableBlockState belowCustom = BlockStateUtils.getOptionalCustomBlockState(belowState).orElse(null);
-        if (belowCustom == null) return false;
-        if (belowCustom.owner().value() == steamerDef) return true;
-        return belowCustom.owner().value().id().equals(SteamerBehavior.STOVE_BLOCK_KEY);
-    }
-
     private static Object getNmsHandle(Entity entity) {
-        return CraftEntityProxy.INSTANCE.getEntity(entity);
+        return NmsBridgeProvider.bridge().nmsHandle(entity);
     }
 }

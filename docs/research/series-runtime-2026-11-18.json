@@ -1,0 +1,528 @@
+{
+  "date": "2026-11-18",
+  "scope": "Development acceptance on Paper and Folia 1.21.11. No authenticated player or GPU render.",
+  "target": {
+    "minecraft": "1.21.11",
+    "java": 21,
+    "craftEngine": "26.9.1"
+  },
+  "kitchen": {
+    "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+    "packSha256": "7340f24cb4522520d8835c71f2a862837b257fd978ce8d0a57dc810265b1f853",
+    "recipeLedgerSha256": "6f9035509c61eae172fa296f43beb545343a6d81f9acbf00a1000bde98b6233a",
+    "sourceRecipes": 612,
+    "recipeStatus": {
+      "imported": 612
+    },
+    "exportedSections": {
+      "teapot_result": 11,
+      "accurate_foods": 94,
+      "chopping_board_raws": 16,
+      "bamboo_tray_recipes": 28,
+      "stockpot_recipes": 105,
+      "pot_recipes": 225,
+      "recipes": 142
+    },
+    "items": 1432,
+    "blocks": 81,
+    "furniture": 25
+  },
+  "seriesStatic": {
+    "items": 1822,
+    "furniture": 1549,
+    "recipes": 117,
+    "reachable_custom_models": 2759,
+    "errors": [],
+    "asset_warnings": [],
+    "scope": "Declared CE item/furniture/recipe references are errors. Additional exported custom model and item-definition dependencies are asset_warnings. Vanilla assets and client rendering require target-client validation."
+  },
+  "tests": {
+    "java": {
+      "cookery": 565,
+      "common": 13,
+      "doll": 10,
+      "tavern": 27,
+      "deco": 3,
+      "music": 7
+    },
+    "python": {
+      "root": 139,
+      "series": 58
+    }
+  },
+  "runtimeInputs": {
+    "plugins/KaleidoscopeDoll-0.1.0-dev.jar": {
+      "kind": "plugin",
+      "sha256": "bc96ad39ba3e6ff4dda95d2d3c6ac8d0c3f03916641373bb3839aaf0eb1f7b0b"
+    },
+    "plugins/CraftEngine/resources/doll": {
+      "kind": "ce-pack",
+      "sha256": "7c827d7719a2b9abf87bc66911bf649c1d6caa8964d04558d791d04f73095abf"
+    },
+    "plugins/KaleidoscopeTavern-0.1.0-dev.jar": {
+      "kind": "plugin",
+      "sha256": "5a46bfff22169244eda8a3860f7047952e6e58c4ec67c72b0f00fe2538ea2300"
+    },
+    "plugins/CraftEngine/resources/tavern": {
+      "kind": "ce-pack",
+      "sha256": "2cc0aab9836b56169847425f1bf7b42d03be14f4fecd394879520fca668ca477"
+    },
+    "plugins/KaleidoscopeDeco-0.1.0-dev.jar": {
+      "kind": "plugin",
+      "sha256": "be3d973288d946bef3776d1f0e5ed724bd47e0b0b8500f4093f0005844025933"
+    },
+    "plugins/CraftEngine/resources/deco": {
+      "kind": "ce-pack",
+      "sha256": "ec704ea73f298710b4350dffe60eb6f3bc042cb1c4a9cc95637b4f17605bd081"
+    },
+    "plugins/KaleidoscopeMusic-0.1.0-dev.jar": {
+      "kind": "plugin",
+      "sha256": "20f62a792010f3eabcd617bf1e386ad49c88ac216c48860d6d7d850d3b51bdc8"
+    },
+    "plugins/CraftEngine/resources/music": {
+      "kind": "ce-pack",
+      "sha256": "38b2aa8802a2d1d1208f787af9f5f455bea50ad91e60546f95bbfce12cf1fde0"
+    },
+    "plugins/CraftEngine/resources/shared": {
+      "kind": "shared-pack",
+      "sha256": "53bd375d2c0b301d484a0d40d1179b7a9db84d2749bf85bc5b649548ac3d53e5"
+    },
+    "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": {
+      "kind": "plugin",
+      "sha256": "b4d09df6224a343e83d8c8e1998710e4835926e1104d0418b83845d6a077e336"
+    },
+    "plugins/CraftEngine/resources/cookery_kitchen": {
+      "kind": "cookery-pack",
+      "sha256": "7340f24cb4522520d8835c71f2a862837b257fd978ce8d0a57dc810265b1f853"
+    },
+    "plugins/craftengine-26.9.1.jar": {
+      "kind": "runtime",
+      "sha256": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f"
+    }
+  },
+  "craftEngineSettings": {
+    "block.serverside-blocks": 8000,
+    "misc.delay-configuration-load": false,
+    "resource-pack.cache-resource-files": false,
+    "watchdogThreshold": "unchanged default"
+  },
+  "reproducedFailure": {
+    "phase": "Folia with deferred CE configuration loading and cached resources",
+    "logSha256": "d5284a1261698524819f4788eacaf9016367c7f5297111f9d2d7e5139622a1ab",
+    "watchdogSamples": 14,
+    "maxUnresponsiveSeconds": 77.0260049,
+    "tickStack": [
+      "CompletableFuture.join",
+      "AbstractPackManager.loadResourceConfigs:729",
+      "AbstractPackManager.loadResources:422"
+    ],
+    "cacheFailure": "Object2ObjectOpenHashMap.rehash, Index -1 out of bounds for length 16385. Both CE initCachedAssets and the explicit pack workflow called updateCachedAssets/processRegularFile."
+  },
+  "registration": {
+    "paper": {
+      "expectedBlocks": 81,
+      "expected": 5599,
+      "loaded": 5599,
+      "cacheEntries": 6045,
+      "cacheSha256": "20ec3dd5365c21b0c682384dc38ed8e9058e465b1cae058ce985b563ff073853"
+    },
+    "folia": {
+      "expectedBlocks": 81,
+      "expected": 5599,
+      "loaded": 5599,
+      "cacheEntries": 6045,
+      "cacheSha256": "e83b8d2d6d1d5a9b0c0c8237e29eca3fc2285b4b2c8df4aac903b10342c4d9e8"
+    }
+  },
+  "runs": {
+    "paper": [
+      {
+        "cycle": "fresh",
+        "serverBuild": "1.21.11-132-c5eb079 (MC: 1.21.11)",
+        "startupSeconds": 103.11,
+        "workflowMillis": 57489,
+        "exitCode": 0,
+        "watchdogReports": 0,
+        "watchdogSeconds": [],
+        "errorLogLines": 0,
+        "hostedPackSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+        "logSha256": "5b3b2299b71972e63d5bff3afa633d477f2c2c71f7b468c4ff5870a6a32b53fc",
+        "probeResultSha256": "172a40fd2cb6ccc8baecf02603d8ef97cf6b1223271644f4b158dc96804e0fd8",
+        "probeFailures": 0,
+        "probes": {
+          "food": {
+            "checkedConsumables": 103,
+            "checkedBites": 38
+          },
+          "enchantment": {
+            "checkedTools": 5,
+            "reloadedTools": 0
+          },
+          "smithing": {
+            "assembled": 3,
+            "reloadedProducts": 0,
+            "rejectedInputs": 3
+          },
+          "steamer-item": {
+            "assembledRecipes": 2,
+            "priorDiskProductsReloaded": 0,
+            "splitRoundTrips": 2
+          },
+          "kitchen": {
+            "checkedBlocks": 24,
+            "checkedStates": 418,
+            "checkedItems": 1432,
+            "placedBlocks": 24,
+            "reloadedBlocks": 0,
+            "nonemptyContainers": 2
+          },
+          "scarecrow-hit": {
+            "perHitBreakEventConfigured": true,
+            "earlyCancellationChecks": 1,
+            "encodedWobbleFrames": 4,
+            "sharedFiveTickBoundary": true,
+            "survivalDropStacks": 2,
+            "sixTickGapResetsWindow": true,
+            "creativeImmediateNoDrops": true,
+            "eventDropSuppression": true
+          },
+          "scarecrow": {
+            "sourceDisplayParts": 3,
+            "farmlandBoundaryChecks": 2,
+            "phase": "THREE_EQUIPMENT_SAVED",
+            "savedEquipment": 3
+          },
+          "trashcan": {
+            "encodedSourceAnimationPoses": 116,
+            "redstoneFilterChecks": 6,
+            "phase": "THREE_STACKS_SAVED",
+            "savedStacks": 3
+          }
+        }
+      },
+      {
+        "cycle": "restart",
+        "serverBuild": "1.21.11-132-c5eb079 (MC: 1.21.11)",
+        "startupSeconds": 76.884,
+        "workflowMillis": 11452,
+        "exitCode": 0,
+        "watchdogReports": 0,
+        "watchdogSeconds": [],
+        "errorLogLines": 0,
+        "hostedPackSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+        "logSha256": "fb22dff063d6e702c10141a59964b3ca6d3aa4f45e30318ae0f510952b422f45",
+        "probeResultSha256": "dab79350385b96c766ef54ce6b1e387d7b489a285522516c849f0ae33afba974",
+        "probeFailures": 0,
+        "probes": {
+          "food": {
+            "checkedConsumables": 103,
+            "checkedBites": 38
+          },
+          "enchantment": {
+            "checkedTools": 5,
+            "reloadedTools": 5
+          },
+          "smithing": {
+            "assembled": 3,
+            "reloadedProducts": 1,
+            "rejectedInputs": 3
+          },
+          "steamer-item": {
+            "assembledRecipes": 2,
+            "priorDiskProductsReloaded": 2,
+            "splitRoundTrips": 2
+          },
+          "kitchen": {
+            "checkedBlocks": 24,
+            "checkedStates": 418,
+            "checkedItems": 1432,
+            "placedBlocks": 0,
+            "reloadedBlocks": 24,
+            "nonemptyContainers": 2
+          },
+          "scarecrow-hit": {
+            "perHitBreakEventConfigured": true,
+            "earlyCancellationChecks": 1,
+            "encodedWobbleFrames": 4,
+            "sharedFiveTickBoundary": true,
+            "survivalDropStacks": 2,
+            "sixTickGapResetsWindow": true,
+            "creativeImmediateNoDrops": true,
+            "eventDropSuppression": true
+          },
+          "scarecrow": {
+            "sourceDisplayParts": 3,
+            "reloadedEquipment": 3,
+            "returnedEquipment": 3,
+            "canceledRemovalRecoveryChecks": 1,
+            "phase": "RELOADED_REMOVED_RECOVERED"
+          },
+          "trashcan": {
+            "encodedSourceAnimationPoses": 116,
+            "reloadedStacks": 3,
+            "breakReturnedStacks": 3,
+            "canceledRemovalRecoveryChecks": 1,
+            "phase": "RELOADED_REMOVED_RECOVERED"
+          }
+        }
+      }
+    ],
+    "folia": [
+      {
+        "cycle": "fresh",
+        "serverBuild": "1.21.11-14-529aabc (MC: 1.21.11)",
+        "startupSeconds": 104.283,
+        "workflowMillis": 33612,
+        "exitCode": 0,
+        "watchdogReports": 0,
+        "watchdogSeconds": [],
+        "errorLogLines": 0,
+        "hostedPackSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+        "logSha256": "8a6e8aa8a18b65739658f806947ba01b5a703e283cff2418c5702ffb184ac6fb",
+        "probeResultSha256": "df86b40d5abf1bffef881aaddd3f35aae3e2e4711ca6c2b1108c4e904ac6db17",
+        "probeFailures": 0,
+        "probes": {
+          "food": {
+            "checkedConsumables": 103,
+            "checkedBites": 38
+          },
+          "enchantment": {
+            "checkedTools": 5,
+            "reloadedTools": 0
+          },
+          "smithing": {
+            "assembled": 3,
+            "reloadedProducts": 0,
+            "rejectedInputs": 3
+          },
+          "steamer-item": {
+            "assembledRecipes": 2,
+            "priorDiskProductsReloaded": 0,
+            "splitRoundTrips": 2
+          },
+          "kitchen": {
+            "checkedBlocks": 24,
+            "checkedStates": 418,
+            "checkedItems": 1432,
+            "placedBlocks": 24,
+            "reloadedBlocks": 0,
+            "nonemptyContainers": 2
+          },
+          "scarecrow-hit": {
+            "playerHits": "NEEDS_CONNECTED_REGION_OWNED_PLAYER"
+          },
+          "scarecrow": {
+            "sourceDisplayParts": 3,
+            "farmlandBoundaryChecks": 2,
+            "phase": "THREE_EQUIPMENT_SAVED",
+            "savedEquipment": 3
+          },
+          "trashcan": {
+            "encodedSourceAnimationPoses": 116,
+            "redstoneFilterChecks": 6,
+            "phase": "THREE_STACKS_SAVED",
+            "savedStacks": 3
+          }
+        }
+      },
+      {
+        "cycle": "restart",
+        "serverBuild": "1.21.11-14-529aabc (MC: 1.21.11)",
+        "startupSeconds": 82.743,
+        "workflowMillis": 38795,
+        "exitCode": 0,
+        "watchdogReports": 1,
+        "watchdogSeconds": [
+          5.5905519
+        ],
+        "errorLogLines": 52,
+        "hostedPackSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+        "logSha256": "7978be1995034ed63eecd4f3e7ab314da0abbdb2c6d6a6f926f5f611d1423c63",
+        "probeResultSha256": "ae4d90f6345f41ae2b250a55d7071346ddecb5f62dc6d90ac68f7d33a807e13a",
+        "probeFailures": 0,
+        "probes": {
+          "food": {
+            "checkedConsumables": 103,
+            "checkedBites": 38
+          },
+          "enchantment": {
+            "checkedTools": 5,
+            "reloadedTools": 5
+          },
+          "smithing": {
+            "assembled": 3,
+            "reloadedProducts": 1,
+            "rejectedInputs": 3
+          },
+          "steamer-item": {
+            "assembledRecipes": 2,
+            "priorDiskProductsReloaded": 2,
+            "splitRoundTrips": 2
+          },
+          "kitchen": {
+            "checkedBlocks": 24,
+            "checkedStates": 418,
+            "checkedItems": 1432,
+            "placedBlocks": 0,
+            "reloadedBlocks": 24,
+            "nonemptyContainers": 2
+          },
+          "scarecrow-hit": {
+            "playerHits": "NEEDS_CONNECTED_REGION_OWNED_PLAYER"
+          },
+          "scarecrow": {
+            "sourceDisplayParts": 3,
+            "reloadedEquipment": 3,
+            "returnedEquipment": 3,
+            "canceledRemovalRecoveryChecks": 1,
+            "phase": "RELOADED_REMOVED_RECOVERED"
+          },
+          "trashcan": {
+            "encodedSourceAnimationPoses": 116,
+            "reloadedStacks": 3,
+            "breakReturnedStacks": 3,
+            "canceledRemovalRecoveryChecks": 1,
+            "phase": "RELOADED_REMOVED_RECOVERED"
+          }
+        }
+      },
+      {
+        "cycle": "restart in isolation",
+        "serverBuild": "1.21.11-14-529aabc (MC: 1.21.11)",
+        "startupSeconds": 74.513,
+        "workflowMillis": 45486,
+        "exitCode": 0,
+        "watchdogReports": 0,
+        "watchdogSeconds": [],
+        "errorLogLines": 0,
+        "hostedPackSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+        "logSha256": "3474c4e8fbeb5f5f8c20f48ca7af7869bd0fd989c381c063ab0b6f3533d9547c",
+        "probeResultSha256": "c82f57cbee00a9b53ddcb8218e58e6d5e849a2a55409ffab713a699200d2fc28",
+        "probeFailures": 0,
+        "probes": {
+          "food": {
+            "checkedConsumables": 103,
+            "checkedBites": 38
+          },
+          "enchantment": {
+            "checkedTools": 5,
+            "reloadedTools": 5
+          },
+          "smithing": {
+            "assembled": 3,
+            "reloadedProducts": 1,
+            "rejectedInputs": 3
+          },
+          "steamer-item": {
+            "assembledRecipes": 2,
+            "priorDiskProductsReloaded": 2,
+            "splitRoundTrips": 2
+          },
+          "kitchen": {
+            "checkedBlocks": 24,
+            "checkedStates": 418,
+            "checkedItems": 1432,
+            "placedBlocks": 0,
+            "reloadedBlocks": 24,
+            "nonemptyContainers": 2
+          },
+          "scarecrow-hit": {
+            "playerHits": "NEEDS_CONNECTED_REGION_OWNED_PLAYER"
+          },
+          "scarecrow": {
+            "sourceDisplayParts": 3,
+            "farmlandBoundaryChecks": 2,
+            "phase": "THREE_EQUIPMENT_SAVED",
+            "savedEquipment": 3
+          },
+          "trashcan": {
+            "encodedSourceAnimationPoses": 116,
+            "redstoneFilterChecks": 6,
+            "phase": "THREE_STACKS_SAVED",
+            "savedStacks": 3
+          }
+        }
+      }
+    ]
+  },
+  "appearanceComparison": {
+    "block": "minecraft:brown_mushroom_block",
+    "appearances": 23,
+    "equivalent": true,
+    "changedSlots": [
+      "default:chessboard_block[appearance=east]",
+      "default:chessboard_block[appearance=north]",
+      "default:chessboard_block[appearance=south]",
+      "default:chessboard_block[appearance=west]",
+      "default:chinese_lantern",
+      "default:deepslate_topaz_ore",
+      "default:gunpowder_block",
+      "default:palm_log[appearance=axisX]",
+      "default:palm_log[appearance=axisY]",
+      "default:palm_log[appearance=axisZ]",
+      "default:palm_planks",
+      "default:palm_wood[appearance=axisX]",
+      "default:palm_wood[appearance=axisY]",
+      "default:palm_wood[appearance=axisZ]",
+      "default:solid_gunpowder_block",
+      "default:stripped_palm_log[appearance=axisX]",
+      "default:stripped_palm_log[appearance=axisY]",
+      "default:stripped_palm_log[appearance=axisZ]",
+      "default:stripped_palm_wood[appearance=axisX]",
+      "default:stripped_palm_wood[appearance=axisY]",
+      "default:stripped_palm_wood[appearance=axisZ]",
+      "default:topaz_ore"
+    ],
+    "differences": [],
+    "scope": "CE visual cache joined to generated variants by appearance; no server placement or client proof"
+  },
+  "vanillaReader": {
+    "officialClientSha1": "ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd",
+    "method": "Official Pack.readPackMetadata and FilePackResources with active overlays. Verified every effective asset against the ZIP. BlockModel.fromStream, ClientItem and BlockModelDefinition codecs, Java ImageIO for PNG.",
+    "results": {
+      "paper": {
+        "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+        "client": "1.21.11",
+        "resourceFormat": "75.0",
+        "activeOverlays": [
+          "ce_overlay_75-97"
+        ],
+        "namespaces": 20,
+        "assetsRead": 14203,
+        "decoded": {
+          "blockstates": 1023,
+          "itemDefinitions": 4060,
+          "models": 6292,
+          "otherBytes": 50,
+          "otherJson": 161,
+          "png": 2617
+        }
+      },
+      "folia": {
+        "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+        "client": "1.21.11",
+        "resourceFormat": "75.0",
+        "activeOverlays": [
+          "ce_overlay_75-97"
+        ],
+        "namespaces": 20,
+        "assetsRead": 14203,
+        "decoded": {
+          "blockstates": 1023,
+          "itemDefinitions": 4060,
+          "models": 6292,
+          "otherBytes": 50,
+          "otherJson": 161,
+          "png": 2617
+        }
+      }
+    }
+  },
+  "remaining": {
+    "client": "Demo stopped at GLFW 65542 (WGL driver does not support OpenGL). No signed-in client, rendered scene or player resource pack request.",
+    "foliaRecipeRegistration": "On restart Folia reported a 5.5905519s global tick. Stack: BukkitRecipeManager.delayedLoad -> InjectedShapedRecipe.of -> RecipeHelper.toMinecraftVisual -> Ingredient.ofStacks -> ItemStack.hashItemAndComponents. This is separate from the mitigated 77s pack configuration stall. The independent client reader was running on the same host; causation is unproven.",
+    "folia": "Scarecrow hits require a connected region-owned player. The Paper probe used unregistered server players.",
+    "playerFlows": "Inventory clicks, shift/slot consumption, multiplayer protection, cancellation and cross-region item conservation require ordinary clients.",
+    "versionWarnings": "Four upstream Doll UV advisories for 26.1+ in each pack workflow (doll_271 and doll_722). Their models decoded on the 1.21.11 target."
+  }
+}

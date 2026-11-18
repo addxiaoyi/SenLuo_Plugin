@@ -47,6 +47,10 @@ public final class InteractGuard {
         return test(player, Flag.PLACE, location);
     }
 
+    public static boolean canBreak(org.bukkit.entity.Player player, Location location) {
+        return test(player, Flag.BREAK, location);
+    }
+
     // 对实体动手也算交互 拴绳骑乘之类按实体所在位置判
     public static boolean canInteract(org.bukkit.entity.Player player, Location location) {
         return test(player, Flag.INTERACT, location);

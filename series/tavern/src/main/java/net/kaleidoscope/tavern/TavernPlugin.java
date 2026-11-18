@@ -24,6 +24,15 @@ public final class TavernPlugin extends SeriesPlugin {
     final net.kaleidoscope.series.ControllerIndex<BottleController> bottles = new net.kaleidoscope.series.ControllerIndex<>();
     final net.kaleidoscope.series.ControllerIndex<GrapeController> grapes = new net.kaleidoscope.series.ControllerIndex<>();
 
+    @Override protected void registerFurniture() {
+        FurnitureTypes.register("kaleidoscope_tavern:barrel", f -> new BarrelController(f, this));
+        FurnitureTypes.register("kaleidoscope_tavern:pressing_tub", f -> new PressingController(f, this));
+        FurnitureTypes.register("kaleidoscope_tavern:shaker", f -> new ShakerController(f, this));
+        FurnitureTypes.register("kaleidoscope_tavern:tap", f -> new TapController(f, this));
+        FurnitureTypes.register("kaleidoscope_tavern:bottle", f -> new BottleController(f, this));
+        FurnitureTypes.register("kaleidoscope_tavern:grape", f -> new GrapeController(f, this));
+    }
+
     @Override protected void start() {
         saveDefaultConfig();
         catalog = Resources.read(this, "catalog.json", TavernCatalog.class);
@@ -36,12 +45,6 @@ public final class TavernPlugin extends SeriesPlugin {
         shakers = new HandheldShaker(this);
         getServer().getPluginManager().registerEvents(shakers, this);
         getServer().getPluginManager().registerEvents(new TapRedstone(this), this);
-        FurnitureTypes.register("kaleidoscope_tavern:barrel", f -> new BarrelController(f, this));
-        FurnitureTypes.register("kaleidoscope_tavern:pressing_tub", f -> new PressingController(f, this));
-        FurnitureTypes.register("kaleidoscope_tavern:shaker", f -> new ShakerController(f, this));
-        FurnitureTypes.register("kaleidoscope_tavern:tap", f -> new TapController(f, this));
-        FurnitureTypes.register("kaleidoscope_tavern:bottle", f -> new BottleController(f, this));
-        FurnitureTypes.register("kaleidoscope_tavern:grape", f -> new GrapeController(f, this));
         command("ktavern", (sender, command, label, args) -> {
             if (!(sender instanceof Player player)) { sender.sendMessage("请在游戏内使用。"); return true; }
             attempt(player, () -> {

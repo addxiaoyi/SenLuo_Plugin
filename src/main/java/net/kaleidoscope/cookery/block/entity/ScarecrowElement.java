@@ -14,8 +14,11 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.function.IntConsumer;
+import java.util.ArrayList;
+import java.util.List;
 
 // 稻草人本体与头颅 两手物品
 // 戴上头颅时本体换成无头模型
@@ -26,12 +29,16 @@ public final class ScarecrowElement implements FurnitureElement {
     public static final int SLOTS = 3;
 
     private static final int DISPLAY_BODY = 3;
-    private static final int DISPLAYS = 4;
+    private static final int DISPLAY_HAT = 4;
+    private static final int DISPLAYS = 5;
     private static final byte ITEM_TRANSFORM_NONE = (byte) 0;
 
     private final ScarecrowController controller;
     private final ScarecrowBehavior behavior;
     private final ItemDisplaySet displays = new ItemDisplaySet(DISPLAYS);
+    private record PartPose(Vector3f spawnOffset, Vector3f translation, Quaternionf rotation) {}
+    private volatile PartPose[] poses = new PartPose[DISPLAYS];
+    private volatile float wobble;
 
     public ScarecrowElement(ScarecrowController controller, ScarecrowBehavior behavior) {
         this.controller = controller;
@@ -39,9 +46,11 @@ public final class ScarecrowElement implements FurnitureElement {
     }
 
     public void rebuild() {
+        wobble = controller.wobbleAngle();
         WorldPosition base = this.controller.furniture().position();
         double yaw = Math.toRadians(base.yRot());
         buildBody(base, yaw);
+        buildHat(base, yaw);
         for (int slot = 0; slot < SLOTS; slot++) {
             Item item = this.controller.item(slot);
             if (ItemUtils.isEmpty(item)) {
@@ -64,9 +73,27 @@ public final class ScarecrowElement implements FurnitureElement {
                         .spawn(this.displays.id(DISPLAY_BODY), this.displays.uuid(DISPLAY_BODY)),
                 ItemDisplayPackets.builder()
                         .item(body)
+                        .scale(this.behavior.bodyScale)
                         .leftRotation(new Quaternionf().rotateY((float) -yaw))
                         .itemTransform(ITEM_TRANSFORM_NONE)
                         .meta(this.displays.id(DISPLAY_BODY)));
+        remember(DISPLAY_BODY, base, offsetOf(base, behavior.bodyOffset), new Vector3f(), new Quaternionf().rotateY((float)-yaw));
+    }
+
+    private void buildHat(WorldPosition base,double yaw) {
+        if (behavior.hatItem == null || !ItemUtils.isEmpty(controller.item(SLOT_HEAD))) {
+            displays.clear(DISPLAY_HAT);return;
+        }
+        Item hat=InventoryUtils.createOrEmpty(behavior.hatItem);
+        if(ItemUtils.isEmpty(hat)){displays.clear(DISPLAY_HAT);return;}
+        Quaternionf roll=new Quaternionf().rotateZ(behavior.hatRoll);
+        Vector3f pivot=behavior.hatPivot;
+        Vector3f translation=new Vector3f(pivot).sub(roll.transform(new Vector3f(pivot))).rotateY((float)-yaw);
+        var packets=ItemDisplayPackets.at(offsetOf(base,behavior.bodyOffset)).item(hat).scale(behavior.bodyScale)
+                .translation(translation.x,translation.y,translation.z)
+                .leftRotation(new Quaternionf().rotateY((float)-yaw).mul(roll)).itemTransform(ITEM_TRANSFORM_NONE);
+        displays.setPackets(DISPLAY_HAT,packets.spawn(displays.id(DISPLAY_HAT),displays.uuid(DISPLAY_HAT)),packets.meta(displays.id(DISPLAY_HAT)));
+        remember(DISPLAY_HAT,base,offsetOf(base,behavior.bodyOffset),translation,new Quaternionf().rotateY((float)-yaw).mul(roll));
     }
 
     private void buildSlot(WorldPosition base, double yaw, int slot, Item item) {
@@ -87,6 +114,32 @@ public final class ScarecrowElement implements FurnitureElement {
                         .leftRotation(new Quaternionf().rotateY(rotation))
                         .itemTransform(config.itemTransform())
                         .meta(this.displays.id(slot)));
+        remember(slot,base,offsetOf(base,config.position()),new Vector3f(),new Quaternionf().rotateY(rotation));
+    }
+
+    private void remember(int slot, WorldPosition base, WorldPosition spawn, Vector3f translation, Quaternionf rotation) {
+        PartPose[] next=poses.clone();
+        next[slot]=new PartPose(new Vector3f((float)(spawn.x-base.x),(float)(spawn.y-base.y),(float)(spawn.z-base.z)),
+                new Vector3f(translation),new Quaternionf(rotation));
+        poses=next;
+    }
+
+    private List<Object> wobblePackets(int duration) {
+        List<Object> packets=new ArrayList<>();PartPose[] current=poses;
+        for(int slot=0;slot<DISPLAYS;slot++) {
+            PartPose pose=current[slot];if(pose==null||displays.meta(slot)==null)continue;
+            var transformed=ScarecrowWobble.transform(pose.spawnOffset,pose.translation,pose.rotation,wobble);
+            Vector3f t=transformed.translation();
+            packets.add(ItemDisplayPackets.builder().translation(t.x,t.y,t.z).leftRotation(transformed.rotation())
+                    .interpolation(duration,0).meta(displays.id(slot)));
+        }
+        return packets;
+    }
+
+    public void applyWobble(float degrees,Iterable<Player> recipients,int duration) {
+        wobble=degrees;
+        List<Object> packets=wobblePackets(duration);
+        for(Player player:recipients)player.sendPackets(packets,false);
     }
 
     // 偏移要跟着家具朝向转 交给 CE 算 自己拼三角函数容易和碰撞箱对不齐
@@ -117,6 +170,7 @@ public final class ScarecrowElement implements FurnitureElement {
             rebuild();
         }
         this.displays.show(player);
+        player.sendPackets(wobblePackets(0),false);
     }
 
     @Override
@@ -127,5 +181,6 @@ public final class ScarecrowElement implements FurnitureElement {
     @Override
     public void update(Player player) {
         this.displays.update(player);
+        player.sendPackets(wobblePackets(0),false);
     }
 }

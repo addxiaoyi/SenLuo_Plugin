@@ -20,10 +20,10 @@ Cookery 厨房 · Doll 玩偶 · Tavern 酒馆 · Deco 装饰 · MusicPlus 音�
 
 | 插件 | JAR | CE 内容包 | 当前证据 | 主要缺口 |
 | --- | --- | --- | --- | --- |
-| Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 完整厨房包 1,206 物品（含 672 个茶旗显示物品）、63 方块、4,130 状态，558/612 来源配方已导入；319 Java（前序）/106 Python、茶旗接入地面和墙面显示实体。38 种大菜与 5 种盖饭 native recipe 各完成 Paper/Folia 三轮严格探针；旧厨房、取物盘、竹筛回归通过 | 茶旗原版旗杆摆动、真人营养/效果、Shift/自动合成、玩家/客户端、54 条 pending 配方、完整天气/自动化、保护/多人、卸载/跨区 |
+| Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 612/612 条来源配方，1,432 个物品，81 个方块和 25 件家具。[验收记录](docs/VALIDATION.md) | 原版客户端显示、玩家合成与容器守恒 |
 | Doll | `KaleidoscopeDoll-0.1.0-dev.jar` | `doll-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 精确物理、Bedrock 模型、玩家流程 |
 | Tavern | `KaleidoscopeTavern-0.1.0-dev.jar` | `tavern-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 葡萄世界生成、复杂家具、饮用和多人 |
-| Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 418 条聚合缺口、脚本事件、座位/碰撞 |
+| Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 417 条聚合缺口、脚本事件、座位/碰撞 |
 | MusicPlus | `KaleidoscopeMusic-0.1.0-dev.jar` | `music-ce-pack-*.zip` | Paper/Folia 启动加载通过，吉他纹理已接入 | Bedrock 几何、持续声部、客户端合成器 |
 
 当前代码、单测和服务器加载已经完成多层验证。原版客户端资源包、真人玩家闭环和许可证人工核验仍按台账记录，项目不把静态通过写成 100% 完成。
@@ -50,7 +50,7 @@ SenLuo_Plugin/
 
 [换设备开发交接与完整缺口](docs/HANDOFF.md)
 
-厨房现导入 558/612 条来源配方。九组 Forge 标签已映射到固定原版成员，农夫装备、菜刀及厨具新增 11 条合成、石磨新增 3 条加工，另导入 8 条使用蘑菇标签的炒锅和高汤锅配方。转换器修正 Deco 食物模型路径及 Tavern 铁链贴图，资源检查报告新增 `asset_warnings`，记录随包导出的额外自定义资源依赖。
+厨房已导入固定上游的 **612/612** 条配方。带料蒸笼把四个原料槽保存在物品中，厨刀锻造保留自定义组件和附魔。系列包检查覆盖 2,759 个可达模型，额外自定义依赖警告为零。固定服务器版本、启动配置与原版客户端检查详见[本轮双端验收](docs/research/series-runtime-2026-11-18.json)。
 
 - **Cookery** 用剪刀取下茶旗图案会掉落原图案并消耗 1 点耐久，创造模式免损耗。旗面由独立显示实体承载，使用同一个透明绊线外观。
 - **Doll** 摆件微调后的九轴姿态随掉落物保存，再次放置恢复。重置姿态会清除物品中的姿态记录。
@@ -73,15 +73,15 @@ SenLuo_Plugin/
 
 ## 厨房开发检查点（2026-11-18）
 
-完整厨房包包含 1,206 物品（含 672 个茶旗显示物品）、63 方块、4,130 状态、1 石磨家具和 1,218 个已检查模型。固定源码的 612 条配方中，558 条已导入、54 条 pending；包括茶旗配方、28 条竹筛配方、5 条盖饭 native recipe 和 83 条原版/合成配方配置（63 合成、20 炉具）。炒锅和高汤锅现分别有 225、105 条配置。来源记录、模型引用和包内文件哈希仍严格校验。
+完整厨房包包括 1,432 个物品、81 个方块、4,255 个显式外观组合、25 件家具和 1,490 个已检查模型。炒锅有 225 条配置，高汤锅有 105 条。原生配方区的 142 条包括 116 条普通合成、20 条炉具、5 条盖饭和 1 条厨刀锻造。每条来源的固定提交、原始 JSON 和目标配方 ID 均可在包内 `recipe-parity.json` 复核。
 
 2026-11-16 附属物品静态导出已补入农夫靴、护腿、胸甲、草帽、花草帽、镰刀、厨铲和茶旗。镰刀配置连接现有范围收割行为；茶旗控制器支持 16 色、6 种原版旗帜图案、剪刀取下、物品状态存档和带状态掉落，资源包按地面/墙面、方向、颜色、图案和三段波形生成 672 个模型状态。锅铲基础/沾油 ID 与运行时代码一致，油态旧 ID 由 CE 生成独立 item-model；茶旗配方随本轮导入。新导出包为 1,206 物品（含 672 个茶旗显示物品）、63 方块、1,218 个已检查模型、536 imported/76 pending。原版旗杆摆动、原版客户端实机资源包、实际锅铲交互和农夫装备槽效果仍待实测，证据见 [附属物品审计](docs/research/cookery-auxiliary-items-2026-11-16.json) 和 [双端启动摘要](docs/research/cookery-shovel-runtime-2026-11-16.json)。
 
 38 种直接食用大菜（`FoodBiteRegistry` 注册表 37＋`ModBlocks` 冷切火腿片 1）已接入 CE 代码与导出：34 种单格、3 种双格、1 种九格，共 49 个放置单元、1,024 个状态。每口快照、品质、多格归属、耗尽后保留容器和整菜/额外掉落已有实现；消费提交检查同步重入、过期回调和可取消饥饿事件。319 项 Java、102 项 Python 通过，盖饭 v2 Paper/Folia 各三轮 native 探针 PASS 并正常停服，`25583/25584` 已释放；详见 [大菜验收摘要](docs/research/cookery-placed-meals-acceptance-2026-11-15.json)。
 
-每端首轮提交 38 口并验证各 38 次阻挡放置、取消消费、坏档与过期回调拒绝；二轮提交剩余 93 口、核对额外掉落和 38 份整菜回收（含 4 次非中心格破坏），三轮 49 格无复活/重复。两端各核对 1,718 个源文件哈希，ItemIcons 运行生成的 261 图标配置单列；539 个厨房可达模型检查通过，全部 1,260 个生成模型无 Forge loader。v4 Folia 第三轮的 5.1581751 秒启动 watchdog 严格失败仍保留为 OPEN，后续成功不关闭它。
+每端首轮提交 38 口并验证各 38 次阻挡放置、取消消费、坏档与过期回调拒绝；二轮提交剩余 93 口、核对额外掉落和 38 份整菜回收（含 4 次非中心格破坏），三轮 49 格无复活/重复。两端各核对 1,718 个源文件哈希，ItemIcons 运行生成的 261 图标配置单列；539 个厨房可达模型检查通过，全部 1,260 个生成模型无 Forge loader。v4 Folia 第三轮曾触发 5.1581751 秒启动 watchdog。当前启动配置和复测范围见[本轮双端验收](docs/research/series-runtime-2026-11-18.json)。
 
-当前碰撞使用细绊线替代，服务器粒子近似官方客户端动画，放置会拒绝未归属的 Folia 区域。真人营养/效果、主副手、保护/多人、客户端画面、FOOD 原因效果桥、跨区清理、独立区块卸载、CE 热重载和爆炸行为仍未实测。[大菜来源差异](docs/research/cookery-food-bite-gap-2026-11-15.json) 是接入前审计快照；[配方审计](docs/research/cookery-pending-recipes-2026-11-15.json) 是前序快照，当前剩余 80 条。
+当前碰撞使用细绊线替代，服务器粒子近似官方客户端动画，放置会拒绝未归属的 Folia 区域。真人营养/效果、主副手、保护/多人、客户端画面、FOOD 原因效果桥、跨区清理、独立区块卸载、CE 热重载和爆炸行为仍未实测。[大菜来源差异](docs/research/cookery-food-bite-gap-2026-11-15.json) 是接入前审计快照；[配方审计](docs/research/cookery-pending-recipes-2026-11-15.json) 记录当时剩余的 80 条，现已全部导入。
 
 前序修正的 `PlateRegistry` 11 种整份取放盘与大菜每口食用分开处理：默认满盘，单食物盘补 1 件增加 1 份，浆果盘每份同时给甜浆果和发光浆果且禁补；最后一份取走后保留空盘，下次空盘交互才拆除并返 1 碗。基础 loot 为空，破坏仅由控制器掉剩余各份食物和容器。schema 2 保存份数及物品快照，旧档迁移已有单元回归；交付前先扣份，回调锁阻止同步重入。v1 关服存档失败已改为构造时建立快照、保存时不再构造物品，原失败保留于 [验证记录](docs/VALIDATION.md)。
 
@@ -91,7 +91,7 @@ SenLuo_Plugin/
 
 前序竹筛验收为 179 项 Java、81 项 Python 通过，v3 Paper/Folia 各三轮服务端探针 PASS 并正常停服，当时测试端口 `25583/25584` 已释放。竹筛 28 条配方仅验证注册与产物构造；实际加工产出覆盖海绵、干海带、泥巴和黏土样例，另验证反向润湿、下方漏斗取消 2 次后接受 1 次，以及中途重启和空槽防重复。玩家、客户端、雨天和完整自动化仍待验收。
 
-前序竹筛两端各核对 1,709 个源包文件哈希，另将 ItemIcons 运行时生成的 1 个字体配置单列；当时 351 个厨房可达模型引用检查通过，全部 1,251 个生成模型无 Forge loader。营火类型键、缺少 Mojang 映射标记导致 Paper 二次 remap、石磨探针时序的失败均保留；默认 40 秒牛驱动和原断言不变，历史 Folia 启动 CE watchdog 仍 OPEN。完整历史范围见 [竹筛验收摘要](docs/research/cookery-bamboo-acceptance.json) 与 [验证记录](docs/VALIDATION.md)。
+前序竹筛两端各核对 1,709 个源包文件哈希，另将 ItemIcons 运行时生成的 1 个字体配置单列；当时 351 个厨房可达模型引用检查通过，全部 1,251 个生成模型无 Forge loader。营火类型键、缺少 Mojang 映射标记导致 Paper 二次 remap、石磨探针时序的失败均保留；默认 40 秒牛驱动和原断言不变，当时的 Folia 启动 CE watchdog 已记录。完整历史范围见 [竹筛验收摘要](docs/research/cookery-bamboo-acceptance.json) 与 [验证记录](docs/VALIDATION.md)。
 
 ## 新设备构建
 
@@ -151,7 +151,7 @@ JAVA_HOME=/path/to/jdk-25 bash ./gradlew -p series build --no-daemon --no-config
 
 ## 隔离服准备
 
-隔离服准备工具会复制五个 JAR、五个 CE 内容包、CraftEngine 运行 JAR 和基础资源包，Cookery 厨房包会自动解包成 `cookery_kitchen/` 目录。它不会启动服务器或自动接受 EULA。
+隔离服准备工具会复制五个 JAR、五个玩法内容包和一个共享图集包、CraftEngine 运行 JAR 和基础资源包，Cookery 厨房包会自动解包成 `cookery_kitchen/` 目录。它不会启动服务器或自动接受 EULA。
 
 ```bash
 PYTHONPATH=series/tools .venv/bin/python series/tools/prepare_independent_servers.py \
@@ -164,7 +164,7 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/prepare_independent_server
   --base-resources build/acceptance/runtime/craftengine-resources \
   --paper-jar build/acceptance/runtime/paper-1.21.11-132.jar \
   --folia-jar build/acceptance/runtime/folia-1.21.11-14.jar \
-  --server-blocks 6000
+  --server-blocks 8000 --early-pack-load
 ```
 
 安装、升级和回滚说明见 [`docs/install-guide.md`](docs/install-guide.md) 与 [`docs/upgrade-guide.md`](docs/upgrade-guide.md)。
@@ -192,7 +192,7 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/prepare_independent_server
 
 ## 主要剩余任务
 
-1. Cookery 继续验证大菜真人营养/效果、主副手、FOOD 效果桥、保护/多人和客户端表现；继续 54 条 pending 配方、原料获取与取物盘玩家闭环。竹筛还需雨天切换、上方/侧方漏斗、锁定/满目标/矿车、完整组件恢复、独立区块卸载和 Folia 跨区验收。
+1. Cookery 继续验证大菜真人营养/效果、主副手、FOOD 效果桥、保护/多人和客户端表现；验证原料取得、玩家合成和取物盘操作。竹筛还需雨天切换、上方/侧方漏斗、锁定/满目标/矿车、完整组件恢复、独立区块卸载和 Folia 跨区验收。
 2. Doll 补精确物理、移动玩偶姿态和原版客户端显示。
 3. Tavern 补葡萄世界生成、酒桶液面、果盆碰撞和多人守恒。
 4. Deco 按模型组件、overlay、脚本事件、座位和碰撞分类处理 417 条聚合缺口。
@@ -216,4 +216,4 @@ git log -1 --oneline
 先恢复 `.references/`，运行上面的严格导入和构建命令，再从 [厨房验证记录](docs/VALIDATION.md) 和 [移植矩阵](series/docs/PORTING-MATRIX.md) 的最新检查点继续。保留未提交改动与历史失败记录；已通过的服务端探针不把完整玩家闭环升级为 `accepted`。
 
 
-2026-11-17 交接增量：已从 `251ad5a` 重建并运行 Paper/Folia 五插件整合服。修复 CE 系列 ZIP 未解包、JAR 命名识别、旧资源覆盖和 Tavern 1.21.11 原料名称；使用 `--server-blocks 6000` 完整注册厨房 63 方块/5,474 内部状态（4,130 个显式外观组合不等于内部状态数，茶旗 anchor_type 包含 ceiling）。根 Python 104 项、系列 Python 54 项通过。两端包加载、生成和状态注册已有证据，但 Folia watchdog 和缺模型/纹理警告仍 OPEN，客户端/玩家流程未验收。详见 [当前交接](docs/HANDOFF.md) 与 [本轮证据](docs/research/series-runtime-2026-11-17.json)。
+2026-11-17 交接增量：已从 `251ad5a` 重建并运行 Paper/Folia 五插件整合服。修复 CE 系列 ZIP 未解包、JAR 命名识别、旧资源覆盖和 Tavern 1.21.11 原料名称；使用 `--server-blocks 6000` 完整注册厨房 63 方块/5,474 内部状态（4,130 个显式外观组合不等于内部状态数，茶旗 anchor_type 包含 ceiling）。根 Python 104 项、系列 Python 54 项通过。当时的 Folia watchdog 和缺模型/纹理警告已记录。11 月 18 日复测情况见上方开发检查点。详见 [当前交接](docs/HANDOFF.md) 与 [本轮证据](docs/research/series-runtime-2026-11-17.json)。

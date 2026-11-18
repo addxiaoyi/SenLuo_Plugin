@@ -13,6 +13,14 @@ public abstract class SeriesPlugin extends JavaPlugin {
     private AntiGriefLib protection;
     private SeriesScheduler scheduler;
 
+    @Override public final void onLoad() {
+        var engine = net.momirealms.craftengine.core.plugin.CraftEngine.instance();
+        engine.beforeEnableTaskRegistry().registerTask(
+                net.momirealms.craftengine.core.plugin.compatibility.PluginTask.create(this::registerFurniture, getName()));
+    }
+
+    protected void registerFurniture() {}
+
     @Override public final void onEnable() {
         scheduler = new SeriesScheduler(this);
         protection = AntiGriefLib.builder(this).ignoreOP(true).build();

@@ -28,6 +28,12 @@ public final class DollPlugin extends SeriesPlugin implements Listener {
     private GiftBoxes gifts;
     private MovingDolls moving;
 
+    @Override protected void registerFurniture() {
+        FurnitureTypes.register("kaleidoscope_doll:lottery", furniture -> new LotteryController(furniture, this));
+        FurnitureTypes.register("kaleidoscope_doll:computer", furniture -> new ComputerController(furniture, this));
+        FurnitureTypes.register("kaleidoscope_doll:doll", furniture -> new DollController(furniture, this));
+    }
+
     @Override protected void start() {
         catalog = Resources.read(this, "catalog.json", DollCatalog.class);
         saveDefaultConfig();
@@ -36,9 +42,6 @@ public final class DollPlugin extends SeriesPlugin implements Listener {
         moving.start();
         collectionKey = new NamespacedKey(this, "collection_v1");
         gifts = new GiftBoxes(this);
-        FurnitureTypes.register("kaleidoscope_doll:lottery", furniture -> new LotteryController(furniture, this));
-        FurnitureTypes.register("kaleidoscope_doll:computer", furniture -> new ComputerController(furniture, this));
-        FurnitureTypes.register("kaleidoscope_doll:doll", furniture -> new DollController(furniture, this));
         getServer().getPluginManager().registerEvents(gifts, this);
         getServer().getPluginManager().registerEvents(this, this);
         command("kdoll", (sender, command, label, args) -> {

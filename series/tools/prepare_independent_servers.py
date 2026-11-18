@@ -152,7 +152,7 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
             cookery_pack: Path | None = None, accept_eula: bool = False,
             paper_jar: Path | None = None, folia_jar: Path | None = None,
             craft_engine: Path | None = None, base_resources: Path | None = None,
-            server_blocks: int | None = None) -> dict:
+            server_blocks: int | None = None, early_pack_load: bool = False) -> dict:
     root = root.resolve()
     allowed = WORKSPACE / "build" / "acceptance"
     # Keep test worlds out of the source tree and production locations.
@@ -160,6 +160,13 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
         raise ValueError(f"isolated server root must be under {allowed}")
     if root.exists() and any(root.iterdir()):
         raise ValueError(f"refusing to overwrite existing acceptance root: {root}")
+    display_root = root
+    # ZIP members can exceed MAX_PATH even when the isolated server root is short.
+    # Apply the extended Windows path only after checking the real destination.
+    if sys.platform == "win32":
+        raw = str(root)
+        prefix = "\\\\?\\"
+        root = Path(prefix + ("UNC\\" + raw[2:] if raw.startswith("\\\\") else raw))
     artifacts = artifacts.resolve()
     packs = packs.resolve()
     independent = check_independence(source_root=SUITE, artifacts=artifacts, packs=packs)
@@ -176,17 +183,28 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
         if source.name.casefold() != "cookery_kitchen" and source.name.casefold() in managed_roots:
             raise ValueError(f"base resources would overwrite managed pack {source.name}: {source}")
     engine_config = None
-    if server_blocks is not None:
-        if type(server_blocks) is not int or not 1 <= server_blocks <= 100000 or craft_engine is None:
-            raise ValueError("server-blocks requires a count from 1 to 100000 and a CraftEngine runtime JAR")
+    if server_blocks is not None or early_pack_load:
+        if craft_engine is None:
+            raise ValueError("a CraftEngine JAR is required to configure pack loading")
         with ZipFile(craft_engine) as archive:
             if "config.yml" not in archive.namelist():
                 raise ValueError(f"CraftEngine runtime has no default config.yml: {craft_engine}")
             engine_config = archive.read("config.yml").decode("utf-8")
-        engine_config, matches = re.subn(r"(?m)^(  serverside-blocks: )\d+(\s*)$",
-                                         lambda match: match[1] + str(server_blocks) + match[2], engine_config)
-        if matches != 1:
-            raise ValueError("CraftEngine config.yml must define exactly one block.serverside-blocks value")
+        overrides = {}
+        if server_blocks is not None:
+            if type(server_blocks) is not int or not 1 <= server_blocks <= 100000:
+                raise ValueError("server-blocks must be an integer between 1 and 100000")
+            overrides["serverside-blocks"] = (r"\d+", str(server_blocks))
+        if early_pack_load:
+            # On 26.9.1 the deferred loader can block Folia's global tick, and the
+            # asynchronous asset cache can race the first explicit pack workflow.
+            overrides["delay-configuration-load"] = ("true|false", "false")
+            overrides["cache-resource-files"] = ("true|false", "false")
+        for key, (old_value, new_value) in overrides.items():
+            engine_config, matches = re.subn(rf"(?m)^(  {key}: )(?:{old_value})([ \t]*\r?)$",
+                                             lambda match: match[1] + new_value + match[2], engine_config)
+            if matches != 1:
+                raise ValueError(f"CraftEngine config.yml must define exactly one {key} value")
     runtimes = {"paper": paper_jar, "folia": folia_jar}
     report = {
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -206,7 +224,7 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
         target = root / "artifacts" / config_path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(config_bytes)
-        report["craftEngineConfig"] = {"path": config_path, "serverBlocks": server_blocks,
+        report["craftEngineConfig"] = {"path": config_path, "serverBlocks": server_blocks, "earlyPackLoad": early_pack_load,
                                       "sha256": hashlib.sha256(config_bytes).hexdigest()}
     for relative, source, kind in files:
         destination = install_artifact(root, relative, source, kind)
@@ -273,7 +291,7 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
             "exec java -Xms512M -Xmx2G -Dfile.encoding=UTF-8 -jar server.jar nogui\n",
             encoding="utf-8")
         report["instances"][platform] = {
-            "directory": str(instance), "port": port,
+            "directory": str(display_root / platform), "port": port,
             "serverJar": str(runtime) if runtime else None,
             "eulaAccepted": accept_eula,
             "startup": "NOT_RUN", "resourcePack": "NOT_RUN", "vanillaClient": "NOT_RUN",
@@ -299,6 +317,8 @@ def main() -> int:
     parser.add_argument("--craft-engine", type=Path, help="CraftEngine runtime plugin JAR")
     parser.add_argument("--server-blocks", type=int,
                         help="Override block.serverside-blocks in a copy of the runtime's default config")
+    parser.add_argument("--early-pack-load", action="store_true",
+                        help="Load packs during CE startup and bypass its racy in-memory resource cache")
     parser.add_argument("--base-resources", type=Path,
                         help="Prepared CraftEngine resources directory containing default packs")
     parser.add_argument("--accept-eula", action="store_true",
@@ -309,7 +329,7 @@ def main() -> int:
                          cookery_pack=args.cookery_pack, accept_eula=args.accept_eula,
                          paper_jar=args.paper_jar, folia_jar=args.folia_jar,
                          craft_engine=args.craft_engine, base_resources=args.base_resources,
-                         server_blocks=args.server_blocks)
+                         server_blocks=args.server_blocks, early_pack_load=args.early_pack_load)
     except (OSError, ValueError, BadZipFile) as error:
         print(f"Independent server preparation failed: {error}", file=sys.stderr)
         return 1

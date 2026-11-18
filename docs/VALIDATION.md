@@ -4,14 +4,30 @@
 
 目标 Paper/Folia 1.21.11、Java 21、CraftEngine 26.9.1。历史构建/运行记录不因 Git 交接升级成全系列完成；未发布、部署或操作生产服。
 
-## 导入与资源转换（2026-11-18）
+## 612 条厨房配方与五插件整合（2026-11-18）
+
+厨房包含 1,432 件物品、81 个方块、25 件家具。612 条来源配方均有目标映射。根工程 565 项与系列工程 60 项 Java 测试通过，两个 Python 套件分别通过 139 和 58 项。完整输入、启动日志摘要、各轮产物哈希和玩家验收范围见[双端验收记录](research/series-runtime-2026-11-18.json)。
+
+服务端用 `--server-blocks 8000 --early-pack-load` 准备。Folia 默认配置曾在 `AbstractPackManager.loadResourceConfigs` 等待 77.026 秒，同轮 CE 异步初始化与资源生成都在写入同一缓存。调整加载时机并关闭该资源缓存后，五个插件在 CE 读包前注册所需类型。另一次 Folia 重启在原生有序配方的 `Ingredient.ofStacks` 注册路径记录了 5.59 秒全局线程 watchdog，注册随后完成。五轮均正常停服，另一次独占的 Folia 重启未再报警。原来的 tag packet 栈也保留在历史记录中。
+
+原版客户端的离线检查用 Java 21、1.21.11 官方客户端 JAR 和对应运行库，读取每个平台 `plugins/CraftEngine/cache/hosted/default/resource_pack.zip`。两份托管包各通过 14,203 个资源检查。客户端选中了 `ce_overlay_75-97`。原版解码器解析了每包的 6,292 个模型、4,060 个物品定义和 1,023 个方块状态，另有 2,617 张 PNG 成功解码。所有有效资源均通过客户端读取，并逐项与 ZIP 内对应内容比较。可用官方启动器准备好该版本和依赖，将启动时的类路径（含客户端 JAR）赋给 `CLIENT_CP` 后复验。
+
+```powershell
+$instances = 'build/acceptance/series-five-runtime'
+$hosted = 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+java '-Djava.awt.headless=true' -cp "$env:CLIENT_CP" tools/acceptance/VanillaPack12111.java build/client-read.json "$instances/paper/$hosted" "$instances/folia/$hosted"
+```
+
+本机 demo 启动到创建窗口时报告 `GLFW error 65542`。已登录客户端的接包、渲染和普通玩家操作仍待验收。
+
+## 导入与资源转换（2026-11-18，前序检查点）
 
 - 已同步远端 `1d283d6`，保持五个固定上游提交。八组 Forge 基础材料标签映射到明确的原版目标，已有来源标签优先；映射写入厨房 manifest 和 `recipe-parity.json` 的 `targetTagMappings`。
 - 新增 11 条合成与 3 条石磨来源配方：550/612 imported、62 pending；石磨 85 条来源完整展开为 90 条具体输入。厨房仍为 1,206 物品、63 方块和 1,218 个通过引用检查的模型。
-- Deco 新增两个旧物品模型转发和蛙卵果冻 GUI 模型，修正盘粒子；Tavern 铁链贴图转换为 1.21.11 的 `minecraft:block/iron_chain`。声明的 CE 资源依赖无错误，额外随包导出的自定义资源仍有 5 条 `asset_warnings`，见 [资源检查报告](../series/docs/pack-validation.json)。
+- Deco 新增两个旧物品模型转发和蛙卵果冻 GUI 模型，修正盘粒子；Tavern 铁链贴图转换为 1.21.11 的 `minecraft:block/iron_chain`。声明的 CE 资源依赖无错误，额外随包导出的自定义资源当时有 5 条 `asset_warnings`，当前结果见[资源检查报告](../series/docs/pack-validation.json)。
 - Python 根工具 105 项、系列工具 57 项通过；固定源码目录及生成导入报告检查通过。本轮新增资源与配方的 Paper/Folia 加载、原版客户端和玩家验收待执行；双端运行基线见 [2026-11-17 记录](research/series-runtime-2026-11-17.json)。
 
-## Forge 蘑菇标签配方（2026-11-18，当前）
+## Forge 蘑菇标签配方（2026-11-18，前序检查点）
 
 - Forge 47.3.0 universal JAR（SHA-256 `a3c07e6b33fe8a4b42fdb4841a37e3ffda62797366c7050c481d799d6d35831c`）中 `data/forge/tags/items/mushrooms.json`（资源 SHA-256 `5c689ad6d0c3abb7af662644c0d539f591d8faa88be36afa598f8f4e6fca29f2`）将 `forge:mushrooms` 明确展开为 `minecraft:brown_mushroom` 和 `minecraft:red_mushroom`。Cookery 配方报告保存该目标映射，来源若以后提供同名标签仍优先采用来源定义。
 - 8 条炒锅/高汤锅配方（鱼香肉丝、春卷、鸡肉蘑菇炖汤、野蘑菇兔肉汤的两种配方形式）全部导入，分别为 225 条炒锅、105 条高汤锅；总量 558/612 imported、54 pending。

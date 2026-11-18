@@ -8,6 +8,8 @@ class PinnedImportTests(unittest.TestCase):
     def test_pinned_deco_legacy_item_ids_resolve_to_existing_geometry(self):
         source = SourceSnapshot("KaleidoscopeDeco", "6ce180e1226ce93b0fb0d45ea80e0ed5b01b1dc0")
         _, _, assets, _ = deco(source)
+        frame_tool = parse_json(assets["kdeco_kaleidoscope_frame/items/test.json"])["model"]
+        self.assertEqual(["gui", "fixed", "ground", "on_shelf"], frame_tool["cases"][0]["when"])
         namespace = "kdeco_kaleidoscope_cookery"
         for name in ("slime_ball_meal", "mysterious"):
             legacy = parse_json(assets[f"{namespace}/items/{name}.json"])["model"]["model"]
@@ -15,6 +17,14 @@ class PinnedImportTests(unittest.TestCase):
             model = parse_json(assets[f"{namespace}/models/item/{name}.json"])
             self.assertEqual(f"{namespace}:meals/item/{name}", model["parent"])
             self.assertIn(f"{namespace}/models/meals/item/{name}.json", assets)
+        for direction in ("left", "right"):
+            button = parse_json(assets[f"{namespace}/models/gui/button/page_{direction}.json"])
+            self.assertEqual(f"{namespace}:item/ui/page_{direction}", button["textures"]["layer0"])
+            self.assertIn(f"{namespace}/textures/item/ui/page_{direction}.png", assets)
+        self.assertNotEqual(assets[f"{namespace}/textures/item/ui/page_left.png"],
+                            assets[f"{namespace}/textures/item/ui/page_right.png"])
+        self.assertEqual(assets[f"{namespace}/textures/item/icons/cookbook.png"],
+                         assets[f"{namespace}/textures/item/icons/cookery.png"])
         gui = parse_json(assets[f"{namespace}/models/meals/gui/frogspawn_jelly.json"])
         self.assertTrue(gui["elements"])
         self.assertIn("gui", gui["display"])
@@ -25,6 +35,13 @@ class PinnedImportTests(unittest.TestCase):
     def test_pinned_tavern_lamp_uses_target_chain_texture(self):
         source = SourceSnapshot("KaleidoscopeTavern", "c4ec1880bd44cf3139d3ba744ab30bb379cf1416")
         _, _, assets, _ = tavern(source)
+        board = "kaleidoscope_tavern:block/deco/sandwich_board/"
+        for template in ("block/deco/sandwich_board/deco_top", "item/deco_sandwich_board"):
+            model = parse_json(assets[f"kaleidoscope_tavern/models/{template}.json"])
+            self.assertEqual(board + "base", model["textures"]["layer1"])
+        self.assertIn("kaleidoscope_tavern/textures/block/deco/sandwich_board/base.png", assets)
+        grass = parse_json(assets["kaleidoscope_tavern/models/block/deco/sandwich_board/grass/rot_0.json"])
+        self.assertEqual(board + "grass", grass["textures"]["layer1"])
         lamps = [parse_json(content) for path, content in assets.items()
                  if "/models/block/deco/" in path and "/bell_pendant_lamp/" in path and path.endswith(".json")]
         self.assertTrue(lamps)

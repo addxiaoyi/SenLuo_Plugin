@@ -72,6 +72,32 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
     private SteamerTransientBlockListener steamerTransients;
 
     @Override
+    public void onLoad() {
+        // CE runs this hook before reading packs in either startup mode.
+        var engine = net.momirealms.craftengine.core.plugin.CraftEngine.instance();
+        engine.beforeEnableTaskRegistry().registerTask(
+                net.momirealms.craftengine.core.plugin.compatibility.PluginTask.create(this::registerPackTypes, getName()));
+    }
+
+    private void registerPackTypes() {
+        ItemIcons.generate(this);
+        FoodRecipeManager.registerParsers();
+        net.kaleidoscope.cookery.recipe.RiceBowlRecipe.register();
+        net.kaleidoscope.cookery.recipe.KitchenKnifeSmithing.register();
+        net.kaleidoscope.cookery.recipe.FilledSteamerResult.register();
+        MillstoneAnimals.registerParser();
+        ItemTags.registerParser();
+        FoodGroups.registerParser();
+        DishCarriers.registerParser();
+        BlockTags.registerParser();
+        LootFormulas.register();
+        Conditions.register();
+        BlockBehaviors.register();
+        ItemBehaviors.register();
+        FurnitureBehaviors.register();
+    }
+
+    @Override
     public void onEnable() {
         instance = this;
         var cookeryCatalog = net.kaleidoscope.cookery.catalog.CookeryCatalog.bundled();
@@ -86,20 +112,13 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         saveDefaultConfig();
         ConsoleMessages.load(this);
         RecipeMenuConfig.load();
-        ItemIcons.generate();
         this.antiGrief = AntiGriefLib.builder(this)
                 .ignoreOP(true)
                 .bypassPermission("kaleidoscopecookery.antigrief.bypass")
                 .build();
-        FoodRecipeManager.registerParsers();
-        net.kaleidoscope.cookery.recipe.RiceBowlRecipe.register();
-        MillstoneAnimals.registerParser();
-        ItemTags.registerParser();
-        FoodGroups.registerParser();
-        DishCarriers.registerParser();
-        BlockTags.registerParser();
         getServer().getPluginManager().registerEvents(new DishCarrierListener(), this);
         getServer().getPluginManager().registerEvents(new CaterpillarListener(), this);
+        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.OilBlockListener(), this);
         baoziThrows = new BaoziThrowListener(this);
         getServer().getPluginManager().registerEvents(baoziThrows, this);
         getServer().getPluginManager().registerEvents(new MillstoneDamageListener(), this);
@@ -108,6 +127,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SteamerFallingBlockListener(), this);
         steamerTransients = new SteamerTransientBlockListener(this);
         getServer().getPluginManager().registerEvents(new CustomBlockPlaceProtectionListener(), this);
+        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.EightImmortalsTableBreakListener(), this);
         getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.PlacedMealBreakListener(), this);
         getServer().getPluginManager().registerEvents(new FruitBasketCatListener(this), this);
         getServer().getPluginManager().registerEvents(new TrashCanListener(), this);
@@ -115,6 +135,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new TrashCanLandListener(), this);
         }
         getServer().getPluginManager().registerEvents(new ScarecrowTrampleListener(), this);
+        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.ScarecrowHitListener(), this);
         getServer().getPluginManager().registerEvents(new PaddyTillListener(), this);
         getServer().getPluginManager().registerEvents(new DisplayTrackingListener(), this);
         getServer().getPluginManager().registerEvents(new LunchBagListener(), this);
@@ -126,11 +147,6 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(new AnvilTextPrompt(), this);
         registerRecipeCommand();
-        LootFormulas.register();
-        Conditions.register();
-        BlockBehaviors.register();
-        ItemBehaviors.register();
-        FurnitureBehaviors.register();
         getServer().getPluginManager().registerEvents(new AdvancementPlacementListener(), this);
         getServer().getPluginManager().registerEvents(new AdvancementGameplayListener(), this);
         setupAdvancements();

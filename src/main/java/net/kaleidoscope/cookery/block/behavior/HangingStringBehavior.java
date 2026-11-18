@@ -1,14 +1,12 @@
 package net.kaleidoscope.cookery.block.behavior;
 
-import net.kaleidoscope.cookery.util.InteractGuard;
-import net.kaleidoscope.cookery.util.InventoryUtils;
+import net.kaleidoscope.cookery.nms.NmsBridgeProvider;
 import net.kaleidoscope.cookery.util.SupportStateUtils;
 import net.momirealms.craftengine.bukkit.block.behavior.BukkitBlockBehavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
-import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -16,22 +14,25 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.Direction;
-import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.kaleidoscope.cookery.util.BehaviorConfig;
-import org.bukkit.Material;
+import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
+import org.bukkit.Bukkit;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Mob;
 
 // 悬挂串 辣椒串蘑菇串这类从天花板往下接的方块
 // 空手或手持产物右键采摘 未剪过先转成剪过态 已剪过再摘就整段消失
@@ -51,16 +52,18 @@ public final class HangingStringBehavior extends BukkitBlockBehavior {
     private final Key harvestItem;
     private final int harvestAmount;
     private final Key harvestSound;
+    private final boolean harmsUndead;
 
     private HangingStringBehavior(BlockDefinition block, Property<Boolean> isHeadProperty,
                                   Property<Boolean> shearedProperty, Key harvestItem,
-                                  int harvestAmount, Key harvestSound) {
+                                  int harvestAmount, Key harvestSound, boolean harmsUndead) {
         super(block);
         this.isHeadProperty = isHeadProperty;
         this.shearedProperty = shearedProperty;
         this.harvestItem = harvestItem;
         this.harvestAmount = harvestAmount;
         this.harvestSound = harvestSound;
+        this.harmsUndead = harmsUndead;
     }
 
     @Override
@@ -71,36 +74,34 @@ public final class HangingStringBehavior extends BukkitBlockBehavior {
         }
         // 空手或手上已经拿着同种产物才算采摘 拿着别的东西是想放置方块 别抢掉
         Item held = context.getItem();
-        if (!ItemUtils.isEmpty(held) && !held.id().equals(harvestItem)) {
+        if (!HangingStringHarvest.accepts(held, harvestItem)) {
             return InteractionResult.PASS;
         }
         BlockPos pos = context.getClickedPos();
         World world = context.getLevel();
-        if (!InteractGuard.canBreak(player, world, pos.x(), pos.y(), pos.z())) {
-            return InteractionResult.PASS;
-        }
-
-        Item drop = InventoryUtils.createOrEmpty(harvestItem);
-        if (!ItemUtils.isEmpty(drop)) {
-            InventoryUtils.giveOrHold(player, InteractionHand.MAIN_HAND, drop.copyWithCount(harvestAmount));
-        }
-        // 未剪过先掉一层外观 已剪过的再摘整段拿走
-        if (state.get(shearedProperty)) {
-            removeAt(world, pos);
-        } else {
-            LevelWriterProxy.INSTANCE.setBlock(world.minecraftWorld(), LocationUtils.toBlockPos(pos),
-                    state.with(shearedProperty, true).customBlockState().minecraftState(),
-                    UpdateFlags.UPDATE_ALL);
-        }
-        world.playSound(Vec3d.atCenterOf(pos), harvestSound, 1.0f, 0.8f + (float) Math.random() * 0.4f, SoundSource.BLOCK);
-        player.swingHand(InteractionHand.MAIN_HAND);
-        return InteractionResult.SUCCESS_AND_CANCEL;
+        org.bukkit.World bukkit = (org.bukkit.World) world.platformWorld();
+        if (!Bukkit.isOwnedByCurrentRegion(bukkit, pos.x() >> 4, pos.z() >> 4)) return InteractionResult.PASS;
+        HangingStringHarvest.pick(bukkit.getBlockAt(pos.x(), pos.y(), pos.z()), player, state, shearedProperty,
+                harvestItem, harvestAmount, harvestSound);
+        // The source deliberately returns PASS after harvesting as well.
+        return InteractionResult.PASS;
     }
 
-    // applyPhysics 必须开 否则挂在下面那几节收不到 updateShape 会留在半空
-    private static void removeAt(World world, BlockPos pos) {
-        org.bukkit.World bukkitWorld = (org.bukkit.World) world.platformWorld();
-        bukkitWorld.getBlockAt(pos.x(), pos.y(), pos.z()).setType(Material.AIR, true);
+    @Override
+    public void entityInside(Object thisBlock, Object[] args) {
+        if (!harmsUndead) return;
+        Object entity = NmsBridgeProvider.bridge().bukkitEntity(args[3]);
+        if (!(entity instanceof Mob mob) || !mob.isValid() || !Bukkit.isOwnedByCurrentRegion(mob)) return;
+        Tag<EntityType> undead = Bukkit.getTag("entity_types", NamespacedKey.minecraft("sensitive_to_smite"), EntityType.class);
+        if (undead == null || !undead.isTagged(mob.getType())) return;
+        BlockPos pos = LocationUtils.fromBlockPos(args[2]);
+        org.bukkit.World world = mob.getWorld();
+        if (!Bukkit.isOwnedByCurrentRegion(world, pos.x() >> 4, pos.z() >> 4)
+                || !world.isChunkLoaded(pos.x() >> 4, pos.z() >> 4)) return;
+        ImmutableBlockState current = CraftEngineBlocks.getCustomBlockState(world.getBlockAt(pos.x(), pos.y(), pos.z()));
+        if (current != null && current.owner().value() == blockDefinition) {
+            mob.damage(2, DamageSource.builder(DamageType.MAGIC).build());
+        }
     }
 
     // 挂在上方 顶端接天花板的坚固下表面 其余接同种方块
@@ -148,15 +149,18 @@ public final class HangingStringBehavior extends BukkitBlockBehavior {
 
     @Override
     public void tick(Object thisBlock, Object[] args) {
-        if (isSupported(args[1], args[2])) {
-            return;
-        }
         org.bukkit.World world = LevelProxy.INSTANCE.getWorld(args[1]);
         if (world == null) {
             return;
         }
         BlockPos pos = LocationUtils.fromBlockPos(args[2]);
-        world.getBlockAt(pos.x(), pos.y(), pos.z()).breakNaturally();
+        if (!Bukkit.isOwnedByCurrentRegion(world, pos.x() >> 4, pos.z() >> 4)
+                || !world.isChunkLoaded(pos.x() >> 4, pos.z() >> 4)) return;
+        var block = world.getBlockAt(pos.x(), pos.y(), pos.z());
+        var state = CraftEngineBlocks.getCustomBlockState(block);
+        if (state == null || state.owner().value() != blockDefinition) return;
+        HangingStringHarvest.collapse(block, state, shearedProperty, harvestItem, harvestAmount,
+                () -> isSupported(args[1], args[2]));
     }
 
     private static class Factory implements BlockBehaviorFactory<HangingStringBehavior> {
@@ -173,8 +177,10 @@ public final class HangingStringBehavior extends BukkitBlockBehavior {
                 throw new IllegalArgumentException("hanging_string 缺少 harvest_item");
             }
             int amount = BehaviorConfig.getInt(section, DEFAULT_AMOUNT, "harvest_amount", "harvest-amount");
+            if (amount < 1 || amount > 32) throw new IllegalArgumentException("hanging_string harvest_amount must be 1..32");
             String sound = BehaviorConfig.getString(section, DEFAULT_SOUND, "harvest_sound", "harvest-sound");
-            return new HangingStringBehavior(block, isHead, sheared, Key.of(item), amount, Key.of(sound));
+            return new HangingStringBehavior(block, isHead, sheared, Key.of(item), amount, Key.of(sound),
+                    block.id().equals(Key.of("kaleidoscopecookery:chili_ristra")));
         }
     }
 }

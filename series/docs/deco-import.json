@@ -8,7 +8,7 @@
   "item_definitions": 854,
   "furniture_definitions": 785,
   "crafting_recipes": 0,
-  "assets": 3724,
+  "assets": 3727,
   "pending": [
     "Overlay behavior requires porting: src/kaleidoscope_doll_plus/data/kaleidoscope_plus/function/doll/index/dolls.mcfunction -> doll_2",
     "Overlay behavior requires porting: src/kaleidoscope_doll_plus/data/kaleidoscope_plus/function/doll/index/dolls.mcfunction -> doll_3",

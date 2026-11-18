@@ -64,4 +64,12 @@ public final class NmsV1_21_R1 implements NmsBridge {
         return packet instanceof ServerboundClientCommandPacket command
                 && command.getAction() == ServerboundClientCommandPacket.Action.PERFORM_RESPAWN;
     }
+    @Override public boolean canPlaceKitchenPart(Object rawLevel, int x, int y, int z, Object rawPlayer, Object rawItem) {
+        var level = (net.minecraft.world.level.Level) rawLevel;
+        var pos = new net.minecraft.core.BlockPos(x, y, z);
+        return !level.isOutsideBuildHeight(pos) && level.getWorldBorder().isWithinBounds(pos)
+                && level.isUnobstructed(null, net.minecraft.world.phys.shapes.Shapes.box(x, y + .75, z, x + 1, y + 1, z + 1))
+                && (rawPlayer == null || ((net.minecraft.world.entity.player.Player) rawPlayer)
+                .mayUseItemAt(pos, net.minecraft.core.Direction.UP, (net.minecraft.world.item.ItemStack) rawItem));
+    }
 }
