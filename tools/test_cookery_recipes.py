@@ -8,7 +8,7 @@ import unittest
 import yaml
 
 from audit_upstream import AuditError
-from cookery_recipes import ART, RecipeSources, mapped, read_sources, processing_recipes, cooking_recipes, rice_bowl_recipes, validate_recipe
+from cookery_recipes import ART, TARGET_TAG_MEMBERS, RecipeSources, mapped, read_sources, processing_recipes, cooking_recipes, rice_bowl_recipes, validate_recipe
 from cookery_stockpot import stockpot_recipes
 from cookery_pot import pot_recipes
 from export_cookery_kitchen_pack import build, PACK
@@ -138,7 +138,7 @@ class RecipeImportTest(unittest.TestCase):
     def test_optional_source_dependencies_are_reported_for_all_nine_unblocked_recipes(self):
         rows = [row for row in self.report['recipes'] if row.get('optionalTagAbsences')]
         self.assertEqual(9, len(rows))
-        self.assertEqual({'statusCounts': {'imported': 536, 'pending': 76}}, {'statusCounts': self.report['statusCounts']})
+        self.assertEqual({'statusCounts': {'imported': 550, 'pending': 62}}, {'statusCounts': self.report['statusCounts']})
         for row in rows:
             self.assertEqual('imported', row['status'])
             for absent in row['optionalTagAbsences']:
@@ -178,12 +178,11 @@ class RecipeImportTest(unittest.TestCase):
 
     def test_millstone_keeps_all_inputs_outputs_and_one_revolution(self):
         recipes = {key: row for key, row in self.config['accurate_foods'].items() if row['cook'] == 'MILLSTONE'}
-        self.assertEqual(87, len(recipes))
+        self.assertEqual(90, len(recipes))
         rows = [row for row in self.report['recipes'] if row['type'] == ART + ':millstone']
         self.assertEqual(85, len(rows))
-        self.assertEqual(82, sum(row['status'] == 'imported' for row in rows))
-        self.assertEqual({'forge:gravel', 'forge:sand/red', 'forge:sand/colorless'},
-                         {row['original']['ingredient']['tag'] for row in rows if row['status'] == 'pending'})
+        self.assertEqual(85, sum(row['status'] == 'imported' for row in rows))
+        self.assertTrue(all(row['status'] == 'imported' for row in rows))
         for row in rows:
             if row['status'] != 'imported':
                 self.assertIn('required tag absent', row['reason'])
@@ -196,6 +195,26 @@ class RecipeImportTest(unittest.TestCase):
                 self.assertEqual(original['result'].get('count', 1), value['result_count'])
                 self.assertEqual(1, value['rotations'])
                 self.assertNotIn('cooking_time', value)
+
+    def test_fixed_target_tags_preserve_explicit_source_members_and_nested_optional_inputs(self):
+        sources = RecipeSources({}, {}, {}, {})
+        for tag, members in TARGET_TAG_MEMBERS.items():
+            self.assertEqual(list(members), sources.expand({'tag': tag}))
+        with self.assertRaisesRegex(AuditError, 'required tag absent'):
+            sources.expand({'tag': 'forge:ingots/unobtainium'})
+        tags = {
+            'forge:ingots/iron': {'values': ['minecraft:iron_ingot', 'kaleidoscope_cookery:test_iron']},
+            'test:nested': {'values': [{'id': '#forge:gravel', 'required': False}]},
+        }
+        sources = RecipeSources({}, tags, {}, {})
+        self.assertEqual(['minecraft:iron_ingot', 'kaleidoscopecookery:test_iron'],
+                         sources.expand({'tag': 'forge:ingots/iron'}))
+        omissions = []
+        self.assertEqual(['minecraft:gravel'], sources.expand({'tag': 'test:nested'}, omissions=omissions))
+        self.assertEqual([], omissions)
+        self.assertEqual({tag: list(members) for tag, members in TARGET_TAG_MEMBERS.items()},
+                         self.report['targetTagMappings'])
+        self.assertEqual(self.report['targetTagMappings'], self.manifest['targetTagMappings'])
 
     def test_millstone_unknown_tag_and_output_structure_fail(self):
         for field, value in (('ingredient', {'tag': 'forge:unknown'}),

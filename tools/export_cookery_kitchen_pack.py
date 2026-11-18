@@ -599,6 +599,7 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
                 'riceBowls': rice_manifest,
                 'optionalTagAbsences': recipe_manifest['optionalTagAbsences'],
                 'optionalDependencyContext': recipe_manifest['optionalDependencyContext'],
+                'targetTagMappings': recipe_manifest['targetTagMappings'],
                 'recipeSources': recipe_manifest['sourceCount'], 'recipeStatuses': recipe_manifest['statusCounts'],
                 'recipes': recipe_manifest['importedSections'], 'accurateAppliances': recipe_manifest['accurateAppliances'],
                 'teaCups': len(cups), 'images': len(images),

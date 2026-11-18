@@ -302,6 +302,15 @@ def resolve_ingredient(value: Any, tags: dict[str, bytes], trail: tuple[str, ...
 
 def tavern(source: Source) -> tuple[dict, dict, dict, list]:
     assets, tags = source.resources("assets"), source.resources("data")
+    for path, content in list(assets.items()):
+        if "/models/" in path and path.endswith(".json"):
+            model = parse_json(content)
+            if "textures" in model:
+                textures = model["textures"]
+                model["textures"] = {key: "minecraft:block/iron_chain" if value == "minecraft:block/chain" else value
+                                     for key, value in textures.items()}
+                if model["textures"] != textures:
+                    assets[path] = json_bytes(model)
     labels = names(assets, "kaleidoscope_tavern")
     java = source.files["src/main/java/com/github/ysbbbbbb/kaleidoscopetavern/init/ModItems.java"].decode()
     registrations = re.findall(r'ITEMS\.register\("([a-z0-9_]+)"', java)
@@ -517,6 +526,24 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
         new = f"kaleidoscope_cookery/textures/block/meals/{plate}.png"
         if old not in original and new in original:
             original[old] = original[new]
+    # Retain the old source item IDs while redirecting moved item geometry.
+    for name in ("slime_ball_meal", "mysterious"):
+        old = f"kaleidoscope_cookery/models/item/{name}.json"
+        new = f"kaleidoscope_cookery/models/meals/item/{name}.json"
+        if old not in original and new in original:
+            original[old] = json_bytes({"parent": f"kaleidoscope_cookery:meals/item/{name}"})
+    old = "kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json"
+    if old not in original:
+        mesh = parse_json(original["kaleidoscope_cookery/models/meals/block/frogspawn_jelly/0.json"])
+        gui = parse_json(original["kaleidoscope_cookery/models/meals/gui/root.json"])
+        original[old] = json_bytes({**mesh, "display": gui["display"]})
+    for path, content in list(original.items()):
+        if "/models/" in path and path.endswith(".json"):
+            model = parse_json(content)
+            textures = model.get("textures", {})
+            if textures.get("particle") == "kaleidoscope_cookery:block/bowl":
+                model["textures"]["particle"] = "kaleidoscope_cookery:block/meals/plate"
+                original[path] = json_bytes(model)
     assets = {"kdeco_" + key: json_bytes(remap_deco(parse_json(content), namespaces))
               if key.endswith(".json") else content for key, content in original.items()}
     indexes, templates, tables, pending = deco_indexes(source)

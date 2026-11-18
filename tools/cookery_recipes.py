@@ -17,6 +17,18 @@ from export_cookery_catalog import COMMIT
 ART = 'kaleidoscope_cookery'
 PLUGIN = 'kaleidoscopecookery'
 VANILLA_ALIASES = {'minecraft:chain': 'minecraft:iron_chain'}
+# Fixed vanilla target mappings for Forge tags supplied outside the Cookery tree.
+# An upstream tag, when present, always takes precedence over this target mapping.
+TARGET_TAG_MEMBERS = {
+    'forge:ingots/iron': ('minecraft:iron_ingot',),
+    'forge:ingots/gold': ('minecraft:gold_ingot',),
+    'forge:ingots/copper': ('minecraft:copper_ingot',),
+    'forge:nuggets/iron': ('minecraft:iron_nugget',),
+    'forge:gems/diamond': ('minecraft:diamond',),
+    'forge:gravel': ('minecraft:gravel',),
+    'forge:sand/red': ('minecraft:red_sand',),
+    'forge:sand/colorless': ('minecraft:sand',),
+}
 RESOURCE = re.compile(r'src/(?:main|generated)/resources/data/([^/]+)/(recipes|tags/items)/(.+)\.json\Z')
 SCHEMAS = {
     'bamboo_tray': ({'duration', 'ingredient', 'result', 'subtype'}, set()),
@@ -160,6 +172,8 @@ class RecipeSources:
         if tag in chain:
             raise AuditError(f'cyclic ingredient tag: {chain + (tag,)}')
         if tag not in self.tags:
+            if tag in TARGET_TAG_MEMBERS:
+                return list(TARGET_TAG_MEMBERS[tag])
             if vanilla_tags and tag.startswith('minecraft:'):
                 return ['#' + tag]
             raise MissingTag(f'required tag absent from pinned resources: {tag}')
@@ -172,7 +186,8 @@ class RecipeSources:
             identifier(ref.removeprefix('#'))
             optional = isinstance(entry, dict) and not entry['required']
             reason = None
-            if optional and ref.startswith('#') and ref[1:] not in self.tags and not ref.startswith('#minecraft:'):
+            if (optional and ref.startswith('#') and ref[1:] not in self.tags
+                    and ref[1:] not in TARGET_TAG_MEMBERS and not ref.startswith('#minecraft:')):
                 reason = 'Optional tag is absent from the fixed source tree.'
             elif optional and not ref.startswith(('#', 'minecraft:', ART + ':')):
                 reason = 'Optional external item has no mapping in the fixed plugin target.'
@@ -423,6 +438,8 @@ def recipe_report(sources: RecipeSources, records: list[dict], config: dict) -> 
                                           'policy': 'Only explicitly optional references absent from this fixed target are omitted; '
                                                     'installed external content requires an explicit mapping and a new import.'},
             'targetItemAliases': VANILLA_ALIASES,
+            'targetTagMappings': {tag: list(members) for tag, members in TARGET_TAG_MEMBERS.items()
+                                  if tag not in sources.tags},
             'sourceCount': len(records), 'statusCounts': dict(sorted(Counter(r['status'] for r in records).items())),
             'sourceTypes': dict(sorted(Counter(r['type'] for r in records).items())),
             'importedSections': {key: len(value) for key, value in config.items()},

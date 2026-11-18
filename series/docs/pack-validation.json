@@ -4,5 +4,12 @@
   "recipes": 117,
   "reachable_custom_models": 2759,
   "errors": [],
-  "scope": "Custom model parents, concrete texture references, item/furniture IDs and shared asset collisions; no server/render validation"
+  "asset_warnings": [
+    "kaleidoscope_tavern:block/deco/sandwich_board/deco_top: missing kaleidoscope_tavern/textures/block/deco/sandwich_board/base.png",
+    "kaleidoscope_tavern:item/deco_sandwich_board: missing kaleidoscope_tavern/textures/block/deco/sandwich_board/base.png",
+    "kdeco_kaleidoscope_cookery:gui/button/page_left: missing kdeco_kaleidoscope_cookery/textures/item/ui/page_left.png",
+    "kdeco_kaleidoscope_cookery:gui/button/page_right: missing kdeco_kaleidoscope_cookery/textures/item/ui/page_right.png",
+    "kdeco_kaleidoscope_cookery:icons/cookery: missing kdeco_kaleidoscope_cookery/textures/item/icons/cookery.png"
+  ],
+  "scope": "Declared CE item/furniture/recipe references are errors. Additional exported custom model and item-definition dependencies are asset_warnings. Vanilla assets and client rendering require target-client validation."
 }

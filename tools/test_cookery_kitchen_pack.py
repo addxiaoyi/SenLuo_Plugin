@@ -104,8 +104,8 @@ class KitchenPackTest(unittest.TestCase):
             self.assertEqual(path, self.config['items'][renderer['item']]['model']['path'])
 
     def test_bamboo_tray_sources_are_accounted_as_imported(self):
-        self.assertEqual(536, self.manifest['recipeStatuses']['imported'])
-        self.assertEqual(76, self.manifest['recipeStatuses']['pending'])
+        self.assertEqual(550, self.manifest['recipeStatuses']['imported'])
+        self.assertEqual(62, self.manifest['recipeStatuses']['pending'])
         parity = json.loads(self.bundle[f'{PACK}/recipe-parity.json'])
         tray_records = [row for row in parity['recipes']
                         if row.get('section') == 'bamboo_tray_recipes']

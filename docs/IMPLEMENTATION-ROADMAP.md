@@ -1,13 +1,13 @@
 # 森罗全系列插件化实施表
 
-更新：2026-11-15。完整目标、当前进度、后续计划、换设备恢复步骤统一维护在 [根 README](../README.md#继续开发)。本页只保留阶段导航，避免多份数字和完成状态相互冲突。
+更新：2026-11-18。完整目标、当前进度、后续计划、换设备恢复步骤统一维护在 [根 README](../README.md#继续开发)。本页只保留阶段导航，避免多份数字和完成状态相互冲突。
 
 固定运行目标 Paper/Folia 1.21.11、Java 21、CraftEngine 26.9.1；保持纯插件＋资源包和旧厨房规则/存档。五个玩法工程为 Cookery、Doll、Tavern、Deco、MusicPlus，Demo/Web/midi 保留为素材/官网/库。固定官方提交见 [来源锁定](research/organization-checkouts.json)。
 
 | 阶段 | 当前检查点 | 下一项交付与验收 |
 | --- | --- | --- |
 | 基线/导入 | 8 个官方 checkout、固定提交、严格导入器和目录已有；未知结构失败 | 新设备恢复源码与依赖，确认当前导出一致，不升级基线绕过失败 |
-| 厨房厨具 | 612 来源中 536 导入/76 pending；1,206 物品（含 672 个茶旗显示物品）、63 方块、4,130 状态、1 石磨家具、1,218 个厨房模型检查通过。茶旗、28 竹筛、5 盖饭及 73 条原版/合成配方配置已进完整包；茶旗地面/墙面、四向、每色每图案和三段波形独立模型并缓存状态，竹筛每槽 1–5 层并缓存未变化槽数据包。前序 179 Java/81 Python、竹筛双端各三轮探针 PASS，28 条仅注册/构造，实际加工限样例 | 继续原版旗杆摆动、玩家/客户端、雨天、上/侧漏斗输入及锁定/满目标/矿车、保护/多人、完整组件恢复、独立卸载/Folia 跨区验收；保留营火类型键、Paper 二次 remap 和石磨探针时序的失败记录 |
+| 厨房厨具 | 612 来源中 550 导入/62 pending；1,206 物品（含 672 个茶旗显示物品）、63 方块、4,130 状态、1 石磨家具、1,218 个厨房模型检查通过。茶旗、28 竹筛、5 盖饭及 83 条原版/合成配方配置已进完整包；茶旗地面/墙面、四向、每色每图案和三段波形独立模型并缓存状态，竹筛每槽 1–5 层并缓存未变化槽数据包。前序 179 Java/81 Python、竹筛双端各三轮探针 PASS，28 条仅注册/构造，实际加工限样例 | 继续原版旗杆摆动、玩家/客户端、雨天、上/侧漏斗输入及锁定/满目标/矿车、保护/多人、完整组件恢复、独立卸载/Folia 跨区验收；保留营火类型键、Paper 二次 remap 和石磨探针时序的失败记录 |
 | 厨房取物盘 | `PlateRegistry` 11 种整份取放盘：默认满、单件补 1 份、浆果双产禁补、取空后留盘/下次返碗；基础 loot 空，控制器掉余份+容器；schema 2/旧档迁移、先扣份和回调锁。前序 203 Java/86 Python、v2 Paper/Folia 各三轮探针 PASS；构造时快照，未操作盘重载通过 | 玩家持手、保护/多人、碰撞、客户端及实服旧档导入仍待验收，v1 关服失败保留；历史范围见 [摘要](research/cookery-plate-acceptance-2026-11-15.json) |
 | 厨房直接食用大菜 | 38 种（注册表 37＋冷切火腿片 1）：34 单格/3 双格/1 九格、49 单元、1,024 状态；每口快照、品质、多格归属、掉落及提交事务已实现。319 Java/102 Python，最终 Paper/Folia 各三轮严格探针 PASS，正常停服并释放端口；[大菜摘要](research/cookery-placed-meals-acceptance-2026-11-15.json) | 细绊线碰撞替代、服务器粒子近似仍有差异，未归属区域放置拒绝。真人营养/效果、主副手、FOOD 效果桥、保护/多人、客户端、跨区/独立卸载/热重载/爆炸待验；[接入前审计](research/cookery-food-bite-gap-2026-11-15.json) 仅为历史快照 |
 | 盖饭合成 | 5 条 source rice_bowl native recipe：额外格允许、最高品质、熟米饭返碗、原版余料和连续合成已验证 | Shift 合成、自动合成器、玩家配方界面、外部可选米饭依赖仍待验收；[盖饭摘要](research/cookery-rice-bowls-acceptance-2026-11-16.json) |
@@ -24,13 +24,13 @@
 
 - [厨房最新验证与历史失败](VALIDATION.md)
 - [厨房官方差异](COOKERY-PARITY.md)
-- [接入前 90 条 pending 配方审计（当前剩余 80 条）](research/cookery-pending-recipes-2026-11-15.json)
+- [接入前 90 条 pending 配方审计（当前剩余 62 条）](research/cookery-pending-recipes-2026-11-15.json)
 - [四插件源码、构建与操作](../series/README.md)
 - [系列逐项差异](../series/docs/PORTING-MATRIX.md)
 - [全系列实服验收表](../series/docs/ACCEPTANCE.md)
 - [可随 Git 获取的交接证据](handoff/2026-11-07/README.md)
 
-下一步验证大菜真人营养/效果、主副手、FOOD 效果桥、保护/多人和客户端，继续剩余 80 条配方及未覆盖的跨区/卸载场景。当前 [大菜 v5 摘要](research/cookery-placed-meals-acceptance-2026-11-15.json)、前序 [取物盘证据](research/cookery-plate-acceptance-2026-11-15.json) 与 [竹筛摘要](research/cookery-bamboo-acceptance.json) 均是局部服务端证据，不能提升为全系列或完整玩家闭环验收。v4 Folia 第三轮 5.1581751 秒启动 watchdog 失败仍 OPEN；保留固定源码与旧厨房语义，不操作生产服。
+下一步验证大菜真人营养/效果、主副手、FOOD 效果桥、保护/多人和客户端，继续剩余 62 条配方及未覆盖的跨区/卸载场景。当前 [大菜 v5 摘要](research/cookery-placed-meals-acceptance-2026-11-15.json)、前序 [取物盘证据](research/cookery-plate-acceptance-2026-11-15.json) 与 [竹筛摘要](research/cookery-bamboo-acceptance.json) 均是局部服务端证据，不能提升为全系列或完整玩家闭环验收。v4 Folia 第三轮 5.1581751 秒启动 watchdog 失败仍 OPEN；保留固定源码与旧厨房语义，不操作生产服。
 
 
 2026-11-17 交接增量：已从 `251ad5a` 重建并运行 Paper/Folia 五插件整合服。修复 CE 系列 ZIP 未解包、JAR 命名识别、旧资源覆盖和 Tavern 1.21.11 原料名称；使用 `--server-blocks 6000` 完整注册厨房 63 方块/5,474 内部状态（4,130 个显式外观组合不等于内部状态数，茶旗 anchor_type 包含 ceiling）。根 Python 104 项、系列 Python 54 项通过。两端包加载、生成和状态注册已有证据，但 Folia watchdog 和缺模型/纹理警告仍 OPEN，客户端/玩家流程未验收。详见 [当前交接](HANDOFF.md) 与 [本轮证据](research/series-runtime-2026-11-17.json)。
