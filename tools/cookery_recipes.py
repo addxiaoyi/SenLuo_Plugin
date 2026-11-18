@@ -28,6 +28,8 @@ TARGET_TAG_MEMBERS = {
     'forge:gravel': ('minecraft:gravel',),
     'forge:sand/red': ('minecraft:red_sand',),
     'forge:sand/colorless': ('minecraft:sand',),
+    # Forge 47.3.0 (MC 1.20.1): data/forge/tags/items/mushrooms.json.
+    'forge:mushrooms': ('minecraft:brown_mushroom', 'minecraft:red_mushroom'),
 }
 RESOURCE = re.compile(r'src/(?:main|generated)/resources/data/([^/]+)/(recipes|tags/items)/(.+)\.json\Z')
 SCHEMAS = {

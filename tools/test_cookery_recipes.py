@@ -72,7 +72,7 @@ class RecipeImportTest(unittest.TestCase):
 
     def test_stockpot_keeps_exact_counts_and_distinct_matching_separate(self):
         recipes = self.config.get('stockpot_recipes', {})
-        self.assertEqual(101, len(recipes))
+        self.assertEqual(105, len(recipes))
         rice = recipes['kaleidoscopecookery:stockpot/rice_9']
         self.assertEqual('exact', rice['match'])
         self.assertEqual(9, len(rice['ingredients']))
@@ -89,18 +89,15 @@ class RecipeImportTest(unittest.TestCase):
                 self.assertIn(row['visuals'][field], self.config['items'])
         pending = [r for r in self.report['recipes'] if r['type'] in
                    (ART + ':stockpot', ART + ':flex_stockpot') and r['status'] == 'pending']
-        self.assertEqual(4, len(pending))
-        self.assertTrue(all('forge:mushrooms' in r['reason'] for r in pending))
+        self.assertEqual([], pending)
 
     def test_pot_import_preserves_every_alternative_and_official_batch_size(self):
         recipes = self.config.get('pot_recipes', {})
-        self.assertEqual(221, len(recipes))
+        self.assertEqual(225, len(recipes))
         rows = [r for r in self.report['recipes'] if r['type'] in (ART + ':pot', ART + ':flex_pot')]
         self.assertEqual(225, len(rows))
+        self.assertTrue(all(row['status'] == 'imported' for row in rows))
         for row in rows:
-            if row['status'] != 'imported':
-                self.assertIn('forge:mushrooms', row['reason'])
-                continue
             recipe = recipes[mapped(row['sourceId'])]
             original = row['original']
             self.assertEqual([self.sources.expand(value) for value in original['ingredients']], recipe['ingredients'])
@@ -108,7 +105,24 @@ class RecipeImportTest(unittest.TestCase):
             self.assertEqual(original['stir_fry_count'], recipe['stir_fry_count'])
             self.assertEqual(original['time'], recipe['source_time'])
             self.assertEqual('distinct' if row['type'].endswith(':flex_pot') else 'exact', recipe['match'])
-        self.assertEqual(4, sum(row['status'] == 'pending' for row in rows))
+        self.assertEqual(0, sum(row['status'] == 'pending' for row in rows))
+
+    def test_forge_mushrooms_mapping_retains_both_vanilla_members(self):
+        self.assertEqual(('minecraft:brown_mushroom', 'minecraft:red_mushroom'),
+                         TARGET_TAG_MEMBERS['forge:mushrooms'])
+        self.assertEqual(['minecraft:brown_mushroom', 'minecraft:red_mushroom'],
+                         self.sources.expand({'tag': 'forge:mushrooms'}))
+        self.assertEqual(['minecraft:brown_mushroom', 'minecraft:red_mushroom'],
+                         self.report['targetTagMappings']['forge:mushrooms'])
+        expected = {
+            ART + ':pot/fish_flavored_shredded_pork', ART + ':pot/fried_spring_roll',
+            ART + ':flex_pot/fish_flavored_shredded_pork', ART + ':flex_pot/fried_spring_roll',
+            ART + ':stockpot/chicken_and_mushroom_stew', ART + ':stockpot/wild_mushroom_rabbit_soup',
+            ART + ':flex_stockpot/chicken_and_mushroom_stew', ART + ':flex_stockpot/wild_mushroom_rabbit_soup',
+        }
+        rows = [row for row in self.report['recipes'] if row['sourceId'] in expected]
+        self.assertEqual(expected, {row['sourceId'] for row in rows})
+        self.assertTrue(all(row['status'] == 'imported' for row in rows))
 
     def test_rice_bowls_keep_custom_matching_quality_and_rice_only_remainder_contract(self):
         rows = [row for row in self.report['recipes'] if row['type'] == ART + ':rice_bowl']
@@ -138,7 +152,7 @@ class RecipeImportTest(unittest.TestCase):
     def test_optional_source_dependencies_are_reported_for_all_nine_unblocked_recipes(self):
         rows = [row for row in self.report['recipes'] if row.get('optionalTagAbsences')]
         self.assertEqual(9, len(rows))
-        self.assertEqual({'statusCounts': {'imported': 550, 'pending': 62}}, {'statusCounts': self.report['statusCounts']})
+        self.assertEqual({'statusCounts': {'imported': 558, 'pending': 54}}, {'statusCounts': self.report['statusCounts']})
         for row in rows:
             self.assertEqual('imported', row['status'])
             for absent in row['optionalTagAbsences']:

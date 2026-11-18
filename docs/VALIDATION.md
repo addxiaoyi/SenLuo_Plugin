@@ -11,6 +11,12 @@
 - Deco 新增两个旧物品模型转发和蛙卵果冻 GUI 模型，修正盘粒子；Tavern 铁链贴图转换为 1.21.11 的 `minecraft:block/iron_chain`。声明的 CE 资源依赖无错误，额外随包导出的自定义资源仍有 5 条 `asset_warnings`，见 [资源检查报告](../series/docs/pack-validation.json)。
 - Python 根工具 105 项、系列工具 57 项通过；固定源码目录及生成导入报告检查通过。本轮新增资源与配方的 Paper/Folia 加载、原版客户端和玩家验收待执行；双端运行基线见 [2026-11-17 记录](research/series-runtime-2026-11-17.json)。
 
+## Forge 蘑菇标签配方（2026-11-18，当前）
+
+- Forge 47.3.0 universal JAR（SHA-256 `a3c07e6b33fe8a4b42fdb4841a37e3ffda62797366c7050c481d799d6d35831c`）中 `data/forge/tags/items/mushrooms.json`（资源 SHA-256 `5c689ad6d0c3abb7af662644c0d539f591d8faa88be36afa598f8f4e6fca29f2`）将 `forge:mushrooms` 明确展开为 `minecraft:brown_mushroom` 和 `minecraft:red_mushroom`。Cookery 配方报告保存该目标映射，来源若以后提供同名标签仍优先采用来源定义。
+- 8 条炒锅/高汤锅配方（鱼香肉丝、春卷、鸡肉蘑菇炖汤、野蘑菇兔肉汤的两种配方形式）全部导入，分别为 225 条炒锅、105 条高汤锅；总量 558/612 imported、54 pending。
+- Windows Python 全量测试当前为 106 根工具、57 系列工具；本轮额外修正路径规范化测试在 Windows 临时目录的大小写/短路径差异。根工程 `test shadowJar acceptanceJar` 和系列 `build` 均通过，使用本地 Gradle 9.4.0 与 Java 21/25。厨房包来源检查通过。Paper/Folia 加载、客户端资源包显示和玩家操作尚未复验。
+
 ## 盖饭原生合成（2026-11-16，当前）
 
 - 固定源码的 5 条 `rice_bowl` 已导出为 CraftEngine 自定义配方；厨房包当前 532/612 imported、80 pending，配方配置 73 条，其中 5 条盖饭、221 条炒锅、20 条炉具和其余原版/合成入口。可选 Farmers Delight 米饭缺席会写入 optionalTagAbsences，不伪装成已安装依赖。
