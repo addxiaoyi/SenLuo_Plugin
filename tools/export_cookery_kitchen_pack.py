@@ -38,6 +38,7 @@ from cookery_long_bench import long_bench
 from cookery_eight_immortals_table import eight_immortals_table
 from cookery_red_lantern import red_lantern
 from cookery_placed_meals import placed_meals
+from cookery_source_crops import source_crops
 from export_bamboo_tray import export as export_bamboo_tray
 
 NAMESPACE = 'kaleidoscopecookery'
@@ -593,6 +594,10 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
     blocks.update(eight_tables)
     lantern, lantern_manifest = red_lantern(source, assets, items, definitions, names, display)
     blocks.update(lantern)
+    crops, crops_manifest = source_crops(source, assets, items, definitions, names)
+    if set(crops) & set(blocks):
+        raise AuditError('source crop collides with an existing kitchen block')
+    blocks.update(crops)
     sounds = sound_aliases(assets)
     sources = read_sources(source)
     recipes, records, required = processing_recipes(sources)
@@ -655,6 +660,7 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
                 'longBench': bench_manifest,
                 'eightImmortalsTable': eight_manifest,
                 'redLantern': lantern_manifest,
+                'sourceCrops': crops_manifest,
                 'trashCan': trash_manifest,
                 'scarecrow': scarecrow_manifest,
                 'soundAliases': sounds, 'states': {key: len(value['states']['variants']) for key, value in blocks.items()},

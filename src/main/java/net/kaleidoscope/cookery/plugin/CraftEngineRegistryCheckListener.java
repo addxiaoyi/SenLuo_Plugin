@@ -45,6 +45,7 @@ public final class CraftEngineRegistryCheckListener implements Listener {
         plugin.reloadConfig();
         RecipeMenuConfig.load();
         plugin.reloadAdvancements();
+        net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
         checkLoadedBlocks(event.isFirstReload());
     }
 

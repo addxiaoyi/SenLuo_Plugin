@@ -27,7 +27,7 @@ class KitchenPackTest(unittest.TestCase):
         cls.config = yaml.safe_load(cls.bundle[f'{PACK}/configuration/kitchen.yml'])
 
     def test_every_plugin_property_combination_has_an_appearance(self):
-        self.assertEqual(81, len(self.config['blocks']))
+        self.assertEqual(84, len(self.config['blocks']))
         self.assertEqual(28, len(self.config['bamboo_tray_recipes']))
         for name in APPLIANCES:
             with self.subTest(name=name):
@@ -59,6 +59,18 @@ class KitchenPackTest(unittest.TestCase):
         recipe = self.config['recipes'][NAMESPACE + ':upstream/' + ART + '/transmutation_lunch_bag']
         self.assertEqual([' L ', 'LSL', 'LLL'], recipe['pattern'])
         self.assertEqual({'L': 'minecraft:leather', 'S': 'minecraft:amethyst_shard'}, recipe['ingredients'])
+
+    def test_source_crops_are_runtime_blocks_with_seeds_and_open_client_outline(self):
+        for name in ('tomato', 'chili', 'lettuce'):
+            key = NAMESPACE + ':' + name + '_crop'
+            self.assertEqual([{'type': NAMESPACE + ':source_crop', 'crop': name}], self.config['blocks'][key]['behavior'])
+            self.assertEqual(8, self.manifest['states'][key])
+            self.assertEqual({'type': 'block_item', 'block': key}, self.config['items'][NAMESPACE + ':' + name + '_seed']['behavior'])
+        crops = self.manifest['sourceCrops']
+        self.assertEqual('NOT_TESTED', crops['runtime'])
+        self.assertEqual('NOT_TESTED', crops['vanillaClient'])
+        self.assertEqual('PASS', crops['harvest']['lettuce']['rightClick'])
+        self.assertTrue(any('selection outline' in row for row in crops['open']))
 
     def test_storage_blocks_have_source_physics_axes_and_reversible_recipes(self):
         oil = self.config['blocks'][NAMESPACE + ':oil_block']

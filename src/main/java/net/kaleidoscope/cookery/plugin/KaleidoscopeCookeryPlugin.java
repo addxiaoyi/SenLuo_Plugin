@@ -140,6 +140,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new DisplayTrackingListener(), this);
         getServer().getPluginManager().registerEvents(new LunchBagListener(), this);
         getServer().getPluginManager().registerEvents(new CraftEngineRegistryCheckListener(this), this);
+        net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
         if (FoliaUtil.isFolia()) {
             TrashCanRespawnListener.registerFoliaPackets(this);
         } else {
