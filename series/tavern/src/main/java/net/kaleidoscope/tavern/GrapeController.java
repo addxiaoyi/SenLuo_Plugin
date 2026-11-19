@@ -1,6 +1,7 @@
 package net.kaleidoscope.tavern;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.FurnitureTickers;
 import net.kaleidoscope.series.InventoryTrade;
 import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.SavedState;
@@ -169,15 +170,17 @@ final class GrapeController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> {
-            if (!operational() || isInteracting() || failed || !growth.planted() || ++elapsed < GrapeGrowth.PULSE_TICKS) return;
-            elapsed = 0;
-            try { grow(); }
-            catch (RuntimeException exception) {
-                failed = true;
-                plugin.getLogger().log(java.util.logging.Level.SEVERE, "葡萄生长已停止，存档已保留：" + location(), exception);
-            }
-        });
+        return FurnitureTickers.current(GrapeController.class, GrapeController::tick);
+    }
+
+    private void tick() {
+        if (!operational() || isInteracting() || failed || !growth.planted() || ++elapsed < GrapeGrowth.PULSE_TICKS) return;
+        elapsed = 0;
+        try { grow(); }
+        catch (RuntimeException exception) {
+            failed = true;
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "葡萄生长已停止，存档已保留：" + location(), exception);
+        }
     }
 
     private void grow() {

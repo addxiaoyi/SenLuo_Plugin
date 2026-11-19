@@ -6,6 +6,7 @@ import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.SavedState;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDefinition;
+import net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -49,6 +50,46 @@ class DecoControllerTest {
     private static final String RED = SOFA.replace(':', '/') + "/style/red/single";
     private static final String BOARD = "kaleidoscope_deco:kaleidoscope_bar/blackboard/9";
     private static final String EMPTY = "kaleidoscope_deco:kaleidoscope_bar/blackboard/0";
+
+    @Test void restartRestoresSavedSofaStyleAndFutureDropWithoutAnItemPlacementHook() throws Exception {
+        byte[] persisted;
+        String redLeft = SOFA.replace(':', '/') + "/style/red/left";
+        try (var fixture = new Fixture(SOFA, "minecraft:red_dye", 2)) {
+            when(fixture.plugin.styles()).thenReturn(Set.of(RED, redLeft));
+            fixture.furniture.config().variants().put(redLeft, null);
+            fixture.controller.interact(fixture.player);
+            fixture.slots[1] = stack("kaleidoscope_deco:state_tool", 1);
+            fixture.heldSlot = 1;
+            fixture.controller.interact(fixture.player);
+            verify(fixture.furniture, times(2)).setUnsaved();
+
+            CompoundTag data = new CompoundTag(), entity = new CompoundTag();
+            fixture.controller.saveCustomData(data);
+            entity.put("data", data);
+            persisted = FurniturePersistentData.of(entity).toBytes();
+        }
+
+        try (var restored = new Fixture(SOFA, "minecraft:red_dye", 1)) {
+            var source = mock(net.momirealms.craftengine.core.item.Item.class);
+            doReturn(source).when(restored.controller).sourceItem(SOFA, "red", "left");
+            when(restored.plugin.reachable(SOFA, SOFA)).thenReturn(true);
+            CompoundTag data = FurniturePersistentData.fromBytes(persisted).copyTag().getCompound("data");
+
+            restored.controller.loadCustomData(data);
+            restored.controller.onLoad();
+
+            assertFalse(restored.controller.blocked());
+            assertEquals("red", restored.saved("color"));
+            assertEquals("left", restored.saved("mode"));
+            verify(restored.furniture).setVariant(redLeft);
+            verify(restored.controller).sourceItem(SOFA, "red", "left");
+            verify(restored.furniture).setSourceItem(source);
+            verify(restored.controller, never()).loadCustomDataFromItem(any());
+            CompoundTag savedAgain = new CompoundTag();
+            restored.controller.saveCustomData(savedAgain);
+            assertEquals(data, savedAgain);
+        }
+    }
 
     @Test void placedItemRestoresStyleAndFutureDropAfterCraftEngineLoadCallbacks() {
         try (var fixture = new Fixture(SOFA, "minecraft:red_dye", 2)) {

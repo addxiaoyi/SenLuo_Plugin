@@ -1,6 +1,7 @@
 package net.kaleidoscope.tavern;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.FurnitureTickers;
 import net.kaleidoscope.series.InventoryTrade;
 import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.SavedItems;
@@ -80,7 +81,7 @@ public final class ShakerController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> tick());
+        return FurnitureTickers.current(ShakerController.class, ShakerController::tick);
     }
 
     private void tick() {
@@ -131,9 +132,9 @@ public final class ShakerController extends InteractiveFurniture {
 
     private Runnable prepareContents(ShakerContents next) {
         ItemStack source = furniture().sourceItem() == null ? Items.create("kaleidoscope_tavern:shaker")
-                : net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(furniture().sourceItem());
+                : bukkitStack(furniture().sourceItem());
         // Serialize before payment so an oversized or invalid item cannot leave a stale furniture drop.
-        var packed = net.momirealms.craftengine.bukkit.item.BukkitItemManager.instance().wrap(tavern.shakers().pack(source, next));
+        var packed = ceItem(tavern.shakers().pack(source, next));
         return () -> {
             System.arraycopy(next.slots, 0, slots, 0, slots.length);
             cocktail = next.cocktail;
@@ -145,15 +146,23 @@ public final class ShakerController extends InteractiveFurniture {
     @Override public void onPlace(net.momirealms.craftengine.core.entity.player.Player player) { syncSource(); }
 
     @Override public void loadCustomDataFromItem(net.momirealms.craftengine.core.item.Item item) {
-        ItemStack original = net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(item);
+        ItemStack original = bukkitStack(item);
         CompoundTag root = new CompoundTag(), rejected = new CompoundTag();
         SavedItems.put(rejected, "source_item", original);
         root.put(SAVE_KEY, rejected);
         restoreSafely(root, SAVE_KEY, () -> {
             ShakerContents carried = tavern.shakers().contents(original);
-            System.arraycopy(carried.slots, 0, slots, 0, slots.length);
-            cocktail = carried.cocktail;
+            // CraftEngine reads the held item's data after the initial onLoad/onPlace source sync.
+            prepareContents(carried).run();
         });
+    }
+
+    ItemStack bukkitStack(net.momirealms.craftengine.core.item.Item item) {
+        return net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(item);
+    }
+
+    net.momirealms.craftengine.core.item.Item ceItem(ItemStack item) {
+        return net.momirealms.craftengine.bukkit.item.BukkitItemManager.instance().wrap(item);
     }
 
     @Override public void saveCustomData(CompoundTag root) {

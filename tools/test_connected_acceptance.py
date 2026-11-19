@@ -78,7 +78,7 @@ class StartupTests(unittest.TestCase):
 class RunnerTests(unittest.TestCase):
     def run_fixture(self, *, startup=STARTUP, client_exit=0, client_report=None,
                     timeout=10, clock=None, forced_stop=False, start_error=None,
-                    manual=False, finished=False, cleanup_error=False, cancelled=False):
+                    manual=False, finished=False, cleanup_error=False, cancelled=False, phase=None):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         root = Path(folder.name)
@@ -124,7 +124,8 @@ class RunnerTests(unittest.TestCase):
                 patch.object(RUNNER.time, "sleep", side_effect=KeyboardInterrupt if cancelled else None), \
                 patch.object(RUNNER, "print", create=True), \
                 patch.object(RUNNER.time, "monotonic", side_effect=clock or [0, 1, 2, 3, 4, 5]):
-            result = RUNNER.run_session(instance, output, "java", "node", manual, timeout=timeout)
+            result = RUNNER.run_session(instance, output, "java", "node", manual, timeout=timeout,
+                                        phase=phase, state_file=root / 'state.json' if phase else None)
         self.assertEqual(result, json.loads((output / "result.json").read_text("utf8")))
         return result, launch, terminate, server, client
 
@@ -196,6 +197,114 @@ class RunnerTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         self.assertEqual("cancelled", result["completionReason"])
         terminate.assert_called_once_with(client)
+
+    def test_restart_phase_is_explicit_and_checked_in_the_client_report(self):
+        result, launch, _, _, _ = self.run_fixture(phase='verify', client_report={'passed': True, 'phase': 'verify'})
+        self.assertTrue(result['passed'])
+        self.assertEqual('verify', result['phase'])
+        environment = launch.call_args.kwargs['env']
+        self.assertEqual('verify', environment['SENLUO_SCENARIO_PHASE'])
+        self.assertTrue(Path(environment['SENLUO_SCENARIO_STATE']).is_absolute())
+        result, _, _, _, _ = self.run_fixture(phase='empty', client_report={'passed': True, 'phase': 'seed'})
+        self.assertFalse(result['passed'])
+        self.assertIn('requested restart phase', result['errors'][0])
+
+    def test_default_scenario_does_not_inherit_restart_environment(self):
+        with patch.dict(os.environ, SENLUO_SCENARIO_PHASE='verify', SENLUO_SCENARIO_STATE='old.json'):
+            result, launch, _, _, _ = self.run_fixture()
+        self.assertTrue(result['passed'])
+        self.assertNotIn('SENLUO_SCENARIO_PHASE', launch.call_args.kwargs['env'])
+        self.assertNotIn('SENLUO_SCENARIO_STATE', launch.call_args.kwargs['env'])
+
+
+class RestartSuiteTests(unittest.TestCase):
+    def setUp(self):
+        self.folder = tempfile.TemporaryDirectory()
+        self.addCleanup(self.folder.cleanup)
+        self.root = Path(self.folder.name)
+        self.instance = self.root / 'instance'
+        self.out = self.root / 'output'
+        self.out.mkdir()
+        pack = self.instance / 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+        pack.parent.mkdir(parents=True)
+        pack.write_bytes(b'hosted-pack')
+        (self.instance / 'server.jar').write_bytes(b'fixed-server')
+        self.plugin = self.instance / 'plugins/TestPlugin.jar'
+        self.plugin.write_bytes(b'fixed-plugin')
+
+    def run_suite(self, callback=None):
+        def session(instance, out, java, node, *, phase, state_file):
+            self.assertEqual(self.instance, instance)
+            self.assertEqual(self.out / 'persistence-state.json', state_file)
+            self.assertEqual(phase, out.name)
+            self.assertEqual({'port': 25591}, json.loads((out / 'fixture.json').read_text('utf8')))
+            if callback:
+                callback(phase, state_file)
+            elif phase == 'seed':
+                state_file.write_text('{"uuid":"original-furniture"}', 'utf8')
+            return {'passed': True, 'phase': phase}
+        with patch.object(RUNNER, 'run_session', side_effect=session) as launch:
+            result = RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {'port': 25591})
+        self.assertEqual(result, json.loads((self.out / 'result.json').read_text('utf8')))
+        return result, launch
+
+    def test_three_normal_starts_reuse_world_and_preserve_seed_and_binaries(self):
+        result, launch = self.run_suite()
+        self.assertTrue(result['passed'])
+        self.assertEqual(['seed', 'verify', 'empty'], [phase['phase'] for phase in result['phases']])
+        self.assertEqual(3, launch.call_count)
+        self.assertEqual(64, len(result['seedStateSha256']))
+        self.assertEqual(3, len(result['runtimeHashes']))
+
+    def test_missing_or_invalid_seed_snapshot_stops_before_restart(self):
+        for seed in (None, '{}', '[]', 'broken'):
+            with self.subTest(seed=seed), tempfile.TemporaryDirectory() as folder:
+                self.out = Path(folder)
+                def write(phase, state_file):
+                    if seed is not None:
+                        state_file.write_text(seed, 'utf8')
+                result, launch = self.run_suite(write)
+                self.assertFalse(result['passed'])
+                self.assertEqual(1, launch.call_count)
+                self.assertTrue(result['errors'])
+
+    def test_rewritten_seed_snapshot_cannot_hide_restoration_failure(self):
+        def mutate(phase, state_file):
+            state_file.write_text('{"state":"' + phase + '"}', 'utf8')
+        result, launch = self.run_suite(mutate)
+        self.assertFalse(result['passed'])
+        self.assertEqual(2, launch.call_count)
+        self.assertIn('original seed', result['errors'][0])
+
+    def test_changed_runtime_stops_the_suite(self):
+        def change_plugin(phase, state_file):
+            state_file.write_text('{"uuid":"original-furniture"}', 'utf8')
+            self.plugin.write_bytes(b'other-plugin')
+        result, launch = self.run_suite(change_plugin)
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('binaries', result['errors'][0])
+
+    def test_changed_scenario_code_stops_the_suite(self):
+        with patch.object(RUNNER, 'scenario_hashes', side_effect=[{'script': 'original'},
+                          {'script': 'original'}, {'script': 'changed'}]):
+            result, launch = self.run_suite()
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('scenario code changed', result['errors'][0])
+
+    def test_failed_phase_stops_without_starting_later_phases(self):
+        with patch.object(RUNNER, 'run_session', return_value={'passed': False, 'phase': 'seed'}) as launch:
+            result = RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {})
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('seed', result['errors'][0])
+
+    def test_previous_seed_file_is_rejected_without_starting_a_server(self):
+        (self.out / 'persistence-state.json').write_text('{"old":true}', 'utf8')
+        with patch.object(RUNNER, 'run_session') as launch, self.assertRaises(FileExistsError):
+            RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {})
+        launch.assert_not_called()
 
 
 class ProcessTreeTests(unittest.TestCase):

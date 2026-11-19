@@ -1,6 +1,7 @@
 package net.kaleidoscope.tavern;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.FurnitureTickers;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
@@ -84,7 +85,7 @@ final class TapController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> tick());
+        return FurnitureTickers.current(TapController.class, TapController::tick);
     }
 
     private void tick() {

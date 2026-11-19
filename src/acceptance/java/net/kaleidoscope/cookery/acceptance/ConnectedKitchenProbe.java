@@ -25,6 +25,7 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -35,17 +36,24 @@ final class ConnectedKitchenProbe implements Listener {
     private static final Key BOARD = Key.of("kaleidoscope_deco:kaleidoscope_bar/blackboard/0");
     private static final Key SOFA = Key.of("kaleidoscope_deco:kaleidoscope_bar/sofa");
     private static final Key DOLL = Key.of("kaleidoscope_doll:doll_0");
+    private static final Key TUB = Key.of("kaleidoscope_tavern:pressing_tub");
+    private static final Map<String, List<Double>> PERSISTENT_POSITIONS = Map.of(
+            "sofa", List.of(X - 1.5, (double) Y, Z + 1.5),
+            "doll", List.of(X + 2.5, (double) Y, Z + 1.5),
+            "tub", List.of(X + .5, (double) Y, Z - 1.5));
     private static final String FIRST = "SenLuoProbeA", SECOND = "SenLuoProbeB";
     private static final Gson JSON = new Gson();
     private final JavaPlugin plugin;
     private final World world;
     private final List<Map<String, Object>> hits = new ArrayList<>(), drops = new ArrayList<>();
+    private final Map<String, Long> furnitureInteractions = new HashMap<>();
     private BukkitFurniture scarecrow;
     private BukkitFurniture board;
     private BukkitFurniture sofa;
     private BukkitFurniture doll;
     private int sofaStage, canceledTrades, changedSlots;
     private boolean nestedSofaRejected;
+    private boolean persistenceTracking;
     private boolean observeDrops, cancelSmith;
     private int canceled, boardDenied, flowerDenied;
 
@@ -75,6 +83,7 @@ final class ConnectedKitchenProbe implements Listener {
             Class<? extends Event> trade = (Class<? extends Event>) deco.getClass().getClassLoader()
                     .loadClass("net.kaleidoscope.deco.internal.InventoryTradeEvent");
             Bukkit.getPluginManager().registerEvent(trade, this, EventPriority.HIGHEST, (listener, event) -> {
+                sofa = liveReference(sofa);
                 if (sofa == null || !sofa.isValid()) return;
                 try {
                     Player actor = (Player) trade.getMethod("player").invoke(event);
@@ -121,6 +130,7 @@ final class ConnectedKitchenProbe implements Listener {
                 if (!Bukkit.isOwnedByCurrentRegion(world, X >> 4, Z >> 4) || player.getWorld() != world || player.isOp()
                         || player.getGameMode() != GameMode.SURVIVAL || player.getLocation().distanceSquared(new Location(world,X,Y,Z)) > 64)
                     throw new IllegalStateException("Expected ordinary survival player inside the fixture region");
+                refreshReferences();
                 switch (action) {
                     case "supply" -> {
                         // Reset the fixture after an interrupted run. The rest of the world is untouched.
@@ -220,16 +230,65 @@ final class ConnectedKitchenProbe implements Listener {
                         doll = CraftEngineFurniture.rayTrace(ray, 1.6);
                         if (doll != null && !doll.id().equals(DOLL)) throw new IllegalStateException("Unexpected doll fixture");
                     }
+                    case "persistclear" -> {
+                        if (!FIRST.equals(name)) throw new IllegalArgumentException("Only the seed owner clears fixtures");
+                        clearPersistence();
+                        persistenceTracking = false;
+                    }
+                    case "persistseed" -> {
+                        if (!FIRST.equals(name)) throw new IllegalArgumentException("Only the seed owner arranges furniture");
+                        preparePersistence();
+                        player.closeInventory();
+                        var inv = player.getInventory(); inv.clear();
+                        inv.setItem(0, new ItemStack(Material.RED_DYE, 3));
+                        inv.setItem(1, ce("kaleidoscope_deco:state_tool", 1));
+                        inv.setItem(2, ce("kaleidoscope_doll:tweaks_tool", 1));
+                    }
+                    case "persiststock" -> {
+                        if (!SECOND.equals(name) || !persistenceTracking)
+                            throw new IllegalArgumentException("Expected the second seed player");
+                        player.closeInventory();
+                        player.getInventory().clear();
+                        var berries = new ItemStack(Material.GLOW_BERRIES);
+                        var meta = berries.getItemMeta();
+                        meta.getPersistentDataContainer().set(new NamespacedKey("senluo_acceptance", "restart_marker"),
+                                PersistentDataType.STRING, "three-phase-pressing-tub-v1");
+                        berries.setItemMeta(meta);
+                        player.getInventory().setItem(0, berries);
+                    }
+                    case "persistinspect" -> {
+                        // Reconnect/restart phases only locate existing entities; never arrange or repair furniture here.
+                        persistenceTracking = true;
+                        observeDrops = true;
+                    }
                     case "inspect" -> { }
                     default -> throw new IllegalArgumentException(action);
                 }
                 reply(token, snapshot(player));
-            } catch (Exception | LinkageError error) { reply(token, Map.of("error", error.toString())); }
+            } catch (Exception | LinkageError error) {
+                reply(token, Map.of("error", error.toString(), "stack",
+                        Arrays.stream(error.getStackTrace()).map(StackTraceElement::toString).toList()));
+            }
         }, () -> reply(token, Map.of("error", "retired")));
     }
 
     private static ItemStack custom(String name, int count) {
         return ce("kaleidoscopecookery:" + name, count);
+    }
+
+    private static BukkitFurniture liveReference(BukkitFurniture cached) {
+        if (cached == null) return null;
+        // isValid()/uuid() dereference CE's weak NMS handle. Never call them on an unregistered wrapper.
+        var current = net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager.instance()
+                .loadedFurnitureByMetaEntityId(cached.entityId());
+        return current == cached ? current : null;
+    }
+
+    private void refreshReferences() {
+        scarecrow = liveReference(scarecrow);
+        board = liveReference(board);
+        sofa = liveReference(sofa);
+        doll = liveReference(doll);
     }
 
     private static ItemStack ce(String id, int count) {
@@ -245,9 +304,155 @@ final class ConnectedKitchenProbe implements Listener {
         if (stack == null || stack.getType().isAir()) return Map.of();
         var item = InventoryUtils.wrap(stack); var data = new LinkedHashMap<String,Object>();
         data.put("id", item.id().toString()); data.put("count", stack.getAmount());
+        var pdc = persistentData(stack);
+        if (!pdc.isEmpty()) data.put("pdc", pdc);
         if (item.id().equals(SteamerItemContents.ID)) data.put("slots", contents(SteamerItemContents.read(item)));
         if (item.id().toString().equals("kaleidoscopecookery:netherite_kitchen_knife")) SmithingSmoke.assertProduct(stack);
         return data;
+    }
+
+    private static Map<String, Object> persistentData(ItemStack stack) {
+        var result = new TreeMap<String, Object>();
+        if (!stack.hasItemMeta()) return result;
+        var pdc = stack.getItemMeta().getPersistentDataContainer();
+        for (var key : pdc.getKeys()) {
+            Object value;
+            if (pdc.has(key, PersistentDataType.BYTE_ARRAY)) value = Map.of("bytes", Base64.getEncoder().encodeToString(pdc.get(key, PersistentDataType.BYTE_ARRAY)));
+            else if (pdc.has(key, PersistentDataType.STRING)) value = Map.of("string", pdc.get(key, PersistentDataType.STRING));
+            else if (pdc.has(key, PersistentDataType.INTEGER)) value = Map.of("int", pdc.get(key, PersistentDataType.INTEGER));
+            else if (pdc.has(key, PersistentDataType.LONG)) value = Map.of("long", pdc.get(key, PersistentDataType.LONG));
+            else if (pdc.has(key, PersistentDataType.DOUBLE)) value = Map.of("double", pdc.get(key, PersistentDataType.DOUBLE));
+            else if (pdc.has(key, PersistentDataType.FLOAT)) value = Map.of("float", pdc.get(key, PersistentDataType.FLOAT));
+            else if (pdc.has(key, PersistentDataType.BYTE)) value = Map.of("byte", pdc.get(key, PersistentDataType.BYTE));
+            else if (pdc.has(key, PersistentDataType.SHORT)) value = Map.of("short", pdc.get(key, PersistentDataType.SHORT));
+            else if (pdc.has(key, PersistentDataType.INTEGER_ARRAY)) value = Map.of("ints", pdc.get(key, PersistentDataType.INTEGER_ARRAY));
+            else if (pdc.has(key, PersistentDataType.LONG_ARRAY)) value = Map.of("longs", pdc.get(key, PersistentDataType.LONG_ARRAY));
+            else throw new IllegalStateException("Unsupported fixture PDC type: " + key);
+            result.put(key.toString(), value);
+        }
+        return result;
+    }
+
+    private Location persistentPosition(String name) {
+        var at = Objects.requireNonNull(PERSISTENT_POSITIONS.get(name));
+        return new Location(world, at.get(0), at.get(1), at.get(2));
+    }
+
+    private Key persistentKey(String name) {
+        return switch (name) { case "sofa" -> SOFA; case "doll" -> DOLL; case "tub" -> TUB;
+            default -> throw new IllegalArgumentException(name); };
+    }
+
+    private BukkitFurniture findPersistent(String name) {
+        var center = persistentPosition(name);
+        BukkitFurniture found = null;
+        // Inspect metadata entities, rather than replacing furniture when a controller or display is missing.
+        for (var entity : world.getChunkAt(center).getEntities()) {
+            var candidate = CraftEngineFurniture.getLoadedFurnitureByMetaEntity(entity);
+            if (candidate == null || candidate.location().distanceSquared(center) > .01) continue;
+            if (!candidate.id().equals(persistentKey(name))) throw new IllegalStateException("Unexpected persistent fixture: " + candidate.id());
+            if (found != null && !found.uuid().equals(candidate.uuid())) throw new IllegalStateException("Duplicated persistent fixture: " + name);
+            found = candidate;
+        }
+        return found;
+    }
+
+    private void clearPersistence() {
+        var previous = new LinkedHashMap<UUID, BukkitFurniture>();
+        // Validate every occupied test position before removing anything. Unknown furniture is never reset.
+        for (String name : List.of("sofa", "doll", "tub")) {
+            var center = persistentPosition(name);
+            for (var entity : world.getChunkAt(center).getEntities()) {
+                var candidate = CraftEngineFurniture.getLoadedFurnitureByMetaEntity(entity);
+                if (candidate == null || candidate.location().distanceSquared(center) > .01) continue;
+                if (!Set.of(SOFA, DOLL, TUB, BOARD).contains(candidate.id()))
+                    throw new IllegalStateException("Refusing to clear unknown persistent fixture: " + candidate.id());
+                previous.put(candidate.uuid(), candidate);
+            }
+        }
+        observeDrops = false;
+        for (var furniture : previous.values()) furniture.destroy();
+        var center = new Location(world, X + .5, Y, Z + .5);
+        for (var item : world.getNearbyEntitiesByType(org.bukkit.entity.Item.class, center, 5)) item.remove();
+        drops.clear();
+    }
+
+    private void preparePersistence() {
+        clearPersistence();
+        for (String name : List.of("sofa", "doll", "tub"))
+            Objects.requireNonNull(CraftEngineFurniture.place(persistentPosition(name), persistentKey(name), "ground", false), name);
+        persistenceTracking = observeDrops = true;
+        drops.clear();
+    }
+
+    private static Map<String,Object> itemEvidence(ItemStack item) {
+        if (item == null || item.isEmpty()) return Map.of();
+        var evidence = new LinkedHashMap<>(describe(item));
+        evidence.put("pdc", persistentData(item));
+        evidence.put("serialized", Base64.getEncoder().encodeToString(item.serializeAsBytes()));
+        return evidence;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String,Object> persistentFurniture(String name) {
+        var result = new LinkedHashMap<String,Object>();
+        result.put("position", PERSISTENT_POSITIONS.get(name));
+        result.put("world", world.getName());
+        var furniture = findPersistent(name);
+        result.put("present", furniture != null && furniture.isValid());
+        if (furniture == null || !furniture.isValid()) return result;
+        var actual = furniture.location();
+        result.put("position", List.of(actual.getX(), actual.getY(), actual.getZ()));
+        result.put("world", Objects.requireNonNull(actual.getWorld()).getName());
+        result.put("uuid", furniture.uuid().toString());
+        result.put("id", furniture.id().asString());
+        result.put("variant", furniture.currentVariant().name());
+        result.put("hitbox", furniture.interactableEntityIds()[0]);
+        var source = furniture.sourceItem();
+        result.put("source", source == null || source.isEmpty() ? Map.of()
+                : itemEvidence(net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(source)));
+        String module = name.equals("sofa") ? "deco" : name.equals("tub") ? "tavern" : "doll";
+        String simple = name.equals("sofa") ? "DecoController" : name.equals("tub") ? "PressingController" : "DollController";
+        String pluginName = "Kaleidoscope" + Character.toUpperCase(module.charAt(0)) + module.substring(1) + "Plugin";
+        try {
+            var owner = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(pluginName));
+            var type = (Class<? extends net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController>)
+                    owner.getClass().getClassLoader().loadClass("net.kaleidoscope." + module + "." + simple);
+            var controller = Objects.requireNonNull(furniture.controller.get(type, 0));
+            var saved = new net.momirealms.craftengine.libraries.nbt.CompoundTag();
+            controller.saveCustomData(saved);
+            result.put("saved", saved.toString());
+            boolean blocked = (Boolean) type.getMethod("blocked").invoke(controller);
+            result.put("blocked", blocked);
+            result.put("hasContents", type.getMethod("hasContents").invoke(controller));
+            if (blocked) return result;
+            String key = "kaleidoscope_" + module + (name.equals("sofa") ? ":state_v1" : name.equals("tub") ? ":pressing_v1" : ":pose_v1");
+            var payload = saved.getCompound(key).getCompound("payload");
+            if (name.equals("doll")) result.put("state", Map.of("pose", payload.getString("pose")));
+            else if (name.equals("sofa")) result.put("state", Map.of("state", payload.getString("state"),
+                    "color", payload.getString("color"), "mode", payload.getString("mode")));
+            else {
+                var contents = new LinkedHashMap<String,Object>();
+                contents.put("amount", payload.getInt("amount"));
+                contents.put("ingredients", payload.containsKey("ingredients") ? itemEvidence(ItemStack.deserializeBytes(payload.getByteArray("ingredients"))) : Map.of());
+                result.put("state", contents);
+            }
+        } catch (ReflectiveOperationException failure) { throw new IllegalStateException("Persistent controller unavailable: " + name, failure); }
+        return result;
+    }
+
+    private Map<String,Object> persistenceSnapshot() {
+        var result = new LinkedHashMap<String,Object>();
+        for (String name : List.of("sofa", "doll", "tub")) result.put(name, persistentFurniture(name));
+        var center = new Location(world, X + .5, Y, Z + .5);
+        result.put("looseItems", world.getNearbyEntitiesByType(org.bukkit.entity.Item.class, center, 5).stream()
+                .filter(item -> Math.abs(item.getLocation().getY() - Y) < 3).map(item -> {
+                    var data = new LinkedHashMap<String,Object>(itemEvidence(item.getItemStack()));
+                    data.put("uuid", item.getUniqueId().toString());
+                    var at = item.getLocation(); data.put("position", List.of(at.getX(), at.getY(), at.getZ()));
+                    return data;
+                }).toList());
+        return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -265,8 +470,11 @@ final class ConnectedKitchenProbe implements Listener {
     }
 
     private Map<String,Object> snapshot(Player player) {
+        refreshReferences();
         var view = player.getOpenInventory(); var state = new LinkedHashMap<String,Object>();
         state.put("view", view.getType());
+        state.put("playerUuid", player.getUniqueId().toString());
+        state.put("furnitureInteractions", furnitureInteractions.getOrDefault(player.getName(), 0L));
         // Bukkit's smithing inventory contents expose the three inputs separately from the result.
         var top = new ArrayList<>(Arrays.stream(view.getTopInventory().getContents()).map(ConnectedKitchenProbe::describe).toList());
         if (view.getTopInventory() instanceof org.bukkit.inventory.SmithingInventory smithing && top.size() == 3)
@@ -301,6 +509,7 @@ final class ConnectedKitchenProbe implements Listener {
         var entity = BukkitAdaptor.adapt(world).storageWorld().getBlockEntityAtIfLoaded(new BlockPos(X,Y,Z));
         var steamer = entity == null ? null : entity.controller.get(SteamerController.class,0);
         state.put("placedSlots", steamer == null ? List.of() : contents(steamer.snapshotSlots()));
+        if (persistenceTracking) state.put("persistence", persistenceSnapshot());
         return state;
     }
 
@@ -321,6 +530,12 @@ final class ConnectedKitchenProbe implements Listener {
             event.setCancelled(true);
             boardDenied++;
         }
+    }
+    @EventHandler(priority=EventPriority.MONITOR) public void observeInteraction(FurnitureInteractEvent event) {
+        var player = event.getPlayer();
+        if ((FIRST.equals(player.getName()) || SECOND.equals(player.getName())) && player.getWorld() == world
+                && Bukkit.isOwnedByCurrentRegion(world, X >> 4, Z >> 4))
+            furnitureInteractions.merge(player.getName(), 1L, Long::sum);
     }
     @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled=true) public void cancelFlower(ItemSpawnEvent event) {
         var at = event.getLocation();

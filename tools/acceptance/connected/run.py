@@ -13,7 +13,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[3]
-PROBE = re.compile(r'senluoprobe ([0-9]{1,8}) (arrive|supply|scarecrow|tulip|clearboard|sofa|clearsofa|inspectsofa|doll|cleardoll|inspectdoll|inspect) SenLuoProbe[AB]$')
+PROBE = re.compile(r'senluoprobe ([0-9]{1,8}) (arrive|supply|scarecrow|tulip|clearboard|sofa|clearsofa|inspectsofa|doll|cleardoll|inspectdoll|persistclear|persistseed|persiststock|persistinspect|inspect) SenLuoProbe[AB]$')
 SMOKE = re.compile(r'\b(COOKERY_(?:FOOD|ENCHANTMENT)_SMOKE)\b(.*)')
 LOG_ERROR = re.compile(
     r'\[[^\]\r\n]*(?:ERROR|SEVERE|FATAL)\]|has not responded in|server has stopped responding'
@@ -74,7 +74,10 @@ def passed(result: dict) -> bool:
 
 
 def run_session(instance: Path, out: Path, java: str, node: str, manual_client: bool = False,
-                timeout: float | None = None) -> dict:
+                timeout: float | None = None, *, phase: str | None = None,
+                state_file: Path | None = None) -> dict:
+    if phase not in (None, 'seed', 'verify', 'empty') or (phase is None) != (state_file is None):
+        raise ValueError('Restart phases require an explicit shared state file')
     inbox = out / 'commands.txt'
     inbox.touch()
     log = out / 'console.log'
@@ -122,8 +125,14 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
                                 announced = True
                                 print('Server ready', instance.name, flush=True)
                                 if not manual_client:
+                                    client_env = dict(os.environ, SENLUO_JAVA=java)
+                                    for key in ('SENLUO_SCENARIO_PHASE', 'SENLUO_SCENARIO_STATE'):
+                                        client_env.pop(key, None)
+                                    if phase is not None:
+                                        client_env.update(SENLUO_SCENARIO_PHASE=phase,
+                                                          SENLUO_SCENARIO_STATE=str(state_file.resolve()))
                                     client = subprocess.Popen([node, str(Path(__file__).with_name('players.cjs')), str(out)],
-                                                              env=dict(os.environ, SENLUO_JAVA=java), **process_options)
+                                                              env=client_env, **process_options)
                         elif PROBE.fullmatch(line.strip()):
                             server.stdin.write(line.encode('ascii'))
                             server.stdin.flush()
@@ -174,11 +183,72 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
             client_report = json.loads(reports.read_text('utf8'))
         except (OSError, ValueError) as error:
             errors.append(f'Cannot read player report: {error}')
+    if phase is not None and (not isinstance(client_report, dict) or client_report.get('phase') != phase):
+        errors.append(f'Client report did not complete the requested restart phase: {phase}')
     result = {'ready': startup.ready, 'serverExit': None if server is None else server.returncode,
               'clientExit': None if client is None else client.returncode, 'completionReason': completion,
               'timedOut': completion == 'timeout', 'forcedServerStop': forced_stop,
               'errors': errors, 'client': client_report}
+    if phase is not None:
+        result['phase'] = phase
     result['passed'] = bool(passed(result))
+    (out / 'result.json').write_text(json.dumps(result, indent=2, ensure_ascii=False), 'utf8')
+    return result
+
+
+def runtime_hashes(instance: Path) -> dict[str, str]:
+    """Keep the tested binaries and downloaded resources identical across all starts."""
+    paths = sorted((instance / 'plugins').glob('*.jar'))
+    paths += [instance / 'server.jar', instance / 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip']
+    return {str(path.relative_to(instance)).replace('\\', '/'): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in paths}
+
+
+def scenario_hashes() -> dict[str, str]:
+    folder = Path(__file__).resolve().parent
+    return {name: hashlib.sha256((folder / name).read_bytes()).hexdigest()
+            for name in ('run.py', 'players.cjs', 'persistence-players.cjs')}
+
+
+def run_restart_suite(instance: Path, out: Path, java: str, node: str, fixture: dict) -> dict:
+    """Reuse one world for three normal server starts, stopping on the first failure."""
+    state_file = out / 'persistence-state.json'
+    if state_file.exists():
+        raise FileExistsError('A restart suite must start without a previous state file')
+    result = {'passed': False, 'phases': [], 'errors': [], 'runtimeHashes': runtime_hashes(instance),
+              'scenarioHashes': scenario_hashes()}
+    state_hash = None
+    for phase in ('seed', 'verify', 'empty'):
+        try:
+            if runtime_hashes(instance) != result['runtimeHashes']:
+                raise ValueError('Server binaries or hosted resources changed between restart phases')
+            if scenario_hashes() != result['scenarioHashes']:
+                raise ValueError('Acceptance scenario code changed between restart phases')
+            if state_hash is not None and hashlib.sha256(state_file.read_bytes()).hexdigest() != state_hash:
+                raise ValueError('The seed snapshot changed between restart phases')
+            folder = out / phase
+            folder.mkdir(exist_ok=False)
+            (folder / 'fixture.json').write_text(json.dumps(fixture), 'utf8')
+            session = run_session(instance, folder, java, node, phase=phase, state_file=state_file)
+            result['phases'].append(session)
+            if session.get('passed') is not True or session.get('phase') != phase:
+                raise ValueError(f'Restart phase failed: {phase}')
+            if phase == 'seed':
+                state = json.loads(state_file.read_text('utf8'))
+                if not isinstance(state, dict) or not state:
+                    raise ValueError('The seed phase did not write a nonempty persistence snapshot')
+                state_hash = hashlib.sha256(state_file.read_bytes()).hexdigest()
+                result['seedStateSha256'] = state_hash
+            elif hashlib.sha256(state_file.read_bytes()).hexdigest() != state_hash:
+                raise ValueError(f'The {phase} phase changed the original seed snapshot')
+            if runtime_hashes(instance) != result['runtimeHashes']:
+                raise ValueError('Server binaries or hosted resources changed during a restart phase')
+            if scenario_hashes() != result['scenarioHashes']:
+                raise ValueError('Acceptance scenario code changed during a restart phase')
+        except (OSError, ValueError) as error:
+            result['errors'].append(str(error))
+            break
+    result['passed'] = len(result['phases']) == 3 and not result['errors']
     (out / 'result.json').write_text(json.dumps(result, indent=2, ensure_ascii=False), 'utf8')
     return result
 
@@ -190,7 +260,11 @@ def main() -> int:
     parser.add_argument('--java', required=True)
     parser.add_argument('--node', default='node')
     parser.add_argument('--manual-client', action='store_true', help='Run the JS scenario separately for diagnosis')
+    parser.add_argument('--restart-suite', action='store_true',
+                        help='Seed, restart and recover, then restart again to check for duplicate furniture or contents')
     args = parser.parse_args()
+    if args.restart_suite and args.manual_client:
+        parser.error('--restart-suite requires the automatic protocol clients')
     instance = args.instance.resolve()
     if not instance.is_relative_to(ROOT / 'build/acceptance'):
         raise ValueError('Expected a disposable copy under build/acceptance')
@@ -208,7 +282,8 @@ def main() -> int:
     info = {'port': int(props['server-port']), 'packSha256': pack_hash}
     out.mkdir(parents=True, exist_ok=False)
     (out / 'fixture.json').write_text(json.dumps(info), 'utf8')
-    result = run_session(instance, out, args.java, args.node, args.manual_client)
+    result = (run_restart_suite(instance, out, args.java, args.node, info) if args.restart_suite
+              else run_session(instance, out, args.java, args.node, args.manual_client))
     print(f"{instance.name}: {'PASS' if result['passed'] else 'FAIL'}; {out / 'result.json'}")
     return 0 if result['passed'] else 1
 

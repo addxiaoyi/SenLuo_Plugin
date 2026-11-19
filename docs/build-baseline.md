@@ -20,9 +20,10 @@ PYTHONPATH=series/tools python -m unittest discover -s series/tools -p 'test_*.p
 python tools/feature_ledger.py
 python tools/audit_licenses.py --output build/license-audit.json
 PYTHONPATH=series/tools python series/tools/check_independence.py
+node --test tools/acceptance/connected/test-persistence.cjs
 ```
 
-也可以在 Linux/macOS 使用统一入口（Windows 会自动选择 `gradlew.bat`）：
+Node.js 22 用于不启动 Minecraft 的协议场景合同测试。也可以在 Linux/macOS 使用统一入口（Windows 会自动选择 `gradlew.bat`）：
 
 ```bash
 python tools/build_all.py
@@ -34,7 +35,7 @@ python tools/build_all.py
 PYTHONPATH=series/tools python series/tools/import_sources.py --check
 ```
 
-没有这些 checkout 时，CI 只运行导入器单测和 schema/独立性检查，不把“没有上游输入”误报成资源导入通过。
+CI 会恢复五个玩法源码的固定提交后执行严格系列导入检查；没有上游输入时该检查会失败，不会把跳过导入当成成功。
 
 ## 证据边界
 

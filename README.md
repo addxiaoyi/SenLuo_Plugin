@@ -21,9 +21,9 @@ Cookery 厨房 · Doll 玩偶 · Tavern 酒馆 · Deco 装饰 · MusicPlus 音�
 | 插件 | JAR | CE 内容包 | 当前证据 | 主要缺口 |
 | --- | --- | --- | --- | --- |
 | Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 612/612 条来源配方，1,432 个物品，81 个方块和 25 件家具。[验收记录](docs/VALIDATION.md) | 原版客户端显示、玩家合成与容器守恒 |
-| Doll | `KaleidoscopeDoll-0.1.0-dev.jar` | `doll-ce-pack-*.zip` | Paper/Folia 启动及 `doll_0` 九轴菜单、拆装重放协议验证通过 | 精确物理、Bedrock 模型、其余玩家流程 |
-| Tavern | `KaleidoscopeTavern-0.1.0-dev.jar` | `tavern-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 葡萄世界生成、复杂家具、饮用和多人 |
-| Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载和郁金香展板双人协议验证通过 | 416 条聚合差异、剩余脚本事件、座位/碰撞 |
+| Doll | `KaleidoscopeDoll-0.1.0-dev.jar` | `doll-ce-pack-*.zip` | Paper/Folia 启动及 `doll_0` 九轴菜单、拆装重放和该九轴样例正常重启协议验证通过 | 精确物理、Bedrock 模型、其余玩家流程 |
+| Tavern | `KaleidoscopeTavern-0.1.0-dev.jar` | `tavern-ce-pack-*.zip` | Paper/Folia 启动加载，果盆单份标记发光浆果正常重启通过 | 葡萄世界生成、复杂家具、饮用和多人 |
+| Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载、郁金香展板双人协议和沙发红色左段正常重启通过 | 416 条聚合差异、剩余脚本事件、座位/碰撞 |
 | MusicPlus | `KaleidoscopeMusic-0.1.0-dev.jar` | `music-ce-pack-*.zip` | Paper/Folia 启动加载通过，吉他纹理已接入 | Bedrock 几何、持续声部、客户端合成器 |
 
 当前代码、单测和服务器加载已经完成多层验证。原版客户端资源包、真人玩家闭环和许可证人工核验仍按台账记录，项目不把静态通过写成 100% 完成。
@@ -53,12 +53,20 @@ SenLuo_Plugin/
 厨房已导入固定上游的 **612/612** 条配方。带料蒸笼把四个原料槽保存在物品中，厨刀锻造保留自定义组件和附魔。系列包检查覆盖 2,759 个可达模型，额外自定义依赖警告为零。固定服务器版本、启动配置与原版客户端检查详见[本轮双端验收](docs/research/series-runtime-2026-11-18.json)。
 
 - **Cookery** 用剪刀取下茶旗图案会掉落原图案并消耗 1 点耐久，创造模式免损耗。旗面由独立显示实体承载，使用同一个透明绊线外观。
-- **Doll** 摆件九轴姿态写入源物品，重置时清除姿态记录。本轮修复 CE 晚读物品 PDC 后未刷新显示的问题；`doll_0` 在 Paper/Folia 经真实菜单修改全部九轴并拆装重放后保留数值。重启和原版客户端画面仍待验收。
+- **Doll** 摆件九轴姿态写入源物品，重置时清除姿态记录。本轮修复 CE 晚读物品 PDC 后未刷新显示的问题；`doll_0` 在 Paper/Folia 经真实菜单修改全部九轴并拆装重放后保留数值；该九轴样例的三阶段正常重启也已通过。其余摆件、其他重启状态和原版客户端画面仍待验收。
 - **Tavern** 果盆按 6 种果汁和 8 档容量显示上游液体纹理，取汁和读档根据库存刷新外观。
 - **Deco** 导入器解析上游自定义物品标签，四种郁金香已有展板装饰与剪取规则。展板流程已在 Paper 132/Folia 14 通过双人生存协议验证，覆盖满背包、交互/掉落取消和两人连续剪取，见[展板验收证据](docs/research/deco-tulip-acceptance-2026-11-19.json)。
 - **MusicPlus** 手持乐器对空气右键打开演奏菜单，旧 MIDI 播放回调按曲目会话清理。
 
-隔离服准备脚本识别当前四个 Shadow JAR 文件名，CI 从五个固定上游提交构建导入检查。本轮可靠性修复覆盖家具交易取消、热栏切换及同步重入，抽奖产出、玩偶回收、MIDI 精确计时和任务清理，以及验收运行器的失败判定与进程收尾；**668 项 Java、214 项 Python 测试通过**，详见[可靠性修复记录](docs/research/series-polish-acceptance-2026-11-19.json)。各项服务端和协议证据只覆盖记录中的操作；已登录原版客户端的画面、声音及完整玩法仍需逐项验收。
+隔离服准备脚本识别当前四个 Shadow JAR 文件名，CI 从五个固定上游提交构建导入检查。前轮可靠性修复覆盖家具交易取消、热栏切换及同步重入，抽奖产出、玩偶回收、MIDI 精确计时和任务清理，以及验收运行器的失败判定与进程收尾，详见[该轮修复记录](docs/research/series-polish-acceptance-2026-11-19.json)。当前累计 **695 项 Java、223 项 Python、75 项 Node 测试通过**，分项见[当前交接](docs/HANDOFF.md#2026-11-19-重启持久化与定时器修复)。
+
+本批修复抽奖机、酒桶和果盆在新家具没有保存键时被误冻结的问题，已知键中的损坏记录仍冻结并原样保留；雪克杯在 CE 晚读物品数据后同步内容和未来掉落物。六种家具定时器查询元数据实体的当前映射并核对 UUID，再按控制器类型及同类序号匹配，缺少当前实例或对应序号时跳过，避免继续操作旧实例。以上实现已有回归测试；Paper 132/Folia 14 已各通过同一世界 `seed → verify → empty` 三阶段正常重启，仅覆盖沙发红色左段、`doll_0` 全九轴样例和果盆中一份带 PDC 标记的未加工发光浆果，见[本批正常重启证据](docs/research/series-restart-acceptance-2026-11-19.json)。各项服务端和协议证据只覆盖记录中的操作；已登录原版客户端的画面、声音及完整玩法仍需逐项验收。
+
+最终两端各三次启动的服务器及客户端退出码均为 0，没有服务器错误或 watchdog。此前 Folia2 在 CE ByteBuddy 插桩进入 `FastNMSImpl.createSmithingTrimRecipe` 时出现 6.3533891 秒 watchdog，根因仍为 OPEN；后续干净启动不构成根因已修复的证明。
+
+协议验收探针只观察家具交互事件并记录回执计数。单目标交互仅点击一次，再等待回执增长与目标状态，取消和无操作同样核对物品不变量。双人并发剪同一旧碰撞盒要求至少一份回执、唯一掉落；缺第二份回执时须确认碰撞盒 ID 已更换，再由第二玩家对新 ID 空剪并收到回执，尝试与实际回执分别记录。Doll 菜单逐轴等待完整预期姿态及新菜单窗口后才继续，避免时序误判。拾取时网络实体消失只停止追踪，成功仍须服务端核对玩家归属、唯一数量和状态 PDC。
+
+展板的“满库存”指 36 个存储槽均被占用，同色花仍可并堆；收尾只允许唯一返花增量及显式副手腾格，进入下一夹具前由服务端库存差分确认双方合计新增恰好一朵且数据一致。
 
 ## 当前运行基线
 
@@ -142,12 +150,13 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/import_sources.py --check
 
 PYTHONPATH=series/tools .venv/bin/python -m unittest discover -s tools -p 'test_*.py' -v
 PYTHONPATH=series/tools .venv/bin/python -m unittest discover -s series/tools -p 'test_*.py' -v
+node --test tools/acceptance/connected/test-persistence.cjs
 
 JAVA_HOME=/path/to/jdk-25 bash ./gradlew test shadowJar acceptanceJar --no-daemon --no-configuration-cache
 JAVA_HOME=/path/to/jdk-25 bash ./gradlew -p series build --no-daemon --no-configuration-cache
 ```
 
-统一入口是 `python tools/build_all.py`。Windows 使用 `.venv\Scripts\python.exe` 和 `gradlew.bat`。
+统一入口是 `python tools/build_all.py`，协议场景合同测试需要 Node.js 22。Windows 使用 `.venv\Scripts\python.exe` 和 `gradlew.bat`。
 
 ## 隔离服准备
 

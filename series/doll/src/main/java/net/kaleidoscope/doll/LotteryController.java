@@ -1,6 +1,7 @@
 package net.kaleidoscope.doll;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.FurnitureTickers;
 import net.kaleidoscope.series.InventoryTrade;
 import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.SavedState;
@@ -58,7 +59,7 @@ public final class LotteryController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> tick());
+        return FurnitureTickers.current(LotteryController.class, LotteryController::tick);
     }
 
     private void tick() {
@@ -109,12 +110,9 @@ public final class LotteryController extends InteractiveFurniture {
     }
 
     private void restore(CompoundTag root) {
+        if (!root.containsKey(SAVE_KEY)) return;
         CompoundTag saved = SavedState.payload(root.getCompound(SAVE_KEY), SavedState.namespace(SAVE_KEY),
                 SavedState.SERIES_SOURCE, 1, null);
-        if (saved == null) {
-            if (root.containsKey(SAVE_KEY)) throw new IllegalArgumentException("Invalid lottery save tag");
-            return;
-        }
         if (SavedState.integer(saved, "version") != 1) throw new IllegalArgumentException("Unsupported lottery save version");
         for (int i = 0; i < bags.size(); i++) {
             String queue = SavedState.text(saved, "tier_" + i);

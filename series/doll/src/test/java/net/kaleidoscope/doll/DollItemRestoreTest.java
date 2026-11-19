@@ -1,22 +1,32 @@
 package net.kaleidoscope.doll;
 
 import net.kaleidoscope.series.ItemState;
+import net.kaleidoscope.series.Items;
+import net.kaleidoscope.series.Menu;
 import net.kaleidoscope.series.SavedItems;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.libraries.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,6 +35,63 @@ import static org.mockito.Mockito.*;
 
 class DollItemRestoreTest {
     private static final String SAVE_KEY = "kaleidoscope_doll:pose_v1";
+
+    @Test void restartRestoresAllNinePlayerEditedAxesAndFutureDropWithoutAnItemHook() throws Exception {
+        byte[] persisted;
+        DollPose expected = DollPose.origin();
+        Map<Integer, Consumer<Player>> actions = new HashMap<>();
+        try (var fixture = new Fixture();
+             var bukkit = mockStatic(Bukkit.class);
+             var items = mockStatic(Items.class);
+             var menus = mockConstruction(Menu.class, (menu, context) -> {
+                 doAnswer(call -> {
+                     Consumer<Player> action = call.getArgument(2);
+                     if (action != null) actions.put(call.getArgument(0), action);
+                     return null;
+                 }).when(menu).button(anyInt(), any(), any());
+             })) {
+            Player player = mock(Player.class);
+            PlayerInventory inventory = mock(PlayerInventory.class);
+            when(player.getInventory()).thenReturn(inventory);
+            when(inventory.getItemInMainHand()).thenReturn(fixture.carried);
+            when(fixture.furniture.isValid()).thenReturn(true);
+            when(fixture.plugin.mayUse(eq(player), any(Location.class))).thenReturn(true);
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(player)).thenReturn(true);
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(any(Location.class))).thenReturn(true);
+            items.when(() -> Items.id(fixture.carried)).thenReturn("kaleidoscope_doll:tweaks_tool");
+
+            fixture.controller.interact(player);
+            for (int axis = 0; axis < DollPose.AXES; axis++) {
+                assertNotNull(actions.get(18 + axis));
+                actions.get(18 + axis).accept(player);
+                expected = expected.adjust(axis, 1);
+            }
+            assertEquals(expected.encode(), fixture.controller.pose().encode());
+            verify(fixture.furniture, times(DollPose.AXES)).setUnsaved();
+            assertEquals(expected.encode(), fixture.encoded.get().getString("pose"));
+
+            CompoundTag data = new CompoundTag(), entity = new CompoundTag();
+            fixture.controller.saveCustomData(data);
+            entity.put("data", data);
+            persisted = FurniturePersistentData.of(entity).toBytes();
+        }
+
+        try (var restored = new Fixture()) {
+            CompoundTag data = FurniturePersistentData.fromBytes(persisted).copyTag().getCompound("data");
+            restored.controller.loadCustomData(data);
+            restored.controller.onLoad();
+
+            assertFalse(restored.controller.blocked());
+            assertEquals(expected.encode(), restored.controller.pose().encode());
+            assertEquals(expected.encode(), restored.encoded.get().getString("pose"));
+            verify(restored.furniture).setSourceItem(restored.preparedSource);
+            verify(restored.display).rebuild();
+            verify(restored.controller, never()).loadCustomDataFromItem(any());
+            CompoundTag savedAgain = new CompoundTag();
+            restored.controller.saveCustomData(savedAgain);
+            assertEquals(data, savedAgain);
+        }
+    }
 
     @Test void itemPoseLoadedAfterPlacementRefreshesBothDisplayAndFutureDrop() throws Exception {
         try (var fixture = new Fixture()) {

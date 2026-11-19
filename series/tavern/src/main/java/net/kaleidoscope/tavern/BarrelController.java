@@ -1,6 +1,7 @@
 package net.kaleidoscope.tavern;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.FurnitureTickers;
 import net.kaleidoscope.series.InventoryTrade;
 import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.SavedState;
@@ -159,7 +160,7 @@ public final class BarrelController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> tick());
+        return FurnitureTickers.current(BarrelController.class, BarrelController::tick);
     }
 
     private void tick() {
@@ -208,6 +209,7 @@ public final class BarrelController extends InteractiveFurniture {
     }
 
     private void restore(CompoundTag root) {
+        if (!root.containsKey(SAVE_KEY)) return;
         CompoundTag saved = SavedState.payload(root.getCompound(SAVE_KEY), SavedState.namespace(SAVE_KEY),
                 SavedState.SERIES_SOURCE, 1, null);
         if (saved == null) {

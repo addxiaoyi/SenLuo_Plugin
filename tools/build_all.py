@@ -19,6 +19,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skip-java", action="store_true")
     parser.add_argument("--skip-python", action="store_true")
+    parser.add_argument("--skip-node", action="store_true", help="Skip the isolated protocol-scenario contract tests")
     args = parser.parse_args()
     if not args.skip_java:
         wrapper = ["gradlew.bat"] if os.name == "nt" else ["bash", "./gradlew"]
@@ -31,6 +32,8 @@ def main() -> None:
         run([sys.executable, "-m", "unittest", "discover", "-s", "series/tools", "-p", "test_*.py", "-v"], env=env)
         run([sys.executable, "tools/feature_ledger.py"])
         run([sys.executable, "series/tools/check_independence.py"], env=env)
+    if not args.skip_node:
+        run(["node", "--test", "tools/acceptance/connected/test-persistence.cjs"])
 
 
 if __name__ == "__main__":

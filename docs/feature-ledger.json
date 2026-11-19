@@ -22,11 +22,11 @@
     {
       "feature_id": "E02",
       "module": "engineering",
-      "title": "Java/Python/CE 静态 CI",
+      "title": "Java/Python/Node/CE 静态 CI",
       "parity_level": "A",
       "status": "implemented",
       "source_ids": ["workflow:ci"],
-      "evidence": [".github/workflows/ci.yml"]
+      "evidence": [".github/workflows/ci.yml", "tools/acceptance/connected/test-persistence.cjs"]
     },
     {
       "feature_id": "E03",
@@ -44,7 +44,7 @@
       "parity_level": "C",
       "status": "runtime_tested",
       "source_ids": ["acceptance:paper-folia-client"],
-      "evidence": ["series/docs/ACCEPTANCE.md", "series/docs/acceptance-matrix.json", "series/tools/prepare_independent_servers.py", "docs/research/series-runtime-acceptance-2026-11-08.json", "docs/research/series-five-runtime-acceptance-2026-11-08.json", "docs/research/series-runtime-2026-11-18.json"]
+      "evidence": ["series/docs/ACCEPTANCE.md", "series/docs/acceptance-matrix.json", "series/tools/prepare_independent_servers.py", "docs/research/series-runtime-acceptance-2026-11-08.json", "docs/research/series-five-runtime-acceptance-2026-11-08.json", "docs/research/series-runtime-2026-11-18.json", "docs/research/series-restart-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "E05",
@@ -89,7 +89,7 @@
       "parity_level": "A",
       "status": "runtime_tested",
       "source_ids": ["KaleidoscopeCookery:rice_bowl"],
-      "evidence": ["src/main/java/net/kaleidoscope/cookery/recipe/RiceBowlRecipe.java", "docs/research/cookery-rice-bowls-acceptance-2026-11-16.json", "build/acceptance/rice-bowl-api-audit/summary.txt"]
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/recipe/RiceBowlRecipe.java", "docs/research/cookery-rice-bowls-acceptance-2026-11-16.json"]
     },
     {
       "feature_id": "C12",
@@ -143,7 +143,7 @@
       "parity_level": "A",
       "status": "unit_tested",
       "source_ids": ["KaleidoscopeDoll:lottery", "KaleidoscopeDoll:collection"],
-      "evidence": ["series/doll/src/test", "series/doll/src/main/java/net/kaleidoscope/doll/api/DollCollectedEvent.java"]
+      "evidence": ["series/doll/src/test", "series/doll/src/main/java/net/kaleidoscope/doll/api/DollCollectedEvent.java", "series/doll/src/test/java/net/kaleidoscope/doll/LotteryRestoreTest.java", "series/common/src/test/java/net/kaleidoscope/series/FurnitureTickersTest.java"]
     },
     {
       "feature_id": "D04",
@@ -155,13 +155,31 @@
       "evidence": ["series/doll/src/test"]
     },
     {
+      "feature_id": "D05",
+      "module": "doll",
+      "title": "doll_0 固定九轴姿态正常重启、唯一回收及空状态再启动",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeDoll:doll_0"],
+      "evidence": ["docs/research/series-restart-acceptance-2026-11-19.json", "tools/acceptance/connected/persistence-players.cjs", "series/docs/ACCEPTANCE.md"]
+    },
+    {
       "feature_id": "T02",
       "module": "tavern",
       "title": "酒桶熟成与饮品守恒",
       "parity_level": "A",
       "status": "unit_tested",
       "source_ids": ["KaleidoscopeTavern:barrel"],
-      "evidence": ["series/tavern/src/test", "series/tavern/src/main/java/net/kaleidoscope/tavern/api/DrinkCreatedEvent.java"]
+      "evidence": ["series/tavern/src/test", "series/tavern/src/main/java/net/kaleidoscope/tavern/api/DrinkCreatedEvent.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/TavernPersistenceTest.java", "series/common/src/test/java/net/kaleidoscope/series/FurnitureTickersTest.java"]
+    },
+    {
+      "feature_id": "T03",
+      "module": "tavern",
+      "title": "液量0果盆的单个带标记未加工发光浆果正常重启、取回及空状态再启动",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeTavern:pressing_tub", "minecraft:glow_berries"],
+      "evidence": ["docs/research/series-restart-acceptance-2026-11-19.json", "tools/acceptance/connected/persistence-players.cjs", "series/docs/ACCEPTANCE.md"]
     },
     {
       "feature_id": "F02",
@@ -179,7 +197,7 @@
       "parity_level": "B",
       "status": "implemented",
       "source_ids": ["KaleidoscopeDeco:furniture-states"],
-      "evidence": ["series/deco/src/test", "series/docs/PORTING-MATRIX.md", "docs/research/series-polish-acceptance-2026-11-19.json"]
+      "evidence": ["series/deco/src/test", "series/docs/PORTING-MATRIX.md", "docs/research/series-polish-acceptance-2026-11-19.json", "series/deco/src/test/java/net/kaleidoscope/deco/DecoControllerTest.java"]
     },
     {
       "feature_id": "F06",
@@ -188,7 +206,16 @@
       "parity_level": "B",
       "status": "runtime_tested",
       "source_ids": ["KaleidoscopeDeco:kaleidoscope_bar:blackboard/0", "KaleidoscopeDeco:kaleidoscope_bar:blackboard/9"],
-      "evidence": ["docs/research/deco-tulip-acceptance-2026-11-19.json", "tools/acceptance/connected/README.md"]
+      "evidence": ["docs/research/deco-tulip-acceptance-2026-11-19.json", "tools/acceptance/connected/README.md", "docs/research/series-restart-acceptance-2026-11-19.json"]
+    },
+    {
+      "feature_id": "F07",
+      "module": "deco",
+      "title": "红色左段沙发正常重启、保留原PDC的唯一回收及空状态再启动",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeDeco:kaleidoscope_bar/sofa", "acceptance:red-left-sofa"],
+      "evidence": ["docs/research/series-restart-acceptance-2026-11-19.json", "tools/acceptance/connected/persistence-players.cjs", "series/docs/ACCEPTANCE.md"]
     },
     {
       "feature_id": "M01",
