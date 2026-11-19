@@ -7,7 +7,20 @@ from import_sources import SourceSnapshot, crafting, deco, json_bytes, parse_jso
 class PinnedImportTests(unittest.TestCase):
     def test_pinned_deco_legacy_item_ids_resolve_to_existing_geometry(self):
         source = SourceSnapshot("KaleidoscopeDeco", "6ce180e1226ce93b0fb0d45ea80e0ed5b01b1dc0")
-        _, _, assets, _ = deco(source)
+        catalog, definitions, assets, pending = deco(source)
+        boards = "kaleidoscope_deco:kaleidoscope_bar/blackboard/"
+        states = {entry["id"]: entry["rules"] for entry in catalog["entries"]}
+        decorate, = (rule for rule in states[boards + "0"] if rule["target"] == boards + "9")
+        harvest, = (rule for rule in states[boards + "9"] if rule["inputs"] == ["minecraft:shears"])
+        self.assertFalse(decorate["pending"])
+        self.assertTrue(decorate["consume"])
+        self.assertFalse(harvest["pending"])
+        self.assertEqual(boards + "0", harvest["target"])
+        tulips = ["minecraft:" + color + "_tulip" for color in ("orange", "pink", "red", "white")]
+        self.assertEqual(tulips, sorted(harvest["drops"]))
+        self.assertEqual(tulips, sorted(decorate["inputs"]))
+        self.assertIn((boards + "0").replace(":", "/"), definitions["furniture"][boards + "9"]["variants"])
+        self.assertFalse(any("tulip_loot" in message for message in pending))
         frame_tool = parse_json(assets["kdeco_kaleidoscope_frame/items/test.json"])["model"]
         self.assertEqual(["gui", "fixed", "ground", "on_shelf"], frame_tool["cases"][0]["when"])
         namespace = "kdeco_kaleidoscope_cookery"

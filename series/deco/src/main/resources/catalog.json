@@ -9379,7 +9379,8 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "consume": true
         },
         {
           "inputs": [
@@ -9750,9 +9751,18 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:red_tulip",
+            "minecraft:orange_tulip",
+            "minecraft:white_tulip",
+            "minecraft:pink_tulip"
+          ]
         },
         {
           "inputs": [],

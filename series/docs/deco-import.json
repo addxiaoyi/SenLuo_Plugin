@@ -229,7 +229,6 @@
     "Interaction action pending: Event pending: destruct:  (25 uses)",
     "Interaction action pending: Event pending: custom: kaleidoscope:bar/events/set_text (14 uses)",
     "Interaction action pending: Event pending: custom: kaleidoscope:bar/events/custom_loot (12 uses)",
-    "Interaction action pending: Event pending: custom: kaleidoscope:bar/events/tulip_loot",
     "Interaction action pending: Event pending: custom: kaleidoscope:bar/events/blackboard_hang/set_text",
     "Interaction action pending: Event pending: custom: kaleidoscope:bar/events/cabinet/mode_switch (2 uses)",
     "Interaction item components pending: {'minecraft:custom_data': {'id': 'kaleidoscope_bar:wine_bottle'}} (2 uses)",

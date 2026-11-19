@@ -27,6 +27,7 @@ public abstract class InteractiveFurniture extends FurnitureController {
 
     public final boolean accessible(Player player) {
         return furniture().isValid() && org.bukkit.Bukkit.isOwnedByCurrentRegion(location())
+                && org.bukkit.Bukkit.isOwnedByCurrentRegion(player)
                 && plugin.mayUse(player, location());
     }
 

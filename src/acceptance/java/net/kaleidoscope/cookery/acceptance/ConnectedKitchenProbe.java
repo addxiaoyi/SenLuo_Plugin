@@ -8,6 +8,7 @@ import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureBreakEvent;
+import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -26,14 +27,16 @@ import java.util.*;
 /** Console-only arrangement and server-side observations. All player actions arrive over the network. */
 final class ConnectedKitchenProbe implements Listener {
     private static final int X = 680, Y = 200, Z = 8;
+    private static final Key BOARD = Key.of("kaleidoscope_deco:kaleidoscope_bar/blackboard/0");
     private static final String FIRST = "SenLuoProbeA", SECOND = "SenLuoProbeB";
     private static final Gson JSON = new Gson();
     private final JavaPlugin plugin;
     private final World world;
     private final List<Map<String, Object>> hits = new ArrayList<>(), drops = new ArrayList<>();
     private BukkitFurniture scarecrow;
+    private BukkitFurniture board;
     private boolean observeDrops, cancelSmith;
-    private int canceled;
+    private int canceled, boardDenied, flowerDenied;
 
     private ConnectedKitchenProbe(JavaPlugin plugin, World world) { this.plugin = plugin; this.world = world; }
 
@@ -95,6 +98,30 @@ final class ConnectedKitchenProbe implements Listener {
                         scarecrow = Objects.requireNonNull(CraftEngineFurniture.place(new Location(world,X+.5,Y,Z-.5),
                                 Key.of("kaleidoscopecookery:scarecrow"), "ground", false));
                     }
+                    case "tulip" -> {
+                        var center = new Location(world, X + 2.5, Y, Z + 1.5);
+                        var inv = player.getInventory();
+                        inv.clear();
+                        if (FIRST.equals(name)) {
+                            var ray = center.clone().add(0, .45, -.8).setDirection(new org.bukkit.util.Vector(0, 0, 1));
+                            board = CraftEngineFurniture.rayTrace(ray, 1.6);
+                            if (board == null) board = Objects.requireNonNull(
+                                    CraftEngineFurniture.place(center, BOARD, "ground", false), "Could not place test board at " + center);
+                            if (!board.id().equals(BOARD)) throw new IllegalStateException("Unexpected fixture furniture " + board.id());
+                            cancelSmith = false;
+                            boardDenied = flowerDenied = 0;
+                            drops.clear();
+                            for (var item : world.getNearbyEntitiesByType(org.bukkit.entity.Item.class, center, 2))
+                                if (item.getItemStack().getType().name().endsWith("_TULIP")) item.remove();
+                        }
+                        for (int i = 0; i < 36; i++) inv.setItem(i, new ItemStack(Material.COBBLESTONE, 64));
+                        inv.setItem(0, new ItemStack(Material.RED_TULIP, 2));
+                        inv.setItem(1, new ItemStack(Material.SHEARS));
+                    }
+                    case "clearboard" -> {
+                        if (board != null && board.isValid()) board.destroy();
+                        board = null;
+                    }
                     case "inspect" -> { }
                     default -> throw new IllegalArgumentException(action);
                 }
@@ -132,6 +159,12 @@ final class ConnectedKitchenProbe implements Listener {
         state.put("inventory", Arrays.stream(player.getInventory().getStorageContents()).map(ConnectedKitchenProbe::describe).toList());
         state.put("cursor", describe(player.getItemOnCursor())); state.put("canceledSmith", canceled);
         state.put("scarecrow", scarecrow != null && scarecrow.isValid()); state.put("hits", hits); state.put("drops", drops);
+        if (board != null && board.isValid()) {
+            state.put("board", board.currentVariant().name());
+            state.put("boardHitbox", board.interactableEntityIds()[0]);
+            state.put("boardDenied", boardDenied);
+            state.put("flowerDenied", flowerDenied);
+        }
         if (scarecrow != null && scarecrow.isValid()) {
             var body = scarecrow.hitboxes().getFirst().part(0);
             if (body.interactive()) throw new IllegalStateException("Expected the non-interactive body hitbox first");
@@ -154,6 +187,20 @@ final class ConnectedKitchenProbe implements Listener {
     @EventHandler(priority=EventPriority.MONITOR) public void observe(FurnitureBreakEvent event) {
         if (event.furniture() == scarecrow) hits.add(Map.of("player", event.getPlayer().getName(), "tick",world.getGameTime(),
                 "canceled",event.isCancelled(), "regionOwned",Bukkit.isOwnedByCurrentRegion(event.getPlayer())));
+    }
+    @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled=true) public void protectBoard(FurnitureInteractEvent event) {
+        if (event.furniture() == board && SECOND.equals(event.getPlayer().getName()) && boardDenied == 0) {
+            event.setCancelled(true);
+            boardDenied++;
+        }
+    }
+    @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled=true) public void cancelFlower(ItemSpawnEvent event) {
+        var at = event.getLocation();
+        if (board != null && at.getWorld() == world && at.distanceSquared(board.location()) < .1
+                && event.getEntity().getItemStack().getType().name().endsWith("_TULIP") && flowerDenied == 0) {
+            event.setCancelled(true);
+            flowerDenied++;
+        }
     }
     @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true) public void dropped(ItemSpawnEvent event) {
         var at = event.getLocation();

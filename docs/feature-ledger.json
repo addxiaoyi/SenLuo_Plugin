@@ -62,7 +62,7 @@
       "parity_level": "C",
       "status": "blocked",
       "source_ids": ["license:upstream-assets"],
-      "evidence": ["docs/research/organization-checkouts.json", "docs/license-policy.json", "tools/audit_licenses.py"]
+      "evidence": ["docs/research/organization-checkouts.json", "docs/license-policy.json", "tools/audit_licenses.py", "series/docs/UPSTREAM-LICENSES.md"]
     },
     {
       "feature_id": "C01",
@@ -180,6 +180,15 @@
       "status": "implemented",
       "source_ids": ["KaleidoscopeDeco:furniture-states"],
       "evidence": ["series/deco/src/test", "series/docs/PORTING-MATRIX.md"]
+    },
+    {
+      "feature_id": "F06",
+      "module": "deco",
+      "title": "郁金香展板装饰、剪取与物品守恒",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeDeco:kaleidoscope_bar:blackboard/0", "KaleidoscopeDeco:kaleidoscope_bar:blackboard/9"],
+      "evidence": ["docs/research/deco-tulip-acceptance-2026-11-19.json", "tools/acceptance/connected/README.md"]
     },
     {
       "feature_id": "M01",

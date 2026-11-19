@@ -153,10 +153,48 @@ async function scarecrow (a,b) {
   assert.equal(count(final.drops,ns+'scarecrow'),1)
   report.checks.scarecrow = { hits: final.hits, drops: final.drops }
 }
+async function tulipBoard (a,b) {
+  const state = n => 'kaleidoscope_deco/kaleidoscope_bar/blackboard/' + n
+  const initial = await inspect(a, 'tulip')
+  await inspect(b, 'tulip')
+  assert.equal(initial.board, state(0))
+  const spot = new Vec3(682.5, 200.45, 9.5)
+  await Promise.all([a.lookAt(spot), b.lookAt(spot)])
+  const use = (bot, id) => bot._client.write('use_entity', {
+    target: id, mouse: 2, x: 0, y: .45, z: 0, hand: 0, sneaking: false
+  })
+  a.setQuickBarSlot(0); b.setQuickBarSlot(1); await delay(200)
+  use(a, initial.boardHitbox); await delay(200)
+  const decorated = await inspect(a)
+  assert.equal(decorated.board, state(9))
+  assert.equal(decorated.inventory[0].count, 1)
+  assert.ok(decorated.inventory.every(item => item.count > 0))
+  assert.deepEqual(decorated.drops, [])
+  a.setQuickBarSlot(1); await delay(200)
+  use(b, decorated.boardHitbox); await delay(200)
+  const protectedBoard = await inspect(b)
+  assert.equal(protectedBoard.boardDenied, 1); assert.equal(protectedBoard.flowerDenied, 0)
+  assert.equal(protectedBoard.board, state(9)); assert.deepEqual(protectedBoard.drops, [])
+  use(a, protectedBoard.boardHitbox); await delay(200)
+  const blockedDrop = await inspect(a)
+  assert.equal(blockedDrop.flowerDenied, 1); assert.equal(blockedDrop.board, state(9))
+  assert.deepEqual(blockedDrop.inventory, decorated.inventory); assert.deepEqual(blockedDrop.drops, [])
+  use(a, blockedDrop.boardHitbox); use(b, blockedDrop.boardHitbox); await delay(200)
+  const harvested = await inspect(a)
+  assert.equal(harvested.board, state(0)); assert.deepEqual(harvested.inventory, decorated.inventory)
+  assert.equal(harvested.drops.length, 1)
+  assert.match(harvested.drops[0].id, /^minecraft:(orange|pink|red|white)_tulip$/)
+  assert.equal(harvested.drops[0].count, 1)
+  use(b, harvested.boardHitbox); await delay(200)
+  assert.deepEqual((await inspect(b)).drops, harvested.drops)
+  report.checks.tulipBoard = { consumed: 1, fullInventory: true, deniedInteraction: 1, deniedSpawn: 1, returned: harvested.drops[0] }
+}
 async function main () {
   const a = await connect('SenLuoProbeA'); const b = await connect('SenLuoProbeB')
   const supplied = await inspect(a,'supply'); assert.deepEqual(supplied.placedSlots, []); await delay(200)
-  await smith(a); await steamer(a); await scarecrow(a,b); report.passed = true
+  await smith(a); await steamer(a); await scarecrow(a,b)
+  try { await tulipBoard(a,b) } finally { await inspect(a, 'clearboard') }
+  report.passed = true
 }
 main().catch(err => { report.error = err.stack; process.exitCode = 1 }).finally(async () => {
   console.log(JSON.stringify(report,null,2)); fs.writeFileSync(path.join(out,'players.json'),JSON.stringify(report,null,2))

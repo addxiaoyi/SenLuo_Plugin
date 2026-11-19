@@ -23,7 +23,8 @@ class LicenseAuditTests(unittest.TestCase):
                                       capture_output=True, text=True).stdout.strip()
             run("init", "-q")
             (root / "LICENSE").write_text("Copyright Fixture\n", encoding="utf-8")
-            run("add", "LICENSE")
+            (root / "gradle.properties").write_text("mod_license=All Rights Reserved\n", encoding="utf-8")
+            run("add", "LICENSE", "gradle.properties")
             run("-c", "user.name=License Test", "-c", "user.email=license@example.invalid",
                 "commit", "-qm", "fixture")
             commit = run("rev-parse", "HEAD")
@@ -35,6 +36,8 @@ class LicenseAuditTests(unittest.TestCase):
             report = audit(lock, Path(directory) / "references", policy)
         self.assertEqual("review_required", report["repositories"][0]["status"])
         self.assertEqual("LICENSE", report["repositories"][0]["files"][0]["path"])
+        self.assertEqual([{"line": 1, "text": "mod_license=All Rights Reserved"}],
+                         report["repositories"][0]["declarations"][0]["lines"])
 
 
 if __name__ == "__main__":

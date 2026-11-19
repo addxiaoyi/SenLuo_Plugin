@@ -25,11 +25,12 @@ class ImportTests(unittest.TestCase):
 
     def test_pack_builder_writes_declared_pack_namespace(self):
         definition = PackDefinition("music", "MusicPlus", "musicplus", "kseries_music", "music")
-        source = type("Snapshot", (), {"files": {}})()
+        source = type("Snapshot", (), {"files": {"LICENCE": b"License evidence", "src/LICENCE": b"Nested"}})()
         bundle = {}
         PackBuilder("test", "shared").add_module(bundle, definition, source,
                                                   {"items": {}}, {}, {"module": "music"})
         self.assertEqual("kseries_music", parse_json(bundle["music/pack.yml"])["namespace"])
+        self.assertEqual(b"License evidence", bundle["music/upstream-notices/LICENCE"])
 
     def test_music_import_uses_the_official_guitar_texture_in_a_vanilla_model(self):
         class SourceFixture:

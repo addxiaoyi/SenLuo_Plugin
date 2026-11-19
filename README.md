@@ -195,14 +195,14 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/prepare_independent_server
 1. Cookery 继续验证大菜真人营养/效果、主副手、FOOD 效果桥、保护/多人和客户端表现；验证原料取得、玩家合成和取物盘操作。竹筛还需雨天切换、上方/侧方漏斗、锁定/满目标/矿车、完整组件恢复、独立区块卸载和 Folia 跨区验收。
 2. Doll 补精确物理、移动玩偶姿态和原版客户端显示。
 3. Tavern 补葡萄世界生成、酒桶液面、果盆碰撞和多人守恒。
-4. Deco 按模型组件、overlay、脚本事件、座位和碰撞分类处理 417 条聚合缺口。
+4. Deco 按模型组件、overlay、脚本事件、座位和碰撞分类处理 416 条聚合差异。
 5. MusicPlus 补原版可行的乐器模型、持续声部和多人演奏生命周期。
 6. 五插件完成原版客户端资源包、保护插件、多人、重启/卸载和性能验收。
 7. 完成八个上游仓库的许可证人工复核。
 
 ## 许可证与发布
 
-[`docs/license-policy.json`](docs/license-policy.json) 记录八个上游仓库的审核状态。没有许可证文件或未经人工确认的素材不会自动进入正式发布。开发包、独立包和整合包都应携带 `BUILD-MANIFEST.json` 与 `SHA256SUMS.txt`。
+[`docs/license-policy.json`](docs/license-policy.json) 记录八个上游仓库的审核状态，[上游许可证据](series/docs/UPSTREAM-LICENSES.md) 列出整包的发布前置条件。Doll 素材在固定源码中声明保留所有权利，需取得授权或替换后才能纳入公开分发。开发包、独立包和整合包都应携带 `BUILD-MANIFEST.json` 与 `SHA256SUMS.txt`。
 
 ## 继续开发
 

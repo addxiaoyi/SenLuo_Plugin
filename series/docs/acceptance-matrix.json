@@ -48,8 +48,8 @@
       "pack": "deco-ce-pack-0.1.0-dev.zip",
       "required_levels": ["L1", "L2", "L3", "L4", "L5", "L6"],
       "status": "runtime-tested",
-      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json"],
-      "open": ["player-flow", "vanilla-client"]
+      "evidence": ["ACCEPTANCE.md", "../../docs/research/series-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json", "../../docs/research/deco-tulip-acceptance-2026-11-19.json"],
+      "open": ["remaining-furniture-player-flows", "vanilla-client"]
     },
     {
       "module": "music",

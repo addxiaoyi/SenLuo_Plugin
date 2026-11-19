@@ -20,4 +20,6 @@ OP 获取测试物品：`/kdoll kit`、`/ktavern kit`、`/kdeco`、`/kmusic kit`
 
 `BUILD-MANIFEST.json` 和 `SHA256SUMS.txt` 记录构建产物、测试和包内文件哈希；`organization-checkouts.json` 记录8个官方仓库来源提交；原资源说明和许可位于各 CE 内容包的 `upstream-notices/`。
 
+本包用于本地开发和验收。对外发布前按 [上游许可证据](UPSTREAM-LICENSES.md) 复核并解决素材授权。
+
 有库存/加工中的家具拒绝普通拆除；外部强制移除若经过 CE 回调，会在对应插件目录 `recovery/` 保存 NBT 内容快照，需管理员核对后人工恢复，不会自动退款。不要用热加载插件工具测试这些存档流程。

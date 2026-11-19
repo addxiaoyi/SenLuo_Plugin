@@ -12,7 +12,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[3]
-PROBE = re.compile(r'senluoprobe ([0-9]{1,8}) (arrive|supply|scarecrow|inspect) SenLuoProbe[AB]$')
+PROBE = re.compile(r'senluoprobe ([0-9]{1,8}) (arrive|supply|scarecrow|tulip|clearboard|inspect) SenLuoProbe[AB]$')
 
 
 def main() -> int:

@@ -1,7 +1,7 @@
 """Inventory upstream license evidence without making a legal determination.
 
 The source lock is authoritative for repository names and commits.  This tool
-only records root license/notice files and SPDX/copyright markers.  It marks
+records license/notice files, metadata declarations and SPDX/copyright markers. It marks
 every result ``review_required`` until a maintainer confirms that each code and
 asset class may be redistributed in the generated plugin and CE packs.
 """
@@ -81,6 +81,20 @@ def _read_blobs(root: Path, commit: str, paths: list[str]) -> dict[str, bytes]:
     return output
 
 
+def _declarations(root: Path, commit: str) -> list[dict[str, Any]]:
+    paths = git(root, "ls-tree", "--name-only", commit, "--", "README.md", "gradle.properties").decode().splitlines()
+    evidence = []
+    for path, raw in _read_blobs(root, commit, paths).items():
+        pattern = (r"^\s*mod_license\s*=" if path == "gradle.properties" else
+                   r"\blicensed under\b|\b(?:all rights reserved|CC BY[- ]|BSD [23][- ]Clause)\b")
+        declarations = [{"line": n, "text": line.strip()} for n, line in
+                        enumerate(raw.decode("utf-8", errors="replace").splitlines(), 1)
+                        if re.search(pattern, line, re.IGNORECASE)]
+        if declarations:
+            evidence.append({"path": path, "sha256": hashlib.sha256(raw).hexdigest(), "lines": declarations})
+    return evidence
+
+
 def audit(lock: Path = LOCK, references: Path | None = None,
           policy: Path = POLICY) -> dict[str, Any]:
     lock_data = json.loads(lock.read_text(encoding="utf-8"))
@@ -95,7 +109,7 @@ def audit(lock: Path = LOCK, references: Path | None = None,
         name = entry["name"]
         checkout = reference_root / name
         row: dict[str, Any] = {**entry, "commit": pinned[name]["commit"],
-                               "checkout": str(checkout), "status": "missing_checkout", "files": []}
+                               "checkout": str(checkout), "status": "missing_checkout", "files": [], "declarations": []}
         if not checkout.is_dir():
             rows.append(row)
             continue
@@ -115,6 +129,7 @@ def audit(lock: Path = LOCK, references: Path | None = None,
         row["files"] = [{"path": path, "sha256": hashlib.sha256(raw).hexdigest(),
                          "markers": sorted(set(marker.lower() for marker in MARKERS.findall(raw.decode("utf-8", errors="replace"))))}
                         for path, raw in blobs.items()]
+        row["declarations"] = _declarations(checkout, head)
         row["status"] = "review_required" if paths else "license_file_missing"
         rows.append(row)
     return {"schema_version": 1, "generated_by": "tools/audit_licenses.py",

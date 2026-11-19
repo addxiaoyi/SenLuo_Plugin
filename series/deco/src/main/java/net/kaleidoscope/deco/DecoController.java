@@ -15,14 +15,17 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.SoundCategory;
 import org.bukkit.Tag;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 final class DecoController extends InteractiveFurniture {
     private static final String SAVE_KEY = "kaleidoscope_deco:state_v1";
+    private static final String SOFA = "kaleidoscope_deco:kaleidoscope_bar/sofa";
     private static final List<String> MODES = List.of("single", "left", "right", "middle");
     private static final Set<String> COLORS = Set.of("none", "white", "orange", "magenta", "light_blue", "yellow", "lime", "pink",
             "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
@@ -30,12 +33,15 @@ final class DecoController extends InteractiveFurniture {
     private String state;
     private String color = "none";
     private String mode = "single";
+    private boolean transitioning;
 
     DecoController(Furniture furniture, DecoPlugin plugin) {
         super(furniture, plugin); deco = plugin; state = furniture.id().asString();
     }
-    private boolean sofa() { return state.equals("kaleidoscope_deco:kaleidoscope_bar/sofa"); }
-    private String variant() { return state.replace(':', '/') + (sofa() ? "/style/" + color + "/" + mode : ""); }
+    private boolean sofa() { return state.equals(SOFA); }
+    private String variant(String nextState) {
+        return nextState.replace(':', '/') + (SOFA.equals(nextState) ? "/style/" + color + "/" + mode : "");
+    }
 
     private DecoRule rule(Player player) {
         ItemStack held = player.getInventory().getItemInMainHand();
@@ -54,21 +60,57 @@ final class DecoController extends InteractiveFurniture {
                 || id.startsWith("minecraft:") && id.endsWith("_dye") && COLORS.contains(id.substring(10, id.length() - 4));
     }
 
-    @Override protected boolean consumesInteraction(Player player) { return sofaAction(player) || rule(player) != null; }
+    @Override protected boolean consumesInteraction(Player player) { return transitioning || sofaAction(player) || rule(player) != null; }
 
     @Override protected void interact(Player player) {
+        if (transitioning) return;
         if (sofaAction(player)) { style(player); return; }
         DecoRule rule = rule(player);
         if (rule == null) return;
         if (rule.pending()) { player.sendMessage("这件家具的特殊事件尚未移植，当前状态已保留。"); return; }
-        if (!rule.target().isEmpty()) {
-            String previous = state;
-            state = rule.target();
-            if (!furniture().setVariant(variant())) { state = previous; throw new IllegalStateException("Missing Deco variant: " + rule.target()); }
-            changed();
-            saveSource();
-        }
+        if (!rule.target().isEmpty() && !transition(player, rule)) return;
         for (String sound : rule.sounds()) location().getWorld().playSound(location(), sound.replace("kaleidoscope:", "kdeco_kaleidoscope:"), SoundCategory.BLOCKS, 1, 1);
+    }
+
+    private boolean transition(Player player, DecoRule rule) {
+        transitioning = true;
+        Item drop = null;
+        boolean committed = false;
+        try {
+            String target = rule.target();
+            String nextVariant = variant(target);
+            if (!furniture().config().variants().containsKey(nextVariant)) {
+                throw new IllegalStateException("Missing Deco variant: " + target);
+            }
+            var source = sourceItem(target);
+            var inventory = player.getInventory();
+            ItemStack remaining = null;
+            if (rule.consume() && player.getGameMode() != GameMode.CREATIVE) {
+                ItemStack held = inventory.getItemInMainHand();
+                if (held.isEmpty()) return false;
+                remaining = held.clone().subtract(1);
+            }
+            if (!rule.drops().isEmpty()) {
+                String id = rule.drops().get(ThreadLocalRandom.current().nextInt(rule.drops().size()));
+                ItemStack reward = Items.create(id);
+                var at = location();
+                // The spawn hook can deny the return. Keep the decorated board in that case.
+                drop = at.getWorld().dropItem(at, reward.clone(), item -> item.setPickupDelay(10));
+                if (!drop.isValid() || !reward.equals(drop.getItemStack()) || !furniture().isValid()) return false;
+            }
+            if (!furniture().setVariant(nextVariant)) {
+                throw new IllegalStateException("CraftEngine rejected Deco variant: " + nextVariant);
+            }
+            state = target;
+            furniture().setSourceItem(source);
+            changed();
+            if (remaining != null) inventory.setItemInMainHand(remaining);
+            committed = true;
+            return true;
+        } finally {
+            if (!committed && drop != null && drop.isValid()) drop.remove();
+            transitioning = false;
+        }
     }
 
     private void style(Player player) {
@@ -91,14 +133,18 @@ final class DecoController extends InteractiveFurniture {
     }
 
     private void saveSource() {
-        if (blocked()) return;
-        CompoundTag saved = new CompoundTag(); saveCustomData(saved);
+        if (!blocked()) furniture().setSourceItem(sourceItem(state));
+    }
+
+    private net.momirealms.craftengine.core.item.Item sourceItem(String nextState) {
+        CompoundTag saved = new CompoundTag();
+        saved.put(SAVE_KEY, savedState(nextState));
         ItemStack original = furniture().sourceItem() == null ? Items.create(furniture().id().asString())
                 : ItemStackUtils.getBukkitStack(furniture().sourceItem()).asQuantity(1);
         ItemStack item = ItemState.write(original, deco.stateKey(), saved);
-        furniture().setSourceItem(BukkitItemManager.instance().wrap(item));
+        return BukkitItemManager.instance().wrap(item);
     }
-    @Override public void onLoad() { if (!blocked()) { furniture().setVariant(variant()); saveSource(); } }
+    @Override public void onLoad() { if (!blocked()) { furniture().setVariant(variant(state)); saveSource(); } }
     @Override public void onPlace(net.momirealms.craftengine.core.entity.player.Player player) { onLoad(); }
     @Override public void loadCustomDataFromItem(net.momirealms.craftengine.core.item.Item item) {
         ItemStack original = ItemStackUtils.getBukkitStack(item);
@@ -112,9 +158,13 @@ final class DecoController extends InteractiveFurniture {
     }
     @Override public void saveCustomData(CompoundTag root) {
         if (preserveRejected(root)) return;
-        CompoundTag saved = new CompoundTag(); saved.putString("state", state);
+        root.put(SAVE_KEY, savedState(state));
+    }
+
+    private CompoundTag savedState(String nextState) {
+        CompoundTag saved = new CompoundTag(); saved.putString("state", nextState);
         saved.putString("color", color); saved.putString("mode", mode);
-        root.put(SAVE_KEY, SavedState.envelope(SavedState.namespace(SAVE_KEY), 1, SavedState.SERIES_SOURCE, saved));
+        return SavedState.envelope(SavedState.namespace(SAVE_KEY), 1, SavedState.SERIES_SOURCE, saved);
     }
     @Override public void loadCustomData(CompoundTag root) {
         restoreSafely(root, SAVE_KEY, () -> {

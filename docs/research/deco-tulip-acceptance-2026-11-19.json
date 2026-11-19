@@ -1,0 +1,210 @@
+{
+  "date": "2026-11-19",
+  "target": {
+    "minecraft": "1.21.11",
+    "java": 21,
+    "craftEngine": "26.9.1"
+  },
+  "scope": "Two ordinary offline survival protocol players on each loopback server. A test listener cancels one furniture interaction and one item spawn. Both downloaded packs are decoded with the official client codecs.",
+  "cePackSha256": {
+    "deco-ce-pack-0.1.0-dev.zip": "664f551e8bacfe2008f16b7cd81bbde295731f48dc688b55fa0124418e2de437",
+    "doll-ce-pack-0.1.0-dev.zip": "cfc5b20166ef83b6ea2e512f817a01cf18b0a0484e58b6e651a9b38b18f8d231",
+    "music-ce-pack-0.1.0-dev.zip": "5c45ddba200f9c521f4f6d4a6e86f2ac422faa2b3ead6a17bd71a4e9e61f8cc4",
+    "shared-ce-pack-0.1.0-dev.zip": "c0d871a56e99c32421f6c416ea10b4242f8249a68fca993b7280ca1a1f691990",
+    "tavern-ce-pack-0.1.0-dev.zip": "ceacacb43ef85866eb0e55a0cd090fe259f8d106393d2bf823d97cf79ab32425",
+    "cookery-ce-pack-1.3.0.zip": "7340f24cb4522520d8835c71f2a862837b257fd978ce8d0a57dc810265b1f853"
+  },
+  "runs": {
+    "paper": {
+      "server": "Paper 132",
+      "localRun": "build/acceptance/net/paper-tulip-delivery",
+      "readySeconds": 39.288,
+      "serverExit": 0,
+      "serverErrors": [],
+      "consoleSha256": "388573ec2c16756f8bc99c28d4b3f885853a784b6fd440f5017083ce33f5d1df",
+      "gameplayJarSha256": {
+        "KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "KaleidoscopeDeco-0.1.0-dev.jar": "d0d02169444e0f10e70e2e4ee0a631cd3934caa45fa6f6030ad815dbfddcbc43",
+        "KaleidoscopeDoll-0.1.0-dev.jar": "20814521faa450ad64391e2c18efb66f7f776b0a36b6b051a26af7af4926c962",
+        "KaleidoscopeMusic-0.1.0-dev.jar": "5b659835e4beae999f97b8efc30c53ea96061b0119c4cb9698137dc64e08aded",
+        "KaleidoscopeTavern-0.1.0-dev.jar": "f28e907ceb7990ae6a6f9b9ac2bb74843b55aa6a60cadf8f0f4884bf06616636"
+      },
+      "matchingInstalledCeFiles": 10479,
+      "packs": [
+        {
+          "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+          "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+          "client": "1.21.11",
+          "assetsRead": 14203
+        },
+        {
+          "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+          "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+          "client": "1.21.11",
+          "assetsRead": 14203
+        }
+      ],
+      "playerChecks": {
+        "smithing": {
+          "canceledShift": 1,
+          "productsWithPreservedComponents": 2,
+          "remainingTemplates": 1,
+          "remainingIngots": 3
+        },
+        "steamer": {
+          "craftedSlots": [
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1"
+          ],
+          "placedSlots": [
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1"
+          ],
+          "recoveredDough": 4,
+          "recoveredSteamers": 1,
+          "extraDrops": 0
+        },
+        "scarecrow": {
+          "hits": [
+            {
+              "player": "SenLuoProbeB",
+              "canceled": true,
+              "regionOwned": true,
+              "tick": 11923
+            },
+            {
+              "player": "SenLuoProbeA",
+              "canceled": true,
+              "regionOwned": true,
+              "tick": 11933
+            },
+            {
+              "player": "SenLuoProbeB",
+              "canceled": false,
+              "regionOwned": true,
+              "tick": 11934
+            }
+          ],
+          "drops": [
+            {
+              "id": "kaleidoscopecookery:scarecrow",
+              "count": 1
+            }
+          ]
+        },
+        "tulipBoard": {
+          "consumed": 1,
+          "fullInventory": true,
+          "deniedInteraction": 1,
+          "deniedSpawn": 1,
+          "returned": {
+            "id": "minecraft:pink_tulip",
+            "count": 1
+          }
+        }
+      }
+    },
+    "folia": {
+      "server": "Folia 14",
+      "localRun": "build/acceptance/net/folia-tulip-delivery",
+      "readySeconds": 33.38,
+      "serverExit": 0,
+      "serverErrors": [],
+      "consoleSha256": "26916487fb5745cb4aea2b30b1c5578283c2dcc9bd511e7e7cfb720603f9bdac",
+      "gameplayJarSha256": {
+        "KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "KaleidoscopeDeco-0.1.0-dev.jar": "d0d02169444e0f10e70e2e4ee0a631cd3934caa45fa6f6030ad815dbfddcbc43",
+        "KaleidoscopeDoll-0.1.0-dev.jar": "20814521faa450ad64391e2c18efb66f7f776b0a36b6b051a26af7af4926c962",
+        "KaleidoscopeMusic-0.1.0-dev.jar": "5b659835e4beae999f97b8efc30c53ea96061b0119c4cb9698137dc64e08aded",
+        "KaleidoscopeTavern-0.1.0-dev.jar": "f28e907ceb7990ae6a6f9b9ac2bb74843b55aa6a60cadf8f0f4884bf06616636"
+      },
+      "matchingInstalledCeFiles": 10479,
+      "packs": [
+        {
+          "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+          "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+          "client": "1.21.11",
+          "assetsRead": 14203
+        },
+        {
+          "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+          "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+          "client": "1.21.11",
+          "assetsRead": 14203
+        }
+      ],
+      "playerChecks": {
+        "smithing": {
+          "canceledShift": 1,
+          "productsWithPreservedComponents": 2,
+          "remainingTemplates": 1,
+          "remainingIngots": 3
+        },
+        "steamer": {
+          "craftedSlots": [
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1"
+          ],
+          "placedSlots": [
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1",
+            "kaleidoscopecookery:raw_dough*1"
+          ],
+          "recoveredDough": 4,
+          "recoveredSteamers": 1,
+          "extraDrops": 0
+        },
+        "scarecrow": {
+          "hits": [
+            {
+              "tick": 42714,
+              "regionOwned": true,
+              "canceled": true,
+              "player": "SenLuoProbeB"
+            },
+            {
+              "tick": 42723,
+              "regionOwned": true,
+              "canceled": true,
+              "player": "SenLuoProbeA"
+            },
+            {
+              "tick": 42725,
+              "regionOwned": true,
+              "canceled": false,
+              "player": "SenLuoProbeB"
+            }
+          ],
+          "drops": [
+            {
+              "id": "kaleidoscopecookery:scarecrow",
+              "count": 1
+            }
+          ]
+        },
+        "tulipBoard": {
+          "consumed": 1,
+          "fullInventory": true,
+          "deniedInteraction": 1,
+          "deniedSpawn": 1,
+          "returned": {
+            "id": "minecraft:white_tulip",
+            "count": 1
+          }
+        }
+      }
+    }
+  },
+  "open": [
+    "GPU visual/audio and authenticated vanilla client",
+    "furniture restart and third-party protection plugins",
+    "cross-region, reload and furniture density"
+  ]
+}

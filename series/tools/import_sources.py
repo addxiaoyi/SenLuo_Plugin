@@ -724,7 +724,7 @@ class PackBuilder:
         for path, content in assets.items():
             bundle[f"{module}/resourcepack/assets/{path}"] = content
         for path, content in source.files.items():
-            if "/" not in path and ("LICENSE" in path.upper() or path.lower().startswith("readme")):
+            if "/" not in path and path.lower().startswith(("license", "licence", "notice", "copying", "readme")):
                 bundle[f"{module}/upstream-notices/{path}"] = content
         bundle[f"{module}/IMPORT-REPORT.json"] = json_bytes(report)
 
