@@ -123,9 +123,9 @@
       "module": "cookery",
       "title": "612 条来源配方全部裁决",
       "parity_level": "A",
-      "status": "blocked",
+      "status": "runtime_tested",
       "source_ids": ["KaleidoscopeCookery:recipes-612"],
-      "evidence": ["docs/COOKERY-PARITY.md", "docs/research/cookery-pending-recipes-2026-11-15.json"]
+      "evidence": ["docs/COOKERY-PARITY.md", "tools/test_cookery_kitchen_pack.py", "docs/research/series-runtime-2026-11-18.json", "docs/research/series-connected-2026-11-19.json", "docs/research/deco-tulip-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "C09",
@@ -179,7 +179,7 @@
       "parity_level": "B",
       "status": "implemented",
       "source_ids": ["KaleidoscopeDeco:furniture-states"],
-      "evidence": ["series/deco/src/test", "series/docs/PORTING-MATRIX.md"]
+      "evidence": ["series/deco/src/test", "series/docs/PORTING-MATRIX.md", "docs/research/series-polish-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "F06",

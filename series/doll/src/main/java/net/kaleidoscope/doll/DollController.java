@@ -16,6 +16,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -93,31 +94,43 @@ public final class DollController extends InteractiveFurniture {
         if (source != null && source.isEmpty()) source = null;
         if (source == null && pose.isOrigin()) return;
         var item = source == null ? Items.create(furniture().id().asString())
-                : ItemStackUtils.getBukkitStack(source).asQuantity(1);
+                : bukkitStack(source).asQuantity(1);
         var meta = item.getItemMeta();
         boolean hasPose = meta.getPersistentDataContainer().has(itemPoseKey);
         if (!pose.isOrigin()) {
-            furniture().setSourceItem(BukkitItemManager.instance().wrap(ItemState.write(item, itemPoseKey, poseData())));
+            furniture().setSourceItem(ceItem(ItemState.write(item, itemPoseKey, poseData())));
         } else if (hasPose) {
             meta.getPersistentDataContainer().remove(itemPoseKey);
             var defaultMeta = Items.create(furniture().id().asString()).getItemMeta();
             meta.setMaxStackSize(defaultMeta.hasMaxStackSize() ? defaultMeta.getMaxStackSize() : null);
             item.setItemMeta(meta);
-            furniture().setSourceItem(BukkitItemManager.instance().wrap(item));
+            furniture().setSourceItem(ceItem(item));
         }
     }
 
     @Override public void loadCustomDataFromItem(net.momirealms.craftengine.core.item.Item item) {
         if (item.isEmpty()) return;
-        var stack = ItemStackUtils.getBukkitStack(item);
+        var stack = bukkitStack(item);
         CompoundTag root = new CompoundTag();
         CompoundTag snapshot = new CompoundTag();
         SavedItems.put(snapshot, "source_item", stack);
         root.put(SAVE_KEY, snapshot);
         restoreSafely(root, SAVE_KEY, () -> {
             CompoundTag saved = ItemState.read(stack, itemPoseKey);
-            if (saved != null) pose = readPose(saved);
+            if (saved != null) {
+                pose = readPose(saved);
+                // CraftEngine loads item data after its initial onLoad/onPlace callbacks.
+                onLoad();
+            }
         });
+    }
+
+    ItemStack bukkitStack(net.momirealms.craftengine.core.item.Item item) {
+        return ItemStackUtils.getBukkitStack(item);
+    }
+
+    net.momirealms.craftengine.core.item.Item ceItem(ItemStack item) {
+        return BukkitItemManager.instance().wrap(item);
     }
 
     private CompoundTag poseData() {

@@ -68,9 +68,10 @@ public final class DollPlugin extends SeriesPlugin implements Listener {
         if (!catalog.dolls().contains(id)) return;
         Set<String> owned = collection(player);
         boolean first = owned.add(id);
-        getServer().getPluginManager().callEvent(new DollCollectedEvent(player, id, first));
         if (first) player.getPersistentDataContainer().set(collectionKey, PersistentDataType.STRING,
                 String.join("\n", owned.stream().sorted().toList()));
+        // Persist before publishing: listeners may collect another doll synchronously.
+        getServer().getPluginManager().callEvent(new DollCollectedEvent(player, id, first));
     }
 
     private Set<String> collection(Player player) {

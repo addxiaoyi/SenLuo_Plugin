@@ -41,11 +41,10 @@ public final class ShakerController extends InteractiveFurniture {
             if (!Items.id(held).equals("kaleidoscope_tavern:empty_glassware")) {
                 player.sendMessage("调酒完成，手持空鸡尾酒杯取酒。"); return;
             }
-            Runnable empty = prepareContents(new ShakerContents(new ItemStack[3], null));
-            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(cocktail))) {
+            var empty = prepareCommit(new ShakerContents(new ItemStack[3], null));
+            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(cocktail), empty)) {
                 player.sendMessage("背包空间不足，鸡尾酒已保留。"); return;
             }
-            empty.run();
             return;
         }
         if (mixing) {
@@ -73,11 +72,10 @@ public final class ShakerController extends InteractiveFurniture {
         ItemStack ingredient = held.asQuantity(1);
         ItemStack[] nextSlots = slots.clone();
         nextSlots[index] = ingredient;
-        Runnable insert = prepareContents(new ShakerContents(nextSlots, null));
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, returned)) {
+        var insert = prepareCommit(new ShakerContents(nextSlots, null));
+        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, returned, insert)) {
             player.sendMessage("背包没有空位返还容器。"); return;
         }
-        insert.run();
         location().getWorld().playSound(location(), Sound.ITEM_BOTTLE_EMPTY, 0.75f, 1);
     }
 
@@ -86,7 +84,7 @@ public final class ShakerController extends InteractiveFurniture {
     }
 
     private void tick() {
-        if (!operational() || !mixing) return;
+        if (!operational() || isInteracting() || !mixing) return;
         ticks++;
         if (ticks % 10 == 0) location().getWorld().playSound(location(), Sound.ITEM_BOTTLE_FILL, 0.5f, 1.2f);
         if (ticks >= ShakerTiming.TIMEOUT) {
@@ -108,15 +106,27 @@ public final class ShakerController extends InteractiveFurniture {
         ShakerContents carried = tavern.shakers().contents(held);
         ShakerContents placed = new ShakerContents(slots, cocktail);
         if (!carried.empty() && !placed.empty()) { player.sendMessage("两个雪克杯都有内容，请先腾空一个。"); return; }
-        Runnable replace = prepareContents(carried);
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(tavern.shakers().pack(held, placed)))) return;
-        replace.run();
+        var replace = prepareCommit(carried);
+        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1,
+                List.of(tavern.shakers().pack(held, placed)), replace)) return;
         player.sendMessage("雪克杯内容已转装；手持右键摇动，松开停止，潜行右键方块放置。");
     }
 
     private void syncSource() {
         if (blocked()) return;
         prepareContents(new ShakerContents(slots, cocktail)).run();
+    }
+
+    private java.util.function.BooleanSupplier prepareCommit(ShakerContents next) {
+        ItemStack[] expectedSlots = slots.clone();
+        ItemStack expectedCocktail = cocktail;
+        Runnable prepared = prepareContents(next);
+        return () -> {
+            if (!operational() || !furniture().isValid() || mixing || cocktail != expectedCocktail) return false;
+            for (int i = 0; i < slots.length; i++) if (slots[i] != expectedSlots[i]) return false;
+            prepared.run();
+            return true;
+        };
     }
 
     private Runnable prepareContents(ShakerContents next) {

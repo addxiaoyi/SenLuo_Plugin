@@ -77,16 +77,17 @@ final class DecoController extends InteractiveFurniture {
         Item drop = null;
         boolean committed = false;
         try {
+            var inventory = player.getInventory();
+            int heldSlot = inventory.getHeldItemSlot();
+            ItemStack held = inventory.getItemInMainHand().clone();
             String target = rule.target();
             String nextVariant = variant(target);
             if (!furniture().config().variants().containsKey(nextVariant)) {
                 throw new IllegalStateException("Missing Deco variant: " + target);
             }
             var source = sourceItem(target);
-            var inventory = player.getInventory();
             ItemStack remaining = null;
             if (rule.consume() && player.getGameMode() != GameMode.CREATIVE) {
-                ItemStack held = inventory.getItemInMainHand();
                 if (held.isEmpty()) return false;
                 remaining = held.clone().subtract(1);
             }
@@ -96,10 +97,11 @@ final class DecoController extends InteractiveFurniture {
                 var at = location();
                 // The spawn hook can deny the return. Keep the decorated board in that case.
                 drop = at.getWorld().dropItem(at, reward.clone(), item -> item.setPickupDelay(10));
-                if (!drop.isValid() || !reward.equals(drop.getItemStack()) || !furniture().isValid()) return false;
+                if (!drop.isValid() || !reward.equals(drop.getItemStack()) || !accessible(player)
+                        || inventory.getHeldItemSlot() != heldSlot || !sameItem(held, inventory.getItemInMainHand())) return false;
             }
             if (!furniture().setVariant(nextVariant)) {
-                throw new IllegalStateException("CraftEngine rejected Deco variant: " + nextVariant);
+                return false;
             }
             state = target;
             furniture().setSourceItem(source);
@@ -114,6 +116,15 @@ final class DecoController extends InteractiveFurniture {
     }
 
     private void style(Player player) {
+        transitioning = true;
+        try {
+            styleOnce(player);
+        } finally {
+            transitioning = false;
+        }
+    }
+
+    private void styleOnce(Player player) {
         ItemStack held = player.getInventory().getItemInMainHand();
         String id = Items.id(held), nextColor = color, nextMode = mode;
         int cost = 0;
@@ -123,13 +134,26 @@ final class DecoController extends InteractiveFurniture {
         if (color.equals(nextColor) && mode.equals(nextMode)) return;
         String nextVariant = state.replace(':', '/') + "/style/" + nextColor + "/" + nextMode;
         // Validate the generated visual before taking a dye.
-        if (!deco.styles().contains(nextVariant)) throw new IllegalStateException("Missing sofa style: " + nextVariant);
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, cost, List.of())) return;
-        color = nextColor; mode = nextMode;
-        changed();
-        saveSource();
-        if (!furniture().setVariant(nextVariant)) throw new IllegalStateException("CraftEngine rejected sofa variant: " + nextVariant);
-        location().getWorld().playSound(location(), org.bukkit.Sound.ENTITY_LLAMA_SWAG, 1, 1);
+        if (!deco.styles().contains(nextVariant) || !furniture().config().variants().containsKey(nextVariant))
+            throw new IllegalStateException("Missing sofa style: " + nextVariant);
+        var source = sourceItem(state, nextColor, nextMode);
+        String committedColor = nextColor, committedMode = nextMode;
+        int heldSlot = player.getInventory().getHeldItemSlot();
+        ItemStack expected = held.clone();
+        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, cost, List.of(), () -> {
+            if (!accessible(player) || blocked() || player.getInventory().getHeldItemSlot() != heldSlot
+                    || !sameItem(expected, player.getInventory().getItemInMainHand())) return false;
+            if (!furniture().setVariant(nextVariant)) return false;
+            color = committedColor; mode = committedMode;
+            furniture().setSourceItem(source);
+            changed();
+            return true;
+        })) return;
+        location().getWorld().playSound(location(), "minecraft:entity.llama.swag", 1, 1);
+    }
+
+    private static boolean sameItem(ItemStack expected, ItemStack actual) {
+        return actual != null && expected.getAmount() == actual.getAmount() && expected.isSimilar(actual);
     }
 
     private void saveSource() {
@@ -137,23 +161,36 @@ final class DecoController extends InteractiveFurniture {
     }
 
     private net.momirealms.craftengine.core.item.Item sourceItem(String nextState) {
+        return sourceItem(nextState, color, mode);
+    }
+
+    net.momirealms.craftengine.core.item.Item sourceItem(String nextState, String nextColor, String nextMode) {
         CompoundTag saved = new CompoundTag();
-        saved.put(SAVE_KEY, savedState(nextState));
+        saved.put(SAVE_KEY, savedState(nextState, nextColor, nextMode));
         ItemStack original = furniture().sourceItem() == null ? Items.create(furniture().id().asString())
-                : ItemStackUtils.getBukkitStack(furniture().sourceItem()).asQuantity(1);
+                : bukkitStack(furniture().sourceItem()).asQuantity(1);
         ItemStack item = ItemState.write(original, deco.stateKey(), saved);
         return BukkitItemManager.instance().wrap(item);
     }
+
+    ItemStack bukkitStack(net.momirealms.craftengine.core.item.Item item) {
+        return ItemStackUtils.getBukkitStack(item);
+    }
+
     @Override public void onLoad() { if (!blocked()) { furniture().setVariant(variant(state)); saveSource(); } }
     @Override public void onPlace(net.momirealms.craftengine.core.entity.player.Player player) { onLoad(); }
     @Override public void loadCustomDataFromItem(net.momirealms.craftengine.core.item.Item item) {
-        ItemStack original = ItemStackUtils.getBukkitStack(item);
+        ItemStack original = bukkitStack(item);
         CompoundTag root = new CompoundTag(), rejected = new CompoundTag();
         net.kaleidoscope.series.SavedItems.put(rejected, "source_item", original);
         root.put(SAVE_KEY, rejected);
         restoreSafely(root, SAVE_KEY, () -> {
             CompoundTag saved = ItemState.read(original, deco.stateKey());
-            if (saved != null) loadCustomData(saved);
+            if (saved != null) {
+                loadCustomData(saved);
+                // CE restores held-item data after onLoad/onPlace; refresh the visual and future drop now.
+                onLoad();
+            }
         });
     }
     @Override public void saveCustomData(CompoundTag root) {
@@ -162,8 +199,12 @@ final class DecoController extends InteractiveFurniture {
     }
 
     private CompoundTag savedState(String nextState) {
+        return savedState(nextState, color, mode);
+    }
+
+    private CompoundTag savedState(String nextState, String nextColor, String nextMode) {
         CompoundTag saved = new CompoundTag(); saved.putString("state", nextState);
-        saved.putString("color", color); saved.putString("mode", mode);
+        saved.putString("color", nextColor); saved.putString("mode", nextMode);
         return SavedState.envelope(SavedState.namespace(SAVE_KEY), 1, SavedState.SERIES_SOURCE, saved);
     }
     @Override public void loadCustomData(CompoundTag root) {

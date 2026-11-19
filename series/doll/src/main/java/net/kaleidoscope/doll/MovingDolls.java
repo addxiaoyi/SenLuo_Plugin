@@ -38,6 +38,7 @@ final class MovingDolls implements Listener {
     private final Set<String> dolls;
     private final Map<UUID, Charge> charges = new ConcurrentHashMap<>();
     private final Set<UUID> ticking = ConcurrentHashMap.newKeySet();
+    private final Set<UUID> reclaiming = ConcurrentHashMap.newKeySet();
     private final int lifetime;
     private final double phantomChance;
 
@@ -146,6 +147,7 @@ final class MovingDolls implements Listener {
         if (!marked(event.getRightClicked())) return;
         event.setCancelled(true);
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (!Bukkit.isOwnedByCurrentRegion(event.getPlayer()) || !Bukkit.isOwnedByCurrentRegion(event.getRightClicked())) return;
         if (doll(event.getPlayer().getInventory().getItemInMainHand())) { mount(event); return; }
         if (!plugin.mayUse(event.getPlayer(), event.getRightClicked().getLocation())
                 || !plugin.allows(event.getPlayer(), Flag.INTERACT_ENTITY, event.getRightClicked())) return;
@@ -160,17 +162,30 @@ final class MovingDolls implements Listener {
         ArmorStand stand = (ArmorStand) event.getEntity();
         if (denied) return;
         if (event instanceof EntityDamageByEntityEvent attack && attack.getDamager() instanceof Player player) {
-            if (!plugin.mayUse(player, stand.getLocation()) || !plugin.allows(player, Flag.DAMAGE_ENTITY, stand)
-                    || !plugin.allows(player, Flag.BREAK, stand.getLocation())) return;
-            plugin.attempt(player, () -> {
-                ItemStack item = stand.getEquipment().getHelmet();
-                if (!doll(item)) throw new IllegalStateException("Moving doll lost its item: " + stand.getUniqueId());
-                if (player.getGameMode() != GameMode.CREATIVE && !InventoryTrade.give(player.getInventory(), item)) {
-                    player.sendMessage("背包空间不足，玩偶已保留。"); return;
-                }
-                plugin.collected(player, Items.id(item));
-                stand.remove();
-            });
+            if (!Bukkit.isOwnedByCurrentRegion(player) || !Bukkit.isOwnedByCurrentRegion(stand)
+                    || !stand.isValid()) return;
+            if (!reclaiming.add(stand.getUniqueId())) return;
+            try {
+                if (!plugin.mayUse(player, stand.getLocation()) || !plugin.allows(player, Flag.DAMAGE_ENTITY, stand)
+                        || !plugin.allows(player, Flag.BREAK, stand.getLocation())) return;
+                plugin.attempt(player, () -> {
+                    if (!stand.isValid() || !Bukkit.isOwnedByCurrentRegion(stand)) return;
+                    ItemStack item = stand.getEquipment().getHelmet();
+                    if (!doll(item)) throw new IllegalStateException("Moving doll lost its item: " + stand.getUniqueId());
+                    if (player.getGameMode() != GameMode.CREATIVE
+                            && !InventoryTrade.exchange(player.getInventory(), stack -> false, 0, List.of(item), () ->
+                            stand.isValid() && Bukkit.isOwnedByCurrentRegion(stand)
+                                    && item.equals(stand.getEquipment().getHelmet()))) {
+                        player.sendMessage("背包空间不足或玩偶状态已改变，未进行兑换。");
+                        return;
+                    }
+                    // Entity removal publishes callbacks; do it after the inventory write while the recovery gate remains held.
+                    stand.remove();
+                    plugin.collected(player, Items.id(item));
+                });
+            } finally {
+                reclaiming.remove(stand.getUniqueId());
+            }
         } else {
             noise(stand);
             if (stand.getVehicle() == null && stand.isOnGround()) stand.setVelocity(new Vector(0, 0.2, 0));

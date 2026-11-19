@@ -11,6 +11,11 @@ import net.momirealms.craftengine.bukkit.api.event.FurnitureBreakEvent;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
+import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.world.EntityHitResult;
+import net.momirealms.craftengine.core.world.Vec3d;
+import net.momirealms.craftengine.core.world.context.InteractEntityContext;
 import net.momirealms.craftengine.core.world.BlockPos;
 import org.bukkit.*;
 import org.bukkit.command.ConsoleCommandSender;
@@ -28,6 +33,8 @@ import java.util.*;
 final class ConnectedKitchenProbe implements Listener {
     private static final int X = 680, Y = 200, Z = 8;
     private static final Key BOARD = Key.of("kaleidoscope_deco:kaleidoscope_bar/blackboard/0");
+    private static final Key SOFA = Key.of("kaleidoscope_deco:kaleidoscope_bar/sofa");
+    private static final Key DOLL = Key.of("kaleidoscope_doll:doll_0");
     private static final String FIRST = "SenLuoProbeA", SECOND = "SenLuoProbeB";
     private static final Gson JSON = new Gson();
     private final JavaPlugin plugin;
@@ -35,6 +42,10 @@ final class ConnectedKitchenProbe implements Listener {
     private final List<Map<String, Object>> hits = new ArrayList<>(), drops = new ArrayList<>();
     private BukkitFurniture scarecrow;
     private BukkitFurniture board;
+    private BukkitFurniture sofa;
+    private BukkitFurniture doll;
+    private int sofaStage, canceledTrades, changedSlots;
+    private boolean nestedSofaRejected;
     private boolean observeDrops, cancelSmith;
     private int canceled, boardDenied, flowerDenied;
 
@@ -45,6 +56,7 @@ final class ConnectedKitchenProbe implements Listener {
         var world = Objects.requireNonNull(Bukkit.getWorld("acceptance-world"));
         var probe = new ConnectedKitchenProbe(plugin, world);
         Bukkit.getPluginManager().registerEvents(probe, plugin);
+        probe.observeDecoTrades();
         var cmd = Objects.requireNonNull(plugin.getCommand("senluoprobe"));
         cmd.setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof ConsoleCommandSender) || args.length != 3 || !args[0].matches("[0-9]{1,8}")
@@ -55,6 +67,39 @@ final class ConnectedKitchenProbe implements Listener {
     }
 
     private void reply(String token, Object result) { plugin.getLogger().info("CONNECTED_REPLY " + token + " " + JSON.toJson(result)); }
+
+    @SuppressWarnings("unchecked")
+    private void observeDecoTrades() {
+        var deco = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("KaleidoscopeDecoPlugin"));
+        try {
+            Class<? extends Event> trade = (Class<? extends Event>) deco.getClass().getClassLoader()
+                    .loadClass("net.kaleidoscope.deco.internal.InventoryTradeEvent");
+            Bukkit.getPluginManager().registerEvent(trade, this, EventPriority.HIGHEST, (listener, event) -> {
+                if (sofa == null || !sofa.isValid()) return;
+                try {
+                    Player actor = (Player) trade.getMethod("player").invoke(event);
+                    if (!FIRST.equals(actor.getName())) return;
+                    switch (sofaStage++) {
+                        case 0 -> { ((Cancellable) event).setCancelled(true); canceledTrades++; }
+                        case 1 -> { actor.getInventory().setHeldItemSlot(1); changedSlots++; }
+                        case 2 -> {
+                            Player other = Objects.requireNonNull(Bukkit.getPlayerExact(SECOND));
+                            if (!Bukkit.isOwnedByCurrentRegion(other)) throw new IllegalStateException("Nested fixture player moved regions");
+                            var at = sofa.location().add(0, .45, 0);
+                            var hit = new EntityHitResult(Direction.UP, new Vec3d(at.getX(), at.getY(), at.getZ()));
+                            var context = new InteractEntityContext(BukkitAdaptor.adapt(other), InteractionHand.MAIN_HAND, hit);
+                            nestedSofaRejected = !sofa.controller.useOnFurniture(sofa.hitboxes().getFirst(), context).success();
+                        }
+                        default -> { }
+                    }
+                } catch (ReflectiveOperationException failure) {
+                    throw new IllegalStateException(failure);
+                }
+            }, plugin, true);
+        } catch (ClassNotFoundException failure) {
+            throw new IllegalStateException("Deco trade boundary unavailable", failure);
+        }
+    }
 
     private void dispatch(String token, String action, String name) {
         var player = Bukkit.getPlayerExact(name);
@@ -122,6 +167,59 @@ final class ConnectedKitchenProbe implements Listener {
                         if (board != null && board.isValid()) board.destroy();
                         board = null;
                     }
+                    case "sofa" -> {
+                        if (FIRST.equals(name)) {
+                            var center = new Location(world, X + 2.5, Y, Z + 1.5);
+                            var ray = center.clone().add(0, .45, -.8).setDirection(new org.bukkit.util.Vector(0, 0, 1));
+                            var old = CraftEngineFurniture.rayTrace(ray, 1.6);
+                            if (old != null) {
+                                if (!old.id().equals(SOFA)) throw new IllegalStateException("Unexpected fixture furniture " + old.id());
+                                old.destroy();
+                            }
+                            sofa = Objects.requireNonNull(CraftEngineFurniture.place(center, SOFA, "ground", false));
+                            sofaStage = canceledTrades = changedSlots = 0;
+                            nestedSofaRejected = false;
+                            drops.clear();
+                        }
+                        var inv = player.getInventory(); inv.clear();
+                        inv.setItem(0, new ItemStack(FIRST.equals(name) ? Material.RED_DYE : Material.BLUE_DYE, 3));
+                        inv.setItem(1, new ItemStack(Material.BLUE_DYE, 3));
+                        inv.setItem(2, ce("kaleidoscope_deco:state_tool", 1));
+                        inv.setItem(3, new ItemStack(Material.WATER_BUCKET));
+                    }
+                    case "clearsofa" -> {
+                        if (sofa != null && sofa.isValid()) sofa.destroy();
+                        sofa = null;
+                    }
+                    case "inspectsofa" -> {
+                        var ray = new Location(world, X + 2.5, Y + .45, Z + .7)
+                                .setDirection(new org.bukkit.util.Vector(0, 0, 1));
+                        sofa = CraftEngineFurniture.rayTrace(ray, 1.6);
+                        if (sofa != null && !sofa.id().equals(SOFA)) throw new IllegalStateException("Unexpected sofa fixture");
+                    }
+                    case "doll" -> {
+                        var center = new Location(world, X + 2.5, Y, Z + 1.5);
+                        var ray = center.clone().add(0, .45, -.8).setDirection(new org.bukkit.util.Vector(0, 0, 1));
+                        var old = CraftEngineFurniture.rayTrace(ray, 1.6);
+                        if (old != null) {
+                            if (!old.id().equals(DOLL)) throw new IllegalStateException("Unexpected fixture furniture " + old.id());
+                            old.destroy();
+                        }
+                        doll = Objects.requireNonNull(CraftEngineFurniture.place(center, DOLL, "ground", false));
+                        player.getInventory().clear();
+                        player.getInventory().setItem(0, ce("kaleidoscope_doll:tweaks_tool", 1));
+                        drops.clear();
+                    }
+                    case "cleardoll" -> {
+                        if (doll != null && doll.isValid()) doll.destroy();
+                        doll = null;
+                    }
+                    case "inspectdoll" -> {
+                        var ray = new Location(world, X + 2.5, Y + .45, Z + .7)
+                                .setDirection(new org.bukkit.util.Vector(0, 0, 1));
+                        doll = CraftEngineFurniture.rayTrace(ray, 1.6);
+                        if (doll != null && !doll.id().equals(DOLL)) throw new IllegalStateException("Unexpected doll fixture");
+                    }
                     case "inspect" -> { }
                     default -> throw new IllegalArgumentException(action);
                 }
@@ -131,7 +229,11 @@ final class ConnectedKitchenProbe implements Listener {
     }
 
     private static ItemStack custom(String name, int count) {
-        var item = InventoryUtils.bukkitCopy(InventoryUtils.createOrEmpty(Key.of("kaleidoscopecookery:" + name)));
+        return ce("kaleidoscopecookery:" + name, count);
+    }
+
+    private static ItemStack ce(String id, int count) {
+        var item = InventoryUtils.bukkitCopy(InventoryUtils.createOrEmpty(Key.of(id)));
         item.setAmount(count); return item;
     }
 
@@ -146,6 +248,20 @@ final class ConnectedKitchenProbe implements Listener {
         if (item.id().equals(SteamerItemContents.ID)) data.put("slots", contents(SteamerItemContents.read(item)));
         if (item.id().toString().equals("kaleidoscopecookery:netherite_kitchen_knife")) SmithingSmoke.assertProduct(stack);
         return data;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String dollPose() {
+        var plugin = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("KaleidoscopeDollPlugin"));
+        try {
+            var type = (Class<? extends net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController>)
+                    plugin.getClass().getClassLoader().loadClass("net.kaleidoscope.doll.DollController");
+            var data = new net.momirealms.craftengine.libraries.nbt.CompoundTag();
+            Objects.requireNonNull(doll.controller.get(type, 0)).saveCustomData(data);
+            return data.getCompound("kaleidoscope_doll:pose_v1").getCompound("payload").getString("pose");
+        } catch (ClassNotFoundException failure) {
+            throw new IllegalStateException("Doll pose controller unavailable", failure);
+        }
     }
 
     private Map<String,Object> snapshot(Player player) {
@@ -164,6 +280,18 @@ final class ConnectedKitchenProbe implements Listener {
             state.put("boardHitbox", board.interactableEntityIds()[0]);
             state.put("boardDenied", boardDenied);
             state.put("flowerDenied", flowerDenied);
+        }
+        if (sofa != null && sofa.isValid()) {
+            state.put("sofa", sofa.currentVariant().name());
+            state.put("sofaHitbox", sofa.interactableEntityIds()[0]);
+        }
+        state.put("canceledTrades", canceledTrades);
+        state.put("changedSlots", changedSlots);
+        state.put("nestedSofaRejected", nestedSofaRejected);
+        state.put("heldSlot", player.getInventory().getHeldItemSlot());
+        if (doll != null && doll.isValid()) {
+            state.put("dollPose", dollPose());
+            state.put("dollHitbox", doll.interactableEntityIds()[0]);
         }
         if (scarecrow != null && scarecrow.isValid()) {
             var body = scarecrow.hitboxes().getFirst().part(0);

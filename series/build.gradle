@@ -8,6 +8,10 @@ subprojects {
     version = '0.1.0-dev'
     repositories {
         mavenCentral()
+        exclusiveContent {
+            forRepository { maven { url = 'https://api.modrinth.com/maven' } }
+            filter { includeGroup('maven.modrinth') }
+        }
         maven { url = 'https://repo.papermc.io/repository/maven-public/' }
         maven { url = 'https://repo.momirealms.net/releases/' }
     }
@@ -32,10 +36,17 @@ subprojects {
         useJUnitPlatform()
         systemProperty 'file.encoding', 'UTF-8'
     }
-    if (name in ['common', 'tavern']) {
+    if (name in ['common', 'tavern', 'deco', 'doll']) {
         dependencies {
             testImplementation 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
             testImplementation "net.momirealms:craft-engine-core:${craftEngineVersion}"
+            testImplementation "net.momirealms:craft-engine-bukkit:${craftEngineVersion}"
+            testImplementation 'net.momirealms:sparrow-nbt:0.18.8'
+            testImplementation 'net.momirealms:sparrow-util:0.112'
+            testImplementation 'io.netty:netty-transport:4.1.100.Final'
+            testImplementation 'com.mojang:authlib:7.0.61'
+            // CE's published API signatures reference classes only in its runtime JAR.
+            testRuntimeOnly "maven.modrinth:craftengine:${craftEngineVersion}"
             testImplementation 'org.mockito:mockito-core:5.15.2'
         }
     }

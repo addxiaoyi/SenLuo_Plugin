@@ -21,9 +21,9 @@ Cookery 厨房 · Doll 玩偶 · Tavern 酒馆 · Deco 装饰 · MusicPlus 音�
 | 插件 | JAR | CE 内容包 | 当前证据 | 主要缺口 |
 | --- | --- | --- | --- | --- |
 | Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 612/612 条来源配方，1,432 个物品，81 个方块和 25 件家具。[验收记录](docs/VALIDATION.md) | 原版客户端显示、玩家合成与容器守恒 |
-| Doll | `KaleidoscopeDoll-0.1.0-dev.jar` | `doll-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 精确物理、Bedrock 模型、玩家流程 |
+| Doll | `KaleidoscopeDoll-0.1.0-dev.jar` | `doll-ce-pack-*.zip` | Paper/Folia 启动及 `doll_0` 九轴菜单、拆装重放协议验证通过 | 精确物理、Bedrock 模型、其余玩家流程 |
 | Tavern | `KaleidoscopeTavern-0.1.0-dev.jar` | `tavern-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 葡萄世界生成、复杂家具、饮用和多人 |
-| Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 417 条聚合缺口、脚本事件、座位/碰撞 |
+| Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载和郁金香展板双人协议验证通过 | 416 条聚合差异、剩余脚本事件、座位/碰撞 |
 | MusicPlus | `KaleidoscopeMusic-0.1.0-dev.jar` | `music-ce-pack-*.zip` | Paper/Folia 启动加载通过，吉他纹理已接入 | Bedrock 几何、持续声部、客户端合成器 |
 
 当前代码、单测和服务器加载已经完成多层验证。原版客户端资源包、真人玩家闭环和许可证人工核验仍按台账记录，项目不把静态通过写成 100% 完成。
@@ -46,19 +46,19 @@ SenLuo_Plugin/
 └── docs/                       # 证据、安装、升级和配置参考
 ```
 
-## 五插件开发检查点（2026-11-18）
+## 五插件开发检查点（2026-11-19）
 
 [换设备开发交接与完整缺口](docs/HANDOFF.md)
 
 厨房已导入固定上游的 **612/612** 条配方。带料蒸笼把四个原料槽保存在物品中，厨刀锻造保留自定义组件和附魔。系列包检查覆盖 2,759 个可达模型，额外自定义依赖警告为零。固定服务器版本、启动配置与原版客户端检查详见[本轮双端验收](docs/research/series-runtime-2026-11-18.json)。
 
 - **Cookery** 用剪刀取下茶旗图案会掉落原图案并消耗 1 点耐久，创造模式免损耗。旗面由独立显示实体承载，使用同一个透明绊线外观。
-- **Doll** 摆件微调后的九轴姿态随掉落物保存，再次放置恢复。重置姿态会清除物品中的姿态记录。
+- **Doll** 摆件九轴姿态写入源物品，重置时清除姿态记录。本轮修复 CE 晚读物品 PDC 后未刷新显示的问题；`doll_0` 在 Paper/Folia 经真实菜单修改全部九轴并拆装重放后保留数值。重启和原版客户端画面仍待验收。
 - **Tavern** 果盆按 6 种果汁和 8 档容量显示上游液体纹理，取汁和读档根据库存刷新外观。
-- **Deco** 导入器开始解析上游自定义物品标签。四种郁金香可触发展板外观切换，剪下返花脚本仍待移植。
+- **Deco** 导入器解析上游自定义物品标签，四种郁金香已有展板装饰与剪取规则。展板流程已在 Paper 132/Folia 14 通过双人生存协议验证，覆盖满背包、交互/掉落取消和两人连续剪取，见[展板验收证据](docs/research/deco-tulip-acceptance-2026-11-19.json)。
 - **MusicPlus** 手持乐器对空气右键打开演奏菜单，旧 MIDI 播放回调按曲目会话清理。
 
-隔离服准备脚本识别当前四个 Shadow JAR 文件名，CI 从五个固定上游提交构建导入检查。以上交互待 Paper/Folia 联机和原版客户端实测。
+隔离服准备脚本识别当前四个 Shadow JAR 文件名，CI 从五个固定上游提交构建导入检查。本轮可靠性修复覆盖家具交易取消、热栏切换及同步重入，抽奖产出、玩偶回收、MIDI 精确计时和任务清理，以及验收运行器的失败判定与进程收尾；**668 项 Java、214 项 Python 测试通过**，详见[可靠性修复记录](docs/research/series-polish-acceptance-2026-11-19.json)。各项服务端和协议证据只覆盖记录中的操作；已登录原版客户端的画面、声音及完整玩法仍需逐项验收。
 
 ## 当前运行基线
 

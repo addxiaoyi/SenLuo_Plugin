@@ -152,7 +152,15 @@ public final class MusicPlugin extends SeriesPlugin implements Listener {
             tick[0]++;
         }, () -> stopSong(player.getUniqueId(), token), 1, 1);
         if (task == null) requests.remove(player.getUniqueId(), token);
-        else playing.put(player.getUniqueId(), new Playback(token, task));
+        else playing.compute(player.getUniqueId(), (ignored, current) -> {
+            // Retirement, stop, or disable may happen before the scheduler returns its handle.
+            if (!isEnabled() || !token.equals(requests.get(player.getUniqueId()))) {
+                task.cancel();
+                return current;
+            }
+            if (current != null) current.task().cancel();
+            return new Playback(token, task);
+        });
     }
 
     private void playNote(Player player, MidiSong.Note note) {

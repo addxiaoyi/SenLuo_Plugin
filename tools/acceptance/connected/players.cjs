@@ -13,6 +13,9 @@ const out = path.resolve(process.argv[2])
 const { port, packSha256 } = JSON.parse(fs.readFileSync(path.join(out, 'fixture.json')))
 const report = { passed: false, protocol: '1.21.11', packs: {}, checks: {} }
 const sessions = []
+const shutdown = new AbortController()
+const pendingPacks = new Set()
+const pendingReaders = new Set()
 let token = Math.floor(Math.random() * 80000000)
 let networkError
 
@@ -35,16 +38,29 @@ async function inspect (bot, action = 'inspect') {
   assert.ok(!response.error, response.error)
   return response
 }
+async function runReader (command, args) {
+  const reading = execFile(command, args, {
+    windowsHide: true, timeout: 65000, signal: shutdown.signal, killSignal: 'SIGKILL'
+  })
+  // Abort rejects execFile before the child necessarily emits close.
+  const closed = new Promise(resolve => reading.child.once('close', () => {
+    pendingReaders.delete(closed)
+    resolve()
+  }))
+  pendingReaders.add(closed)
+  await reading
+}
 async function receivePack (bot, username, offer) {
   const url = new URL(offer.url)
   assert.equal(url.hostname, '127.0.0.1'); assert.equal(url.protocol, 'http:')
   const status = result => bot._client.write('resource_pack_receive', { uuid: offer.uuid, result })
   status(3)
-  const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(45000), headers: {
+  const response = await fetch(url, { redirect: 'error', signal: AbortSignal.any([shutdown.signal, AbortSignal.timeout(45000)]), headers: {
     'User-Agent': 'Minecraft Java/1.21.11', 'X-Minecraft-Username': username,
     'X-Minecraft-UUID': bot._client.uuid, 'X-Minecraft-Version': '1.21.11',
     'X-Minecraft-Version-ID': '1.21.11', 'X-Minecraft-Pack-Format': '75', 'X-Minecraft-User-Agent': 'SenLuoAcceptance'
   } })
+  shutdown.signal.throwIfAborted()
   assert.equal(response.status, 200, 'CE pack HTTP response')
   const bytes = Buffer.from(await response.arrayBuffer())
   assert.equal(createHash('sha1').update(bytes).digest('hex'), offer.hash)
@@ -58,7 +74,8 @@ async function receivePack (bot, username, offer) {
     path.resolve(__dirname, '../VanillaPack12111.java'), readerReport, archive]
   assert.ok(inputs[4], 'Set SENLUO_CLIENT_CLASSPATH to the 1.21.11 client and libraries')
   fs.writeFileSync(javaArgs, inputs.map(s => '"'+s.replaceAll('\\','/').replaceAll('"','\\"')+'"').join('\n'))
-  await execFile(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs], { windowsHide: true, timeout: 65000 })
+  shutdown.signal.throwIfAborted()
+  await runReader(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs])
   const [decoded] = JSON.parse(fs.readFileSync(readerReport)); assert.equal(decoded.packSha256, packSha256)
   assert.equal(decoded.client,'1.21.11'); assert.ok(decoded.assetsRead > 0)
   status(0) // Pack contents loaded by the official headless reader; no GPU rendering.
@@ -69,7 +86,13 @@ async function connect (username) {
   sessions.push(bot)
   bot.on('error', err => { networkError = err }); bot.on('kicked', msg => { networkError = new Error(`Kicked ${username}: ${JSON.stringify(msg)}`) })
   bot.once('end', reason => { networkError ??= new Error(`Disconnected ${username}: ${reason}`) })
-  bot._client.on('add_resource_pack', offer => receivePack(bot, username, offer).catch(error => { networkError = error }))
+  bot._client.on('add_resource_pack', offer => {
+    if (shutdown.signal.aborted) return
+    const pending = receivePack(bot, username, offer).catch(error => {
+      if (!shutdown.signal.aborted) networkError = error
+    }).finally(() => pendingPacks.delete(pending))
+    pendingPacks.add(pending)
+  })
   await until(username + ' spawn and pack', () => bot.entity && bot.entity.position.y !== 0 && report.packs[username], 90000)
   assert.equal((await inspect(bot, 'arrive')).arrived, true)
   await until('fixture chunks', () => bot.blockAt(new Vec3(679, 200, 7))?.name === 'smithing_table' && bot.entity.position.y > 198)
@@ -189,15 +212,114 @@ async function tulipBoard (a,b) {
   assert.deepEqual((await inspect(b)).drops, harvested.drops)
   report.checks.tulipBoard = { consumed: 1, fullInventory: true, deniedInteraction: 1, deniedSpawn: 1, returned: harvested.drops[0] }
 }
+async function sofaStyle (a,b) {
+  const style = (color, mode = 'single') => 'kaleidoscope_deco/kaleidoscope_bar/sofa/style/' + color + '/' + mode
+  const initial = await inspect(a, 'sofa')
+  await inspect(b, 'sofa')
+  const spot = new Vec3(682.5, 200.45, 9.5)
+  await Promise.all([a.lookAt(spot), b.lookAt(spot)])
+  const use = state => a._client.write('use_entity', {
+    target: state.sofaHitbox, mouse: 2, x: 0, y: .45, z: 0, hand: 0, sneaking: false
+  })
+  a.setQuickBarSlot(0); b.setQuickBarSlot(0); await delay(200)
+  assert.equal(initial.sofa, style('none'))
+  use(initial); await delay(200)
+  const canceled = await inspect(a)
+  assert.equal(canceled.canceledTrades, 1); assert.equal(canceled.sofa, style('none'))
+  assert.equal(count(canceled.inventory, 'minecraft:red_dye'), 3)
+  use(canceled); await delay(200)
+  const swapped = await inspect(a)
+  assert.equal(swapped.changedSlots, 1); assert.equal(swapped.heldSlot, 1)
+  assert.equal(swapped.sofa, style('none')); assert.deepEqual(swapped.inventory, canceled.inventory)
+  a.setQuickBarSlot(0); await delay(200)
+  use(swapped); await delay(200)
+  const red = await inspect(a)
+  assert.equal(red.nestedSofaRejected, true); assert.equal(red.sofa, style('red'))
+  assert.equal(count(red.inventory, 'minecraft:red_dye'), 2)
+  assert.equal(count((await inspect(b)).inventory, 'minecraft:blue_dye'), 6)
+  use(red); await delay(200)
+  const same = await inspect(a)
+  assert.deepEqual(same.inventory, red.inventory)
+  a.setQuickBarSlot(2); await delay(200)
+  use(same); await delay(200)
+  const left = await inspect(a)
+  assert.equal(left.sofa, style('red', 'left'))
+  assert.deepEqual(left.inventory, red.inventory)
+  const target = await until('sofa hitbox entity', () => a.entities[left.sofaHitbox])
+  b.setControlState('back', true); await delay(400); b.setControlState('back', false)
+  a.setQuickBarSlot(7); await delay(200)
+  for (let i = 0; i < 3; ++i) { a.attack(target); await delay(250) }
+  const removed = await inspect(a)
+  assert.equal(removed.sofa, undefined)
+  assert.equal(count(removed.drops, 'kaleidoscope_deco:kaleidoscope_bar/sofa'), 1)
+  a.setControlState('forward', true); await delay(300); a.setControlState('forward', false)
+  const sofaItem = await until('styled sofa pickup', async () => {
+    const snapshot = await inspect(a)
+    const slot = snapshot.inventory.findIndex(item => item.id === 'kaleidoscope_deco:kaleidoscope_bar/sofa')
+    return slot < 0 ? false : { slot }
+  })
+  assert.ok(sofaItem.slot < 9, 'Expected the recovered sofa in an empty hotbar slot')
+  a.setControlState('back', true); await delay(300); a.setControlState('back', false)
+  a.setQuickBarSlot(sofaItem.slot); await delay(200)
+  await a.activateBlock(a.blockAt(new Vec3(682,199,9)), new Vec3(0,1,0), new Vec3(.5,1,.5))
+  await delay(300)
+  const restored = await inspect(a, 'inspectsofa')
+  assert.equal(restored.sofa, style('red', 'left'))
+  assert.equal(count(restored.inventory, 'kaleidoscope_deco:kaleidoscope_bar/sofa'), 0)
+  assert.equal(count(restored.inventory, 'minecraft:red_dye'), 2)
+  report.checks.sofaStyle = { canceled: 1, switchedSlotRejected: 1, nestedPlayerRejected: true,
+    dyeConsumed: 1, repeatedDyeConsumed: 0, droppedSofas: 1, restoredStyle: restored.sofa }
+}
+async function dollPose (a) {
+  const id = 'kaleidoscope_doll:doll_0'
+  const initial = await inspect(a, 'doll')
+  assert.deepEqual(initial.dollPose.split(',').map(Number), [1,1,1,0,0,0,0,0,0])
+  await a.lookAt(new Vec3(682.5, 200.45, 9.5))
+  a.setQuickBarSlot(0); await delay(200)
+  a._client.write('use_entity', { target: initial.dollHitbox, mouse: 2, x: 0, y: .45, z: 0, hand: 0, sneaking: false })
+  await until('nine axis pose menu', () => a.currentWindow?.inventoryStart === 36)
+  for (let axis = 0; axis < 9; axis++) {
+    await click(a, 18 + axis)
+    await until('refreshed pose menu', () => a.currentWindow?.inventoryStart === 36)
+  }
+  const changed = await inspect(a)
+  assert.deepEqual(changed.dollPose.split(',').map(Number), [1.1,1.1,1.1,.05,.05,.05,15,15,15])
+  a.closeWindow(a.currentWindow); await delay(200)
+  a.setQuickBarSlot(7); await delay(200)
+  const target = await until('doll hitbox entity', () => a.entities[changed.dollHitbox])
+  for (let i = 0; i < 3; ++i) { a.attack(target); await delay(250) }
+  const removed = await inspect(a)
+  assert.equal(removed.dollPose, undefined); assert.equal(count(removed.drops, id), 1)
+  a.setControlState('forward', true); await delay(300); a.setControlState('forward', false)
+  const recovered = await until('posed doll pickup', async () => {
+    const snapshot = await inspect(a)
+    const slot = snapshot.inventory.findIndex(item => item.id === id)
+    return slot < 0 ? false : { slot }
+  })
+  assert.ok(recovered.slot < 9)
+  a.setControlState('back', true); await delay(300); a.setControlState('back', false)
+  a.setQuickBarSlot(recovered.slot); await delay(200)
+  await a.activateBlock(a.blockAt(new Vec3(682,199,9)), new Vec3(0,1,0), new Vec3(.5,1,.5))
+  await delay(300)
+  const restored = await inspect(a, 'inspectdoll')
+  assert.equal(restored.dollPose, changed.dollPose); assert.equal(count(restored.inventory, id), 0)
+  report.checks.dollPose = { axesAdjusted: 9, droppedDolls: 1, restoredPose: restored.dollPose }
+}
 async function main () {
   const a = await connect('SenLuoProbeA'); const b = await connect('SenLuoProbeB')
   const supplied = await inspect(a,'supply'); assert.deepEqual(supplied.placedSlots, []); await delay(200)
   await smith(a); await steamer(a); await scarecrow(a,b)
   try { await tulipBoard(a,b) } finally { await inspect(a, 'clearboard') }
+  try { await sofaStyle(a,b) } finally { await inspect(a, 'clearsofa') }
+  try { await dollPose(a) } finally { await inspect(a, 'cleardoll') }
   report.passed = true
 }
 main().catch(err => { report.error = err.stack; process.exitCode = 1 }).finally(async () => {
+  shutdown.abort()
+  for (const bot of sessions) bot.end()
+  await Promise.allSettled([...pendingPacks])
+  await Promise.allSettled([...pendingReaders])
+  await delay(300)
   console.log(JSON.stringify(report,null,2)); fs.writeFileSync(path.join(out,'players.json'),JSON.stringify(report,null,2))
-  for (const bot of sessions) bot.end(); await delay(300)
   process.exit(process.exitCode ?? 0)
 })

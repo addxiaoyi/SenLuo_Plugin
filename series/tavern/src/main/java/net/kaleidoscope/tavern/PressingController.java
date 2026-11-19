@@ -38,9 +38,14 @@ public final class PressingController extends InteractiveFurniture {
         ItemStack held = player.getInventory().getItemInMainHand();
         String id = Items.id(held);
         if (held.isEmpty()) {
-            if (player.isSneaking() && ingredients != null && InventoryTrade.give(player.getInventory(), ingredients)) {
-                ingredients = null;
-                changed();
+            if (player.isSneaking() && ingredients != null) {
+                ItemStack returned = ingredients;
+                InventoryTrade.exchange(player.getInventory(), stack -> false, 0, List.of(returned), () -> {
+                    if (!operational() || !furniture().isValid() || ingredients != returned) return false;
+                    ingredients = null;
+                    changed();
+                    return true;
+                });
             }
             player.sendMessage("果盆：" + amount + "/1000 mB；投料后站进果盆跳踩，装满后用桶取汁。");
             return;
@@ -48,10 +53,14 @@ public final class PressingController extends InteractiveFurniture {
         if (id.equals("minecraft:bucket")) {
             if (amount < 1000) { player.sendMessage("果汁尚未装满一桶。"); return; }
             ItemStack bucket = Items.create(tavern.catalog().buckets().get(fluid));
-            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(bucket))) return;
-            amount = 0;
-            fluid = null;
-            changed();
+            String supplying = fluid;
+            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(bucket), () -> {
+                if (!operational() || !furniture().isValid() || amount != 1000 || !supplying.equals(fluid)) return false;
+                amount = 0;
+                fluid = null;
+                changed();
+                return true;
+            })) return;
             refreshLiquid();
             return;
         }
@@ -60,9 +69,13 @@ public final class PressingController extends InteractiveFurniture {
         int accepted = Math.min(held.getAmount(), Math.min(64, held.getMaxStackSize()) - stored);
         if (accepted == 0) return;
         ItemStack filled = held.asQuantity(stored + accepted);
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, accepted, List.of())) return;
-        ingredients = filled;
-        changed();
+        ItemStack previous = ingredients;
+        InventoryTrade.exchange(player.getInventory(), held::isSimilar, accepted, List.of(), () -> {
+            if (!operational() || !furniture().isValid() || ingredients != previous) return false;
+            ingredients = filled;
+            changed();
+            return true;
+        });
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
@@ -70,7 +83,7 @@ public final class PressingController extends InteractiveFurniture {
     }
 
     private void tick() {
-        if (!operational() || ingredients == null || amount >= 1000) { falls.clear(); return; }
+        if (!operational() || isInteracting() || ingredients == null || amount >= 1000) { falls.clear(); return; }
         var center = location();
         Set<UUID> nearby = new HashSet<>();
         for (var viewer : furniture().trackedBy()) {

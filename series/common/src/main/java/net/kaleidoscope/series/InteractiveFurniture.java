@@ -14,6 +14,7 @@ public abstract class InteractiveFurniture extends FurnitureController {
     protected final SeriesPlugin plugin;
     private net.momirealms.craftengine.libraries.nbt.Tag rejectedState;
     private String rejectedKey;
+    private final java.util.concurrent.atomic.AtomicBoolean interacting = new java.util.concurrent.atomic.AtomicBoolean();
 
     protected InteractiveFurniture(Furniture furniture, SeriesPlugin plugin) {
         super(furniture);
@@ -33,17 +34,23 @@ public abstract class InteractiveFurniture extends FurnitureController {
 
     @Override public final InteractionResult useOnFurniture(FurnitureHitBox hitbox, InteractEntityContext context) {
         if (context.getHand() != InteractionHand.MAIN_HAND || context.getPlayer() == null) return InteractionResult.PASS;
-        Player player = (Player) context.getPlayer().platformPlayer();
-        if (!accessible(player)) return InteractionResult.FAIL;
-        if (blocked()) {
-            player.sendMessage("家具存档无法读取，已停止操作并保留原始记录，请联系管理员。");
-            return InteractionResult.FAIL;
+        if (!interacting.compareAndSet(false, true)) return InteractionResult.FAIL;
+        try {
+            Player player = (Player) context.getPlayer().platformPlayer();
+            if (!accessible(player)) return InteractionResult.FAIL;
+            if (blocked()) {
+                player.sendMessage("家具存档无法读取，已停止操作并保留原始记录，请联系管理员。");
+                return InteractionResult.FAIL;
+            }
+            if (!consumesInteraction(player)) return InteractionResult.PASS;
+            plugin.attempt(player, () -> interact(player));
+            return InteractionResult.SUCCESS_AND_CANCEL;
+        } finally {
+            interacting.set(false);
         }
-        if (!consumesInteraction(player)) return InteractionResult.PASS;
-        plugin.attempt(player, () -> interact(player));
-        return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
+    public final boolean isInteracting() { return interacting.get(); }
     protected abstract void interact(Player player);
     protected boolean consumesInteraction(Player player) { return true; }
     protected final void changed() { furniture().setUnsaved(); }

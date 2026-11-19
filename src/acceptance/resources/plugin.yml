@@ -4,6 +4,7 @@ main: net.kaleidoscope.cookery.acceptance.FoodSmokePlugin
 api-version: '1.21.11'
 folia-supported: true
 depend: [CraftEngine, KaleidoscopeCookeryPlugin]
+softdepend: [KaleidoscopeDecoPlugin, KaleidoscopeDollPlugin]
 commands:
   senluoprobe:
     description: Inspect the isolated connected-player acceptance fixture from its console.
