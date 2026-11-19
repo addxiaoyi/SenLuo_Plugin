@@ -362,5 +362,18 @@
     "Furniture server restart persistence beyond the tested item dismantle/re-place path",
     "Historical CE recipe-registration watchdog root cause; no watchdog in these final runs is not proof of elimination",
     "Remaining upstream feature differences and public redistribution authorization; see HANDOFF and UPSTREAM-LICENSES"
-  ]
+  ],
+  "gameplaySourceCommit": "0d6a265a33c2189e3ea37c0337c554d9b26f28e5",
+  "buildRepositoryFix": {
+    "previousCiRun": "https://github.com/addxiaoyi/SenLuo_Plugin/actions/runs/44446160384",
+    "failures": [
+      "Attempt 1: Maven Central HTTP 429 before compilation",
+      "Attempt 2: Shadow transitive Ant 1.10.15 not resolved through Plugin Portal before compilation"
+    ],
+    "localLogSha256": {
+      "polish-ci-failure.log": "18e76a569b76c892a7ead4fb3f8ff07fe1c7d6251647ffc017edc9059c2578e4",
+      "polish-ci-failure-2.log": "5016c333b4e18c68a8cd7c142f25e7bc902729b8922ce827a3ad0695ead81764"
+    },
+    "change": "Both Gradle settings now prefer Maven Central for plugin transitive dependencies, with Gradle Plugin Portal retained; versions and gameplay code are unchanged."
+  }
 }
