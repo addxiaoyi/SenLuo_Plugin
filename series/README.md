@@ -1,6 +1,6 @@
 # 森罗系列插件移植工作区
 
-更新于 2026-11-18。四个系列插件可分别构建 JAR 和 CE 内容 ZIP，已与 Cookery 一起在 Paper/Folia 1.21.11 上加载并生成托管资源包。当前为 0.1.0-dev 开发版，真人操作与画面验收仍待完成。[开发交接](../docs/HANDOFF.md)
+更新于 2026-11-19。四个系列插件可分别构建 JAR 和 CE 内容 ZIP，已与 Cookery 一起在 Paper/Folia 1.21.11 上加载并生成托管资源包。本轮同组 JAR 的有界原生回归与每端 14,419 项官方离线解码见[玩法回归证据](../docs/research/series-gameplay-regression-2026-11-19.json)。当前为 0.1.0-dev 开发版，真人操作与画面验收仍待完成。[开发交接](../docs/HANDOFF.md)
 
 厨房主工程继续位于仓库根目录；这里的 `common / doll / tavern / deco / music` 是独立 Gradle 多模块工程，不替换厨房已有实现。
 
@@ -15,8 +15,8 @@
 | 模块 | 已实现的服务端逻辑 | 当前资源定义 |
 | --- | --- | --- |
 | Doll | 抽奖、礼盒、643 玩家玩偶兑换、收藏、九轴显示微调与拆装恢复、蓄力投掷、落地弹跳、玩偶骑乘和幻翼携带事件 | 729 物品 / 725 家具 / 3 工作台配方 |
-| Tavern | 果盆压榨和八档液面、24 酒桶配方、熟成、12 调酒配方、37 饮品效果表、三种葡萄、龙头装瓶、摇杯和倒酒 | 238 物品（含 48 个内部液面物品）/ 39 家具 / 114 工作台配方 |
-| Deco | 主题图鉴、家具及部分座位、104 条状态转换、沙发染色与形态、拆装状态保存、郁金香展板装饰与剪取 | 854 物品 / 785 家具 / 68 沙发样式 |
+| Tavern | 果盆压榨和八档液面、24 酒桶配方、熟成、12 调酒配方、37 饮品效果表、三种葡萄、龙头装瓶、摇杯和倒酒；燃烧瓶及四种储物家具的燃烧瓶链、14 款 Dialog 文字展板 | 238 物品（含 48 个内部液面物品）/ 58 家具 / 114 工作台配方 |
+| Deco | 主题图鉴、家具及部分座位、104 条状态转换、沙发染色与形态、拆装状态保存、郁金香展板装饰与剪取；12 木种椅子及 16 色椅垫、12 木种静态厨娘凳 | 1,070 物品 / 809 家具 / 68 沙发样式 / 24 石切配方 |
 | Music | 右键打开 25 键菜单、本地 MIDI 多轨/速度/音色解析、原版音符播放、停止与离线清理 | 1 个使用上游吉他纹理的乐器 |
 
 这些数量是资源和数据条目数，**不是功能完成率**。逐项差异见 [PORTING-MATRIX.md](docs/PORTING-MATRIX.md)，运行验收见 [ACCEPTANCE.md](docs/ACCEPTANCE.md)。厨房进度继续看 [原实施表](../docs/IMPLEMENTATION-ROADMAP.md)。
@@ -29,7 +29,7 @@
 
 ```powershell
 python -m venv series/.venv
-.\series\.venv\Scripts\python.exe -m pip install -r series/tools/requirements.txt
+.\series\.venv\Scripts\python.exe -m pip install -r tools/requirements.txt -r series/tools/requirements.txt
 .\series\.venv\Scripts\python.exe series/tools/import_sources.py --check
 .\series\.venv\Scripts\python.exe -m unittest discover -s series/tools -p 'test_*.py' -v
 .\gradlew.bat -p series build --console=plain
@@ -39,9 +39,10 @@ python -m venv series/.venv
 首次生成 CE 内容包。模块、官方仓库和转换器由 [`tools/module-specs.json`](tools/module-specs.json) 统一声明；`--module-archives-dir` 会生成四个独立模块包和一个可选的共享图集包；`--archive` 仍保留总包兼容旧流程：
 
 ```powershell
- .\series\.venv\Scripts\python.exe series/tools/import_sources.py --module-archives-dir series/build/distribution/ce-packs-0.1.0-dev --archive series/build/distribution/KaleidoscopeSeries-CE-Packs-0.1.0-dev-gameplay.zip
+.\series\.venv\Scripts\python.exe series/tools/import_sources.py --module-archives-dir series/build/distribution/ce-packs-0.1.0-dev --archive series/build/distribution/KaleidoscopeSeries-CE-Packs-0.1.0-dev-gameplay.zip
 .\series\.venv\Scripts\python.exe series/tools/validate_packs.py series/build/distribution/KaleidoscopeSeries-CE-Packs-0.1.0-dev-gameplay.zip
- .\series\.venv\Scripts\python.exe series/tools/package_dev.py --module-packs-dir series/build/distribution/ce-packs-0.1.0-dev --cookery-pack build/acceptance/cookery-plate-runtime-20261107.zip --output series/build/distribution/KaleidoscopeSeries-0.1.0-dev-gameplay.zip
+.\series\.venv\Scripts\python.exe tools/export_cookery_kitchen_pack.py --source ../.references/KaleidoscopeCookery --output build/distribution/kitchen-612.zip
+.\series\.venv\Scripts\python.exe series/tools/package_dev.py --module-packs-dir series/build/distribution/ce-packs-0.1.0-dev --cookery-pack build/distribution/kitchen-612.zip --output series/build/distribution/KaleidoscopeSeries-0.1.0-dev-gameplay.zip
 ```
 
 生成工具拒绝覆盖已有输出；重新生成时选择新路径，或确认后整理自己生成的旧文件。`--assets <新目录>` 可输出展开后的 CE 包。`build/packs/`、`packs-v2/`、`packs-v3/` 是开发期间的旧输出，不能与最终归档混装。
@@ -52,7 +53,7 @@ python -m venv series/.venv
 
 1. 在测试服准备 Java 21、Paper 1.21.11 和对应 CraftEngine，停服后把需要的独立 JAR 放到 `plugins/`。`common` 不单独安装；新增或更换插件 JAR 使用正常停启，不使用热加载工具。
 2. 将对应的独立 CE ZIP 展开到 `plugins/CraftEngine/resources/<module>/`，保证模块目录下直接有 `pack.yml`。`shared-ce-pack` 只在该模块需要原版图集时安装；不同时加载两套同名定义。
-3. 新系列归档不包含厨房 CE 包；根工程已能生成 [厨房独立验收包](../examples/kitchen-pack/README.md)，与四插件整合仍待验收。竹筛目前只有独立示例，尚未合入完整厨房生成器；同名厨房/食物定义不能重复安装。
+3. 上述带 `--cookery-pack` 的开发整包包含完整厨房 CE 包，竹筛已合入[完整厨房生成器](../examples/kitchen-pack/README.md)。五插件的原生整合加载、部分协议流程与资源离线解码已有分层证据，完整玩家玩法与画面仍待验收；同名厨房／食物定义及竹筛独立示例不能重复安装。
 4. 启动并检查未知物品、行为、配方、模型与 NBT 加载错误。按照目标 CE 版本执行资源生成和发送；当前官方命令为 `/ce reload all`，仅 `/ce reload` 默认只刷新配置，不代表客户端资源包已更新。
 5. 用未安装模组的原版客户端接收服务器资源包，再执行验收表。MIDI 文件放在 `plugins/KaleidoscopeMusicPlugin/songs/`。
 
