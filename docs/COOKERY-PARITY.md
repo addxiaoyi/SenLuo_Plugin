@@ -1,6 +1,6 @@
 # Cookery 官方玩法对照与厨房移植进度
 
-更新日期：2026-11-18。第 2、3、5 节保留接手时差异与设计背景；当前状态以本节和第 6 节为准。完整未来计划和换设备步骤见 [README](../README.md#继续开发)。代码、自动化运行、玩家和客户端验收分别记录。
+更新日期：2026-11-19。第 2、3、5 节保留接手时差异与设计背景；当前状态以本节和第 6 节为准。完整未来计划和换设备步骤见 [README](../README.md#继续开发)。代码、自动化运行、玩家和客户端验收分别记录。
 
 ## 当前检查点
 
@@ -25,7 +25,7 @@
 - 5 条盖饭 native recipe 已独立接入：额外格允许、全网格最高品质、熟米饭返碗和原版余料均通过 Paper/Folia 服务端探针。Shift/自动合成器、玩家 UI、客户端配方书和外部可选米饭依赖仍未验收，见 [盖饭验收摘要](research/cookery-rice-bowls-acceptance-2026-11-16.json)。
 - 2026-11-16 附属物品推进：农夫四件装备、花草帽、镰刀、厨铲和茶旗进入 CE 包；镰刀连接范围收割行为，茶旗支持染色、图案、存档和带状态掉落，`kitchen_shovel_no_oil` 与 `kitchen_shovel_has_oil` 两个 CE ID/模型均已注册。包级结果 535 items、63 blocks、547 models、536 imported/76 pending；原版客户端动态茶旗渲染、玩家实际锅铲状态切换、装备槽效果及 Forge 铁标签配方仍待验收。详情见[附属物品审计](research/cookery-auxiliary-items-2026-11-16.json)和[双端启动摘要](research/cookery-shovel-runtime-2026-11-16.json)。
 - 大菜原版模型状态已转换，九格冷切火腿由官方 Java 22 cube 生成 9 阶段、仅中心显示；source quality 模型完全相同才折叠。细绊线碰撞/选框、服务端粒子频率与自定义烹饪粒子仍是替代；比较器 `(3-bites)*5` 限制在原版 0–15。放置拒绝未归属 Folia 区域；跨区后续清理仅单元验证。真人营养/效果、主副手、保护插件/多人、客户端画面、独立卸载/热重载/爆炸仍未验收。
-- 外部模组原料获取、精确碰撞、茶壶支撑、动物桶 NBT、原版客户端、多人/保护与玩家容器守恒仍待完成。Folia 默认延迟加载的等待栈与当前配置的复测结果见[双端验收记录](research/series-runtime-2026-11-18.json)；茶旗动态客户端渲染、农夫套装、厨师交易和五类村庄厨房仍待补齐。
+- 外部模组原料获取、精确碰撞、茶壶支撑、动物桶 NBT、原版客户端、多人/保护与玩家容器守恒仍待完成。Folia 默认延迟加载的等待栈与当前配置的复测结果见[双端验收记录](research/series-runtime-2026-11-18.json)；茶旗动态客户端渲染、农夫套装实机效果、厨师交易和五类村庄厨房仍待验收或补齐。
 
 ## 1. 对照基线
 
@@ -101,7 +101,7 @@ Java 回归覆盖等级 0–3、越界、无附魔、错误附魔、重复附魔
 - 官方新增厨师职业、工作站 POI 与 1–5 级交易；插件未见职业/交易注册实现。证据：`U/init/ModVillager.java`、`U/init/ModPoi.java`、`U/event/ModTradesEvent.java:27-137`。
 - 官方将厨房加入平原、雪地、热带草原、沙漠、针叶林村庄结构池，各权重 4；插件无世界生成实现，也未携带这五个 NBT。证据：`U/event/AddVillageStructuresEvent.java:27-41` 与官方 `src/main/resources/data/kaleidoscope_cookery/structures/village/houses/`。
 - 茶旗已通过 `TeaBannerController` 保存颜色和图案物品，支持六种原版图案、剪刀取下、带状态掉落和重新放置恢复。CE 方块状态按 16 种颜色与 7 种图案生成 112 个模型变体，染色和图案交互会同步状态。旗杆摆动与墙面朝向仍待客户端验收。上游证据：`U/blockentity/decoration/TeaBannerBlockEntity.java:17-54`、`U/item/TeaBannerItem.java:20-32`。
-- 官方全套农夫装备在水中每 20 tick 刷新 25 tick 海豚恩惠；当前插件未见对应套装规则，但可通过 CE 配置或后续插件逻辑实现，须核对现有资源。证据：`U/event/ArmorEffectEvent.java:16-31`。
+- 官方全套农夫装备在水中每 20 tick 刷新 25 tick 海豚恩惠；插件已有对应规则，支持草帽及花草帽，按完整 CE ID 和装备槽校验，在玩家实体 scheduler 中刷新。药效等级 0、ambient/particles 为 true、icon 为 false，保留 Bukkit 药效事件的取消，离水或卸甲后自然过期，不主动清除其他来源效果。[农夫套装回归](../src/test/java/net/kaleidoscope/cookery/effect/FarmerOutfitTest.java)覆盖这些参数、装备匹配与退出／死亡／关闭生命周期；真实游泳、第三方效果共存和客户端仍待验收。上游证据：`U/event/ArmorEffectEvent.java:16-31`。
 
 村民外观与自定义职业名称、世界生成时机、既有区块和新生成区块的差异，都需要单独验收，不能用放置几个静态 NPC 作为完整复刻。
 

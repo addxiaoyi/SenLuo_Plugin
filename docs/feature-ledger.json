@@ -101,6 +101,15 @@
       "evidence": ["src/main/java/net/kaleidoscope/cookery/block/behavior/TeaBannerBehavior.java", "src/main/java/net/kaleidoscope/cookery/block/entity/TeaBannerController.java", "tools/test_cookery_kitchen_pack.py", "docs/research/cookery-tea-banner-2026-11-16.json"]
     },
     {
+      "feature_id": "C13",
+      "module": "cookery",
+      "title": "农夫套装解码ID规则与玩家实体调度生命周期",
+      "parity_level": "A",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeCookery:ArmorEffectEvent"],
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/effect/KitchenEffectHandlers.java", "src/test/java/net/kaleidoscope/cookery/effect/FarmerOutfitTest.java", "docs/research/series-effects-gift-regression-2026-11-19.json"]
+    },
+    {
       "feature_id": "C10",
       "module": "cookery",
       "title": "11种整份取物盘的服务端存取与掉落",
@@ -143,7 +152,7 @@
       "parity_level": "A",
       "status": "unit_tested",
       "source_ids": ["KaleidoscopeDoll:lottery", "KaleidoscopeDoll:collection"],
-      "evidence": ["series/doll/src/test", "series/doll/src/main/java/net/kaleidoscope/doll/api/DollCollectedEvent.java", "series/doll/src/test/java/net/kaleidoscope/doll/LotteryRestoreTest.java", "series/common/src/test/java/net/kaleidoscope/series/FurnitureTickersTest.java"]
+      "evidence": ["series/doll/src/test", "series/doll/src/main/java/net/kaleidoscope/doll/api/DollCollectedEvent.java", "series/doll/src/test/java/net/kaleidoscope/doll/LotteryRestoreTest.java", "series/common/src/test/java/net/kaleidoscope/series/FurnitureTickersTest.java", "series/doll/src/test/java/net/kaleidoscope/doll/GiftBoxesTest.java", "docs/research/series-effects-gift-regression-2026-11-19.json"]
     },
     {
       "feature_id": "D04",
@@ -180,6 +189,15 @@
       "status": "runtime_tested",
       "source_ids": ["KaleidoscopeTavern:pressing_tub", "minecraft:glow_berries"],
       "evidence": ["docs/research/series-restart-acceptance-2026-11-19.json", "tools/acceptance/connected/persistence-players.cjs", "series/docs/ACCEPTANCE.md"]
+    },
+    {
+      "feature_id": "T04",
+      "module": "tavern",
+      "title": "血腥玛丽同区域本次致死归因与可取消治疗",
+      "parity_level": "B",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeTavern:EffectEvent-bloody_mary"],
+      "evidence": ["series/tavern/src/main/java/net/kaleidoscope/tavern/TavernAbilities.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/BloodyMaryAttributionTest.java", "docs/research/series-effects-gift-regression-2026-11-19.json"]
     },
     {
       "feature_id": "F02",

@@ -4,7 +4,11 @@
 
 ## 当前单元与场景契约回归（2026-11-19）
 
-当前通过 **695 项 Java、223 项 Python、75 项 Node 场景契约测试**。Node 契约仅使用内置模块，不启动 Minecraft 服务端或协议客户端，可运行 `node --test tools/acceptance/connected/test-persistence.cjs` 复核。
+当前通过 **745 项 Java、223 项 Python、75 项 Node 场景契约测试**。Node 契约仅使用内置模块，不启动 Minecraft 服务端或协议客户端，可运行 `node --test tools/acceptance/connected/test-persistence.cjs` 复核。本轮新增 50 项 Java 回归，分层结果及构建哈希见[礼盒与效果回归证据](../../docs/research/series-effects-gift-regression-2026-11-19.json)；本轮没有启动实服，下面的双端运行记录保留历史提交范围。
+
+- [礼盒 17 项](../doll/src/test/java/net/kaleidoscope/doll/GiftBoxesTest.java)覆盖错误类型 PDC 原样保留、主手快照及提交前状态复核。关键切槽、禁用、取消与同步重入用真实 `InventoryTrade` 和模拟 Bukkit 事件，两项额外测试单独隔离 `beforeCommit` 的组件／数量检查；不声称已完成真实玩家开盒。
+- [血腥玛丽 18 项](../tavern/src/test/java/net/kaleidoscope/tavern/BloodyMaryAttributionTest.java)以模拟 `DamageSource` 验证当前玩家／投射物来源、历史 kill credit 拒绝、先前取消死亡、可取消／改额治疗及回调后守卫；保持同区域限制，不替代实服投射物或跨区验收。
+- [农夫套装 15 项](../../src/test/java/net/kaleidoscope/cookery/effect/FarmerOutfitTest.java)覆盖解码后装备 ID、槽位、药效参数和玩家实体任务生命周期。复用现有 `InventoryUtils.wrap` 的 mock，不验证实际 CE 物品解码、真人游泳或 GPU 显示；拒绝药效申请后不强制覆盖，离水／卸甲不主动删除其他来源效果。
 
 - 缺少自身存档键的新家具保持默认空状态；已存在但类型错误或内容损坏的键冻结操作并保留原始数据。[抽奖机回归](../doll/src/test/java/net/kaleidoscope/doll/LotteryRestoreTest.java)与[酒馆回归](../tavern/src/test/java/net/kaleidoscope/tavern/TavernPersistenceTest.java)分别覆盖这些分支。
 - [沙发](../deco/src/test/java/net/kaleidoscope/deco/DecoControllerTest.java)与[玩偶九轴](../doll/src/test/java/net/kaleidoscope/doll/DollItemRestoreTest.java)通过 CE `FurniturePersistentData` 字节往返后，在没有物品放置回调的情况下恢复控制器状态、显示及未来掉落物。雪克杯晚读取物品 PDC 后也重新同步源物品；编码失败或坏 PDC 在改变内容前拒绝并保留原物品，见酒馆回归。
@@ -20,7 +24,7 @@
 
 ## 三个家具样例的正常重启检查点（2026-11-19）
 
-最终候选在 Paper 132 的 `paper-restart-12` 与 Folia 14 的 `folia-restart-3` 各完成 `seed → verify → empty` 三阶段正常启动，共六次通过。两端使用相同场景代码与五插件＋探针六份当前构建 JAR；各端三阶段的运行资源哈希稳定，服务端／客户端退出码均为 0，最终六次日志无服务器错误或 watchdog。每端两名离线生存协议玩家在每阶段各读取 14,203 个资源；这是官方客户端代码的无图形解码，不是 GPU 显示、听音或账号认证验收。完整产物、场景、日志、检查点和失败历史哈希见[本轮三阶段重启证据](../../docs/research/series-restart-acceptance-2026-11-19.json)。
+提交 `01778f8` 的历史候选在 Paper 132 的 `paper-restart-12` 与 Folia 14 的 `folia-restart-3` 各完成 `seed → verify → empty` 三阶段正常启动，共六次通过。两端使用相同场景代码与当时五插件＋探针六份构建 JAR；各端三阶段的运行资源哈希稳定，服务端／客户端退出码均为 0，最终六次日志无服务器错误或 watchdog。每端两名离线生存协议玩家在每阶段各读取 14,203 个资源；这是官方客户端代码的无图形解码，不是 GPU 显示、听音或账号认证验收。完整产物、场景、日志、检查点和失败历史哈希见[本轮三阶段重启证据](../../docs/research/series-restart-acceptance-2026-11-19.json)。
 
 - `seed` 由玩家操作保留红色左段沙发、`doll_0` 固定九轴姿态（缩放 1.1／偏移 0.05／旋转 15°，各三轴）及果盆中单个带 marker、尚未加工的发光浆果（液量 0）。
 - `verify` 在正常重启后先只读核对原家具身份、位置、保存状态与原物品 PDC，不重建样例或借物品放置回调恢复；随后玩家实际拆取沙发和玩偶。双方服务器存储槽合计各只有一件对应物品，实际归属和 PDC 与检查点一致。果盆原料恰取回 1，重新选空手后再次取回为 0。
