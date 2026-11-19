@@ -41,8 +41,41 @@
 
 脚本保留控制台日志、服务端回复和 JFR。只有服务器启动完成且食物、附魔两项 smoke 均成功才启动客户端；超时、watchdog、服务器错误、非零退出、强制停服或客户端断言失败均返回失败，旧的成功报告不能覆盖失败。报告包含客户端与服务器退出码和结束原因；异常收尾会取消资源下载并等待 Java 解码子进程退出。客户端确认加载前先校验托管包的哈希，并使用官方客户端代码解码下载内容。此流程覆盖协议、资源格式与真实服务端交互；画面、声音、在线账号认证、第三方保护插件及跨区交互需另测。
 
-## 2026-11-19 冻结候选结果
+## 木椅、文字展板与地面燃烧瓶场景
 
-同一套插件、探针和场景脚本的 Paper 132 `paper-restart-12` 与 Folia 14 `folia-restart-3` 均通过三阶段验收，六次服务器和客户端退出码均为 0，无服务器错误或 watchdog。红色左段沙发、`doll_0` 九轴姿态与果盆内一份带标记的未加工发光浆果，其 UUID、状态、取回数量和 PDC 均按上述范围核对；完整哈希、资源读取及历史失败记录见[冻结候选证据](../../../docs/research/series-restart-acceptance-2026-11-19.json)。Folia 较早一轮仍出现 CE 类加载／原生配方注册 watchdog，根因保持 OPEN。
+`--scenario gameplay` 选择独立的三次启动场景，必须同时使用 `--restart-suite`；不指定场景时仍为原有 `legacy` 流程。两种场景报告分别校验身份，不能互相充当成功证据。
 
-展板的满库存断言指 36 个存储槽均被占用，同色花仍可合并。进入下一夹具前，场景须从服务端确认两名玩家相对原库存合计恰好新增唯一返花，其他物品和组件不变；必要时以一次正常背包操作将一组圆石移至空副手再拾取，副手状态来自客户端网络观察。无需 Minecraft 的 75 项场景契约测试可用 `node --test tools/acceptance/connected/test-persistence.cjs` 复核。
+```powershell
+.\.venv\Scripts\python.exe tools/acceptance/connected/run.py build/acceptance/net/paper build/acceptance/net/paper-gameplay-new --java $java --restart-suite --scenario gameplay
+.\.venv\Scripts\python.exe tools/acceptance/connected/run.py build/acceptance/net/folia build/acceptance/net/folia-gameplay-new --java $java --restart-suite --scenario gameplay
+```
+
+`seed` 仅安排橡木椅、空白文字展板、地面燃烧瓶及起始材料。三件夹具均按 CE 26.9.1 的正常放置语义预置一份完整注册来源物品；verify／empty 不补放或改写来源物品。玩家先触发一次取消的椅垫交易，确认零扣料，再装红垫；展板使用服务器实际发送的 `show_dialog` 回调 ID 与 UUID，通过 `custom_click_action` 提交含中文、反斜杠、尖括号及换行的文字和右对齐，再染红、发光、上蜡、改罂粟图案。五种材料各消耗一件。
+
+`verify` 重启后只观察已有家具，先比较原 UUID、位置、来源物品、控制器 NBT、状态和两人逐槽库存，再由玩家 A 剪取红垫、拆取椅子及当前图案的空白展板并实际拾取，由玩家 B 空手直接取回地面燃烧瓶。期望物品来自种子材料和预先读取的注册定义，完整组件不能由实际掉落反过来自证；每步分别核对两人 36 个存储槽、光标、世界物品和生成回执。盔甲槽和副手槽不在该场景的服务端库存证据范围内。
+
+椅子和展板的原生设置均要求三次连续命中，命中间隔超过 2000 毫秒会重置；在击打之间不做可能耗时的双人完整快照。每件家具先从当前 verify 快照读取真实 hitbox，再由只读 `gamecombat` 返回实际 hit／break 事件的累计收据，核对原 UUID、CE ID、操作者与 UUID、元数据实体和命中盒、命中次数、最终取消状态、所属区域、序号、时钟及 tick。最多三次真实网络攻击，相邻命中间隔必须处于 0–2000 毫秒（含边界）；最终 break 必须紧接最后一击且时间不倒退。原生破坏后才恢复双人完整快照，另行证明家具缺席、唯一规范掉落和指定玩家库存守恒。
+
+`players.json.checks.gameplayRecovery` 保存命中与破坏收据，`commands.txt` 将 `gamecombat` 命令 token 映射到原始 `reply-<token>.json`。原始历史必须完整递增、只追加且旧条目不可改变；报告命中仅额外附 `intervalMillis`，其他字段及破坏条目须与原始回复逐项一致。不同启动的网络 hitbox ID 允许改变，必须使用当轮 verify 的实际值；不能用 seed 的网络 ID 代替。
+
+回收后的库存写入单独的 `persistence-state.json.verified.json`，并绑定原始 seed 文件 SHA256，绝不覆盖 seed。`empty` 第三次启动先核对该绑定，再从 seed 与固定回收增量独立重算两人的组件账本，确认三件家具缺席、没有地面遗留或新增掉落，并在两秒后再次确认无复活或增产。后两阶段不布置家具或注入库存。
+
+运行器保留原始插件、服务器及资源包锁，同时在 seed 完成启动、玩家连接前锁定实例内全部 JAR，包括 Paper/Folia 版本、重映射插件和运行库。首启动允许正常生成 remap；此后启动前、就绪时和停服后均检查同一依赖集合，就绪时漂移会阻止客户端启动。场景源码锁还包含实际执行的 `VanillaPack12111.java`。非 JAR 数据缓存可以正常更新。
+
+共享步行入口在强制转向前先停止前进，转向完成后重新检查是否已经到达、目标是否移动，再决定继续行走；原有 5 秒上限不变。失败诊断记录最近阶段、位置、目标和水平距离，同时保留原错误栈。到达目标或网络掉落实体消失都不能替代服务端的唯一数量、指定拾取者及完整组件守恒证明。
+
+固定客户端库的 `custom_click_action` 定义与原生 1.21.11 的长度前缀 NBT 不同；新场景仅局部覆盖这一包的格式，继续使用原生连接的压缩和发送链路，并记录真实编码与帧字节。Dialog 回调 ID 和 UUID 仍来自本次服务器包，不能硬编码成固定回调。
+
+无需启动 Minecraft 的合同测试共 207 项（legacy 96＋gameplay 111），包含 21 项转向／到达重检／失败诊断回归和新增 37 项原生命中收据回归，覆盖 2000 毫秒边界、过期／篡改历史、错误操作者、取消、缺少破坏和过量命中。执行 `node --test tools/acceptance/connected/test-persistence.cjs tools/acceptance/connected/test-gameplay-persistence.cjs`。Python 运行器合同另覆盖串报、源码和依赖漂移、seed/回收检查点篡改及异常收尾。真实三阶段结果须另看各次输出，合同通过本身不代表实服通过。
+
+## 2026-11-19 本轮有界 gameplay 结果
+
+最终同组五插件、探针与场景脚本在 Paper 132 `build/acceptance/gp2/paper-run-6` 和 Folia 14 `build/acceptance/gp2/folia-run-5` 各完整通过 `seed → verify → empty`。六阶段 server/client 均正常退出 0、`errors=[]`，没有超时或强杀；每阶段两名协议玩家各用官方 1.21.11 代码读取 14,419 项资源。每端家具原生回收均为椅子 hit 1–3／break 4、展板 hit 5–7／break 8，最大相邻命中间隔分别为 Paper 150 毫秒、Folia 151 毫秒。原始命令与回复、两份不可变检查点、逐槽账本、运行依赖、源码和产物哈希，以及全部前序失败见[本轮有界协议证据](../../../docs/research/series-gameplay-connected-acceptance-2026-11-19.json)。
+
+本轮只接受橡木红垫椅、指定中文右对齐的空白到罂粟展板、空地面燃烧瓶三个代表路径；盔甲／副手、全部木种／颜色／板型、投掷／火焰／红石、满载储物和异常恢复、座位／碰撞、保护、跨区、卸载／热重载、GPU／音频仍未覆盖。T05／T06／F04 广义状态保持 `unit_tested`，历史原生 9 家具 API 候选不充当新 JAR 的全套验收，历史 Folia watchdog 仍 OPEN。Paper6 期间独立 host shell 内存错误单列保留，不等同严格通过的 Minecraft suite 失败。
+
+## 2026-11-19 前序冻结候选结果
+
+前序候选以其当时同一套插件、探针和场景脚本，在 Paper 132 `paper-restart-12` 与 Folia 14 `folia-restart-3` 均通过三阶段验收，六次服务器和客户端退出码均为 0，无服务器错误或 watchdog。红色左段沙发、`doll_0` 九轴姿态与果盆内一份带标记的未加工发光浆果，其 UUID、状态、取回数量和 PDC 均按上述范围核对；完整哈希、资源读取及历史失败记录见[冻结候选证据](../../../docs/research/series-restart-acceptance-2026-11-19.json)。这些旧源码锁不能证明后来修改的协议场景通过。Folia 较早一轮仍出现 CE 类加载／原生配方注册 watchdog，根因保持 OPEN。
+
+展板的满库存断言指 36 个存储槽均被占用，同色花仍可合并。进入下一夹具前，场景须从服务端确认两名玩家相对原库存合计恰好新增唯一返花，其他物品和组件不变；必要时以一次正常背包操作将一组圆石移至空副手再拾取，副手状态来自客户端网络观察。无需 Minecraft 的 96 项场景契约测试可用 `node --test tools/acceptance/connected/test-persistence.cjs` 复核。

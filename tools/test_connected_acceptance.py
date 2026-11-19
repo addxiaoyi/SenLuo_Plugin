@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import io
 import json
 import os
@@ -78,7 +79,9 @@ class StartupTests(unittest.TestCase):
 class RunnerTests(unittest.TestCase):
     def run_fixture(self, *, startup=STARTUP, client_exit=0, client_report=None,
                     timeout=10, clock=None, forced_stop=False, start_error=None,
-                    manual=False, finished=False, cleanup_error=False, cancelled=False, phase=None):
+                    manual=False, finished=False, cleanup_error=False, cancelled=False, phase=None,
+                    scenario='legacy', server_start_hook=None, client_start_hook=None,
+                    expected_dependency_hashes=None, server_stdin=None):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)
         root = Path(folder.name)
@@ -87,10 +90,13 @@ class RunnerTests(unittest.TestCase):
         instance.mkdir()
         output.mkdir()
         if manual:
-            (output / "players.json").write_text(json.dumps({"passed": True}), encoding="utf8")
+            report = ({'passed': True, 'phase': phase or 'single', 'scenario': scenario}
+                      if client_report is None else client_report)
+            (output / "players.json").write_text(json.dumps(report), encoding="utf8")
             if finished:
                 (output / "finished").touch()
-        server = Mock(pid=1234, returncode=None, stdin=io.BytesIO())
+        server = Mock(pid=1234, returncode=None,
+                      stdin=io.BytesIO() if server_stdin is None else server_stdin)
         server.poll.side_effect = lambda: server.returncode
 
         def wait_server(seconds):
@@ -107,10 +113,15 @@ class RunnerTests(unittest.TestCase):
             if start_error:
                 raise start_error
             if len(command) > 1 and command[1] == "-Xms512M":
+                if server_start_hook:
+                    server_start_hook(instance)
                 kwargs["stdout"].write(startup.encode())
                 kwargs["stdout"].flush()
                 return server
-            report = {"passed": True} if client_report is None else client_report
+            if client_start_hook:
+                client_start_hook(instance)
+            report = ({'passed': True, 'phase': phase or 'single', 'scenario': scenario}
+                      if client_report is None else client_report)
             (output / "players.json").write_text(json.dumps(report), encoding="utf8")
             return client
 
@@ -125,7 +136,8 @@ class RunnerTests(unittest.TestCase):
                 patch.object(RUNNER, "print", create=True), \
                 patch.object(RUNNER.time, "monotonic", side_effect=clock or [0, 1, 2, 3, 4, 5]):
             result = RUNNER.run_session(instance, output, "java", "node", manual, timeout=timeout,
-                                        phase=phase, state_file=root / 'state.json' if phase else None)
+                                        phase=phase, state_file=root / 'state.json' if phase else None,
+                                        scenario=scenario, expected_dependency_hashes=expected_dependency_hashes)
         self.assertEqual(result, json.loads((output / "result.json").read_text("utf8")))
         return result, launch, terminate, server, client
 
@@ -199,7 +211,8 @@ class RunnerTests(unittest.TestCase):
         terminate.assert_called_once_with(client)
 
     def test_restart_phase_is_explicit_and_checked_in_the_client_report(self):
-        result, launch, _, _, _ = self.run_fixture(phase='verify', client_report={'passed': True, 'phase': 'verify'})
+        result, launch, _, _, _ = self.run_fixture(phase='verify', client_report={
+            'passed': True, 'phase': 'verify', 'scenario': 'legacy'})
         self.assertTrue(result['passed'])
         self.assertEqual('verify', result['phase'])
         environment = launch.call_args.kwargs['env']
@@ -210,11 +223,139 @@ class RunnerTests(unittest.TestCase):
         self.assertIn('requested restart phase', result['errors'][0])
 
     def test_default_scenario_does_not_inherit_restart_environment(self):
-        with patch.dict(os.environ, SENLUO_SCENARIO_PHASE='verify', SENLUO_SCENARIO_STATE='old.json'):
+        with patch.dict(os.environ, SENLUO_SCENARIO_PHASE='verify', SENLUO_SCENARIO_STATE='old.json',
+                        SENLUO_SCENARIO_KIND='gameplay'):
             result, launch, _, _, _ = self.run_fixture()
         self.assertTrue(result['passed'])
         self.assertNotIn('SENLUO_SCENARIO_PHASE', launch.call_args.kwargs['env'])
         self.assertNotIn('SENLUO_SCENARIO_STATE', launch.call_args.kwargs['env'])
+        self.assertNotIn('SENLUO_SCENARIO_KIND', launch.call_args.kwargs['env'])
+
+    def test_gameplay_phase_requires_matching_report_and_forwards_explicit_kind(self):
+        report = {'passed': True, 'phase': 'verify', 'scenario': 'gameplay'}
+        result, launch, _, _, _ = self.run_fixture(phase='verify', scenario='gameplay', client_report=report)
+        self.assertTrue(result['passed'])
+        self.assertEqual('gameplay', result['scenario'])
+        self.assertEqual('gameplay', launch.call_args.kwargs['env']['SENLUO_SCENARIO_KIND'])
+        for wrong_kind in (None, 'legacy', True):
+            with self.subTest(wrong_kind=wrong_kind):
+                result, _, _, _, _ = self.run_fixture(phase='verify', scenario='gameplay',
+                    client_report={**report, 'scenario': wrong_kind})
+                self.assertFalse(result['passed'])
+                self.assertIn('requested gameplay scenario', result['errors'][0])
+
+    def test_gameplay_cannot_run_without_a_restart_phase_or_as_an_unknown_kind(self):
+        for kind in ('gameplay', 'unknown'):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as folder:
+                with self.assertRaises(ValueError):
+                    RUNNER.run_session(Path(folder), Path(folder), 'java', 'node', scenario=kind)
+
+    def test_single_phase_rejects_restart_or_missing_report_identity(self):
+        for identity in (
+            {'phase': 'verify', 'scenario': 'legacy'},
+            {'phase': 'single', 'scenario': 'gameplay'},
+            {'phase': 'verify', 'scenario': 'gameplay'},
+            {'phase': 'single'}, {'scenario': 'legacy'}, {},
+        ):
+            with self.subTest(identity=identity):
+                result, _, _, _, _ = self.run_fixture(client_report={'passed': True, **identity})
+                self.assertFalse(result['passed'])
+                self.assertTrue(any('Client report did not complete' in error for error in result['errors']))
+
+    def test_manual_diagnosis_requires_the_same_single_phase_and_scenario_identity(self):
+        for identity in (
+            {'phase': 'verify', 'scenario': 'gameplay'},
+            {'phase': 'single', 'scenario': 'gameplay'},
+            {'phase': 'empty', 'scenario': 'legacy'}, {},
+        ):
+            with self.subTest(identity=identity):
+                result, launch, _, _, _ = self.run_fixture(manual=True, finished=True,
+                    client_report={'passed': True, **identity})
+                self.assertFalse(result['passed'])
+                self.assertEqual('manual-finished', result['completionReason'])
+                self.assertEqual(1, launch.call_count)
+
+    def test_legacy_phase_cannot_accept_a_gameplay_success_report(self):
+        result, _, _, _, _ = self.run_fixture(phase='verify', scenario='legacy', client_report={
+            'passed': True, 'phase': 'verify', 'scenario': 'gameplay'})
+        self.assertFalse(result['passed'])
+        self.assertIn('requested legacy scenario', result['errors'][0])
+
+    def test_probe_allowlist_covers_only_the_named_gameplay_commands(self):
+        for action in ('gameclear', 'gameseed', 'gamestock', 'gameinspect', 'gamecombat', 'gamecancel'):
+            self.assertIsNotNone(RUNNER.PROBE.fullmatch(f'senluoprobe 123 {action} SenLuoProbeA'))
+        for action in ('gameinject', 'op', 'gameseed extra', 'gameinspect\nstop'):
+            self.assertIsNone(RUNNER.PROBE.fullmatch(f'senluoprobe 123 {action} SenLuoProbeA'))
+
+    def test_combat_observation_reaches_server_without_forwarding_unapproved_commands(self):
+        sink = Mock(wraps=io.BytesIO())
+        allowed = ['senluoprobe 42 gamecombat SenLuoProbeA',
+                   'senluoprobe 43 gamecombat SenLuoProbeB']
+        rejected = ['senluoprobe 44 gamecombat OtherPlayer',
+                    'senluoprobe 45 gamecombat SenLuoProbeA extra',
+                    'senluoprobe 46 gamecombat;stop SenLuoProbeA',
+                    'op SenLuoProbeA', 'stop']
+
+        def commands(instance):
+            (instance.parent / 'output/commands.txt').write_text(
+                '\n'.join(allowed + rejected) + '\n', encoding='utf8')
+
+        result, _, _, _, _ = self.run_fixture(phase='verify', scenario='gameplay',
+            client_start_hook=commands, server_stdin=sink)
+        self.assertTrue(result['passed'])
+        self.assertEqual([((line + '\n').encode('ascii'),) for line in allowed] + [(b'stop\n',)],
+                         [call.args for call in sink.write.call_args_list])
+
+    def test_startup_generated_remapped_jars_are_captured_at_ready_before_the_client(self):
+        def arrange(instance):
+            jar = instance / 'plugins/.paper-remapped/Probe.jar'
+            jar.parent.mkdir(parents=True)
+            jar.write_bytes(b'normal startup remap')
+        result, _, _, _, _ = self.run_fixture(server_start_hook=arrange)
+        self.assertTrue(result['passed'])
+        self.assertEqual({'plugins/.paper-remapped/Probe.jar': hashlib.sha256(b'normal startup remap').hexdigest()},
+                         result['runtimeDependencyHashes'])
+
+    def test_ready_to_shutdown_jar_mutation_addition_or_removal_cannot_pass(self):
+        def arrange(instance):
+            jar = instance / 'plugins/.paper-remapped/Probe.jar'
+            jar.parent.mkdir(parents=True)
+            jar.write_bytes(b'normal startup remap')
+        for action in ('change', 'add', 'remove'):
+            def mutate(instance):
+                jar = instance / 'plugins/.paper-remapped/Probe.jar'
+                if action == 'change':
+                    jar.write_bytes(b'different execution code')
+                elif action == 'add':
+                    (jar.parent / 'LateLibrary.jar').write_bytes(b'late code')
+                else:
+                    jar.unlink()
+            with self.subTest(action=action):
+                result, _, _, _, _ = self.run_fixture(server_start_hook=arrange, client_start_hook=mutate)
+                self.assertFalse(result['passed'])
+                self.assertIn('Runtime dependency JARs changed after server readiness', result['errors'])
+
+    def test_normal_nonjar_cache_updates_after_ready_do_not_invalidate_execution_hashes(self):
+        def cache_update(instance):
+            cache = instance / 'plugins/CraftEngine/cache/runtime.json'
+            cache.parent.mkdir(parents=True)
+            cache.write_text('{"normal":"cache update"}', 'utf8')
+        result, _, _, _, _ = self.run_fixture(client_start_hook=cache_update)
+        self.assertTrue(result['passed'])
+        self.assertEqual({}, result['runtimeDependencyHashes'])
+
+    def test_ready_dependency_mismatch_stops_before_launching_the_protocol_client(self):
+        def different_remap(instance):
+            jar = instance / 'plugins/.paper-remapped/Probe.jar'
+            jar.parent.mkdir(parents=True)
+            jar.write_bytes(b'changed at startup')
+        result, launch, _, _, _ = self.run_fixture(phase='verify', server_start_hook=different_remap,
+            expected_dependency_hashes={'plugins/.paper-remapped/Probe.jar': hashlib.sha256(b'seed baseline').hexdigest()})
+        self.assertFalse(result['passed'])
+        self.assertEqual('startup-failed', result['completionReason'])
+        self.assertEqual(1, launch.call_count, 'Do not launch protocol actions against changed execution bytes')
+        self.assertIsNone(result['clientExit'])
+        self.assertTrue(any('differ from the seed-ready baseline' in error for error in result['errors']))
 
 
 class RestartSuiteTests(unittest.TestCase):
@@ -232,19 +373,30 @@ class RestartSuiteTests(unittest.TestCase):
         self.plugin = self.instance / 'plugins/TestPlugin.jar'
         self.plugin.write_bytes(b'fixed-plugin')
 
-    def run_suite(self, callback=None):
-        def session(instance, out, java, node, *, phase, state_file):
+    def run_suite(self, callback=None, scenario='legacy'):
+        def session(instance, out, java, node, *, phase, state_file, **options):
             self.assertEqual(self.instance, instance)
             self.assertEqual(self.out / 'persistence-state.json', state_file)
             self.assertEqual(phase, out.name)
             self.assertEqual({'port': 25591}, json.loads((out / 'fixture.json').read_text('utf8')))
+            expected_options = {'scenario': 'gameplay'} if scenario == 'gameplay' else {}
+            if phase != 'seed':
+                expected_options['expected_dependency_hashes'] = RUNNER.runtime_dependency_hashes(instance)
+            self.assertEqual(expected_options, options)
             if callback:
                 callback(phase, state_file)
             elif phase == 'seed':
-                state_file.write_text('{"uuid":"original-furniture"}', 'utf8')
-            return {'passed': True, 'phase': phase}
+                state_file.write_text(json.dumps({'uuid': 'original-furniture', 'scenario': scenario}), 'utf8')
+            elif phase == 'verify' and scenario == 'gameplay':
+                state_file.with_name(state_file.name + '.verified.json').write_text(json.dumps({
+                    'schemaVersion': 1, 'phase': 'verify', 'scenario': scenario,
+                    'seedStateSha256': hashlib.sha256(state_file.read_bytes()).hexdigest(),
+                    'players': {'fixture': 'original inventory'}}), 'utf8')
+            return {'passed': True, 'phase': phase, 'scenario': scenario,
+                    'runtimeDependencyHashes': RUNNER.runtime_dependency_hashes(instance)}
         with patch.object(RUNNER, 'run_session', side_effect=session) as launch:
-            result = RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {'port': 25591})
+            result = RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {'port': 25591},
+                                              scenario=scenario)
         self.assertEqual(result, json.loads((self.out / 'result.json').read_text('utf8')))
         return result, launch
 
@@ -255,6 +407,70 @@ class RestartSuiteTests(unittest.TestCase):
         self.assertEqual(3, launch.call_count)
         self.assertEqual(64, len(result['seedStateSha256']))
         self.assertEqual(3, len(result['runtimeHashes']))
+        self.assertEqual('seed-ready', result['runtimeDependencyBaseline'])
+        self.assertEqual(RUNNER.runtime_dependency_hashes(self.instance), result['runtimeDependencyHashes'])
+
+    def test_gameplay_runs_three_starts_with_explicit_matching_scenario(self):
+        result, launch = self.run_suite(scenario='gameplay')
+        self.assertTrue(result['passed'])
+        self.assertEqual('gameplay', result['scenario'])
+        self.assertEqual(3, launch.call_count)
+
+    def test_gameplay_rejects_a_checkpoint_from_the_legacy_family(self):
+        def legacy_seed(phase, state_file):
+            state_file.write_text('{"uuid":"original-furniture","scenario":"legacy"}', 'utf8')
+        result, launch = self.run_suite(legacy_seed, scenario='gameplay')
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('seed snapshot belongs', result['errors'][0])
+
+    def test_gameplay_rejects_a_successful_phase_from_a_different_family(self):
+        with patch.object(RUNNER, 'run_session', return_value={
+                'passed': True, 'phase': 'seed', 'scenario': 'legacy'}) as launch:
+            result = RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {}, scenario='gameplay')
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('different gameplay scenario', result['errors'][0])
+
+    def test_gameplay_recovery_checkpoint_must_bind_the_original_seed(self):
+        def wrong_seed_binding(phase, state_file):
+            if phase == 'seed':
+                state_file.write_text('{"scenario":"gameplay","uuid":"original"}', 'utf8')
+            elif phase == 'verify':
+                state_file.with_name(state_file.name + '.verified.json').write_text(json.dumps({
+                    'schemaVersion': 1, 'phase': 'verify', 'scenario': 'gameplay',
+                    'seedStateSha256': '0' * 64}), 'utf8')
+        result, launch = self.run_suite(wrong_seed_binding, scenario='gameplay')
+        self.assertFalse(result['passed'])
+        self.assertEqual(2, launch.call_count)
+        self.assertIn('immutable gameplay seed', result['errors'][0])
+
+    def test_seed_cannot_precreate_a_future_recovery_checkpoint(self):
+        def premature_verification(phase, state_file):
+            state_file.write_text('{"scenario":"gameplay","uuid":"original"}', 'utf8')
+            state_file.with_name(state_file.name + '.verified.json').write_text(json.dumps({
+                'schemaVersion': 1, 'phase': 'verify', 'scenario': 'gameplay',
+                'seedStateSha256': hashlib.sha256(state_file.read_bytes()).hexdigest()}), 'utf8')
+        result, launch = self.run_suite(premature_verification, scenario='gameplay')
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('premature verification', result['errors'][0])
+
+    def test_empty_phase_cannot_rewrite_its_expected_recovered_inventory(self):
+        def rewrite_inventory(phase, state_file):
+            verified = state_file.with_name(state_file.name + '.verified.json')
+            if phase == 'seed':
+                state_file.write_text('{"scenario":"gameplay","uuid":"original"}', 'utf8')
+            elif phase == 'verify':
+                verified.write_text(json.dumps({'schemaVersion': 1, 'phase': 'verify',
+                    'scenario': 'gameplay', 'players': {'A': ['unique-item']},
+                    'seedStateSha256': hashlib.sha256(state_file.read_bytes()).hexdigest()}), 'utf8')
+            else:
+                verified.write_text('{"players":{"A":[]}}', 'utf8')
+        result, launch = self.run_suite(rewrite_inventory, scenario='gameplay')
+        self.assertFalse(result['passed'])
+        self.assertEqual(3, launch.call_count)
+        self.assertIn('changed the verified inventory', result['errors'][0])
 
     def test_missing_or_invalid_seed_snapshot_stops_before_restart(self):
         for seed in (None, '{}', '[]', 'broken'):
@@ -293,6 +509,73 @@ class RestartSuiteTests(unittest.TestCase):
         self.assertEqual(1, launch.call_count)
         self.assertIn('scenario code changed', result['errors'][0])
 
+    def test_first_start_may_generate_remapped_and_version_jars_before_seed_ready(self):
+        def normal_startup(phase, state_file):
+            if phase == 'seed':
+                state_file.write_text('{"uuid":"original"}', 'utf8')
+                for name in ('plugins/.paper-remapped/Probe.jar', 'versions/1.21.11/paper.jar',
+                             'libraries/group/dependency.jar', 'plugins/CraftEngine/libs/extra.jar'):
+                    jar = self.instance / name
+                    jar.parent.mkdir(parents=True, exist_ok=True)
+                    jar.write_bytes(name.encode())
+        result, launch = self.run_suite(normal_startup)
+        self.assertTrue(result['passed'])
+        self.assertEqual(3, launch.call_count)
+        self.assertEqual(6, len(result['runtimeDependencyHashes']))
+        self.assertEqual('seed-ready', result['runtimeDependencyBaseline'])
+
+    def test_later_ready_time_jar_set_must_match_the_seed_ready_baseline(self):
+        def late_jar(phase, state_file):
+            if phase == 'seed':
+                state_file.write_text('{"uuid":"original"}', 'utf8')
+            elif phase == 'verify':
+                jar = self.instance / 'plugins/.paper-remapped/Other.jar'
+                jar.parent.mkdir(parents=True)
+                jar.write_bytes(b'newly introduced execution dependency')
+        result, launch = self.run_suite(late_jar)
+        self.assertFalse(result['passed'])
+        self.assertEqual(2, launch.call_count)
+        self.assertIn('differ from the seed-ready baseline', result['errors'][0])
+
+    def test_post_session_dependency_check_rejects_a_false_success_after_ready_jar_changes(self):
+        def session(instance, out, java, node, *, phase, state_file):
+            ready = RUNNER.runtime_dependency_hashes(instance)
+            state_file.write_text('{"uuid":"original"}', 'utf8')
+            jar = instance / 'libraries/changed.jar'
+            jar.parent.mkdir()
+            jar.write_bytes(b'after the ready snapshot')
+            return {'passed': True, 'phase': phase, 'scenario': 'legacy', 'runtimeDependencyHashes': ready}
+        with patch.object(RUNNER, 'run_session', side_effect=session) as launch:
+            result = RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {})
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('Runtime dependency JARs changed during the seed', result['errors'][0])
+
+    def test_between_phase_dependency_change_is_rejected_before_starting_the_next_server(self):
+        original = RUNNER.runtime_dependency_hashes
+        calls = 0
+        def dependencies(instance):
+            nonlocal calls
+            calls += 1
+            if calls == 3:
+                jar = instance / 'libraries/between-starts.jar'
+                jar.parent.mkdir()
+                jar.write_bytes(b'different execution set')
+            return original(instance)
+        with patch.object(RUNNER, 'runtime_dependency_hashes', side_effect=dependencies):
+            result, launch = self.run_suite()
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('Runtime dependency JARs changed between restart phases', result['errors'][0])
+
+    def test_missing_ready_dependency_manifest_cannot_be_hidden_by_a_passing_client(self):
+        with patch.object(RUNNER, 'run_session', return_value={
+                'passed': True, 'phase': 'seed', 'scenario': 'legacy'}) as launch:
+            result = RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {})
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+        self.assertIn('did not record ready-time runtime dependency JARs', result['errors'][0])
+
     def test_failed_phase_stops_without_starting_later_phases(self):
         with patch.object(RUNNER, 'run_session', return_value={'passed': False, 'phase': 'seed'}) as launch:
             result = RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {})
@@ -305,6 +588,47 @@ class RestartSuiteTests(unittest.TestCase):
         with patch.object(RUNNER, 'run_session') as launch, self.assertRaises(FileExistsError):
             RUNNER.run_restart_suite(self.instance, self.out, 'java', 'node', {})
         launch.assert_not_called()
+
+
+class ScenarioSourceLockTests(unittest.TestCase):
+    def test_recursive_dependency_hashes_stream_all_jars_and_ignore_nonjar_cache_files(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            names = ('server.jar', 'versions/1.21.11/paper.jar', 'plugins/.paper-remapped/Probe.jar',
+                     'plugins/.paper-remapped/remap-classpath/runtime.jar', 'libraries/dependency.jar',
+                     'plugins/CraftEngine/libs/extra.jar')
+            for name in names:
+                jar = root / name
+                jar.parent.mkdir(parents=True, exist_ok=True)
+                jar.write_bytes(name.encode())
+            (root / 'plugins/CraftEngine/cache.json').write_text('{"mutable":true}', 'utf8')
+            with patch.object(Path, 'read_bytes', side_effect=AssertionError('Hash JARs with streaming file_digest')):
+                hashes = RUNNER.runtime_dependency_hashes(root)
+            self.assertEqual({name: hashlib.sha256(name.encode()).hexdigest() for name in names}, hashes)
+
+    def test_directly_executed_resource_reader_has_an_explicit_relative_source_lock(self):
+        hashes = RUNNER.scenario_hashes()
+        name = '../VanillaPack12111.java'
+        self.assertIn(name, hashes)
+        reader = Path(RUNNER.__file__).parent / name
+        self.assertEqual(hashlib.sha256(reader.read_bytes()).hexdigest(), hashes[name])
+
+    def test_changing_only_the_resource_reader_changes_the_source_lock(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            scripts = root / 'connected'
+            scripts.mkdir()
+            for name in ('run.py', 'players.cjs', 'persistence-players.cjs', 'gameplay-persistence.cjs'):
+                (scripts / name).write_text('unchanged-' + name, 'utf8')
+            reader = root / 'VanillaPack12111.java'
+            reader.write_text('original reader', 'utf8')
+            with patch.object(RUNNER, '__file__', str(scripts / 'run.py')):
+                original = RUNNER.scenario_hashes()
+                reader.write_text('different reader', 'utf8')
+                changed = RUNNER.scenario_hashes()
+            self.assertNotEqual(original['../VanillaPack12111.java'], changed['../VanillaPack12111.java'])
+            self.assertEqual({name: value for name, value in original.items() if name != '../VanillaPack12111.java'},
+                             {name: value for name, value in changed.items() if name != '../VanillaPack12111.java'})
 
 
 class ProcessTreeTests(unittest.TestCase):

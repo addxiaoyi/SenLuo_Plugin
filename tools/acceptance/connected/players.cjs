@@ -12,7 +12,8 @@ const { Vec3 } = require('vec3')
 const out = path.resolve(process.argv[2])
 const { port, packSha256 } = JSON.parse(fs.readFileSync(path.join(out, 'fixture.json')))
 const phase = process.env.SENLUO_SCENARIO_PHASE || 'single'
-const report = { passed: false, phase, protocol: '1.21.11', packs: {}, checks: {} }
+const scenario = process.env.SENLUO_SCENARIO_KIND || 'legacy'
+const report = { passed: false, phase, scenario, protocol: '1.21.11', packs: {}, checks: {} }
 const sessions = []
 const shutdown = new AbortController()
 const pendingPacks = new Set()
@@ -121,7 +122,9 @@ async function receivePack (bot, username, offer) {
   report.packs[username] = { bytes: bytes.length, sha1: offer.hash, ...decoded }
 }
 async function connect (username) {
-  const bot = mineflayer.createBot({ host: '127.0.0.1', port, version: '1.21.11', username, auth: 'offline', plugins: { resource_pack: false } })
+  const customPackets = scenario === 'gameplay' ? require('./gameplay-persistence.cjs').contract.CUSTOM_PACKETS_12111 : undefined
+  const bot = mineflayer.createBot({ host: '127.0.0.1', port, version: '1.21.11', username, auth: 'offline',
+    customPackets, plugins: { resource_pack: false } })
   sessions.push(bot)
   bot.on('error', err => { networkError = err }); bot.on('kicked', msg => { networkError = new Error(`Kicked ${username}: ${JSON.stringify(msg)}`) })
   bot.once('end', reason => { networkError ??= new Error(`Disconnected ${username}: ${reason}`) })
@@ -140,18 +143,56 @@ async function connect (username) {
 const ns = 'kaleidoscopecookery:'
 const count = (items, id) => items.filter(item => item.id === id).reduce((n, item) => n + item.count, 0)
 async function walkTo (bot, target, description, stoppingDistance = .35, stopWhen = () => false) {
+  const last = { description, stage: 'checking', position: null, target: null, distance: null, stoppingDistance }
+  const updatePosition = () => {
+    const position = bot.entity?.position
+    last.position = position ? { x: position.x, y: position.y, z: position.z } : null
+    last.distance = last.position && last.target
+      ? Math.hypot(last.position.x - last.target.x, last.position.z - last.target.z) : null
+  }
+  const locate = () => {
+    const position = typeof target === 'function' ? target() : target
+    last.target = position ? { x: position.x, y: position.y, z: position.z } : null
+    updatePosition()
+    assert.ok(last.target && Object.values(last.target).every(Number.isFinite), 'Missing or nonfinite walking target')
+    assert.ok(last.position && Object.values(last.position).every(Number.isFinite), 'Missing or nonfinite walking position')
+    return last.target
+  }
   try {
-    await until(description, async () => {
-      if (stopWhen()) return true
-      const position = typeof target === 'function' ? target() : target
-      assert.ok(position && Number.isFinite(position.x) && Number.isFinite(position.z), 'Missing walking target')
-      if (Math.hypot(bot.entity.position.x - position.x, bot.entity.position.z - position.z) <= stoppingDistance) return true
-      await bot.lookAt(new Vec3(position.x, bot.entity.position.y + 1.62, position.z))
-      bot.setControlState('forward', true)
-      return false
-    }, 5000)
-  } finally { bot.setControlState('forward', false) }
-  await delay(200)
+    try {
+      assert.ok(Number.isFinite(stoppingDistance) && stoppingDistance > 0, 'Invalid walking stopping distance')
+      await until(description, async () => {
+        last.stage = 'checking'
+        if (stopWhen()) return true
+        const aimed = locate()
+        if (last.distance <= stoppingDistance) return true
+        bot.setControlState('forward', false)
+        last.stage = 'turning'
+        await bot.lookAt(new Vec3(aimed.x, last.position.y + 1.62, aimed.z), true)
+        last.stage = 'rechecking'
+        if (stopWhen()) return true
+        const current = locate()
+        if (last.distance <= stoppingDistance) return true
+        // A live item may move while rotation is pending; face its new position on the next bounded attempt.
+        if (current.x !== aimed.x || current.z !== aimed.z) return false
+        last.stage = 'walking'
+        bot.setControlState('forward', true)
+        return false
+      }, 5000)
+    } finally { bot.setControlState('forward', false) }
+    last.stage = 'settling'
+    await delay(200)
+  } catch (error) {
+    // Keep the original error and stack while preserving the last physical state, including on timeouts.
+    try {
+      updatePosition()
+      error.walkTo = { ...last }
+      const diagnostic = 'walkTo=' + JSON.stringify(last)
+      error.message += '; ' + diagnostic
+      if (typeof error.stack === 'string' && !error.stack.includes(diagnostic)) error.stack += '\n' + diagnostic
+    } catch {}
+    throw error
+  }
 }
 async function parkFurniturePeer (bot) {
   await walkTo(bot, new Vec3(bot.entity.position.x, bot.entity.position.y, 10.5), 'move peer to the clear recovery lane', .2)
@@ -555,7 +596,17 @@ async function dollPose (a) {
 }
 async function main () {
   assert.ok(['single', 'seed', 'verify', 'empty'].includes(phase), 'Unknown scenario phase: ' + phase)
+  assert.ok(['legacy', 'gameplay'].includes(scenario), 'Unknown scenario kind: ' + scenario)
+  assert.ok(scenario !== 'gameplay' || phase !== 'single', 'Gameplay requires three explicit restart phases')
   const a = await connect('SenLuoProbeA'); const b = await connect('SenLuoProbeB')
+  if (scenario === 'gameplay') {
+    await require('./gameplay-persistence.cjs')({
+      a, b, inspect, until, delay, click, count, Vec3, pickUpFurniture, observeSnapshot, useAndObserve,
+      selectHotbar, walkTo, report, out, phase, stateFile: process.env.SENLUO_SCENARIO_STATE
+    })
+    report.passed = true
+    return
+  }
   const persistence = () => require('./persistence-players.cjs')({
     a, b, inspect, until, delay, click, count, Vec3, pickUpFurniture, observeSnapshot, useAndObserve, adjustDollAxes, report, out, phase,
     stateFile: process.env.SENLUO_SCENARIO_STATE

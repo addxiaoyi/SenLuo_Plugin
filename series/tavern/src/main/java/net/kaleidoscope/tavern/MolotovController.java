@@ -386,19 +386,118 @@ final class MolotovController extends FurnitureController {
 
     @Override public void preRemove(net.momirealms.craftengine.core.entity.player.Player player) {
         if (!hasContents() && !blocked) return;
-        CompoundTag saved = new CompoundTag(); saveCustomData(saved);
-        saved.putString("recovery_world", anchor.getWorld().getUID().toString());
-        saved.putString("recovery_furniture", furniture().id().asString());
-        saved.putString("recovery_position", anchor.getX() + "," + anchor.getY() + "," + anchor.getZ());
+        CompoundTag saved = new CompoundTag();
+        byte[] encoded = null;
+        String recoveryFurnitureUuid = "unavailable", recoveryWorld = "unavailable";
+        String recoveryFurniture = "unavailable", recoveryPosition = "unavailable";
         try {
+            recoveryFurnitureUuid = furniture().uuid().toString();
+            saved.putString("recovery_furniture_uuid", recoveryFurnitureUuid);
+            recoveryWorld = anchor.getWorld().getUID().toString();
+            saved.putString("recovery_world", recoveryWorld);
+            recoveryFurniture = furniture().id().asString();
+            saved.putString("recovery_furniture", recoveryFurniture);
+            recoveryPosition = anchor.getX() + "," + anchor.getY() + "," + anchor.getZ();
+            saved.putString("recovery_position", recoveryPosition);
+            saveCustomData(saved);
+            encoded = net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData.of(saved).toBytes();
             var folder = plugin.getDataFolder().toPath().resolve("recovery"); Files.createDirectories(folder);
             var file = folder.resolve(furniture().uuid() + "-" + UUID.randomUUID() + ".nbt");
-            byte[] bytes = net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData.of(saved).toBytes();
             try (FileChannel channel = FileChannel.open(file, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
-                ByteBuffer buffer = ByteBuffer.wrap(bytes); while (buffer.hasRemaining()) channel.write(buffer); channel.force(true);
+                ByteBuffer buffer = ByteBuffer.wrap(encoded); while (buffer.hasRemaining()) channel.write(buffer); channel.force(true);
             }
             plugin.getLogger().warning("Removed Molotov storage retained for manual recovery: " + file);
-        } catch (IOException failure) { throw new IllegalStateException("Cannot preserve removed Molotov storage", failure); }
+        } catch (Exception | LinkageError failure) {
+            // CE's finally still destroys the furniture when this callback throws, and then skips base loot.
+            // Preserve the best available state in the log; recovery records must never auto-replay items.
+            String emergency;
+            try { emergency = emergencyRemovalState(saved, encoded); }
+            catch (Exception | LinkageError fallbackFailure) {
+                if (fallbackFailure != failure) failure.addSuppressed(fallbackFailure);
+                // Rendering the same damaged tag again could escape this callback and skip CE's base loot.
+                emergency = "BEST_EFFORT_INCOMPLETE_SNBT; recovery_furniture_uuid=" + recoveryFurnitureUuid
+                        + "; recovery_world=" + recoveryWorld + "; recovery_furniture=" + recoveryFurniture
+                        + "; recovery_position=" + recoveryPosition;
+            }
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "MOLOTOV STORAGE RECOVERY FAILED; never auto replay; verify world and inventory before manual recovery; manual state="
+                            + emergency, failure);
+        }
+    }
+
+    private String emergencyRemovalState(CompoundTag saved, byte[] encoded) {
+        if (encoded != null) return "base64_nbt=" + Base64.getEncoder().encodeToString(encoded);
+        if (!saved.containsKey(SAVE_KEY)) {
+            // The envelope's size check can fail even when each original item still serializes.
+            // Retain those exact bytes first; Paper CODEC JSON is the next complete recovery form.
+            if (rejected != null) saved.putString("recovery_rejected_snbt", rejected.toString());
+            else {
+                saved.putString("recovery_storage", storage.name());
+                saved.putInt("recovery_slots", slots.length);
+                saved.putBoolean("recovery_powered", powered);
+                if (operator != null) saved.putString("recovery_operator", operator.toString());
+                for (int slot = 0; slot < slots.length; slot++) if (slots[slot] != null) {
+                    ItemStack item = slots[slot];
+                    CompoundTag source = new CompoundTag();
+                    saved.put("recovery_slot_" + slot, source);
+                    // Even isEmpty() may fail on a damaged item; never let one slot hide later originals.
+                    try {
+                        emergencyRemovalItemState(source, item);
+                    } catch (Exception | LinkageError slotFailure) {
+                        incompleteRemovalItemField(source, "recovery_slot_failure", slotFailure);
+                    }
+                }
+            }
+        }
+        return "snbt=" + saved;
+    }
+
+    private static void emergencyRemovalItemState(CompoundTag source, ItemStack item) {
+        Throwable byteEncodingFailure;
+        try {
+            byte[] bytes = item.serializeAsBytes();
+            if (bytes == null || bytes.length == 0) throw new IllegalStateException("Empty item byte serialization");
+            source.putByteArray("item_bytes", bytes);
+            source.putString("format", "BUKKIT_ITEM_STACK_BYTES");
+            return;
+        } catch (Exception | LinkageError bytesFailure) {
+            byteEncodingFailure = bytesFailure;
+        }
+        try {
+            var json = Bukkit.getUnsafe().serializeItemAsJson(item);
+            if (json == null || !json.has("DataVersion") || !json.has("id"))
+                throw new IllegalStateException("Incomplete Paper item JSON");
+            String jsonText = json.toString();
+            source.putString("item_json", jsonText);
+            source.putString("format", "PAPER_ITEM_STACK_JSON");
+            return;
+        } catch (Exception | LinkageError jsonFailure) {
+            source.putString("recovery_bytes_failure", recoveryFailureDescription(byteEncodingFailure));
+            source.putString("recovery_json_failure", recoveryFailureDescription(jsonFailure));
+        }
+        // ItemMeta explicitly does not promise a complete serializable component value.
+        source.putString("recovery_quality", "BEST_EFFORT_NOT_GUARANTEED_COMPLETE");
+        String type = null, components = null;
+        try { type = item.getType().getKey().toString(); source.putString("item_type", type); }
+        catch (Exception | LinkageError typeFailure) { incompleteRemovalItemField(source, "recovery_type_failure", typeFailure); }
+        try {
+            var meta = item.getItemMeta();
+            components = meta == null ? "[]" : meta.getAsComponentString();
+            source.putString("item_components", components);
+        } catch (Exception | LinkageError metaFailure) { incompleteRemovalItemField(source, "recovery_components_failure", metaFailure); }
+        if (type != null && components != null) source.putString("item", type + components);
+        try { source.putInt("count", item.getAmount()); }
+        catch (Exception | LinkageError countFailure) { incompleteRemovalItemField(source, "recovery_count_failure", countFailure); }
+    }
+
+    private static void incompleteRemovalItemField(CompoundTag source, String field, Throwable failure) {
+        source.putBoolean("recovery_incomplete", true);
+        source.putString(field, recoveryFailureDescription(failure));
+    }
+
+    private static String recoveryFailureDescription(Throwable failure) {
+        try { return failure.toString(); }
+        catch (Exception | LinkageError descriptionFailure) { return failure.getClass().getName(); }
     }
 
     private void clearDisplays() { for (ItemDisplay display : displays) if (display.isValid()) display.remove(); displays.clear(); }

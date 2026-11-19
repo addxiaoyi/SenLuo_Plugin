@@ -50,7 +50,7 @@ SenLuo_Plugin/
 
 [换设备开发交接与完整缺口](docs/HANDOFF.md)
 
-厨房已导入固定上游的 **612/612** 条配方。带料蒸笼把四个原料槽保存在物品中，厨刀锻造保留自定义组件和附魔。当前系列包静态检查覆盖 2,802 个可达模型，缺失引用及额外自定义依赖警告为零；运行日志每端仍有 4 条上游 Doll 模型越界 UV 兼容提示。固定服务器版本、启动配置与本轮有界原生回归详见[玩法回归证据](docs/research/series-gameplay-regression-2026-11-19.json)。
+厨房已导入固定上游的 **612/612** 条配方。带料蒸笼把四个原料槽保存在物品中，厨刀锻造保留自定义组件和附魔。当前系列包静态检查覆盖 2,802 个可达模型，缺失引用及额外自定义依赖警告为零；运行日志每端仍有 4 条上游 Doll 模型越界 UV 兼容提示。前序候选的固定版本、启动配置与有界原生 API 回归见[历史玩法回归证据](docs/research/series-gameplay-regression-2026-11-19.json)，不作为当前新 JAR 的运行结论。
 
 - **Cookery** 用剪刀取下茶旗图案会掉落原图案并消耗 1 点耐久，创造模式免损耗。旗面由独立显示实体承载，使用同一个透明绊线外观。
 - **Doll** 摆件九轴姿态写入源物品，重置时清除姿态记录。本轮修复 CE 晚读物品 PDC 后未刷新显示的问题；`doll_0` 在 Paper/Folia 经真实菜单修改全部九轴并拆装重放后保留数值；该九轴样例的三阶段正常重启也已通过。其余摆件、其他重启状态和原版客户端画面仍待验收。
@@ -58,9 +58,11 @@ SenLuo_Plugin/
 - **Deco** 导入器解析上游自定义物品标签，四种郁金香已有展板装饰与剪取规则。展板流程已在 Paper 132/Folia 14 通过双人生存协议验证，覆盖满背包、交互/掉落取消和两人连续剪取，见[展板验收证据](docs/research/deco-tulip-acceptance-2026-11-19.json)。
 - **MusicPlus** 手持乐器对空气右键打开演奏菜单，旧 MIDI 播放回调按曲目会话清理。
 
-隔离服准备脚本识别当前四个系列 Shadow JAR 文件名，CI 从五个固定上游提交构建导入检查。前轮可靠性修复覆盖家具交易取消、热栏切换及同步重入，抽奖产出、玩偶回收、MIDI 精确计时和任务清理，以及验收运行器的失败判定与进程收尾，详见[该轮修复记录](docs/research/series-polish-acceptance-2026-11-19.json)。当前累计 **912 项 Java、257 项 Python、75 项 Node 测试通过**，分项见[当前交接](docs/HANDOFF.md#2026-11-19-燃烧瓶酒馆展板与木椅)。
+隔离服准备脚本识别当前四个系列 Shadow JAR 文件名，CI 从五个固定上游提交构建导入检查。前轮可靠性修复覆盖家具交易取消、热栏切换及同步重入，抽奖产出、玩偶回收、MIDI 精确计时和任务清理，以及验收运行器的失败判定与进程收尾，详见[该轮修复记录](docs/research/series-polish-acceptance-2026-11-19.json)。当前冻结构建累计 **923 项 Java、282 项 Python、207 项 Node 测试通过**，分项见[当前交接](docs/HANDOFF.md#2026-11-19-燃烧瓶酒馆展板与木椅)；这些测试不替代各候选的服务器运行验收。
 
-本轮新增燃烧瓶及四种储物家具的燃烧瓶链、14 款原生 Dialog 文字展板、12 木种椅子的空垫和 16 色椅垫、12 木种静态厨娘凳与 24 条石切配方。同组五插件 JAR 在 Paper/Folia 各通过 43 个定义、431 个变体、235 个物品检查，以及 9 件家具放置／二进制 NBT 往返／移除和 19 个储物显示的生成／清理；两端正常停服，最终资源包各经官方 1.21.11 代码离线读取 14,419 项资源。新功能的玩家操作、正常重启、保护、跨区及 GPU 画面仍待验收，精确范围与复现步骤见[验收表](series/docs/ACCEPTANCE.md#燃烧瓶酒馆展板与木椅单元检查点2026-11-19)。
+本轮新增燃烧瓶及四种储物家具的燃烧瓶链、14 款原生 Dialog 文字展板、12 木种椅子的空垫和 16 色椅垫、12 木种静态厨娘凳与 24 条石切配方。前序五插件候选在 Paper/Folia 各通过 43 个定义、431 个变体、235 个物品检查，以及 9 件家具 API 放置／进程内二进制 NBT 往返／移除和 19 个储物显示的生成／清理；该次托管包各经官方 1.21.11 代码离线读取 14,419 项资源。该候选与当前构建分别保留产物身份，不能合并为同组 JAR 的验收。
+
+独立 `gameplay` 协议场景限定为一把橡木红垫椅、一块由空白改为罂粟图案的文字展板和一个空地面燃烧瓶。同一组五插件、探针与场景脚本已在 Paper 132 `gp2/paper-run-6` 和 Folia 14 `gp2/folia-run-5` 各完成 `seed → verify → empty`；六次服务器与客户端均正常退出 0、`errors=[]`，每阶段两位玩家各用官方代码读取 14,419 项资源。逐槽守恒、真实 Dialog、原生命中与回收、空状态复启、产物哈希及失败历史见[本轮有界协议证据](docs/research/series-gameplay-connected-acceptance-2026-11-19.json)和[协议检查点](series/docs/ACCEPTANCE.md#木椅文字展板与地面燃烧瓶协议检查点2026-11-19)。全部木种／颜色／板型、燃烧瓶投掷与满载储物、保护、座位碰撞、跨区及 GPU／音频仍待验收，T05／T06／F04 的广义状态保留 `unit_tested`，历史 Folia watchdog 根因仍 OPEN。
 
 前序修复抽奖机、酒桶和果盆在新家具没有保存键时被误冻结的问题，已知键中的损坏记录仍冻结并原样保留；雪克杯在 CE 晚读物品数据后同步内容和未来掉落物。六种家具定时器查询元数据实体的当前映射并核对 UUID，再按控制器类型及同类序号匹配，缺少当前实例或对应序号时跳过，避免继续操作旧实例。以上实现已有回归测试；历史候选在 Paper 132/Folia 14 各通过同一世界 `seed → verify → empty` 三阶段正常重启，仅覆盖沙发红色左段、`doll_0` 全九轴样例和果盆中一份带 PDC 标记的未加工发光浆果，见[该批正常重启证据](docs/research/series-restart-acceptance-2026-11-19.json)。各项服务端和协议证据只覆盖记录中的操作；已登录原版客户端的画面、声音及完整玩法仍需逐项验收。
 
@@ -152,7 +154,7 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/import_sources.py --check
 
 PYTHONPATH=series/tools .venv/bin/python -m unittest discover -s tools -p 'test_*.py' -v
 PYTHONPATH=series/tools .venv/bin/python -m unittest discover -s series/tools -p 'test_*.py' -v
-node --test tools/acceptance/connected/test-persistence.cjs
+node --test tools/acceptance/connected/test-persistence.cjs tools/acceptance/connected/test-gameplay-persistence.cjs
 
 JAVA_HOME=/path/to/jdk-25 bash ./gradlew test shadowJar acceptanceJar --no-daemon --no-configuration-cache
 JAVA_HOME=/path/to/jdk-25 bash ./gradlew -p series build --no-daemon --no-configuration-cache

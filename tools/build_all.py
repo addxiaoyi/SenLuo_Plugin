@@ -33,7 +33,8 @@ def main() -> None:
         run([sys.executable, "tools/feature_ledger.py"])
         run([sys.executable, "series/tools/check_independence.py"], env=env)
     if not args.skip_node:
-        run(["node", "--test", "tools/acceptance/connected/test-persistence.cjs"])
+        run(["node", "--test", "tools/acceptance/connected/test-persistence.cjs",
+             "tools/acceptance/connected/test-gameplay-persistence.cjs"])
 
 
 if __name__ == "__main__":

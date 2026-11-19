@@ -26,7 +26,7 @@
       "parity_level": "A",
       "status": "implemented",
       "source_ids": ["workflow:ci"],
-      "evidence": [".github/workflows/ci.yml", "tools/acceptance/connected/test-persistence.cjs"]
+      "evidence": [".github/workflows/ci.yml", "tools/acceptance/connected/test-persistence.cjs", "tools/acceptance/connected/test-gameplay-persistence.cjs", "tools/test_connected_acceptance.py"]
     },
     {
       "feature_id": "E03",
@@ -211,29 +211,29 @@
     {
       "feature_id": "T05",
       "module": "tavern",
-      "title": "燃烧瓶永久consumable、原生雪球与同区域火焰保护；四储物家具仅燃烧瓶链，飞行体不跨卸载或重启保存；地面回收按原槽安全交付或重规划，异常唯一完整来源记录须人工核对且不自动重放",
+      "title": "燃烧瓶永久consumable、原生雪球与同区域火焰保护；四储物家具仅燃烧瓶链，飞行体不跨卸载或重启保存；地面回收按原槽安全交付或重规划，异常分层记录含家具UUID须人工核对且不自动重放，无法完整编码时明确标记；协议代表场景限空地面正常回收，不扩展为投掷、满载储物或异常恢复实服验收",
       "parity_level": "B",
       "status": "unit_tested",
       "source_ids": ["KaleidoscopeTavern:MolotovBlockItem", "KaleidoscopeTavern:ThrownMolotovEntity", "KaleidoscopeTavern:MolotovBlock", "KaleidoscopeTavern:AbstractStorageBlock"],
-      "evidence": ["series/tavern/src/main/java/net/kaleidoscope/tavern/Molotov.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/MolotovPhysics.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/MolotovController.java", "series/tools/tavern_furniture.py", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovPhysicsTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovControllerTest.java", "series/tools/test_tavern_furniture.py", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py"]
+      "evidence": ["series/tavern/src/main/java/net/kaleidoscope/tavern/Molotov.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/MolotovPhysics.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/MolotovController.java", "series/tools/tavern_furniture.py", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovPhysicsTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovControllerTest.java", "series/tools/test_tavern_furniture.py", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/ConnectedKitchenProbe.java", "tools/acceptance/connected/players.cjs", "tools/acceptance/connected/gameplay-persistence.cjs", "tools/acceptance/connected/test-gameplay-persistence.cjs", "docs/research/series-gameplay-connected-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "T06",
       "module": "tavern",
-      "title": "14款文字展板原生Dialog、染色发光墨囊与蜡；320个UTF-16单元原文和最多8个CE文字行，拆下仅当前花纹空白板不带文字",
+      "title": "14款文字展板原生Dialog、染色发光墨囊与蜡；320个UTF-16单元原文和最多8个CE文字行，拆下仅当前花纹空白板不带文字；协议代表场景限指定中文右对齐与base到poppy，不扩展为全部14板型或GPU验收",
       "parity_level": "B",
       "status": "unit_tested",
       "source_ids": ["KaleidoscopeTavern:SandwichBoardBlock", "KaleidoscopeTavern:SandwichBlockEntity", "KaleidoscopeTavern:SandwichBlockEntityRender"],
-      "evidence": ["series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardController.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardEditor.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardState.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardDisplay.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardText.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardControllerTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardStateTest.java", "series/tools/test_sandwich_transform.py", "docs/research/board-render-research.md", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py"]
+      "evidence": ["series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardController.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardEditor.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardState.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardDisplay.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardText.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardControllerTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardStateTest.java", "series/tools/test_sandwich_transform.py", "docs/research/board-render-research.md", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/ConnectedKitchenProbe.java", "tools/acceptance/connected/players.cjs", "tools/acceptance/connected/gameplay-persistence.cjs", "tools/acceptance/connected/test-gameplay-persistence.cjs", "docs/research/series-gameplay-connected-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "F04",
       "module": "deco",
-      "title": "12木种椅子各空垫及16色垫、12木种静态厨娘凳无坐下或椅垫事件，共24条石切配方；已进入CE不可取消销毁的未结算椅垫仅完整人工恢复记录，不保留原家具或自动返垫",
+      "title": "12木种椅子各空垫及16色垫、12木种静态厨娘凳无坐下或椅垫事件，共24条石切配方；已进入CE不可取消销毁的未结算椅垫仅完整人工恢复记录，不保留原家具或自动返垫；协议代表场景限oak红垫取消、安装、剪取和基础椅回收，不扩展为全部木种或座位验收",
       "parity_level": "B",
       "status": "unit_tested",
       "source_ids": ["KaleidoscopeDeco:kaleidoscope:cookery_plus/index/table", "KaleidoscopeDeco:kaleidoscope:cookery_plus/events/carpets", "KaleidoscopeDeco:kaleidoscope:cookery_plus/events/shear", "KaleidoscopeDeco:kaleidoscope:recipe/cookery_plus/chair", "KaleidoscopeDeco:kaleidoscope:recipe/cookery_plus/cook_stool"],
-      "evidence": ["series/tools/deco_seating.py", "series/deco/src/main/java/net/kaleidoscope/deco/WoodenSeats.java", "series/deco/src/main/java/net/kaleidoscope/deco/WoodenSeatController.java", "series/deco/src/test/java/net/kaleidoscope/deco/WoodenSeatsTest.java", "series/deco/src/test/java/net/kaleidoscope/deco/WoodenSeatControllerTest.java", "series/tools/test_deco_seating.py", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py"]
+      "evidence": ["series/tools/deco_seating.py", "series/deco/src/main/java/net/kaleidoscope/deco/WoodenSeats.java", "series/deco/src/main/java/net/kaleidoscope/deco/WoodenSeatController.java", "series/deco/src/test/java/net/kaleidoscope/deco/WoodenSeatsTest.java", "series/deco/src/test/java/net/kaleidoscope/deco/WoodenSeatControllerTest.java", "series/tools/test_deco_seating.py", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/ConnectedKitchenProbe.java", "tools/acceptance/connected/players.cjs", "tools/acceptance/connected/gameplay-persistence.cjs", "tools/acceptance/connected/test-gameplay-persistence.cjs", "docs/research/series-gameplay-connected-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "F05",

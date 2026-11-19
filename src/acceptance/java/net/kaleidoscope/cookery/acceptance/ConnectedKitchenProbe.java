@@ -8,6 +8,7 @@ import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureBreakEvent;
+import net.momirealms.craftengine.bukkit.api.event.FurnitureHitEvent;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.core.util.Key;
@@ -41,12 +42,24 @@ final class ConnectedKitchenProbe implements Listener {
             "sofa", List.of(X - 1.5, (double) Y, Z + 1.5),
             "doll", List.of(X + 2.5, (double) Y, Z + 1.5),
             "tub", List.of(X + .5, (double) Y, Z - 1.5));
+    private static final List<String> GAMEPLAY_NAMES = List.of("chair", "board", "molotov");
+    private static final Map<String, Key> GAMEPLAY_KEYS = Map.of(
+            "chair", Key.of("kaleidoscope_deco:chair/oak"),
+            "board", Key.of("kaleidoscope_tavern:base_sandwich_board"),
+            "molotov", Key.of("kaleidoscope_tavern:molotov"));
+    private static final Map<String, List<Double>> GAMEPLAY_POSITIONS = Map.of(
+            "chair", PERSISTENT_POSITIONS.get("sofa"),
+            "board", PERSISTENT_POSITIONS.get("doll"),
+            "molotov", PERSISTENT_POSITIONS.get("tub"));
     private static final String FIRST = "SenLuoProbeA", SECOND = "SenLuoProbeB";
     private static final Gson JSON = new Gson();
     private final JavaPlugin plugin;
     private final World world;
     private final List<Map<String, Object>> hits = new ArrayList<>(), drops = new ArrayList<>();
     private final Map<String, Long> furnitureInteractions = new HashMap<>();
+    private record GameCombatReceipt(Map<String, Object> values, Cancellable event) {}
+    private final List<GameCombatReceipt> gameCombatReceipts = new ArrayList<>();
+    private long gameCombatSequence;
     private BukkitFurniture scarecrow;
     private BukkitFurniture board;
     private BukkitFurniture sofa;
@@ -54,6 +67,9 @@ final class ConnectedKitchenProbe implements Listener {
     private int sofaStage, canceledTrades, changedSlots;
     private boolean nestedSofaRejected;
     private boolean persistenceTracking;
+    private boolean gameplayTracking, gameplaySeeded, gameplayPeerStocked;
+    private UUID gameCancelPlayer;
+    private int gameCanceledTrades;
     private boolean observeDrops, cancelSmith;
     private int canceled, boardDenied, flowerDenied;
 
@@ -65,6 +81,7 @@ final class ConnectedKitchenProbe implements Listener {
         var probe = new ConnectedKitchenProbe(plugin, world);
         Bukkit.getPluginManager().registerEvents(probe, plugin);
         probe.observeDecoTrades();
+        probe.observeGameplayTrades();
         var cmd = Objects.requireNonNull(plugin.getCommand("senluoprobe"));
         cmd.setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof ConsoleCommandSender) || args.length != 3 || !args[0].matches("[0-9]{1,8}")
@@ -107,6 +124,34 @@ final class ConnectedKitchenProbe implements Listener {
             }, plugin, true);
         } catch (ClassNotFoundException failure) {
             throw new IllegalStateException("Deco trade boundary unavailable", failure);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void observeGameplayTrades() {
+        for (String module : List.of("deco", "tavern")) {
+            String pluginName = "Kaleidoscope" + Character.toUpperCase(module.charAt(0)) + module.substring(1) + "Plugin";
+            var owner = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(pluginName));
+            try {
+                Class<? extends Event> trade = (Class<? extends Event>) owner.getClass().getClassLoader()
+                        .loadClass("net.kaleidoscope." + module + ".internal.InventoryTradeEvent");
+                Bukkit.getPluginManager().registerEvent(trade, this, EventPriority.HIGHEST, (listener, event) -> {
+                    if (!gameplayTracking || gameCancelPlayer == null) return;
+                    try {
+                        Player actor = (Player) trade.getMethod("player").invoke(event);
+                        if (!gameCancelPlayer.equals(actor.getUniqueId()) || actor.getWorld() != world
+                                || !Set.of(FIRST, SECOND).contains(actor.getName()) || !Bukkit.isOwnedByCurrentRegion(actor)
+                                || actor.getLocation().distanceSquared(new Location(world, X, Y, Z)) > 64) return;
+                        gameCancelPlayer = null;
+                        ((Cancellable) event).setCancelled(true);
+                        gameCanceledTrades++;
+                    } catch (ReflectiveOperationException failure) {
+                        throw new IllegalStateException("Gameplay trade observation unavailable", failure);
+                    }
+                }, plugin, true);
+            } catch (ClassNotFoundException failure) {
+                throw new IllegalStateException("Gameplay trade boundary unavailable: " + module, failure);
+            }
         }
     }
 
@@ -230,6 +275,46 @@ final class ConnectedKitchenProbe implements Listener {
                         doll = CraftEngineFurniture.rayTrace(ray, 1.6);
                         if (doll != null && !doll.id().equals(DOLL)) throw new IllegalStateException("Unexpected doll fixture");
                     }
+                    case "gameclear" -> {
+                        if (!FIRST.equals(name)) throw new IllegalArgumentException("Only the gameplay seed owner clears fixtures");
+                        clearGameplay();
+                    }
+                    case "gameseed" -> {
+                        if (!FIRST.equals(name)) throw new IllegalArgumentException("Only the gameplay seed owner arranges fixtures");
+                        prepareGameplay();
+                        player.closeInventory();
+                        var inv = player.getInventory(); inv.clear();
+                        inv.setItem(0, new ItemStack(Material.RED_CARPET, 3));
+                        inv.setItem(1, new ItemStack(Material.SHEARS));
+                        inv.setItem(2, new ItemStack(Material.RED_DYE, 3));
+                        inv.setItem(3, new ItemStack(Material.GLOW_INK_SAC, 2));
+                        inv.setItem(4, new ItemStack(Material.HONEYCOMB, 2));
+                        inv.setItem(5, new ItemStack(Material.POPPY, 2));
+                        inv.setItem(8, new ItemStack(Material.BLUE_CARPET, 2));
+                        inv.setHeldItemSlot(0);
+                    }
+                    case "gamestock" -> {
+                        if (!SECOND.equals(name) || !gameplaySeeded || gameplayPeerStocked)
+                            throw new IllegalArgumentException("Expected the second gameplay seed player, once before restart");
+                        player.closeInventory();
+                        player.getInventory().clear();
+                        player.getInventory().setHeldItemSlot(0);
+                        gameplayPeerStocked = true;
+                    }
+                    case "gamecancel" -> {
+                        if (!gameplayTracking || gameCancelPlayer != null)
+                            throw new IllegalStateException("Gameplay trade cancellation is unavailable or already armed");
+                        gameCancelPlayer = player.getUniqueId();
+                    }
+                    case "gameinspect" -> {
+                        // Only observations are enabled here. Restart verification never prepares or repairs fixtures.
+                        gameplayTracking = true;
+                        persistenceTracking = false;
+                        observeDrops = true;
+                    }
+                    case "gamecombat" -> {
+                        if (!gameplayTracking) throw new IllegalStateException("Gameplay observations are not enabled");
+                    }
                     case "persistclear" -> {
                         if (!FIRST.equals(name)) throw new IllegalArgumentException("Only the seed owner clears fixtures");
                         clearPersistence();
@@ -264,7 +349,7 @@ final class ConnectedKitchenProbe implements Listener {
                     case "inspect" -> { }
                     default -> throw new IllegalArgumentException(action);
                 }
-                reply(token, snapshot(player));
+                reply(token, action.equals("gamecombat") ? gameCombatSnapshot(player) : snapshot(player));
             } catch (Exception | LinkageError error) {
                 reply(token, Map.of("error", error.toString(), "stack",
                         Arrays.stream(error.getStackTrace()).map(StackTraceElement::toString).toList()));
@@ -393,6 +478,13 @@ final class ConnectedKitchenProbe implements Listener {
         return evidence;
     }
 
+    private static Map<String,Object> gameplayItemEvidence(ItemStack item) {
+        if (item == null || item.isEmpty()) return Map.of();
+        var evidence = new LinkedHashMap<>(itemEvidence(item));
+        evidence.put("unitSerialized", Base64.getEncoder().encodeToString(item.asQuantity(1).serializeAsBytes()));
+        return evidence;
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String,Object> persistentFurniture(String name) {
         var result = new LinkedHashMap<String,Object>();
@@ -455,6 +547,185 @@ final class ConnectedKitchenProbe implements Listener {
         return result;
     }
 
+    private Location gameplayPosition(String name) {
+        var at = Objects.requireNonNull(GAMEPLAY_POSITIONS.get(name));
+        var location = new Location(world, at.get(0), at.get(1), at.get(2));
+        if (!Bukkit.isOwnedByCurrentRegion(location)
+                || !world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4))
+            throw new IllegalStateException("Gameplay fixture is outside its owning loaded region: " + name);
+        return location;
+    }
+
+    private BukkitFurniture findGameplay(String name) {
+        var center = gameplayPosition(name);
+        BukkitFurniture found = null;
+        // Metadata identity is observed afresh after restart; missing furniture is never recreated here.
+        for (var entity : world.getChunkAt(center).getEntities()) {
+            var candidate = CraftEngineFurniture.getLoadedFurnitureByMetaEntity(entity);
+            if (candidate == null || candidate.location().distanceSquared(center) > .01) continue;
+            if (!candidate.id().equals(GAMEPLAY_KEYS.get(name)))
+                throw new IllegalStateException("Unexpected gameplay fixture at " + name + ": " + candidate.id());
+            if (found != null && !found.uuid().equals(candidate.uuid()))
+                throw new IllegalStateException("Duplicated gameplay fixture: " + name);
+            found = candidate;
+        }
+        return found;
+    }
+
+    private void clearGameplay() {
+        var previous = new LinkedHashMap<UUID, BukkitFurniture>();
+        var allowed = new HashSet<>(GAMEPLAY_KEYS.values());
+        allowed.addAll(Set.of(SOFA, DOLL, TUB, BOARD));
+        // These are the same three disposable locations used by the original suite. Validate all before deleting any.
+        for (String name : GAMEPLAY_NAMES) {
+            var center = gameplayPosition(name);
+            for (var entity : world.getChunkAt(center).getEntities()) {
+                var candidate = CraftEngineFurniture.getLoadedFurnitureByMetaEntity(entity);
+                if (candidate == null || candidate.location().distanceSquared(center) > .01) continue;
+                if (!allowed.contains(candidate.id()))
+                    throw new IllegalStateException("Refusing to clear unknown gameplay fixture: " + candidate.id());
+                previous.put(candidate.uuid(), candidate);
+            }
+        }
+        observeDrops = false;
+        for (var furniture : previous.values()) {
+            if (!CraftEngineFurniture.remove(furniture,
+                    (net.momirealms.craftengine.core.entity.player.Player) null, false, false))
+                throw new IllegalStateException("Could not clear previous gameplay fixture: " + furniture.id());
+        }
+        var center = new Location(world, X + .5, Y, Z + .5);
+        for (var item : world.getNearbyEntitiesByType(org.bukkit.entity.Item.class, center, 5))
+            if (Math.abs(item.getLocation().getY() - Y) < 3) item.remove();
+        drops.clear();
+        gameCancelPlayer = null;
+        gameCanceledTrades = 0;
+        gameCombatReceipts.clear();
+        gameCombatSequence = 0;
+        gameplaySeeded = gameplayPeerStocked = false;
+        gameplayTracking = observeDrops = true;
+        persistenceTracking = false;
+    }
+
+    private void prepareGameplay() {
+        clearGameplay();
+        for (String name : GAMEPLAY_NAMES) {
+            var key = GAMEPLAY_KEYS.get(name);
+            ItemStack source = ce(key.asString(), 1);
+            if (source.isEmpty() || !key.equals(InventoryUtils.wrap(source).id()))
+                throw new IllegalStateException("Missing registered gameplay source item: " + name);
+            // CE's normal item placement stores one exact held item before constructing the furniture.
+            var placement = net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData.ofVariant("ground");
+            placement.setItem(InventoryUtils.wrap(source).copyWithCount(1));
+            var furniture = Objects.requireNonNull(CraftEngineFurniture.place(gameplayPosition(name),
+                    Objects.requireNonNull(CraftEngineFurniture.byId(key)), placement, false),
+                    "Could not place gameplay fixture: " + name);
+            if (!furniture.isValid()) throw new IllegalStateException("Invalid gameplay fixture after placement: " + name);
+            var placedSource = furniture.sourceItem();
+            if (placedSource == null || placedSource.isEmpty()
+                    || !source.equals(net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(placedSource)))
+                throw new IllegalStateException("Gameplay source differs from normal registered item placement: " + name);
+        }
+        gameplaySeeded = true;
+    }
+
+    private static boolean controllerFlag(Object controller, Class<?> type, String name) throws ReflectiveOperationException {
+        java.lang.reflect.Method method;
+        try { method = type.getMethod(name); }
+        catch (NoSuchMethodException notPublic) { method = type.getDeclaredMethod(name); }
+        method.setAccessible(true);
+        Object value = method.invoke(controller);
+        if (!(value instanceof Boolean flag)) throw new IllegalStateException("Not a controller boolean: " + name);
+        return flag;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String,Object> gameplayFurniture(String name) {
+        var result = new LinkedHashMap<String,Object>();
+        result.put("position", GAMEPLAY_POSITIONS.get(name));
+        result.put("world", world.getName());
+        var furniture = findGameplay(name);
+        result.put("present", furniture != null && furniture.isValid());
+        if (furniture == null || !furniture.isValid()) return result;
+        var actual = furniture.location();
+        result.put("position", List.of(actual.getX(), actual.getY(), actual.getZ()));
+        result.put("world", Objects.requireNonNull(actual.getWorld()).getName());
+        result.put("uuid", furniture.uuid().toString());
+        result.put("id", furniture.id().asString());
+        result.put("variant", furniture.currentVariant().name());
+        int[] hitboxes = furniture.interactableEntityIds();
+        if (hitboxes.length == 0) throw new IllegalStateException("Gameplay fixture has no live interaction hitbox: " + name);
+        result.put("hitbox", hitboxes[0]);
+        var source = furniture.sourceItem();
+        result.put("source", source == null || source.isEmpty() ? Map.of()
+                : gameplayItemEvidence(net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(source)));
+        String module = name.equals("chair") ? "deco" : "tavern";
+        String simple = switch (name) {
+            case "chair" -> "WoodenSeatController";
+            case "board" -> "SandwichBoardController";
+            case "molotov" -> "MolotovController";
+            default -> throw new IllegalArgumentException(name);
+        };
+        String saveKey = "kaleidoscope_" + module + switch (name) {
+            case "chair" -> ":wooden_seat_v1";
+            case "board" -> ":sandwich_board_v1";
+            case "molotov" -> ":molotov_storage_v1";
+            default -> throw new IllegalArgumentException(name);
+        };
+        String pluginName = "Kaleidoscope" + Character.toUpperCase(module.charAt(0)) + module.substring(1) + "Plugin";
+        try {
+            var owner = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(pluginName));
+            var type = (Class<? extends net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController>)
+                    owner.getClass().getClassLoader().loadClass("net.kaleidoscope." + module + "." + simple);
+            var controller = Objects.requireNonNull(furniture.controller.get(type, 0), "Missing gameplay controller: " + name);
+            var saved = new net.momirealms.craftengine.libraries.nbt.CompoundTag();
+            controller.saveCustomData(saved);
+            result.put("saved", saved.toString());
+            boolean blocked = controllerFlag(controller, type, name.equals("chair") ? "blocksRemoval" : "blocked");
+            result.put("blocked", blocked);
+            result.put("state", Map.of());
+            if (blocked) return result;
+            if (!(saved.get(saveKey) instanceof net.momirealms.craftengine.libraries.nbt.CompoundTag envelope)
+                    || !(envelope.get("payload") instanceof net.momirealms.craftengine.libraries.nbt.CompoundTag payload))
+                throw new IllegalStateException("Missing gameplay save envelope: " + name);
+            if (name.equals("chair")) result.put("state", Map.of("carpet", payload.getString("carpet")));
+            else if (name.equals("board")) result.put("state", Map.of("style", payload.getString("style"),
+                    "text", payload.getString("text"), "color", payload.getString("color"),
+                    "alignment", payload.getString("alignment"), "waxed", payload.getBoolean("waxed"),
+                    "glowing", payload.getBoolean("glowing")));
+            else {
+                int slots = payload.getInt("slots");
+                if (slots < 0 || slots > 9) throw new IllegalStateException("Invalid gameplay Molotov slot count: " + slots);
+                var contents = new ArrayList<Map<String,Object>>();
+                for (int slot = 0; slot < slots; slot++) contents.add(payload.containsKey("slot_" + slot)
+                        ? gameplayItemEvidence(ItemStack.deserializeBytes(payload.getByteArray("slot_" + slot))) : Map.of());
+                result.put("state", Map.of("slots", contents, "ground", "GROUND".equals(payload.getString("storage"))));
+            }
+        } catch (ReflectiveOperationException failure) {
+            throw new IllegalStateException("Gameplay controller unavailable: " + name, failure);
+        }
+        return result;
+    }
+
+    private Map<String,Object> gameplaySnapshot() {
+        var result = new LinkedHashMap<String,Object>();
+        for (String name : GAMEPLAY_NAMES) result.put(name, gameplayFurniture(name));
+        result.put("canonicalItems", Map.of(
+                "chair", gameplayItemEvidence(ce("kaleidoscope_deco:chair/oak", 1)),
+                "board", gameplayItemEvidence(ce("kaleidoscope_tavern:poppy_sandwich_board", 1)),
+                "molotov", gameplayItemEvidence(ce("kaleidoscope_tavern:molotov", 1))));
+        var center = new Location(world, X + .5, Y, Z + .5);
+        result.put("looseItems", world.getNearbyEntitiesByType(org.bukkit.entity.Item.class, center, 5).stream()
+                .filter(item -> Math.abs(item.getLocation().getY() - Y) < 3).map(item -> {
+                    var data = new LinkedHashMap<String,Object>(gameplayItemEvidence(item.getItemStack()));
+                    data.put("uuid", item.getUniqueId().toString());
+                    var at = item.getLocation();
+                    data.put("world", Objects.requireNonNull(at.getWorld()).getName());
+                    data.put("position", List.of(at.getX(), at.getY(), at.getZ()));
+                    return data;
+                }).toList());
+        return result;
+    }
+
     @SuppressWarnings("unchecked")
     private String dollPose() {
         var plugin = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("KaleidoscopeDollPlugin"));
@@ -480,8 +751,10 @@ final class ConnectedKitchenProbe implements Listener {
         if (view.getTopInventory() instanceof org.bukkit.inventory.SmithingInventory smithing && top.size() == 3)
             top.add(describe(smithing.getResult()));
         state.put("top", top);
-        state.put("inventory", Arrays.stream(player.getInventory().getStorageContents()).map(ConnectedKitchenProbe::describe).toList());
-        state.put("cursor", describe(player.getItemOnCursor())); state.put("canceledSmith", canceled);
+        state.put("inventory", Arrays.stream(player.getInventory().getStorageContents())
+                .map(stack -> gameplayTracking ? gameplayItemEvidence(stack) : describe(stack)).toList());
+        state.put("cursor", gameplayTracking ? gameplayItemEvidence(player.getItemOnCursor()) : describe(player.getItemOnCursor()));
+        state.put("canceledSmith", canceled);
         state.put("scarecrow", scarecrow != null && scarecrow.isValid()); state.put("hits", hits); state.put("drops", drops);
         if (board != null && board.isValid()) {
             state.put("board", board.currentVariant().name());
@@ -510,6 +783,11 @@ final class ConnectedKitchenProbe implements Listener {
         var steamer = entity == null ? null : entity.controller.get(SteamerController.class,0);
         state.put("placedSlots", steamer == null ? List.of() : contents(steamer.snapshotSlots()));
         if (persistenceTracking) state.put("persistence", persistenceSnapshot());
+        if (gameplayTracking) {
+            state.put("gameplay", gameplaySnapshot());
+            state.put("gameCanceledTrades", gameCanceledTrades);
+            state.put("gameCancelArmed", gameCancelPlayer != null);
+        }
         return state;
     }
 
@@ -524,6 +802,64 @@ final class ConnectedKitchenProbe implements Listener {
     @EventHandler(priority=EventPriority.MONITOR) public void observe(FurnitureBreakEvent event) {
         if (event.furniture() == scarecrow) hits.add(Map.of("player", event.getPlayer().getName(), "tick",world.getGameTime(),
                 "canceled",event.isCancelled(), "regionOwned",Bukkit.isOwnedByCurrentRegion(event.getPlayer())));
+        recordGameCombat("break", event.getPlayer(), event.furniture(), event);
+    }
+    @EventHandler(priority=EventPriority.MONITOR) public void observeGameHit(FurnitureHitEvent event) {
+        recordGameCombat("hit", event.getPlayer(), event.furniture(), event);
+    }
+
+    private void recordGameCombat(String kind, Player player, BukkitFurniture furniture, Cancellable event) {
+        if (!gameplayTracking || (!FIRST.equals(player.getName()) && !SECOND.equals(player.getName()))) return;
+        if (!Bukkit.isOwnedByCurrentRegion(player))
+            throw new IllegalStateException("Gameplay combat observation is outside its player region");
+        var at = furniture.location();
+        if (player.getWorld() != world || at.getWorld() != world) return;
+        String fixture = null;
+        for (String name : GAMEPLAY_NAMES) {
+            var position = GAMEPLAY_POSITIONS.get(name);
+            if (GAMEPLAY_KEYS.get(name).equals(furniture.id())
+                    && Math.abs(at.getX() - position.get(0)) < .01
+                    && Math.abs(at.getY() - position.get(1)) < .01
+                    && Math.abs(at.getZ() - position.get(2)) < .01) {
+                fixture = name;
+                break;
+            }
+        }
+        if (fixture == null) return;
+        if (!Bukkit.isOwnedByCurrentRegion(world, X >> 4, Z >> 4))
+            throw new IllegalStateException("Gameplay combat observation is outside its furniture region");
+        var location = player.getLocation();
+        var values = new LinkedHashMap<String, Object>();
+        values.put("sequence", ++gameCombatSequence);
+        values.put("kind", kind);
+        values.put("player", player.getName());
+        values.put("playerUuid", player.getUniqueId().toString());
+        values.put("fixture", fixture);
+        values.put("uuid", furniture.uuid().toString());
+        values.put("id", furniture.id().asString());
+        values.put("metaEntityId", furniture.entityId());
+        values.put("hitboxes", Arrays.stream(furniture.interactableEntityIds()).boxed().toList());
+        values.put("hitTimes", furniture.furniture().settings().hitTimes());
+        values.put("wallTimeMillis", System.currentTimeMillis());
+        values.put("tick", world.getGameTime());
+        values.put("regionOwned", true);
+        values.put("playerPosition", List.of(location.getX(), location.getY(), location.getZ()));
+        values.put("playerRotation", List.of(location.getYaw(), location.getPitch()));
+        values.put("position", List.of(at.getX(), at.getY(), at.getZ()));
+        // CE may still change the event's cancellation through its controller after MONITOR.
+        // The next read-only region task observes the final value, not just this callback instant.
+        gameCombatReceipts.add(new GameCombatReceipt(values, event));
+    }
+
+    private Map<String, Object> gameCombatSnapshot(Player player) {
+        var combat = new ArrayList<Map<String, Object>>();
+        for (var receipt : gameCombatReceipts) {
+            var value = new LinkedHashMap<String, Object>(receipt.values());
+            value.put("cancelled", receipt.event().isCancelled());
+            combat.add(value);
+        }
+        // This command deliberately avoids controller/NBT and inventory snapshots between native hits.
+        return Map.of("playerUuid", player.getUniqueId().toString(), "combat", combat);
     }
     @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled=true) public void protectBoard(FurnitureInteractEvent event) {
         if (event.furniture() == board && SECOND.equals(event.getPlayer().getName()) && boardDenied == 0) {

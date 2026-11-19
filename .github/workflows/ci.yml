@@ -96,7 +96,7 @@ jobs:
       - name: Run root tool tests
         run: python -m unittest discover -s tools -p 'test_*.py' -v
       - name: Check protocol persistence scenario contracts
-        run: node --test tools/acceptance/connected/test-persistence.cjs
+        run: node --test tools/acceptance/connected/test-persistence.cjs tools/acceptance/connected/test-gameplay-persistence.cjs
       - name: Run series tool tests
         env:
           PYTHONPATH: series/tools

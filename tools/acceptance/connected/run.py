@@ -13,7 +13,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[3]
-PROBE = re.compile(r'senluoprobe ([0-9]{1,8}) (arrive|supply|scarecrow|tulip|clearboard|sofa|clearsofa|inspectsofa|doll|cleardoll|inspectdoll|persistclear|persistseed|persiststock|persistinspect|inspect) SenLuoProbe[AB]$')
+PROBE = re.compile(r'senluoprobe ([0-9]{1,8}) (arrive|supply|scarecrow|tulip|clearboard|sofa|clearsofa|inspectsofa|doll|cleardoll|inspectdoll|persistclear|persistseed|persiststock|persistinspect|gameclear|gameseed|gamestock|gameinspect|gamecombat|gamecancel|inspect) SenLuoProbe[AB]$')
 SMOKE = re.compile(r'\b(COOKERY_(?:FOOD|ENCHANTMENT)_SMOKE)\b(.*)')
 LOG_ERROR = re.compile(
     r'\[[^\]\r\n]*(?:ERROR|SEVERE|FATAL)\]|has not responded in|server has stopped responding'
@@ -75,9 +75,12 @@ def passed(result: dict) -> bool:
 
 def run_session(instance: Path, out: Path, java: str, node: str, manual_client: bool = False,
                 timeout: float | None = None, *, phase: str | None = None,
-                state_file: Path | None = None) -> dict:
+                state_file: Path | None = None, scenario: str = 'legacy',
+                expected_dependency_hashes: dict[str, str] | None = None) -> dict:
     if phase not in (None, 'seed', 'verify', 'empty') or (phase is None) != (state_file is None):
         raise ValueError('Restart phases require an explicit shared state file')
+    if scenario not in ('legacy', 'gameplay') or (scenario == 'gameplay' and phase is None):
+        raise ValueError('Gameplay requires an explicit restart phase')
     inbox = out / 'commands.txt'
     inbox.touch()
     log = out / 'console.log'
@@ -93,6 +96,7 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
     completion = 'runner-error'
     errors = []
     forced_stop = False
+    dependency_hashes = None
     with log.open('wb') as stdout, log.open('rb') as tail, inbox.open(encoding='utf8') as commands:
         try:
             server = subprocess.Popen(command, cwd=instance, stdin=subprocess.PIPE, stdout=stdout,
@@ -122,15 +126,22 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
                                 tmp.replace(dest)
                             startup.feed(line)
                             if startup.ready and not announced:
+                                # Paper may create remapped/version/library JARs during startup. Capture
+                                # the execution set only after readiness, before starting either player.
+                                dependency_hashes = runtime_dependency_hashes(instance)
+                                if expected_dependency_hashes is not None and dependency_hashes != expected_dependency_hashes:
+                                    completion = 'startup-failed'
+                                    raise ValueError('Ready-time runtime dependency JARs differ from the seed-ready baseline')
                                 announced = True
                                 print('Server ready', instance.name, flush=True)
                                 if not manual_client:
                                     client_env = dict(os.environ, SENLUO_JAVA=java)
-                                    for key in ('SENLUO_SCENARIO_PHASE', 'SENLUO_SCENARIO_STATE'):
+                                    for key in ('SENLUO_SCENARIO_PHASE', 'SENLUO_SCENARIO_STATE', 'SENLUO_SCENARIO_KIND'):
                                         client_env.pop(key, None)
                                     if phase is not None:
                                         client_env.update(SENLUO_SCENARIO_PHASE=phase,
                                                           SENLUO_SCENARIO_STATE=str(state_file.resolve()))
+                                        client_env['SENLUO_SCENARIO_KIND'] = scenario
                                     client = subprocess.Popen([node, str(Path(__file__).with_name('players.cjs')), str(out)],
                                                               env=client_env, **process_options)
                         elif PROBE.fullmatch(line.strip()):
@@ -176,6 +187,12 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
                 server.stdin.close()
     errors.extend(startup.errors)
     errors.extend(line for line in log.read_text('utf8', errors='replace').splitlines() if LOG_ERROR.search(line))
+    if dependency_hashes is not None:
+        try:
+            if runtime_dependency_hashes(instance) != dependency_hashes:
+                errors.append('Runtime dependency JARs changed after server readiness')
+        except OSError as error:
+            errors.append(f'Cannot verify runtime dependency JARs after shutdown: {error}')
     reports = out / 'players.json'
     client_report = None
     if reports.exists():
@@ -183,64 +200,124 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
             client_report = json.loads(reports.read_text('utf8'))
         except (OSError, ValueError) as error:
             errors.append(f'Cannot read player report: {error}')
-    if phase is not None and (not isinstance(client_report, dict) or client_report.get('phase') != phase):
-        errors.append(f'Client report did not complete the requested restart phase: {phase}')
+    expected_phase = phase or 'single'
+    if not isinstance(client_report, dict) or client_report.get('phase') != expected_phase:
+        label = 'restart phase' if phase is not None else 'phase'
+        errors.append(f'Client report did not complete the requested {label}: {expected_phase}')
+    if not isinstance(client_report, dict) or client_report.get('scenario') != scenario:
+        errors.append(f'Client report did not complete the requested {scenario} scenario')
     result = {'ready': startup.ready, 'serverExit': None if server is None else server.returncode,
               'clientExit': None if client is None else client.returncode, 'completionReason': completion,
               'timedOut': completion == 'timeout', 'forcedServerStop': forced_stop,
-              'errors': errors, 'client': client_report}
+              'errors': errors, 'client': client_report, 'runtimeDependencyHashes': dependency_hashes}
     if phase is not None:
         result['phase'] = phase
+        result['scenario'] = scenario
     result['passed'] = bool(passed(result))
     (out / 'result.json').write_text(json.dumps(result, indent=2, ensure_ascii=False), 'utf8')
     return result
+
+
+def file_sha256(path: Path) -> str:
+    with path.open('rb') as source:
+        return hashlib.file_digest(source, 'sha256').hexdigest()
 
 
 def runtime_hashes(instance: Path) -> dict[str, str]:
     """Keep the tested binaries and downloaded resources identical across all starts."""
     paths = sorted((instance / 'plugins').glob('*.jar'))
     paths += [instance / 'server.jar', instance / 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip']
-    return {str(path.relative_to(instance)).replace('\\', '/'): hashlib.sha256(path.read_bytes()).hexdigest()
+    return {str(path.relative_to(instance)).replace('\\', '/'): file_sha256(path)
             for path in paths}
+
+
+def runtime_dependency_hashes(instance: Path) -> dict[str, str]:
+    """Hash JAR execution inputs, including ready-time Paper remaps and CE libraries, not mutable data caches."""
+    return {path.relative_to(instance).as_posix(): file_sha256(path)
+            for path in sorted(instance.rglob('*.jar')) if path.is_file()}
 
 
 def scenario_hashes() -> dict[str, str]:
     folder = Path(__file__).resolve().parent
-    return {name: hashlib.sha256((folder / name).read_bytes()).hexdigest()
-            for name in ('run.py', 'players.cjs', 'persistence-players.cjs')}
+    return {name: file_sha256(folder / name)
+            for name in ('run.py', 'players.cjs', 'persistence-players.cjs', 'gameplay-persistence.cjs',
+                         '../VanillaPack12111.java')}
 
 
-def run_restart_suite(instance: Path, out: Path, java: str, node: str, fixture: dict) -> dict:
+def run_restart_suite(instance: Path, out: Path, java: str, node: str, fixture: dict, *, scenario: str = 'legacy') -> dict:
     """Reuse one world for three normal server starts, stopping on the first failure."""
+    if scenario not in ('legacy', 'gameplay'):
+        raise ValueError('Unknown restart scenario')
     state_file = out / 'persistence-state.json'
+    verified_file = state_file.with_name(state_file.name + '.verified.json')
     if state_file.exists():
         raise FileExistsError('A restart suite must start without a previous state file')
-    result = {'passed': False, 'phases': [], 'errors': [], 'runtimeHashes': runtime_hashes(instance),
+    if scenario == 'gameplay' and verified_file.exists():
+        raise FileExistsError('A gameplay suite must start without a previous verification snapshot')
+    result = {'passed': False, 'scenario': scenario, 'phases': [], 'errors': [], 'runtimeHashes': runtime_hashes(instance),
               'scenarioHashes': scenario_hashes()}
     state_hash = None
+    verified_hash = None
+    dependency_hashes = None
     for phase in ('seed', 'verify', 'empty'):
         try:
             if runtime_hashes(instance) != result['runtimeHashes']:
                 raise ValueError('Server binaries or hosted resources changed between restart phases')
             if scenario_hashes() != result['scenarioHashes']:
                 raise ValueError('Acceptance scenario code changed between restart phases')
+            if dependency_hashes is not None and runtime_dependency_hashes(instance) != dependency_hashes:
+                raise ValueError('Runtime dependency JARs changed between restart phases')
             if state_hash is not None and hashlib.sha256(state_file.read_bytes()).hexdigest() != state_hash:
                 raise ValueError('The seed snapshot changed between restart phases')
+            if verified_hash is not None and hashlib.sha256(verified_file.read_bytes()).hexdigest() != verified_hash:
+                raise ValueError('The verified inventory snapshot changed between restart phases')
+            if scenario == 'gameplay' and phase == 'verify' and verified_file.exists():
+                raise ValueError('The verification snapshot already exists before recovery')
             folder = out / phase
             folder.mkdir(exist_ok=False)
             (folder / 'fixture.json').write_text(json.dumps(fixture), 'utf8')
-            session = run_session(instance, folder, java, node, phase=phase, state_file=state_file)
+            options = {'scenario': scenario} if scenario != 'legacy' else {}
+            if dependency_hashes is not None:
+                options['expected_dependency_hashes'] = dependency_hashes
+            session = run_session(instance, folder, java, node, phase=phase, state_file=state_file, **options)
             result['phases'].append(session)
             if session.get('passed') is not True or session.get('phase') != phase:
                 raise ValueError(f'Restart phase failed: {phase}')
+            if session.get('scenario') != scenario:
+                raise ValueError(f'Restart phase used a different {scenario} scenario')
+            observed_dependencies = session.get('runtimeDependencyHashes')
+            if not isinstance(observed_dependencies, dict) or not observed_dependencies:
+                raise ValueError(f'Restart phase did not record ready-time runtime dependency JARs: {phase}')
+            if dependency_hashes is None:
+                dependency_hashes = observed_dependencies
+                result['runtimeDependencyHashes'] = dependency_hashes
+                result['runtimeDependencyBaseline'] = 'seed-ready'
+            elif observed_dependencies != dependency_hashes:
+                raise ValueError(f'The {phase} ready-time dependency JARs differ from the seed-ready baseline')
+            if runtime_dependency_hashes(instance) != dependency_hashes:
+                raise ValueError(f'Runtime dependency JARs changed during the {phase} restart phase')
             if phase == 'seed':
                 state = json.loads(state_file.read_text('utf8'))
                 if not isinstance(state, dict) or not state:
                     raise ValueError('The seed phase did not write a nonempty persistence snapshot')
+                if scenario == 'gameplay' and state.get('scenario') != scenario:
+                    raise ValueError('The seed snapshot belongs to a different gameplay scenario')
+                if scenario == 'gameplay' and verified_file.exists():
+                    raise ValueError('The seed phase wrote a premature verification snapshot')
                 state_hash = hashlib.sha256(state_file.read_bytes()).hexdigest()
                 result['seedStateSha256'] = state_hash
             elif hashlib.sha256(state_file.read_bytes()).hexdigest() != state_hash:
                 raise ValueError(f'The {phase} phase changed the original seed snapshot')
+            if scenario == 'gameplay' and phase == 'verify':
+                verified = json.loads(verified_file.read_text('utf8'))
+                if (not isinstance(verified, dict) or verified.get('schemaVersion') != 1
+                        or verified.get('scenario') != scenario or verified.get('phase') != phase
+                        or verified.get('seedStateSha256') != state_hash):
+                    raise ValueError('The verification snapshot does not match the immutable gameplay seed')
+                verified_hash = hashlib.sha256(verified_file.read_bytes()).hexdigest()
+                result['verifiedStateSha256'] = verified_hash
+            elif verified_hash is not None and hashlib.sha256(verified_file.read_bytes()).hexdigest() != verified_hash:
+                raise ValueError('The empty phase changed the verified inventory snapshot')
             if runtime_hashes(instance) != result['runtimeHashes']:
                 raise ValueError('Server binaries or hosted resources changed during a restart phase')
             if scenario_hashes() != result['scenarioHashes']:
@@ -262,9 +339,13 @@ def main() -> int:
     parser.add_argument('--manual-client', action='store_true', help='Run the JS scenario separately for diagnosis')
     parser.add_argument('--restart-suite', action='store_true',
                         help='Seed, restart and recover, then restart again to check for duplicate furniture or contents')
+    parser.add_argument('--scenario', choices=('legacy', 'gameplay'), default='legacy',
+                        help='Select the verified fixture family for the restart suite')
     args = parser.parse_args()
     if args.restart_suite and args.manual_client:
         parser.error('--restart-suite requires the automatic protocol clients')
+    if args.scenario != 'legacy' and not args.restart_suite:
+        parser.error('--scenario gameplay requires --restart-suite')
     instance = args.instance.resolve()
     if not instance.is_relative_to(ROOT / 'build/acceptance'):
         raise ValueError('Expected a disposable copy under build/acceptance')
@@ -282,7 +363,7 @@ def main() -> int:
     info = {'port': int(props['server-port']), 'packSha256': pack_hash}
     out.mkdir(parents=True, exist_ok=False)
     (out / 'fixture.json').write_text(json.dumps(info), 'utf8')
-    result = (run_restart_suite(instance, out, args.java, args.node, info) if args.restart_suite
+    result = (run_restart_suite(instance, out, args.java, args.node, info, scenario=args.scenario) if args.restart_suite
               else run_session(instance, out, args.java, args.node, args.manual_client))
     print(f"{instance.name}: {'PASS' if result['passed'] else 'FAIL'}; {out / 'result.json'}")
     return 0 if result['passed'] else 1

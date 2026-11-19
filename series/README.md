@@ -1,6 +1,6 @@
 # 森罗系列插件移植工作区
 
-更新于 2026-11-19。四个系列插件可分别构建 JAR 和 CE 内容 ZIP，已与 Cookery 一起在 Paper/Folia 1.21.11 上加载并生成托管资源包。本轮同组 JAR 的有界原生回归与每端 14,419 项官方离线解码见[玩法回归证据](../docs/research/series-gameplay-regression-2026-11-19.json)。当前为 0.1.0-dev 开发版，真人操作与画面验收仍待完成。[开发交接](../docs/HANDOFF.md)
+更新于 2026-11-19。四个系列插件可分别构建 JAR 和 CE 内容 ZIP，已与 Cookery 一起在 Paper/Folia 1.21.11 上加载并生成托管资源包。前序冻结候选的有界原生 API 回归与每端 14,419 项官方离线解码见[历史玩法回归证据](../docs/research/series-gameplay-regression-2026-11-19.json)，不能沿用为后续新 JAR 的未测流程证据。当前 `gameplay` 协议场景只覆盖橡木红垫椅、罂粟文字展板和空地面燃烧瓶三个代表样例；最终同组五插件、探针及场景已在 Paper 132 `gp2/paper-run-6` 和 Folia 14 `gp2/folia-run-5` 各通过三阶段正常重启，每阶段两名协议玩家各读取 14,419 项资源，见[本轮有界协议证据](../docs/research/series-gameplay-connected-acceptance-2026-11-19.json)与[协议检查点](docs/ACCEPTANCE.md#木椅文字展板与地面燃烧瓶协议检查点2026-11-19)。当前为 0.1.0-dev 开发版，T05／T06／F04 广义状态仍为 `unit_tested`；完整真人玩法与画面仍待验收，历史 watchdog 根因仍 OPEN。[开发交接](../docs/HANDOFF.md)
 
 厨房主工程继续位于仓库根目录；这里的 `common / doll / tavern / deco / music` 是独立 Gradle 多模块工程，不替换厨房已有实现。
 
@@ -77,6 +77,8 @@ python -m venv series/.venv
 有原料、酒液、待领取奖品的家具会拒绝普通玩家拆除。异常 NBT 会阻止操作，并原样保存；不会把读不出的库存覆盖为空。
 
 如果其他插件或管理员强制移除家具，执行到 CE `preRemove` 时会将控制器数据写到该插件目录的 `recovery/*.nbt` 并刷盘。这是管理员核对用的内容快照，不自动发放物品；未执行该回调的外部直接删除、服务器崩溃和文件系统故障不在此保证内。
+
+燃烧瓶储物家具写盘失败时，在日志保留已编码的完整 NBT；NBT 无法编码时逐槽优先保留物品原始字节，再尝试带 DataVersion 的 Paper 物品 JSON。组件级的最终降级明确标为 `BEST_EFFORT_NOT_GUARANTEED_COMPLETE`，字段读取失败另标 `recovery_incomplete`，不可当成完整物品。一个坏槽不会截断后续槽位；损坏 NBT 连 SNBT 也不能渲染时，以 `BEST_EFFORT_INCOMPLETE_SNBT` 保留独立的家具 UUID、世界、家具 ID 和坐标，不重复渲染坏 Tag。CE 已进入不可逆销毁后，不靠抛异常假装保留家具，基础家具掉落仍独立结算；所有应急记录均须先核对实际世界和库存，再由管理员决定是否人工恢复，绝不自动发放或重复回放。
 
 自定义饮品效果在玩家 PDC 保存，退出暂停剩余时间，死亡和牛奶清除。Folia 范围效果只读取当前线程拥有的已加载区块；跨区域边缘的目标可能跳过，尚未作实服压力验证。
 

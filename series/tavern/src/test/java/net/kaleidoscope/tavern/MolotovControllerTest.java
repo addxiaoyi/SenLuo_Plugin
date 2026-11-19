@@ -8,8 +8,11 @@ import net.kaleidoscope.series.SavedState;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureBreakEvent;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
+import net.momirealms.craftengine.core.entity.furniture.Collider;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData;
+import net.momirealms.craftengine.core.entity.furniture.FurnitureSnapshotState;
+import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.libraries.nbt.CompoundTag;
@@ -28,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -410,6 +414,326 @@ class MolotovControllerTest {
         }
     }
 
+    @Test void forcedStorageRemovalArchivesEveryExactBottleAndLetsNativeBaseLootContinue() throws Exception {
+        try (var f = new Fixture("cellar_cabinet")) {
+            f.slots[0] = f.original.asQuantity(9);
+            for (int slot = 0; slot < 9; slot++) f.controller.interact(f.player, slot);
+            CompoundTag before = f.saved();
+            NativeRemoval removal = f.nativeRemoval();
+            boolean[] baseLootCanContinue = {false};
+            assertDoesNotThrow(() -> { f.furniture.destroy(null); baseLootCanContinue[0] = true; });
+            removal.assertDestroyed();
+            assertTrue(baseLootCanContinue[0]);
+            assertEquals(before.get(SAVE), f.retainedStorage().get(SAVE));
+            assertEquals(f.furniture.uuid().toString(), f.retainedStorage().getString("recovery_furniture_uuid"));
+            assertTrue(f.recoveryFailures.isEmpty());
+            assertNull(f.hand(), "Manual recovery records never issue bottles automatically");
+        }
+    }
+
+    @Test void forcedStorageRemovalWriteFailureLogsCompleteBinaryStateAndCannotAbortNativeDestruction() throws Exception {
+        try (var f = new Fixture("holder")) {
+            f.controller.interact(f.player, 0);
+            CompoundTag before = f.saved();
+            Files.createDirectories(f.dataFolder);
+            Files.writeString(f.dataFolder.resolve("recovery"), "not a directory");
+            NativeRemoval removal = f.nativeRemoval();
+            clearInvocations(f.inventory);
+            boolean[] baseLootCanContinue = {false};
+            assertDoesNotThrow(() -> { f.furniture.destroy(null); baseLootCanContinue[0] = true; });
+            removal.assertDestroyed();
+            assertTrue(baseLootCanContinue[0]);
+            assertEquals(before.get(SAVE), f.binaryEmergency().get(SAVE));
+            assertEquals(f.furniture.uuid().toString(), f.binaryEmergency().getString("recovery_furniture_uuid"));
+            verify(f.inventory, never()).setItemInMainHand(any());
+            verify(f.inventory, never()).setStorageContents(any());
+            assertTrue(f.failureRecord().contains("never auto replay"));
+        }
+    }
+
+    @Test void forcedStorageRemovalEncodingFailuresLogFullNbtAndCannotEscapeTheNativeFinally() throws Exception {
+        for (Throwable failure : List.of(new IllegalStateException("NBT encoder failed"), new NoClassDefFoundError("NBT codec"))) {
+            try (var f = new Fixture("holder")) {
+                f.controller.interact(f.player, 0);
+                CompoundTag before = f.saved();
+                NativeRemoval removal = f.nativeRemoval();
+                FurniturePersistentData brokenCodec = mock(FurniturePersistentData.class);
+                when(brokenCodec.toBytes()).thenThrow(failure);
+                CompoundTag[] attemptedRoot = {null};
+                try (var codec = mockStatic(FurniturePersistentData.class)) {
+                    codec.when(() -> FurniturePersistentData.of(any(CompoundTag.class))).thenAnswer(call -> {
+                        CompoundTag tag = call.getArgument(0);
+                        if (!tag.containsKey(SAVE)) return call.callRealMethod();
+                        attemptedRoot[0] = tag.deepClone();
+                        return brokenCodec;
+                    });
+                    assertDoesNotThrow(() -> f.furniture.destroy(null));
+                }
+                removal.assertDestroyed();
+                CompoundTag expected = f.recoveryMetadata();
+                expected.put(SAVE, before.get(SAVE).deepClone());
+                assertEquals(expected, attemptedRoot[0]);
+                assertArrayEquals(f.original.asQuantity(1).serializeAsBytes(),
+                        attemptedRoot[0].getCompound(SAVE).getCompound("payload").getByteArray("slot_0"));
+                assertEquals(expected.toString(), f.snbtEmergencyText());
+                assertTrue(f.failureRecord().contains("never auto replay"));
+                verifyNoInteractions(f.unsafe);
+                assertEquals(1, f.hand().getAmount());
+            }
+        }
+    }
+
+    @Test void envelopeEncodingFailuresKeepExactOriginalItemBytesInsteadOfDowngradingToJsonOrComponents() throws Exception {
+        for (Throwable failure : List.of(new IllegalStateException("envelope encoder failed"), new NoClassDefFoundError("envelope codec"))) {
+            try (var f = new Fixture("holder")) {
+                f.controller.interact(f.player, 0);
+                byte[] originalBytes = f.original.asQuantity(1).serializeAsBytes();
+                NativeRemoval removal = f.nativeRemoval();
+                FurniturePersistentData brokenCodec = mock(FurniturePersistentData.class);
+                when(brokenCodec.toBytes()).thenThrow(failure);
+                try (var codec = mockStatic(FurniturePersistentData.class)) {
+                    codec.when(() -> FurniturePersistentData.of(any(CompoundTag.class))).thenReturn(brokenCodec);
+                    assertDoesNotThrow(() -> f.furniture.destroy(null));
+                }
+                removal.assertDestroyed();
+                CompoundTag expected = f.recoveryMetadata();
+                expected.putString("recovery_storage", "HOLDER");
+                expected.putInt("recovery_slots", 1);
+                expected.putBoolean("recovery_powered", false);
+                expected.putString("recovery_operator", f.player.getUniqueId().toString());
+                CompoundTag source = new CompoundTag();
+                source.putString("format", "BUKKIT_ITEM_STACK_BYTES");
+                source.putByteArray("item_bytes", originalBytes);
+                expected.put("recovery_slot_0", source);
+                assertEquals(expected.toString(), f.snbtEmergencyText());
+                assertEquals(f.original.asQuantity(1), MolotovTestItems.decode(source.getByteArray("item_bytes")));
+                assertTrue(f.failureRecord().contains("never auto replay"));
+                verifyNoInteractions(f.unsafe);
+                assertEquals(1, f.hand().getAmount());
+            }
+        }
+    }
+
+    @Test void unreadableStorageSaveRemainsVerbatimInEmergencyBinaryState() throws Exception {
+        try (var f = new Fixture("holder")) {
+            CompoundTag corrupt = new CompoundTag();
+            corrupt.putString(SAVE, "opaque damaged storage; do not reset");
+            f.controller.loadCustomData(corrupt);
+            Files.createDirectories(f.dataFolder);
+            Files.writeString(f.dataFolder.resolve("recovery"), "not a directory");
+            NativeRemoval removal = f.nativeRemoval();
+            assertDoesNotThrow(() -> f.furniture.destroy(null));
+            removal.assertDestroyed();
+            assertEquals(corrupt.get(SAVE), f.binaryEmergency().get(SAVE));
+            assertTrue(f.controller.blocked());
+            assertEquals(f.original, f.hand());
+        }
+    }
+
+    @Test void itemByteSerializationFailureRetainsPaperJsonAndDataVersionVerbatim() throws Exception {
+        try (var f = new Fixture("holder")) {
+            ItemStack item = f.unserializableStoredItem();
+            // This stub checks the API record contract, not a live Paper item-codec/component round-trip.
+            var json = com.google.gson.JsonParser.parseString("{\"id\":\"minecraft:paper\",\"count\":1,"
+                    + "\"components\":{\"minecraft:custom_data\":{\"private_source\":\"exact payload\"}},\"DataVersion\":1234}").getAsJsonObject();
+            when(f.unsafe.serializeItemAsJson(item)).thenReturn(json);
+            NativeRemoval removal = f.nativeRemoval();
+            assertDoesNotThrow(() -> f.furniture.destroy(null));
+            removal.assertDestroyed();
+            CompoundTag source = new CompoundTag();
+            source.putString("format", "PAPER_ITEM_STACK_JSON");
+            source.putString("item_json", json.toString());
+            assertTrue(f.failureRecord().contains(source.toString()));
+            assertTrue(f.failureRecord().contains(f.furniture.uuid().toString()));
+            assertTrue(f.failureRecord().contains("never auto replay"));
+            assertFalse(f.failureRecord().contains("BEST_EFFORT"));
+            verify(f.unsafe).serializeItemAsJson(item);
+            verify(f.unsafe, never()).deserializeItemFromJson(any(com.google.gson.JsonObject.class));
+            verify(item, never()).getItemMeta();
+            assertEquals(f.original, f.hand());
+        }
+    }
+
+    @Test void failedOrIncompletePaperJsonMakesTheComponentFallbackExplicitlyBestEffort() throws Exception {
+        for (String failure : List.of("runtime", "linkage", "null", "missing_data_version", "missing_item_id")) {
+            try (var f = new Fixture("holder")) {
+                ItemStack item = f.unserializableStoredItem();
+                switch (failure) {
+                    case "runtime" -> when(f.unsafe.serializeItemAsJson(item)).thenThrow(new IllegalStateException("JSON codec unavailable"));
+                    case "linkage" -> when(f.unsafe.serializeItemAsJson(item)).thenThrow(new NoClassDefFoundError("JSON codec"));
+                    case "null" -> when(f.unsafe.serializeItemAsJson(item)).thenReturn(null);
+                    case "missing_data_version" -> when(f.unsafe.serializeItemAsJson(item)).thenReturn(
+                            com.google.gson.JsonParser.parseString("{\"id\":\"minecraft:paper\",\"count\":1}").getAsJsonObject());
+                    default -> when(f.unsafe.serializeItemAsJson(item)).thenReturn(
+                            com.google.gson.JsonParser.parseString("{\"DataVersion\":1234}").getAsJsonObject());
+                }
+                var meta = mock(org.bukkit.inventory.meta.ItemMeta.class);
+                String components = "[minecraft:custom_data={private_source:\"best effort components\"}]";
+                when(item.getItemMeta()).thenReturn(meta);
+                when(meta.getAsComponentString()).thenReturn(components);
+                NativeRemoval removal = f.nativeRemoval();
+                assertDoesNotThrow(() -> f.furniture.destroy(null));
+                removal.assertDestroyed();
+                CompoundTag source = new CompoundTag();
+                source.putString("item", "minecraft:paper" + components);
+                assertTrue(f.failureRecord().contains(source.get("item").toString()));
+                assertTrue(f.failureRecord().contains("count:1"));
+                assertTrue(f.failureRecord().contains("recovery_slot_0"));
+                assertTrue(f.failureRecord().contains("recovery_storage"));
+                assertTrue(f.failureRecord().contains("BEST_EFFORT_NOT_GUARANTEED_COMPLETE"));
+                assertTrue(f.failureRecord().contains(f.furniture.uuid().toString()));
+                assertTrue(f.failureRecord().contains("never auto replay"));
+                assertFalse(f.failureRecord().contains("PAPER_ITEM_STACK_JSON"));
+                verify(f.unsafe, never()).deserializeItemFromJson(any(com.google.gson.JsonObject.class));
+                assertEquals(f.original, f.hand());
+            }
+        }
+    }
+
+    @Test void aRejectedTagCloneFailureStillLogsItsOriginalFullSnbtDuringNativeRemoval() throws Exception {
+        try (var f = new Fixture("holder")) {
+            var rejected = mock(net.momirealms.craftengine.libraries.nbt.Tag.class);
+            when(rejected.deepClone()).thenReturn(rejected);
+            when(rejected.toString()).thenReturn("\"opaque damaged storage; preserve every byte\"");
+            CompoundTag corrupt = new CompoundTag(); corrupt.put(SAVE, rejected);
+            f.controller.loadCustomData(corrupt);
+            assertTrue(f.controller.blocked());
+            when(rejected.deepClone()).thenThrow(new IllegalStateException("cannot clone damaged tag"));
+            NativeRemoval removal = f.nativeRemoval();
+            assertDoesNotThrow(() -> f.furniture.destroy(null));
+            removal.assertDestroyed();
+            assertTrue(f.failureRecord().contains("recovery_rejected_snbt"));
+            assertTrue(f.failureRecord().contains("opaque damaged storage; preserve every byte"));
+            assertTrue(f.failureRecord().contains("never auto replay"));
+            assertEquals(f.original, f.hand());
+        }
+    }
+
+    @Test void failingBestEffortFieldsCannotHideLaterHealthySlotsOrAbortNativeBaseLoot() throws Exception {
+        for (boolean linkage : List.of(false, true)) {
+            for (String field : List.of("empty", "meta", "components", "type", "count", "all")) {
+                try (var f = new Fixture("tilted_rack")) {
+                    ItemStack broken = f.unserializableStoredItem();
+                    ItemStack second = new MolotovTestItems.Stack(MolotovPhysics.ITEM, 1, "second exact source");
+                    ItemStack third = new MolotovTestItems.Stack(MolotovPhysics.ITEM, 1, "third exact source");
+                    f.storedItem(1, second); f.storedItem(2, third);
+                    Throwable getterFailure = linkage ? new NoClassDefFoundError("broken " + field)
+                            : new IllegalStateException("broken " + field);
+                    var jsonFailure = new NoClassDefFoundError("JSON codec unavailable");
+                    when(f.unsafe.serializeItemAsJson(broken)).thenThrow(jsonFailure);
+                    String components = "[minecraft:custom_data={private_source:\"best effort components\"}]";
+                    var meta = mock(org.bukkit.inventory.meta.ItemMeta.class);
+                    when(broken.getItemMeta()).thenReturn(meta);
+                    when(meta.getAsComponentString()).thenReturn(components);
+                    switch (field) {
+                        case "empty" -> {
+                            when(broken.isEmpty()).thenThrow(getterFailure);
+                            doReturn(f.original.asQuantity(1).serializeAsBytes()).when(broken).serializeAsBytes();
+                        }
+                        case "meta" -> when(broken.getItemMeta()).thenThrow(getterFailure);
+                        case "components" -> when(meta.getAsComponentString()).thenThrow(getterFailure);
+                        case "type" -> when(broken.getType()).thenThrow(getterFailure);
+                        case "count" -> when(broken.getAmount()).thenThrow(getterFailure);
+                        default -> {
+                            when(broken.getItemMeta()).thenThrow(getterFailure);
+                            when(broken.getType()).thenThrow(getterFailure);
+                            when(broken.getAmount()).thenThrow(getterFailure);
+                        }
+                    }
+                    NativeRemoval removal = f.nativeRemoval();
+                    clearInvocations(f.inventory);
+                    boolean[] baseLootCanContinue = {false};
+                    assertDoesNotThrow(() -> { f.furniture.destroy(null); baseLootCanContinue[0] = true; });
+                    removal.assertDestroyed();
+                    assertTrue(baseLootCanContinue[0]);
+                    CompoundTag expected = f.recoveryMetadata();
+                    expected.putString("recovery_storage", "TILTED");
+                    expected.putInt("recovery_slots", 3); expected.putBoolean("recovery_powered", false);
+                    CompoundTag source = new CompoundTag();
+                    if (field.equals("empty")) {
+                        source = itemByteRecovery(f.original.asQuantity(1));
+                        verify(f.unsafe, never()).serializeItemAsJson(any());
+                        verify(broken, times(1)).isEmpty();
+                    } else {
+                        source.putString("recovery_bytes_failure", "java.lang.IllegalStateException: item byte serializer unavailable");
+                        source.putString("recovery_json_failure", jsonFailure.toString());
+                        source.putString("recovery_quality", "BEST_EFFORT_NOT_GUARANTEED_COMPLETE");
+                        source.putBoolean("recovery_incomplete", true);
+                        boolean missingType = field.equals("type") || field.equals("all");
+                        boolean missingComponents = field.equals("meta") || field.equals("components") || field.equals("all");
+                        boolean missingCount = field.equals("count") || field.equals("all");
+                        if (missingType) source.putString("recovery_type_failure", getterFailure.toString());
+                        else source.putString("item_type", "minecraft:paper");
+                        if (missingComponents) source.putString("recovery_components_failure", getterFailure.toString());
+                        else source.putString("item_components", components);
+                        if (!missingType && !missingComponents) source.putString("item", "minecraft:paper" + components);
+                        if (missingCount) source.putString("recovery_count_failure", getterFailure.toString());
+                        else source.putInt("count", 1);
+                    }
+                    expected.put("recovery_slot_0", source);
+                    expected.put("recovery_slot_1", itemByteRecovery(second));
+                    expected.put("recovery_slot_2", itemByteRecovery(third));
+                    assertEquals(expected.toString(), f.snbtEmergencyText(), f::failureDiagnostic);
+                    assertTrue(f.failureRecord().contains("never auto replay"));
+                    verifyNoInteractions(f.inventory);
+                    assertEquals(f.original, f.hand());
+                }
+            }
+        }
+    }
+
+    @Test void anUnrenderableRejectedTagIsNotRenderedTwiceAndCannotAbortNativeDestructionOrBaseLoot() throws Exception {
+        for (Throwable renderingFailure : List.of(new IllegalStateException("SNBT visitor unavailable"),
+                new NoClassDefFoundError("SNBT visitor"))) {
+            try (var f = new Fixture("holder")) {
+                var rejected = mock(net.momirealms.craftengine.libraries.nbt.Tag.class);
+                when(rejected.deepClone()).thenReturn(rejected);
+                doThrow(renderingFailure).when(rejected).accept(any(net.momirealms.craftengine.libraries.nbt.TagVisitor.class));
+                CompoundTag corrupt = new CompoundTag(); corrupt.put(SAVE, rejected);
+                f.controller.loadCustomData(corrupt);
+                assertTrue(f.controller.blocked());
+                NativeRemoval removal = f.nativeRemoval();
+                var encodingFailure = new IllegalStateException("binary NBT unavailable");
+                FurniturePersistentData brokenCodec = mock(FurniturePersistentData.class);
+                when(brokenCodec.toBytes()).thenThrow(encodingFailure);
+                clearInvocations(f.inventory);
+                boolean[] baseLootCanContinue = {false};
+                try (var codec = mockStatic(FurniturePersistentData.class)) {
+                    codec.when(() -> FurniturePersistentData.of(any(CompoundTag.class))).thenReturn(brokenCodec);
+                    assertDoesNotThrow(() -> { f.furniture.destroy(null); baseLootCanContinue[0] = true; });
+                }
+                removal.assertDestroyed();
+                assertTrue(baseLootCanContinue[0]);
+                Location at = f.controller.location();
+                assertEquals("BEST_EFFORT_INCOMPLETE_SNBT; recovery_furniture_uuid=" + f.furniture.uuid()
+                        + "; recovery_world=" + f.world.getUID() + "; recovery_furniture=" + f.furniture.id().asString()
+                        + "; recovery_position=" + at.getX() + "," + at.getY() + "," + at.getZ(), f.emergencyText());
+                assertSame(encodingFailure, f.recoveryCauses.getFirst());
+                assertArrayEquals(new Throwable[]{renderingFailure}, encodingFailure.getSuppressed());
+                verify(rejected, times(1)).accept(any(net.momirealms.craftengine.libraries.nbt.TagVisitor.class));
+                assertTrue(f.failureRecord().contains("never auto replay"));
+                verifyNoInteractions(f.inventory);
+                assertEquals(f.original, f.hand());
+            }
+        }
+    }
+
+    private static CompoundTag itemByteRecovery(ItemStack item) {
+        CompoundTag source = new CompoundTag();
+        source.putString("format", "BUKKIT_ITEM_STACK_BYTES");
+        source.putByteArray("item_bytes", item.serializeAsBytes());
+        return source;
+    }
+
+    @Test void realCraftEngineDestroyCannotBeVetoedByThrowingFromAnyPreRemoveCallback() throws Exception {
+        try (var f = new Fixture("holder")) {
+            NativeRemoval removal = f.nativeRemoval();
+            doThrow(new IllegalStateException("CE finally still destroys")).when(removal.lifecycle).preRemove(any());
+            assertThrows(IllegalStateException.class, () -> f.furniture.destroy(null));
+            removal.assertDestroyed();
+        }
+    }
+
     private record Launch(boolean playerThrown, Location at, Vector velocity, ItemStack item) {}
     private static final class Fixture implements AutoCloseable {
         final TavernPlugin plugin = mock(TavernPlugin.class);
@@ -421,12 +745,15 @@ class MolotovControllerTest {
         final World world = mock(World.class);
         final org.bukkit.block.Block powerBlock = mock(org.bukkit.block.Block.class);
         final PluginManager manager = mock(PluginManager.class);
+        final Logger logger = mock(Logger.class);
         final UnsafeValues unsafe = mock(UnsafeValues.class);
         final ItemStack original = MolotovTestItems.bottle(2);
         final ItemStack[] slots = new ItemStack[41];
         final Path dataFolder = temporaryFiles.resolve(UUID.randomUUID().toString());
         final List<Launch> launches = new ArrayList<>();
         final List<ItemDisplay> displays = new ArrayList<>();
+        final List<String> recoveryFailures = new ArrayList<>();
+        final List<Throwable> recoveryCauses = new ArrayList<>();
         final MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class);
         final MockedStatic<Items> items = mockStatic(Items.class);
         final MockedStatic<CraftEngineFurniture> furnitureApi = mockStatic(CraftEngineFurniture.class);
@@ -441,7 +768,9 @@ class MolotovControllerTest {
             when(plugin.isEnabled()).thenReturn(true); when(plugin.mayUse(eq(player), any())).thenReturn(true);
             when(plugin.getName()).thenReturn("KaleidoscopeTavernPlugin"); when(plugin.namespace()).thenReturn("kaleidoscopetavernplugin");
             when(plugin.getDataFolder()).thenReturn(dataFolder.toFile());
-            when(plugin.allows(eq(player), any(), any())).thenReturn(true); when(plugin.getLogger()).thenReturn(Logger.getAnonymousLogger());
+            when(plugin.allows(eq(player), any(), any())).thenReturn(true); when(plugin.getLogger()).thenReturn(logger);
+            doAnswer(call -> { recoveryFailures.add(call.getArgument(1)); recoveryCauses.add(call.getArgument(2)); return null; }).when(logger)
+                    .log(eq(java.util.logging.Level.SEVERE), startsWith("MOLOTOV STORAGE RECOVERY FAILED;"), any(Throwable.class));
             when(player.getUniqueId()).thenReturn(UUID.randomUUID()); when(player.isOnline()).thenReturn(true); when(player.getInventory()).thenReturn(inventory);
             when(inventory.getHeldItemSlot()).thenAnswer(call -> selected);
             when(inventory.getHolder()).thenReturn(player); when(inventory.getMaxStackSize()).thenReturn(64);
@@ -510,6 +839,93 @@ class MolotovControllerTest {
             catch (java.io.IOException failure) { throw new java.io.UncheckedIOException(failure); }
         }
         CompoundTag saved() { CompoundTag root = new CompoundTag(); controller.saveCustomData(root); return root; }
+        ItemStack unserializableStoredItem() throws ReflectiveOperationException {
+            ItemStack item = mock(ItemStack.class);
+            when(item.isEmpty()).thenReturn(false);
+            when(item.getType()).thenReturn(Material.PAPER);
+            when(item.getAmount()).thenReturn(1);
+            when(item.serializeAsBytes()).thenThrow(new IllegalStateException("item byte serializer unavailable"));
+            storedItem(0, item);
+            return item;
+        }
+        void storedItem(int slot, ItemStack item) throws ReflectiveOperationException {
+            var stored = MolotovController.class.getDeclaredField("slots");
+            stored.setAccessible(true);
+            ((ItemStack[]) stored.get(controller))[slot] = item;
+        }
+        String failureRecord() { assertEquals(1, recoveryFailures.size()); return recoveryFailures.getFirst(); }
+        String failureDiagnostic() {
+            var trace = new java.io.StringWriter();
+            for (Throwable failure : recoveryCauses) failure.printStackTrace(new java.io.PrintWriter(trace));
+            return failureRecord() + "\n" + trace;
+        }
+        String snbtEmergencyText() {
+            String state = emergencyText();
+            assertTrue(state.startsWith("snbt="), this::failureDiagnostic);
+            return state.substring("snbt=".length());
+        }
+        String emergencyText() {
+            String marker = "; manual state=";
+            String record = failureRecord();
+            int start = record.indexOf(marker);
+            assertTrue(start >= 0, this::failureDiagnostic);
+            return record.substring(start + marker.length());
+        }
+        CompoundTag recoveryMetadata() {
+            CompoundTag root = new CompoundTag();
+            root.putString("recovery_furniture_uuid", furniture.uuid().toString());
+            root.putString("recovery_world", world.getUID().toString());
+            root.putString("recovery_furniture", furniture.id().asString());
+            Location at = controller.location();
+            root.putString("recovery_position", at.getX() + "," + at.getY() + "," + at.getZ());
+            return root;
+        }
+        CompoundTag binaryEmergency() throws java.io.IOException {
+            String record = failureRecord();
+            int start = record.indexOf("base64_nbt="); assertTrue(start >= 0);
+            return FurniturePersistentData.fromBytes(Base64.getDecoder().decode(record.substring(start + "base64_nbt=".length()))).copyTag();
+        }
+        CompoundTag retainedStorage() throws java.io.IOException {
+            try (var files = Files.list(dataFolder.resolve("recovery"))) {
+                List<Path> records = files.filter(path -> path.getFileName().toString().endsWith(".nbt")).toList();
+                assertEquals(1, records.size());
+                return FurniturePersistentData.fromBytes(Files.readAllBytes(records.getFirst())).copyTag();
+            }
+        }
+        NativeRemoval nativeRemoval() throws ReflectiveOperationException {
+            ItemDisplay meta = mock(ItemDisplay.class);
+            Collider collider = mock(Collider.class);
+            FurnitureSnapshotState snapshot = mock(FurnitureSnapshotState.class);
+            FurnitureController lifecycle = mock(FurnitureController.class);
+            when(snapshot.colliders()).thenReturn(List.of(collider));
+            doAnswer(call -> { controller.preRemove(call.getArgument(0)); return null; }).when(lifecycle).preRemove(any());
+            doAnswer(call -> { controller.postRemove(call.getArgument(0)); return null; }).when(lifecycle).postRemove(any());
+            doAnswer(call -> { valid = false; manager.callEvent(new EntityRemoveFromWorldEvent(meta, world)); return null; }).when(meta).remove();
+            setField(Furniture.class, "controller", furniture, lifecycle);
+            setField(Furniture.class, "snapshot", furniture, snapshot);
+            setField(BukkitFurniture.class, "metaEntity", furniture, new WeakReference<>(meta));
+            when(furniture.baseEntity()).thenReturn(meta);
+            doCallRealMethod().when(furniture).destroy(any());
+            doCallRealMethod().when(furniture).destroySeats();
+            return new NativeRemoval(furniture, meta, collider, snapshot, lifecycle);
+        }
         @Override public void close() { furnitureApi.close(); items.close(); bukkit.close(); }
+    }
+
+    private record NativeRemoval(BukkitFurniture furniture, ItemDisplay meta, Collider collider,
+                                 FurnitureSnapshotState snapshot, FurnitureController lifecycle) {
+        void assertDestroyed() {
+            verify(meta).remove();
+            verify(collider).destroy();
+            verify(furniture).destroySeats();
+            verify(snapshot).destroySeats();
+            verify(lifecycle).postRemove(any());
+        }
+    }
+
+    private static void setField(Class<?> owner, String name, Object target, Object value) throws ReflectiveOperationException {
+        var field = owner.getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 }

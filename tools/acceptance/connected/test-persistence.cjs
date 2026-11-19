@@ -486,6 +486,199 @@ test('seed cleanup validates all known fixture identities before deleting and ne
   assert.doesNotMatch(action, /preparePersistence|getInventory\(|CraftEngineFurniture\.place/)
 })
 
+function steeringFixture ({ onLook, blocked = false, timeoutError } = {}) {
+  const controls = [], looks = [], timeouts = [], delays = []
+  const bot = {
+    entity: { position: { x: 0, y: 200, z: 0 } }, forward: true,
+    setControlState: (control, enabled) => {
+      assert.equal(control, 'forward')
+      controls.push(enabled)
+      bot.forward = enabled
+    },
+    lookAt: async (point, force) => {
+      looks.push({ point: clone(point), force, forward: bot.forward })
+      bot.target = point
+      await onLook?.({ bot, point, force, index: looks.length, controls })
+    }
+  }
+  let elapsed = 0
+  const tick = ms => {
+    elapsed += ms
+    if (bot.forward && !blocked) {
+      const dx = bot.target.x - bot.entity.position.x, dz = bot.target.z - bot.entity.position.z
+      const distance = Math.hypot(dx, dz), step = Math.min(distance, ms * .002)
+      if (distance > 0) {
+        bot.entity.position.x += step * dx / distance
+        bot.entity.position.z += step * dz / distance
+      }
+    }
+  }
+  const until = async (description, predicate, timeout) => {
+    timeouts.push({ description, timeout })
+    const end = elapsed + timeout
+    do {
+      if (await predicate()) return true
+      tick(50)
+    } while (elapsed < end)
+    throw timeoutError ?? new Error('Timed out waiting for ' + description)
+  }
+  const helpers = loadMovementHelpers({ assert, until, delay: async ms => { delays.push(ms); tick(ms) },
+    Vec3: class Vec3 { constructor (x, y, z) { Object.assign(this, { x, y, z }) } } })
+  return { ...helpers, bot, controls, looks, timeouts, delays, target: { x: 2, y: 200, z: 0 } }
+}
+
+test('walking stops forward before every forced turn and keeps its original bound and settling delay', async () => {
+  const f = steeringFixture()
+  await f.walkTo(f.bot, f.target, 'bounded steering')
+  assert.ok(f.looks.length > 1)
+  assert.ok(f.looks.every(look => look.force === true && look.forward === false))
+  assert.ok(f.looks.every(look => look.point.x === 2 && look.point.y === 201.62 && look.point.z === 0))
+  assert.ok(Math.hypot(f.bot.entity.position.x - f.target.x, f.bot.entity.position.z - f.target.z) <= .35)
+  assert.deepEqual(f.timeouts, [{ description: 'bounded steering', timeout: 5000 }])
+  assert.deepEqual(f.delays, [200])
+  assert.equal(f.bot.forward, false)
+})
+
+test('walking already within its arrival radius stops without turning or advancing', async () => {
+  const f = steeringFixture()
+  f.bot.entity.position.x = 1.8
+  await f.walkTo(f.bot, f.target, 'already arrived')
+  assert.deepEqual(f.looks, [])
+  assert.deepEqual(f.controls, [false])
+  assert.deepEqual(f.delays, [200])
+})
+
+test('walking rechecks arrival after a pending turn before allowing forward movement', async () => {
+  const f = steeringFixture({ onLook: async ({ bot }) => { bot.entity.position.x = 2 } })
+  await f.walkTo(f.bot, f.target, 'arrived during turn')
+  assert.equal(f.looks.length, 1)
+  assert.deepEqual(f.controls, [false, false])
+  assert.equal(f.bot.entity.position.x, 2)
+})
+
+test('walking rechecks item disappearance after turning before resolving a stale target or advancing', async () => {
+  let disappeared = false, targetReads = 0
+  const f = steeringFixture({ onLook: async () => { disappeared = true } })
+  await f.walkTo(f.bot, () => {
+    targetReads++
+    assert.equal(disappeared, false, 'A removed target must not be resolved again')
+    return f.target
+  }, 'drop removed during turn', .35, () => disappeared)
+  assert.equal(targetReads, 1)
+  assert.equal(f.looks.length, 1)
+  assert.deepEqual(f.controls, [false, false])
+  assert.deepEqual(f.bot.entity.position, { x: 0, y: 200, z: 0 })
+})
+
+test('walking honors an initial stop condition before resolving a missing target', async () => {
+  const f = steeringFixture()
+  await f.walkTo(f.bot, () => { throw new Error('Unexpected stale target read') }, 'drop already removed', .35, () => true)
+  assert.deepEqual(f.looks, [])
+  assert.deepEqual(f.controls, [false])
+})
+
+test('walking turns again if the live target mutates during rotation before resuming forward', async () => {
+  const target = { x: 2, y: 200, z: 0 }
+  const f = steeringFixture({ onLook: async ({ index, controls }) => {
+    if (index === 1) target.x = 3
+    if (index === 2) assert.ok(!controls.includes(true), 'The old heading must never be used after target movement')
+  } })
+  await f.walkTo(f.bot, () => target, 'moving target')
+  assert.equal(f.looks[0].point.x, 2)
+  assert.equal(f.looks[1].point.x, 3)
+  assert.ok(f.controls.includes(true))
+  assert.ok(Math.abs(f.bot.entity.position.x - 3) <= .35)
+  assert.equal(f.bot.forward, false)
+})
+
+test('walking timeout preserves the original error and reports its last physical state after releasing controls', async () => {
+  const failure = new Error('Timed out waiting for bounded steering')
+  const originalStack = failure.stack
+  const f = steeringFixture({ blocked: true, timeoutError: failure })
+  await assert.rejects(f.walkTo(f.bot, f.target, 'bounded steering'), error => {
+    assert.equal(error, failure)
+    assert.deepEqual(error.walkTo, { description: 'bounded steering', stage: 'walking',
+      position: { x: 0, y: 200, z: 0 }, target: f.target, distance: 2, stoppingDistance: .35 })
+    assert.ok(error.stack.startsWith(originalStack))
+    assert.match(error.stack, /walkTo=.*"distance":2/)
+    assert.match(error.message, /"target":\{"x":2,"y":200,"z":0\}/)
+    return true
+  })
+  assert.equal(f.timeouts[0].timeout, 5000)
+  assert.equal(f.looks.length, 100, 'A blocked walk must stop at its original finite deadline')
+  assert.equal(f.controls.at(-1), false)
+  assert.equal(f.bot.forward, false)
+  assert.deepEqual(f.delays, [])
+})
+
+test('walking look failure preserves the original error and stack and releases forward movement', async () => {
+  const failure = new Error('Rotation failed'), originalStack = failure.stack
+  const f = steeringFixture({ onLook: async () => { throw failure } })
+  await assert.rejects(f.walkTo(f.bot, f.target, 'failed turn'), error => {
+    assert.equal(error, failure)
+    assert.equal(error.walkTo.stage, 'turning')
+    assert.equal(error.walkTo.distance, 2)
+    assert.ok(error.stack.startsWith(originalStack))
+    assert.match(error.stack, /walkTo=/)
+    return true
+  })
+  assert.deepEqual(f.controls, [false, false])
+  assert.equal(f.bot.forward, false)
+  assert.deepEqual(f.delays, [])
+})
+
+for (const kind of ['target resolver', 'stop condition']) {
+  test('walking releases controls and retains a failing ' + kind, async () => {
+    const failure = new Error(kind + ' failed'), f = steeringFixture()
+    const target = kind === 'target resolver' ? () => { throw failure } : f.target
+    const stop = kind === 'stop condition' ? () => { throw failure } : () => false
+    await assert.rejects(f.walkTo(f.bot, target, 'failed input', .35, stop), error => {
+      assert.equal(error, failure)
+      assert.equal(error.walkTo.stage, 'checking')
+      assert.deepEqual(error.walkTo.position, { x: 0, y: 200, z: 0 })
+      return true
+    })
+    assert.deepEqual(f.controls, [false])
+    assert.deepEqual(f.looks, [])
+    assert.deepEqual(f.delays, [])
+  })
+}
+
+for (const [axis, value] of [['x', NaN], ['y', Infinity], ['z', -Infinity]]) {
+  test('walking refuses a nonfinite target ' + axis + ' before sending a turn or advancing', async () => {
+    const f = steeringFixture()
+    f.target[axis] = value
+    await assert.rejects(f.walkTo(f.bot, f.target, 'invalid target'), /Missing or nonfinite walking target/)
+    assert.deepEqual(f.looks, [])
+    assert.deepEqual(f.controls, [false])
+  })
+  test('walking refuses a nonfinite player ' + axis + ' before sending a turn or advancing', async () => {
+    const f = steeringFixture()
+    f.bot.entity.position[axis] = value
+    await assert.rejects(f.walkTo(f.bot, f.target, 'invalid player'), /Missing or nonfinite walking position/)
+    assert.deepEqual(f.looks, [])
+    assert.deepEqual(f.controls, [false])
+  })
+}
+
+test('walking refuses a target that becomes nonfinite during rotation before advancing', async () => {
+  const f = steeringFixture({ onLook: async () => { f.target.x = NaN } })
+  await assert.rejects(f.walkTo(f.bot, () => f.target, 'invalidated target'), /Missing or nonfinite walking target/)
+  assert.equal(f.looks.length, 1)
+  assert.deepEqual(f.controls, [false, false])
+  assert.equal(f.bot.forward, false)
+})
+
+for (const distance of [0, -.1, NaN, Infinity]) {
+  test('walking refuses invalid stopping distance ' + distance + ' and still releases controls', async () => {
+    const f = steeringFixture()
+    await assert.rejects(f.walkTo(f.bot, f.target, 'invalid distance', distance), /Invalid walking stopping distance/)
+    assert.deepEqual(f.looks, [])
+    assert.deepEqual(f.timeouts, [])
+    assert.deepEqual(f.controls, [false])
+  })
+}
+
 function movementFixture ({ id = IDS.sofa, blocked = false, badPdc = false, alreadyCarried = false, drifting = false,
   networkChangeDuringWalk } = {}) {
   const pdc = { 'state:fixture': { bytes: 'c2F2ZWQ=' } }
