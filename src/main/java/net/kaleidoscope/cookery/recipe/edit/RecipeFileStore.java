@@ -215,7 +215,7 @@ public final class RecipeFileStore {
     static void writeFoodGroup(Path file, Key tag, List<Key> members, FoodGroups.Kind kind) throws IOException {
         synchronized (fileLock(file)) {
             Files.createDirectories(file.getParent());
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
+            YamlConfiguration config = RecipeYamlConfiguration.read(file.toFile());
             ConfigurationSection tags = config.getConfigurationSection(ITEM_TAGS_SECTION);
             if (tags == null) {
                 tags = config.createSection(ITEM_TAGS_SECTION);
@@ -235,7 +235,7 @@ public final class RecipeFileStore {
             if (!file.toFile().isFile()) {
                 return;
             }
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
+            YamlConfiguration config = RecipeYamlConfiguration.read(file.toFile());
             ConfigurationSection tags = config.getConfigurationSection(ITEM_TAGS_SECTION);
             if (tags != null) {
                 tags.set(tag.asString(), null);
@@ -275,7 +275,7 @@ public final class RecipeFileStore {
         synchronized (fileLock(file)) {
             Files.createDirectories(file.getParent());
             File target = file.toFile();
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(target);
+            YamlConfiguration config = RecipeYamlConfiguration.read(target);
             ConfigurationSection section = resolveNamedSection(config, STOCK_RAW_SECTIONS, true);
             List<Map<?, ?>> list = new ArrayList<>(section.getMapList(LIQUID_KEY));
             list.removeIf(entry -> bucket.asString().equals(String.valueOf(entry.get("item"))));
@@ -295,7 +295,7 @@ public final class RecipeFileStore {
             if (!target.isFile()) {
                 return;
             }
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(target);
+            YamlConfiguration config = RecipeYamlConfiguration.read(target);
             ConfigurationSection section = resolveNamedSection(config, STOCK_RAW_SECTIONS, false);
             if (section == null) {
                 return;
@@ -375,7 +375,7 @@ public final class RecipeFileStore {
         synchronized (fileLock(targetPath)) {
             Files.createDirectories(targetPath.getParent());
             File target = targetPath.toFile();
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(target);
+            YamlConfiguration config = RecipeYamlConfiguration.read(target);
             ConfigurationSection section = resolveSection(config, sectionAliases, id, true);
             section.set(id.asString(), node);
             saveAtomic(config, targetPath);
@@ -387,7 +387,7 @@ public final class RecipeFileStore {
         synchronized (fileLock(targetPath)) {
             Files.createDirectories(targetPath.getParent());
             File target = targetPath.toFile();
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(target);
+            YamlConfiguration config = RecipeYamlConfiguration.read(target);
             config.set(nodePath, node);
             saveAtomic(config, targetPath);
         }
@@ -424,14 +424,7 @@ public final class RecipeFileStore {
         Path target = file.toAbsolutePath().normalize();
         synchronized (fileLock(target)) {
             if (reloadGuard.getAsBoolean()) throw new IOException("CraftEngine 正在重载，请稍后保存");
-            YamlConfiguration config = new YamlConfiguration();
-            config.options().parseComments(true);
-            if (Files.exists(target)) {
-                try { config.load(target.toFile()); }
-                catch (org.bukkit.configuration.InvalidConfigurationException exception) {
-                    throw new IOException("原配置文件格式错误，未写入任何修改", exception);
-                }
-            }
+            YamlConfiguration config = RecipeYamlConfiguration.read(target.toFile());
             Map<String, Object> previous = sectionMap(config);
             RecipeTemplateReplayGuard.verify(previous, source, changes);
             RecipePatchWriter.Saved saved;
@@ -472,7 +465,7 @@ public final class RecipeFileStore {
         Path targetPath = file.toAbsolutePath().normalize();
         synchronized (fileLock(targetPath)) {
             Files.createDirectories(targetPath.getParent());
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(targetPath.toFile());
+            YamlConfiguration config = RecipeYamlConfiguration.read(targetPath.toFile());
             if (oldTarget != null && !oldTarget.resolved()) {
                 throw new IOException("无法定位该食谱在配置中的真实来源");
             }
@@ -499,7 +492,7 @@ public final class RecipeFileStore {
             if (!target.isFile()) {
                 return;
             }
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(target);
+            YamlConfiguration config = RecipeYamlConfiguration.read(target);
             ConfigurationSection section = resolveSection(config, sectionAliases, id, false);
             if (section == null || !section.contains(id.asString())) {
                 return;
@@ -516,7 +509,7 @@ public final class RecipeFileStore {
             if (!target.isFile()) {
                 return;
             }
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(target);
+            YamlConfiguration config = RecipeYamlConfiguration.read(target);
             if (!config.contains(nodePath)) {
                 return;
             }
@@ -532,11 +525,7 @@ public final class RecipeFileStore {
             if (!target.isFile() || !source.resolved()) {
                 return false;
             }
-            YamlConfiguration config = new YamlConfiguration();
-            try { config.load(target); }
-            catch (org.bukkit.configuration.InvalidConfigurationException exception) {
-                throw new IOException("原配置文件格式错误，未删除任何食谱", exception);
-            }
+            YamlConfiguration config = RecipeYamlConfiguration.read(target);
             if (isBambooTraySource(source)) verifyBambooTrayDeletion(config, source);
             if (!removeTarget(config, source)) {
                 return false;
@@ -634,12 +623,14 @@ public final class RecipeFileStore {
         Path targetPath = file.toAbsolutePath().normalize();
         CachedTargets cached;
         try {
-            long modified = Files.getLastModifiedTime(targetPath).toMillis();
-            long size = Files.size(targetPath);
-            cached = TARGET_CACHE.get(targetPath);
-            if (cached == null || cached.modified() != modified || cached.size() != size) {
-                cached = scanTargets(targetPath, modified, size);
-                TARGET_CACHE.put(targetPath, cached);
+            synchronized (fileLock(targetPath)) {
+                long modified = Files.getLastModifiedTime(targetPath).toMillis();
+                long size = Files.size(targetPath);
+                cached = TARGET_CACHE.get(targetPath);
+                if (cached == null || cached.modified() != modified || cached.size() != size) {
+                    cached = scanTargets(targetPath, modified, size);
+                    TARGET_CACHE.put(targetPath, cached);
+                }
             }
         } catch (IOException | RuntimeException error) {
             return List.of();
@@ -694,8 +685,8 @@ public final class RecipeFileStore {
         return asStringMap(expanded);
     }
 
-    private static CachedTargets scanTargets(Path file, long modified, long size) {
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
+    private static CachedTargets scanTargets(Path file, long modified, long size) throws IOException {
+        YamlConfiguration config = RecipeYamlConfiguration.read(file.toFile());
         Set<String> directNodes = new HashSet<>();
         Map<String, Map<String, Object>> directSources = new LinkedHashMap<>();
         Map<String, Integer> directOrdinals = new LinkedHashMap<>();

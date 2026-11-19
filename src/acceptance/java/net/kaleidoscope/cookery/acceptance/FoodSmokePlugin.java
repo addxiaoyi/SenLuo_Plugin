@@ -29,6 +29,7 @@ public final class FoodSmokePlugin extends JavaPlugin {
     private static final long PROBE_WAIT_LIMIT = 20 * 240;
 
     @Override public void onEnable() {
+        if (getConfig().getBoolean("connected-smoke.enabled", false)) ConnectedKitchenProbe.enable(this);
         long bootStarted = System.currentTimeMillis();
         Bukkit.getGlobalRegionScheduler().runDelayed(this, task -> {
             verify();

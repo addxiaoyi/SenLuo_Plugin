@@ -21,8 +21,8 @@
       "pack": "cookery-ce-pack-1.3.0.zip",
       "required_levels": ["L1", "L2", "L3", "L4", "L5", "L6"],
       "status": "runtime-tested",
-      "evidence": ["../../docs/VALIDATION.md", "../../docs/research/series-five-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json"],
-      "open": ["player-flow", "vanilla-client", "folia-connected-player-hits", "folia-native-recipe-watchdog"]
+      "evidence": ["../../docs/VALIDATION.md", "../../docs/research/series-five-runtime-acceptance-2026-11-08.json", "../../docs/research/series-runtime-2026-11-18.json", "../../docs/research/series-connected-2026-11-19.json"],
+      "open": ["remaining-player-flows", "authenticated-client-render", "third-party-protection-and-cross-region", "folia-native-recipe-watchdog-monitoring"]
     },
     {
       "module": "doll",

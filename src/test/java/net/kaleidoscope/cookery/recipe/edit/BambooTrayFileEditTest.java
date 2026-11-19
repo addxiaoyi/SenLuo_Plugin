@@ -24,6 +24,39 @@ class BambooTrayFileEditTest {
     @TempDir Path directory;
 
     @Test
+    void editsRecipeInCombinedCeFileWithoutChangingEmptyBlockVariantsOrComments() throws Exception {
+        Path file = write("""
+                # 🌾 unrelated CE state and literal strings
+                blocks:
+                  test:one:
+                    variants:
+                      ? ''
+                      : {model: test:one, label: ''}
+                      __cookery_yaml_key__: {model: test:other}
+                  test:two: {variants: {"": {model: test:two}}}
+                """ + directYaml(100));
+        var original = net.kaleidoscope.cookery.util.CookeryYaml.readMapping(file).get("blocks");
+        var source = RecipeFileStore.resolveTargets(RecipeSourceIndex.Kind.BAMBOO_TRAY, ID, file, NODE).getFirst();
+        assertEquals(0, source.sourceOrdinal());
+        assertEquals(100, source.originalSource().get("time"));
+        RecipeFileStore.writeNode(file, NODE + ".custom", Map.of("owner", "🌾"));
+        assertEquals(original, net.kaleidoscope.cookery.util.CookeryYaml.readMapping(file).get("blocks"));
+        assertTrue(Files.readString(file).contains("# 🌾 unrelated CE state"));
+        var updated = RecipeFileStore.resolveTargets(RecipeSourceIndex.Kind.BAMBOO_TRAY, ID, file, NODE).getFirst();
+        assertEquals(Map.of("owner", "🌾"), updated.originalSource().get("custom"));
+        assertTrue(RecipeFileStore.deleteTarget(file, updated));
+        assertEquals(original, net.kaleidoscope.cookery.util.CookeryYaml.readMapping(file).get("blocks"));
+    }
+
+    @Test
+    void malformedSourceCannotBeReplacedByAnEmptyDocumentOnWrite() throws Exception {
+        Path file = write("blocks: [unterminated\n");
+        byte[] original = Files.readAllBytes(file);
+        assertThrows(IOException.class, () -> RecipeFileStore.writeNode(file, NODE, Map.of("time", 5)));
+        assertArrayEquals(original, Files.readAllBytes(file));
+    }
+
+    @Test
     void locatesNamedAliasAndDeletesOnlyThatRecipeAcrossReload() throws Exception {
         Path file = write("""
                 bamboo-tray-recipes#local:
