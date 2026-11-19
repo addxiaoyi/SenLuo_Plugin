@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-19",
+  "source_base_commit": "6f05cfe6298adc6c7dae1eabf4de6aba23ea3283",
+  "hash_byte_basis": "local worktree/artifact bytes, not normalized Git blobs",
+  "verification_layer": "unit_build_and_native_ce_configuration_placement_in_process_nbt",
+  "runtime_performed_this_round": true,
+  "java_tests": {
+    "cookery": {
+      "tests": 582,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "common": {
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "doll": {
+      "tests": 43,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "tavern": {
+      "tests": 175,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "deco": {
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "music": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "java_test_total": 912,
+  "java_test_increase_from_base": 167,
+  "new_java_regression_suites": {
+    "MolotovTest": {
+      "tests": 34,
+      "report_sha256": "ea1dde166b9fd9d33b201e9bf3aae31e28ba85909a0b7eed1d8a57bef29f0f4f"
+    },
+    "MolotovControllerTest": {
+      "tests": 38,
+      "report_sha256": "4a2fc7e671f70cdb08c857525bd629bf8349c02264b51684d1d1c1a30fb03b37"
+    },
+    "MolotovPhysicsTest": {
+      "tests": 13,
+      "report_sha256": "f28cb84e5cd86b59c3cc574fd69910783ff7d8f0e1d1ea65bbb70c8c1405c9b1"
+    },
+    "SandwichBoardStateTest": {
+      "tests": 12,
+      "report_sha256": "ccba907ce06e388136de7501cdef84c590fb6b8e295d1b2f2d32c6fc4a96564e"
+    },
+    "SandwichBoardControllerTest": {
+      "tests": 19,
+      "report_sha256": "6b3aa7bc6655405d9be9eadc800cac5a263f58ba0a51b8ed807de97a6a036f0f"
+    },
+    "WoodenSeatsTest": {
+      "tests": 6,
+      "report_sha256": "74ebf193cd23eb9c0c8847ee1db4f1c52aeea22172acf2153e979bbc9f62329b"
+    },
+    "WoodenSeatControllerTest": {
+      "tests": 41,
+      "report_sha256": "a37b136691955a5c08f41155f10caa6508f531481f0450048c06adf14bfbd80e"
+    }
+  },
+  "python_tests": {
+    "root": 179,
+    "series": 78,
+    "total": 257
+  },
+  "node_contract_tests": 75,
+  "scope": {
+    "molotov": "Hold/release and four storage types have unit regressions; native CE definition/item construction, nine representative placements and in-process NBT are runtime tested. No live player throw/redstone/fire/protection acceptance. Molotov-only storage; no flying-entity unload/restart persistence.",
+    "boards": "Fourteen styles, all variants and native Dialog validation covered by unit contracts. Runtime covers two board placements and in-process text NBT. Matrix arithmetic does not accept GPU text/font/outline/collision parity; break drops only current-pattern blank board as fixed source.",
+    "seats": "Twelve chairs with sixteen cushion colors and twelve source-static stools; twenty-four source stonecutting recipes. Native runtime covers one chair and one stool, all variant definitions/items and in-process cushion NBT; no live seating/player/restart/collision/render acceptance.",
+    "native_runtime": "Fresh per-run UUID, owning-region server API placements, actual native controllers and display factories, binary NBT round-trips, exactly nineteen nonpersistent storage displays cleaned, full pack workflow completion marker plus ZIP CRC, normal exit and strict error logs.",
+    "client": "Official vanilla 1.21.11 offline resource/model/item-codec and PNG decode only; no authenticated GPU/audio/client acceptance."
+  },
+  "source_files_sha256": {
+    "series/common/src/main/java/net/kaleidoscope/series/InventoryTrade.java": "a005802c8a81120405954c7e69830af9779917846a28e14c775108e6938f92ac",
+    "series/common/src/test/java/net/kaleidoscope/series/InventoryTradeTest.java": "fd6d8e502806fbb8d471f154565d18df0c21ea1a0b5fb426081ab0faaf4aa5a4",
+    "series/deco/src/main/java/net/kaleidoscope/deco/DecoPlugin.java": "81998d6026b2d46c340df45c02d45622eccf95a7b57da30ea50eee1a84bc1dbf",
+    "series/deco/src/main/java/net/kaleidoscope/deco/WoodenSeatController.java": "9d98a64eeaa1a15f3cb466f5542ec1d999ed6c202098aa9bf44b801cea938540",
+    "series/deco/src/main/java/net/kaleidoscope/deco/WoodenSeats.java": "6629658a7823698875d03c5635e3a381fffa9854df84ebaf8e4679c3fcb6b816",
+    "series/deco/src/test/java/net/kaleidoscope/deco/WoodenSeatControllerTest.java": "77580d69ae7547f566d46cb1823952a06771d4a492f8d1d232b557c148752312",
+    "series/deco/src/test/java/net/kaleidoscope/deco/WoodenSeatsTest.java": "d8b26db25157f9b57c9d0017eef40893dc3846b8bfb00c3b9998a367a9f7bf0d",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/GrapeController.java": "6f4d25371c94e6c740b5f3846ddc329f901307b2b24a42a06def6bdf79788d71",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/Molotov.java": "789fc1eefd961a2d6f0cfe153cd746112e61c782ec940deb2bf56f9c83ea63ce",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/MolotovController.java": "d71d2ed2b732be6f8888216ddb1a98fe7bf57adedc12e6496fda8e7a1f9c890d",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/MolotovPhysics.java": "436e6a205f6857d87456b57f075fe387c1ae0aac67265fbb0c09640e96395edf",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardController.java": "64ea863663e08a9e7048f3094449c091335a025bc92f1c97622b362584c13178",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardDisplay.java": "9eb492c56a889604d10cae436454dfe942a9f36ba2e7d0ee51dc8bf2c3f16c07",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardEditor.java": "9d4ee697652700a42e1c42615f5e26715e893ebfd33bace3f0c52dd410c75533",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardState.java": "8befe0c754e800a4a10c9164b255e33ad561a31d457b0225801a6ddda0a38ddf",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardText.java": "332e196f3078b3a993500631e11a85de3161c4cb4bd0a912019bce402e38fe0c",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/TavernPlugin.java": "5c992cf6ed4f969c09a1b006f8c9b32803cb8284604b12368d131d0905a9f9e5",
+    "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovControllerTest.java": "05152e37b32f926ea401e70acc7f0ef718ffd3f0df1bc301c4e13d9879fff41a",
+    "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovPhysicsTest.java": "ef5044d3055109bd50a21da805f6162ad52d92246853e426911aaa31cf34d97d",
+    "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovTest.java": "3316cf4b6748f7d2dcd45668b861aa4eb807156ab21a6bd76888eb04fbbe0e67",
+    "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovTestItems.java": "cfc626f5e0f51fff2974e55955fb93f3dad6bac5a0df74b5f99aba2c50a0113c",
+    "series/tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardControllerTest.java": "102efbd20f215548d99ddf3ceed22adb9b46a82a486bdf6c047ee8ad2a143f1b",
+    "series/tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardStateTest.java": "2897a11b0910f557c20c4a135f0247a13999d21f77813e4691a2e0786c610990",
+    "series/tools/deco_seating.py": "a0e1f190cfd1bb3e4cbdf649b5cddd948c81d27f7bcda20f0ae97ce0e15742c7",
+    "series/tools/import_sources.py": "44acfe2d11919fba77c09794f216577b9ea9bced32a53740841ac46dc23e697a",
+    "series/tools/tavern_furniture.py": "571b84e47f8d3b56c0b85779dc226c4603bdf27351b6686ebf73dcf56f0f8c3a",
+    "series/tools/test_deco_seating.py": "48fdfa433f4f7bb1464752f00346e9a69e07df98f8acf776a7a99800550f79ab",
+    "series/tools/test_sandwich_transform.py": "4c793b1b60df61fb3dce0d8ee28946d8af149dc5e8a7feae8438b783fe64e5ee",
+    "series/tools/test_tavern_furniture.py": "69e1cf8aa082b43924f43f4db4d2310edf53e1b93dd56f354e428ca600fc6635",
+    "src/acceptance/java/net/kaleidoscope/cookery/acceptance/FoodSmokePlugin.java": "60d93ad829060e8b2bfb53a34f82d09b0a693fb6409d07ff4e485fc20079c841",
+    "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java": "9017a0944e4e3f1437a00da9989d025285a39dc0b68c015883b5514f20605ef7",
+    "tools/acceptance/run_series_gameplay.py": "3702c6e1eaf00b5da655c6bc874bc2c6e63a9e72e8474c2f3c34021342039915",
+    "tools/test_series_gameplay_runner.py": "4a84d73f14b0b4fb475c3330ce4ee3173f5a4469e77b0870ab764d4786936580"
+  },
+  "built_plugin_sha256": {
+    "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "789528ba1d585553cb31cef4a3658693f9f6bd2d52c4669471f967aeefe7ec59",
+    "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3ca0e01e19f571f61aec20f6dca4211c375fe21fb6690d4b82a62bc1c04551fa",
+    "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "9a355a00ed2e5f19f241f0fa0ed2cbecb49700ebc847804855dd41a3e6690ca2",
+    "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "1db18976692f5de6b284b31cfc5ef40e14d60f86925f75e87fe7dc3cf807f263",
+    "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "983fb4b88b39bb5211e12ead23d3202222624e114e2ee4137f48d49d434b1078"
+  },
+  "ce_pack_sha256": {
+    "deco-ce-pack-0.1.0-dev.zip": "bf86a76aa819d48ca4f609d108fcae0f56cd9c629e7d6669a2c85db9252a8f81",
+    "doll-ce-pack-0.1.0-dev.zip": "74a287e8c3817855bb60337497aa30f3fc284b90faf5a49da503b3e02b3ca7d4",
+    "music-ce-pack-0.1.0-dev.zip": "75050bb879a705159f3e21f7f0d9b516046cf6e566a42ba2c7e745777af36cd3",
+    "shared-ce-pack-0.1.0-dev.zip": "c24518c8e975e70ccfc144bff34f3bd4443aba24bd2443064ccf5632b3cd0949",
+    "tavern-ce-pack-0.1.0-dev.zip": "b8a26308f1ad8bf60679d809f8a36582a20c63e2734ddbf9462c3a2fbde0f6bd",
+    "cookery-ce-pack-1.3.0.zip": "7340f24cb4522520d8835c71f2a862837b257fd978ce8d0a57dc810265b1f853"
+  },
+  "generated_report_sha256": {
+    "series/docs/pack-validation.json": "e2e59eb76cfd9e8d37fcdef7bda7755a062af1c955877c6cf9f31ebe3e79edd3",
+    "series/docs/deco-import.json": "2b617ff2148a5c2f704e65cceb2ea5b126cfa5a03a45854db0cea93ea2baeb48",
+    "series/docs/tavern-import.json": "93821b7dbeec940feada36e24143dbf065e4cfa44c0ddefa8436b37113190ba2"
+  },
+  "local_log_sha256": {
+    "build/gameplay-root-full.log": "68907d2fedd327dedf04fbd7fd29c367bd1d24969326e9db4fb96f116a3a1f18",
+    "build/gameplay-series-frozen-2.log": "7764e02050008c1d14f8609aa3f07888311e69cb2ef0c44503cd18b2f5d2134c",
+    "build/gameplay-probe-final.log": "71132a85ff68f85733ad5672ee0207142512577ec690c5e80cc420efd876d4ac",
+    "build/gameplay-python-node-final.log": "ef03cfba8dbe3e21df9fa3f1521e176cebdfd3803eceb72d21863a20b6decb5e",
+    "build/gameplay-cookery-import-final.log": "3fa0147a16d588f095a759139fa7cdad1e9e4083714e80ac8ac165716c713b1b",
+    "build/gameplay-series-import-final.log": "2c0d9ab7a0af1638d0a67bb4e3278eef09c5ab7c7ca65fccfaefd6b7a1e60002",
+    "build/gameplay-prepare-final.log": "f70deb46e5ed44f9b14ebed938810fca16d0f1383ec3052d01ad0abdca0eced4",
+    "build/gameplay-vanilla-final-2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "native_runtime": {
+    "paper": {
+      "result_path": "build/acceptance/gameplay/paper-run-final-2/result.json",
+      "result_sha256": "f106d3c44c01d7abfdc598b1b58628ec8570fe6c7da84fb3fafafd578650e143",
+      "probe_path": "build/acceptance/gameplay/paper-run-final-2/series-gameplay-smoke.json",
+      "probe_sha256": "d8db3fab32cfb0501ca3c47a28933ef0319007507d43b043e44317d54f5e2ff5",
+      "console_path": "build/acceptance/gameplay/paper-run-final-2/console.log",
+      "console_sha256": "c5ad211b1bbb84221a69e753f1dfee0c65181286fd797574f5865209cbd8b584",
+      "server": "1.21.11-132-c5eb079 (MC: 1.21.11)",
+      "server_jar_sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+      "run_id": "845292b5-dcb9-449f-b7ae-0d780902eb1e",
+      "elapsed_seconds": 70.301,
+      "server_exit": 0,
+      "errors": [],
+      "fresh_pack_sha256": "1172617e1792520d31e526d6cb484cecffea0e7a38f85d2490827c9e3acb9fea",
+      "probe_jar_sha256": "5adaafb1d87d2737c19ba7b53787d547b0612dd223210732e629fec1992015af",
+      "warnings": [
+        "[16:49:23 WARN]: ****************************",
+        "[16:49:23 WARN]: YOU ARE RUNNING THIS SERVER AS AN ADMINISTRATIVE OR ROOT USER. THIS IS NOT ADVISED.",
+        "[16:49:23 WARN]: YOU ARE OPENING YOURSELF UP TO POTENTIAL RISKS WHEN DOING THIS.",
+        "[16:49:23 WARN]: FOR MORE INFORMATION, SEE https://madelinemiller.dev/blog/root-minecraft-server/",
+        "[16:49:23 WARN]: ****************************",
+        "[16:49:59 WARN]: *************************************************************************************",
+        "[16:49:59 WARN]: You are running the latest build for your Minecraft version (1.21.11)",
+        "[16:49:59 WARN]: However, you are 6 release(s) behind the latest stable release (26.3)!",
+        "[16:49:59 WARN]: It is recommended that you update as soon as possible",
+        "[16:49:59 WARN]: https://papermc.io/downloads/paper",
+        "[16:49:59 WARN]: *************************************************************************************",
+        "[16:49:59 WARN]: [CraftEngine] 新版本26.9.2已发布：https://modrinth.com/plugin/craftengine/",
+        "[16:50:03 WARN]: [CraftEngine] 模型“kaleidoscope_doll:block/doll/doll_271”的第8个元素在“north”面使用了越界UV [-1.0, 0.5, 1.0, 1.0]，纹理为“kaleidoscope_doll:block/doll/doll_271”。超出[0, 16]的UV可能导致26.1及以上客户端无法烘焙该模型",
+        "[16:50:03 WARN]: [CraftEngine] 模型“kaleidoscope_doll:block/doll/doll_271”的第34个元素在“north”面使用了越界UV [-0.5, 0.5, 2.0, 0.75]，纹理为“kaleidoscope_doll:block/doll/doll_271”。超出[0, 16]的UV可能导致26.1及以上客户端无法烘焙该模型",
+        "[16:50:03 WARN]: [CraftEngine] 模型“kaleidoscope_doll:block/doll/doll_271”的第34个元素在“east”面使用了越界UV [-3.0, 0.5, -0.5, 0.75]，纹理为“kaleidoscope_doll:block/doll/doll_271”。超出[0, 16]的UV可能导致26.1及以上客户端无法烘焙该模型",
+        "[16:50:04 WARN]: [CraftEngine] 模型“kaleidoscope_doll:block/doll/doll_722”的第22个元素在“south”面使用了越界UV [37.0, 44.0, 51.0, 55.0]，纹理为“kaleidoscope_doll:block/doll/doll_722”。超出[0, 16]的UV可能导致26.1及以上客户端无法烘焙该模型"
+      ],
+      "doll_future_client_uv_warning_count": 4,
+      "food_construction_smoke": {
+        "server": "1.21.11-132-c5eb079 (MC: 1.21.11)",
+        "craftEngine": "26.9.1",
+        "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+        "checkedConsumables": 103,
+        "checkedBites": 38,
+        "failures": [],
+        "playerFlow": "NOT_TESTED",
+        "clientResourcePack": "NOT_TESTED",
+        "sha256": "7f1d59a45f40ac560a047517355864228b8db1a26f1c5f7793e930118cd3c813"
+      },
+      "enchantment_registry_smoke": {
+        "server": "1.21.11-132-c5eb079 (MC: 1.21.11)",
+        "craftEngine": "26.9.1",
+        "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+        "checkedTools": 5,
+        "reloadedTools": 5,
+        "failures": [],
+        "playerFlow": "NOT_TESTED",
+        "clientResourcePack": "NOT_TESTED",
+        "sha256": "68d5dd56e3744a1a50aa285652e9351628f720b11186b495b83224d82ad6124c"
+      },
+      "checkedDefinitions": 43,
+      "checkedVariants": 431,
+      "checkedItems": 235,
+      "placedFurniture": 9,
+      "binaryStateRoundTrips": 9,
+      "liveStorageDisplays": 19,
+      "removedFurniture": 9,
+      "cleanedStorageDisplays": 19,
+      "official_vanilla_offline_decode": {
+        "packSha256": "1172617e1792520d31e526d6cb484cecffea0e7a38f85d2490827c9e3acb9fea",
+        "client": "1.21.11",
+        "resourceFormat": "75.0",
+        "activeOverlays": [
+          "ce_overlay_75-97"
+        ],
+        "namespaces": 20,
+        "assetsRead": 14419,
+        "decoded": {
+          "blockstates": 1023,
+          "itemDefinitions": 4276,
+          "models": 6292,
+          "otherBytes": 50,
+          "otherJson": 161,
+          "png": 2617
+        }
+      }
+    },
+    "folia": {
+      "result_path": "build/acceptance/gameplay/folia-run-final/result.json",
+      "result_sha256": "92727642f7e0269e9f60a1d50aad2b4c5028b48250511670884daae4e3296fcf",
+      "probe_path": "build/acceptance/gameplay/folia-run-final/series-gameplay-smoke.json",
+      "probe_sha256": "3c45e9b7b409166415fa56ff647bebb34ef5ea31d6487312a6f8b9abe30f1130",
+      "console_path": "build/acceptance/gameplay/folia-run-final/console.log",
+      "console_sha256": "a8fd642c720ca35511bca1e1bd23c0c2cfa081ec53df7556fd178f138cd7ac71",
+      "server": "1.21.11-14-529aabc (MC: 1.21.11)",
+      "server_jar_sha256": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+      "run_id": "6ef2982f-a646-4b39-a615-485a07a8b59d",
+      "elapsed_seconds": 154.193,
+      "server_exit": 0,
+      "errors": [],
+      "fresh_pack_sha256": "95bd3409a0f23ef5b1ec3a4a103be20f93a3ca1c49c1e97363791275c8ecd5d3",
+      "probe_jar_sha256": "5adaafb1d87d2737c19ba7b53787d547b0612dd223210732e629fec1992015af",
+      "warnings": [
+        "[16:51:41 WARN]: ****************************",
+        "[16:51:41 WARN]: YOU ARE RUNNING THIS SERVER AS AN ADMINISTRATIVE OR ROOT USER. THIS IS NOT ADVISED.",
+        "[16:51:41 WARN]: YOU ARE OPENING YOURSELF UP TO POTENTIAL RISKS WHEN DOING THIS.",
+        "[16:51:41 WARN]: FOR MORE INFORMATION, SEE https://madelinemiller.dev/blog/root-minecraft-server/",
+        "[16:51:41 WARN]: ****************************",
+        "[16:52:25 WARN]: [CraftEngine] 新版本26.9.2已发布：https://modrinth.com/plugin/craftengine/",
+        "[16:53:30 WARN]: [CraftEngine] 模型“kaleidoscope_doll:block/doll/doll_271”的第8个元素在“north”面使用了越界UV [-1.0, 0.5, 1.0, 1.0]，纹理为“kaleidoscope_doll:block/doll/doll_271”。超出[0, 16]的UV可能导致26.1及以上客户端无法烘焙该模型",
+        "[16:53:30 WARN]: [CraftEngine] 模型“kaleidoscope_doll:block/doll/doll_271”的第34个元素在“north”面使用了越界UV [-0.5, 0.5, 2.0, 0.75]，纹理为“kaleidoscope_doll:block/doll/doll_271”。超出[0, 16]的UV可能导致26.1及以上客户端无法烘焙该模型",
+        "[16:53:30 WARN]: [CraftEngine] 模型“kaleidoscope_doll:block/doll/doll_271”的第34个元素在“east”面使用了越界UV [-3.0, 0.5, -0.5, 0.75]，纹理为“kaleidoscope_doll:block/doll/doll_271”。超出[0, 16]的UV可能导致26.1及以上客户端无法烘焙该模型",
+        "[16:53:30 WARN]: [CraftEngine] 模型“kaleidoscope_doll:block/doll/doll_722”的第22个元素在“south”面使用了越界UV [37.0, 44.0, 51.0, 55.0]，纹理为“kaleidoscope_doll:block/doll/doll_722”。超出[0, 16]的UV可能导致26.1及以上客户端无法烘焙该模型"
+      ],
+      "doll_future_client_uv_warning_count": 4,
+      "food_construction_smoke": {
+        "server": "1.21.11-14-529aabc (MC: 1.21.11)",
+        "craftEngine": "26.9.1",
+        "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+        "checkedConsumables": 103,
+        "checkedBites": 38,
+        "failures": [],
+        "playerFlow": "NOT_TESTED",
+        "clientResourcePack": "NOT_TESTED",
+        "sha256": "7bcef08ff9f86879180f97f2dcfb8785f7432f232abfb13ce3ea753b238aab90"
+      },
+      "enchantment_registry_smoke": {
+        "server": "1.21.11-14-529aabc (MC: 1.21.11)",
+        "craftEngine": "26.9.1",
+        "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+        "checkedTools": 5,
+        "reloadedTools": 0,
+        "failures": [],
+        "playerFlow": "NOT_TESTED",
+        "clientResourcePack": "NOT_TESTED",
+        "sha256": "f5b0d8e98365d465106de09891621f473eb7f04635f6779aa9e67dfe0699129b"
+      },
+      "checkedDefinitions": 43,
+      "checkedVariants": 431,
+      "checkedItems": 235,
+      "placedFurniture": 9,
+      "binaryStateRoundTrips": 9,
+      "liveStorageDisplays": 19,
+      "removedFurniture": 9,
+      "cleanedStorageDisplays": 19,
+      "official_vanilla_offline_decode": {
+        "packSha256": "95bd3409a0f23ef5b1ec3a4a103be20f93a3ca1c49c1e97363791275c8ecd5d3",
+        "client": "1.21.11",
+        "resourceFormat": "75.0",
+        "activeOverlays": [
+          "ce_overlay_75-97"
+        ],
+        "namespaces": 20,
+        "assetsRead": 14419,
+        "decoded": {
+          "blockstates": 1023,
+          "itemDefinitions": 4276,
+          "models": 6292,
+          "otherBytes": 50,
+          "otherJson": 161,
+          "png": 2617
+        }
+      }
+    }
+  },
+  "vanilla_decode": {
+    "path": "build/acceptance/gameplay/vanilla-pack-decode.json",
+    "sha256": "86962ef084b77a09260eae249d5ae92e6fbf8c4d28aa617b4454bc54cf6f6535",
+    "reader_sha256": "cff523e2ff7c61306ed841b92e8588bd9f747b14e4dd5bcc4667cba06baa10a7",
+    "official_client_jar_sha256": "1473c9489ac50fda3c435049a76a70d61a10b8610db27f5ba9d8756b686cd3bd",
+    "gpu_or_authentication": false
+  },
+  "preparation": {
+    "manifest": "build/acceptance/gameplay/INSTALL-MANIFEST.json",
+    "manifest_sha256": "f70deb46e5ed44f9b14ebed938810fca16d0f1383ec3052d01ad0abdca0eced4",
+    "staging": "build/acceptance/gameplay/STAGING.json",
+    "staging_sha256": "da3de320094d6f4a75f9eb6bf3a3738550c231cf48da8be78fc1e1591bf6fa47",
+    "eula": "Copied identical prior explicit operator acceptance from existing isolated platform instances; no new implicit acceptance."
+  },
+  "retained_initial_failure_log_sha256": {
+    "build/gameplay-targeted-2.log": "846178d7ef074fb5aa5524bbd8b52ade044206298b2fb8073fd84d42163b038c",
+    "build/gameplay-targeted-3.log": "0d82610abbadc49eac8fcdcf4e7b83eaaa6e7cf1fead7fe2967312f50ffdd572",
+    "build/gameplay-targeted-4.log": "12e9d4b598389ebc80c8045bb99cd43e5610a57baf57649c4a06a4d43a0246c4",
+    "build/gameplay-targeted.log": "91cb501d6e51d5b3c8c2449f13c7a6292e30ebfc4483629964c06d10cc3f9520",
+    "build/gameplay-board-targeted.log": "b4040217642c53b05622089fdec64acae0762a73496ec608e967918d5caae43a",
+    "build/gameplay-series-full.log": "7760cd020c4fc4de1a8d5517eda11e968f587f166bc735f8899ba032ce3c2d67",
+    "build/gameplay-prepare.log": "381cebef71de497d67b0fa725524e06d11f33dc8268c3f8b3c858a0601fa1c43",
+    "build/gameplay-vanilla-final.log": "27148a09f82e22ef366ea5c2b0b5cb241417ff552737e256eed28d15533e6258",
+    "build/acceptance/gameplay/paper-run-1/result.json": {
+      "sha256": "2996f234dc1080e40325ae3f92f116b667270ae407f5ce0ff0c74d7386c8b42f",
+      "passed": false,
+      "console_sha256": "969e70b1496ec8a79f9aaaec7de3c07339c9a7792d97f6d9859b84b3495f3cac",
+      "production_jars_sha256": {
+        "KaleidoscopeCookeryPlugin-1.3.0.jar": "789528ba1d585553cb31cef4a3658693f9f6bd2d52c4669471f967aeefe7ec59",
+        "KaleidoscopeDeco-0.1.0-dev.jar": "c337c1e6f518ba2b0aa02e2de044e8d6ee9be4dd6ff6d705c4d6d6169f7ec91c",
+        "KaleidoscopeDoll-0.1.0-dev.jar": "3ca0e01e19f571f61aec20f6dca4211c375fe21fb6690d4b82a62bc1c04551fa",
+        "KaleidoscopeMusic-0.1.0-dev.jar": "983fb4b88b39bb5211e12ead23d3202222624e114e2ee4137f48d49d434b1078",
+        "KaleidoscopeTavern-0.1.0-dev.jar": "32fb16f433038db8e3e6e24c552753e44b40f6a26235c72cc978b78daab62a11"
+      },
+      "probe_jar_sha256": "10141c311dd6f98ded3698cd7a4fe991de9ae83cd1de6cb74bc058640942385f"
+    },
+    "build/acceptance/gameplay/paper-run-final/result.json": {
+      "sha256": "18ac25f8807623b05616e867b120a23fb703eac9f506878d898026ad7a96604a",
+      "passed": false,
+      "console_sha256": "e27ea83facb95d57ae505f104d0aa72dcf05678c3fa7eb21d3f15bbf3182275b",
+      "production_jars_sha256": {
+        "KaleidoscopeCookeryPlugin-1.3.0.jar": "789528ba1d585553cb31cef4a3658693f9f6bd2d52c4669471f967aeefe7ec59",
+        "KaleidoscopeDeco-0.1.0-dev.jar": "1db18976692f5de6b284b31cfc5ef40e14d60f86925f75e87fe7dc3cf807f263",
+        "KaleidoscopeDoll-0.1.0-dev.jar": "3ca0e01e19f571f61aec20f6dca4211c375fe21fb6690d4b82a62bc1c04551fa",
+        "KaleidoscopeMusic-0.1.0-dev.jar": "983fb4b88b39bb5211e12ead23d3202222624e114e2ee4137f48d49d434b1078",
+        "KaleidoscopeTavern-0.1.0-dev.jar": "6080f31a78abab75b66eae15adcdabc8d8670a0f4373d2e675e45eb238ad3f1c"
+      },
+      "probe_jar_sha256": "5adaafb1d87d2737c19ba7b53787d547b0612dd223210732e629fec1992015af"
+    }
+  },
+  "resolved_runtime_failures": [
+    "Initial preparation correctly refused mixed base resources that would overwrite managed Deco; retried with only five CE base folders.",
+    "First Paper setup omitted the unchanged enchantment datapack; installed it before all later launches without suppressing enchantment smoke.",
+    "CE metadata is itself an ItemDisplay; probe now selects exact current-run marked bottle items and still requires nineteen live and cleaned displays.",
+    "Same-geometry cushion and board variant changes use forced native switching; full hitbox equality is asserted by importer tests.",
+    "CE calls onLoad inside the spawn consumer before metadata validity, then onPlace after insertion; board defers visual restoration until valid. Both failed Paper candidates, original JARs and worlds are retained."
+  ],
+  "historical_watchdog": {
+    "status": "OPEN",
+    "fixed_by_clean_launches": false,
+    "evidence": "docs/research/series-restart-acceptance-2026-11-19.json"
+  },
+  "open": [
+    "Live player Dialog/throw/storage/redstone/fire/seating and protection flows",
+    "Normal restart and independent unload/hot reload for all new furniture",
+    "Folia cross-region and performance",
+    "Authenticated GPU rendering/audio/font/collision acceptance",
+    "Remaining module parity gaps",
+    "Chef profession vanilla registry boundary and five unimplemented village kitchens",
+    "E06 redistribution licensing"
+  ],
+  "reproduction": [
+    "gradlew.bat test shadowJar acceptanceJar -Porg.gradle.java.installations.paths=<JDK21>,<JDK25> --no-daemon --no-configuration-cache --console=plain",
+    "gradlew.bat -p series build --no-daemon --no-configuration-cache --console=plain",
+    "python tools/build_all.py --skip-java",
+    "python tools/export_cookery_catalog.py --source ../.references/KaleidoscopeCookery --check",
+    "python series/tools/import_sources.py --check",
+    "python tools/acceptance/run_series_gameplay.py build/acceptance/gameplay/<platform> build/acceptance/gameplay/<platform>-run-final --java <JDK21>/bin/java.exe"
+  ]
+}

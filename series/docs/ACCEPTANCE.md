@@ -2,9 +2,50 @@
 
 更新于 2026-11-19。当前证据包括局部服务端与协议客户端验证；全系列尚未标记为 `accepted`，下方未勾选的玩法仍未验收。不能用编译、单元测试或探针成功代替整个玩法闭环。全系列计划与换设备步骤见 [根 README](../../README.md#继续开发)。
 
+## 燃烧瓶、酒馆展板与木椅单元检查点（2026-11-19）
+
+本轮将 T05、T06、F04 记录为 `unit_tested`，分层结果见[玩法回归证据](../../docs/research/series-gameplay-regression-2026-11-19.json)。以下实现已有单元／静态合同，另列本轮有界原生探针结果；局部放置与进程内 NBT 往返不升级为整个玩法通过，也不将前序协议玩家或三个家具样例的正常重启证据套用到新 JAR。
+
+- T05：[燃烧瓶投掷](../tavern/src/main/java/net/kaleidoscope/tavern/Molotov.java)使用永久 `minecraft:consumable` 组件与原生雪球，覆盖主副手、蓄力、放手、同区域火焰及保护；四种储物家具只接入燃烧瓶链，未完成其余瓶装物交互。飞行实体不跨卸载或重启保存。[投掷回归](../tavern/src/test/java/net/kaleidoscope/tavern/MolotovTest.java)、[物理回归](../tavern/src/test/java/net/kaleidoscope/tavern/MolotovPhysicsTest.java)、[储物回归](../tavern/src/test/java/net/kaleidoscope/tavern/MolotovControllerTest.java)与[配置合同](../tools/test_tavern_furniture.py)均有各自范围，不能视为真实投掷或保护插件验收。
+- T06：[14 款酒馆文字展板](../tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardController.java)支持原生 Dialog、文字染色、发光／墨囊、蜡、花纹和对齐；最多保存 320 个 UTF-16 单元原文，最多显示 8 个 CE 文字行。普通拆下仅返当前花纹的空白展板，原文字不随掉落携带。[控制器](../tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardControllerTest.java)、[状态](../tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardStateTest.java)与[变换合同](../tools/test_sandwich_transform.py)测试不替代原版 Dialog 输入、实际字体和 GPU 画面，变换依据见[研究记录](../../docs/research/board-render-research.md)。这不是已有协议验收的 Deco 郁金香展板。
+- F04：[木椅控制器](../deco/src/main/java/net/kaleidoscope/deco/WoodenSeatController.java)与[导入器](../tools/deco_seating.py)覆盖 12 木种椅子的空垫／16 色椅垫、12 木种静态厨娘凳及 24 条石切配方。厨娘凳按固定源模型，没有坐下或椅垫事件。[控制器测试](../deco/src/test/java/net/kaleidoscope/deco/WoodenSeatControllerTest.java)、[家族测试](../deco/src/test/java/net/kaleidoscope/deco/WoodenSeatsTest.java)及[来源测试](../tools/test_deco_seating.py)仅建立对应单元与导出证据。
+
+本轮最终构建通过 **912 项 Java 测试**：Cookery 582、common 34、Doll 43、Tavern 175、Deco 64、MusicPlus 14，失败、错误和跳过均为 0。**257 项 Python**（根工具 179＋系列 78）和 **75 项 Node 场景契约测试**通过；厨房与系列两个来源导入 `--check` 也通过。上述数字属于构建、单元与静态／场景契约层；本轮原生运行范围另列于下。
+
+同一组本轮五插件 JAR 在 Paper 132 的 `paper-run-final-2`（70.301 秒）与 Folia 14 的 `folia-run-final`（154.193 秒）各通过原生 CE 回归：每端核对 43 个定义、431 个变体与 235 个物品；实际放置并移除 9 件代表家具（2 款文字展板、1 把木椅、1 个厨娘凳、1 个地面燃烧瓶及 4 种储物家具），完成 9 次二进制 NBT 进程内往返，并生成、清理各 19 个真实储物显示实体。探针使用本次运行 UUID、所属区域调度、真实控制器及 CE 显示工厂；运行器要求资源工作流完成标记、ZIP CRC 和正常停服，两端退出码均为 0、`errors=[]`、没有强杀。这是服务端 API 放置及进程内保存／恢复，不是玩家交互或服务器重启验收。
+
+两端最终托管包另经官方原版 1.21.11 客户端代码离线解码，每包均读取 **14,419 个资源**：1,023 个 blockstate、4,276 个物品定义、6,292 个模型、50 个其他二进制资源、161 个其他 JSON 和 2,617 张 PNG；20 个命名空间，活动 overlay 为 `ce_overlay_75-97`。这不证明账号登录、GPU 字体／画面、碰撞或音频正确。
+
+静态报告的缺失引用与额外资源警告为 0，不等于运行日志无警告。两端各保留 **4 条上游模型越界 UV 提示**：`doll_271` 的 3 个面和 `doll_722` 的 1 个面；CE 提示可能影响 26.1 及以上客户端烘焙，当前目标仍为 1.21.11。这与先前已经解决的 5 条缺模型／纹理引用警告不同；固定上游 UV 没有为清空日志而被修改，未来客户端兼容与实际显示仍待验证。
+
+首次 `paper-run-1` 与第二候选 `paper-run-final` 的真实失败、当时产物哈希与日志均保留在玩法回归证据中。最终修复依照 CE 原生时序：同几何变体切换不重复检查自身占位，展板在 `spawn` consumer 内的 `onLoad` 尚无有效元数据实体时延后刷新，再由插入后的 `onPlace` 恢复。成功结果没有覆盖失败历史，也不关闭历史 Folia watchdog 根因。
+
+两处新增数据安全修复均不得扩大解释为运行通过。地面燃烧瓶先持久化唯一的完整来源物品意向，再调用 CE 原生销毁；同步移除回调结束后只安全写回原槽，原槽被占用则重新规划库存。移除／交付异常，以及原家具已移除后的交付取消、满包或离线，保留人工核对记录，必须先确认原家具和实际库存再恢复一次，绝不自动重放。木椅的玩家取消仅在 `FurnitureBreakEvent` 阶段阻止移除；真实 CE `destroy` 即使 `preRemove` 抛异常仍会销毁，因此已进入销毁后的未结算椅垫转存完整人工恢复记录，基础椅掉落独立结算，不声称原家具仍被保留。木椅单元夹具实际调用 CE `BukkitFurniture.destroy` 核对其正常与异常收尾。
+
+上述新功能的真实玩家、正常重启、独立卸载／热重载、第三方保护、Folia 跨区及原版客户端渲染均为 OPEN，具体未勾选项见下方酒馆和 Deco 清单。全系列 `accepted=[]`，E06 仍 `blocked`；历史启动 watchdog 根因没有关闭。
+
+Chef 边界单列于[固定源码与原版客户端研究](../../docs/research/cookery-chef-vanilla-boundary-2026-11-19.md)：仅靠数据包与资源包无法给原版 1.21.11 注册独立 Chef 职业；替换既有职业或静态 NPC 不等于完整 Chef。五类村庄厨房结构（NBT、processor、loot 和生成池）是另一项尚未实现的工程，不因职业硬边界而视为已处理。酒馆旧清单中的“冰桶”尚未在固定来源识别对应注册／类，规格待源识别，不声明已有实现。
+
+## 本轮原生回归复现
+
+入口为 [SeriesGameplaySmoke 原生探针](../../src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java)与 [run_series_gameplay.py 运行器](../../tools/acceptance/run_series_gameplay.py)。先按[隔离服准备](../../README.md#隔离服准备)安装本轮构建的五插件、五玩法内容包和共享包，使用 Java 21、Paper 132／Folia 14、CE 26.9.1、`--server-blocks 8000 --early-pack-load`。`--base-resources` 只能来自单独整理的五个 CE 基础目录：`default_assets`、`default_feature_populator`、`default_templates`、`internal`、`legacy_armor`；不要把包含旧 `doll/tavern/deco/music/shared` 的整份运行资源目录当作基础资源覆盖新内容包。
+
+将 `acceptanceJar` 产出的 `build/acceptance/probe/CookeryAcceptanceProbe.jar` 安装到各实例 `plugins/`，在 `plugins/CookeryAcceptanceProbe/config.yml` 显式设置 `series-gameplay-smoke.enabled: true`。首次启动前还须把仓库 [`examples/cookery-enchantments`](../../examples/cookery-enchantments) 数据包完整安装至各实例 `acceptance-world/datapacks/cookery_enchantments/`，不能关闭附魔探针来掩盖缺包。只使用操作者已经明确接受 EULA 的隔离实例；运行器核对现有 `eula=true`，不会自动接受，也不替代该决定。实例必须在 `build/acceptance/` 内，绑定 `127.0.0.1`、`level-name=acceptance-world` 且 `enable-rcon=false`。
+
+以下为已准备实例的 PowerShell 复跑示例，`JAVA_HOME` 须指向 JDK 21；每次使用新的输出目录保留原有结果，两端顺序运行：
+
+```powershell
+$java21 = Join-Path $env:JAVA_HOME 'bin\java.exe'
+$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+.\.venv\Scripts\python.exe tools\acceptance\run_series_gameplay.py build\acceptance\gameplay\paper "build\acceptance\gameplay\paper-rerun-$stamp" --java $java21
+.\.venv\Scripts\python.exe tools\acceptance\run_series_gameplay.py build\acceptance\gameplay\folia "build\acceptance\gameplay\folia-rerun-$stamp" --java $java21
+```
+
+每次运行以新 UUID 关联当前探针和当前生成包，等待完整工作流标记并核对 ZIP CRC；最多等待 300 秒，再为正常 `stop` 留出 60 秒，不承诺固定完成时间。最终结果以各新目录的 `result.json`、`series-gameplay-smoke.json` 和 `console.log` 为准；进程内 NBT 往返不能当作跨服务器重启保存验证。
+
 ## 当前单元与场景契约回归（2026-11-19）
 
-当前通过 **745 项 Java、223 项 Python、75 项 Node 场景契约测试**。Node 契约仅使用内置模块，不启动 Minecraft 服务端或协议客户端，可运行 `node --test tools/acceptance/connected/test-persistence.cjs` 复核。本轮新增 50 项 Java 回归，分层结果及构建哈希见[礼盒与效果回归证据](../../docs/research/series-effects-gift-regression-2026-11-19.json)；本轮没有启动实服，下面的双端运行记录保留历史提交范围。
+前序礼盒与效果检查点当时通过 **745 项 Java、223 项 Python、75 项 Node 场景契约测试**。Node 契约仅使用内置模块，不启动 Minecraft 服务端或协议客户端，可运行 `node --test tools/acceptance/connected/test-persistence.cjs` 复核。该检查点新增 50 项 Java 回归，分层结果及构建哈希见[礼盒与效果回归证据](../../docs/research/series-effects-gift-regression-2026-11-19.json)；当时没有启动实服，下面的双端运行记录保留历史提交范围。
 
 - [礼盒 17 项](../doll/src/test/java/net/kaleidoscope/doll/GiftBoxesTest.java)覆盖错误类型 PDC 原样保留、主手快照及提交前状态复核。关键切槽、禁用、取消与同步重入用真实 `InventoryTrade` 和模拟 Bukkit 事件，两项额外测试单独隔离 `beforeCommit` 的组件／数量检查；不声称已完成真实玩家开盒。
 - [血腥玛丽 18 项](../tavern/src/test/java/net/kaleidoscope/tavern/BloodyMaryAttributionTest.java)以模拟 `DamageSource` 验证当前玩家／投射物来源、历史 kill credit 拒绝、先前取消死亡、可取消／改额治疗及回调后守卫；保持同区域限制，不替代实服投射物或跨区验收。
@@ -160,6 +201,12 @@ PYTHONPATH=series/tools python series/tools/prepare_independent_servers.py \
 
 ## 酒馆
 
+- [ ] 燃烧瓶主副手蓄力／放手、取消／中断／换槽、生成或命中被拒绝时物品与组件正确；永久 consumable 组件不临时污染其他物品，同区域火焰遵守真实保护与伤害事件。
+- [ ] 瓶架、斜酒架、圆酒架和地窖柜逐一验证燃烧瓶放入／取回、红石触发、取消及两人操作的唯一扣料；该验收不扩展为其他瓶装物交互。飞行雪球卸载、移除、正常停启后不复活、不重复结算。
+- [ ] 地面燃烧瓶回收时，原生销毁回调切热栏／改原槽／改其他库存不被覆盖；原槽占用时重新规划交付；已移除后的交付取消、满包、离线、禁用与异常保留唯一完整来源物品的人工核对记录，原生移除结果不确定也必须先人工核对。成功交付后不重复发放；残留或交付不确定记录必须核对世界与库存，不能自动退款或重放。
+- [ ] 14 款文字展板原生 Dialog 编辑、原文 320 UTF-16 单元边界、Unicode 和按字面显示的标签正确；最多 8 行显示且保留完整原文，原版字体下左／中／右对齐、倾角和行距可读。
+- [ ] 文字展板染色、发光／墨囊、花纹与封蜡只扣一份有效主手材料；同状态、创造、取消、同步重入和过期 Dialog 不误耗。编辑者身份、距离、状态版本、保护与 Folia 所有权变化时拒绝旧回调。
+- [ ] 文字展板保存并正常重启后文字、颜色、花纹、蜡与对齐一致；普通拆下恰好一件当前花纹空白展板，重放不恢复旧文字，空状态再启动不复活。独立卸载／热重载和第三方保护另行记录。
 - [ ] 果盆0.5格以上跳踩、不同果汁、满盆、取回原料和桶取汁均符合规则。
 - [ ] 酒桶四槽计数、4桶液体、97 tick熟成和升档边界、失败醋产量、瓶装品质正确。
 - [ ] 三份调酒原料、品质4门槛、容器返还和19/69/89/99/111 tick边界正确。
@@ -184,6 +231,10 @@ PYTHONPATH=series/tools python series/tools/prepare_independent_servers.py \
 - [ ] Deco状态工具、潜行/物品/标签条件及状态循环正确；需额外脚本的事件提示未实现并保留状态。
 - [ ] 沙发16色/清色和四种形态正确；同色不扣染料，创造不扣，水桶不消耗；拆装/重启保存外观和源物品状态。
 - [ ] Deco无匹配规则时原生座位仍能使用；切换形态后座位/碰撞无错位；坏存档冻结且保留原记录。
+- [ ] 12 木种椅子逐一验证空垫／16 色垫、主手定点扣一、同色无操作；更早的同类物品堆不代扣，创造不消耗／返料。剪刀交互的退款掉落取消时保留原垫和材料；拆家具已进入原生销毁时按下一项处理。
+- [ ] 玩家 `FurnitureBreakEvent` 取消仍保留木椅；强制移除或已进入 CE `destroy` 后遇未结算椅垫、坏档／忙态、退款掉落取消或改写，完整状态只存人工恢复记录，基础椅原生掉落另计。原家具不宣称保留；同一控制器不重复返垫，记录不自动恢复，落盘失败须有完整紧急状态和严重日志供核对。
+- [ ] 木椅保护取消、两人操作、换槽／同步重入、坏存档、拆下／重放与正常重启保持状态和物品守恒；模型、坐姿、碰撞及不同朝向由原版客户端核对，独立卸载／热重载／跨区另行记录。
+- [ ] 12 木种厨娘凳保持源静态模型，不出现来源没有的坐下或椅垫事件；椅子与厨娘凳合计 24 条石切配方逐条由真实玩家验证材料标签、单次产量和客户端显示。
 
 ## 音乐和并发
 

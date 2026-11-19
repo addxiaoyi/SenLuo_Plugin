@@ -19,6 +19,8 @@ public final class TavernPlugin extends SeriesPlugin {
     private Drinks drinks;
     private TavernEffects effects;
     private HandheldShaker shakers;
+    private Molotov molotovs;
+    final net.kaleidoscope.series.ControllerIndex<SandwichBoardController> boards = new net.kaleidoscope.series.ControllerIndex<>();
     final net.kaleidoscope.series.ControllerIndex<TapController> taps = new net.kaleidoscope.series.ControllerIndex<>();
     final net.kaleidoscope.series.ControllerIndex<BarrelController> barrels = new net.kaleidoscope.series.ControllerIndex<>();
     final net.kaleidoscope.series.ControllerIndex<BottleController> bottles = new net.kaleidoscope.series.ControllerIndex<>();
@@ -31,6 +33,8 @@ public final class TavernPlugin extends SeriesPlugin {
         FurnitureTypes.register("kaleidoscope_tavern:tap", f -> new TapController(f, this));
         FurnitureTypes.register("kaleidoscope_tavern:bottle", f -> new BottleController(f, this));
         FurnitureTypes.register("kaleidoscope_tavern:grape", f -> new GrapeController(f, this));
+        FurnitureTypes.register("kaleidoscope_tavern:sandwich_board", f -> new SandwichBoardController(f, this));
+        FurnitureTypes.register("kaleidoscope_tavern:molotov", f -> new MolotovController(f, this, () -> molotovs));
     }
 
     @Override protected void start() {
@@ -45,6 +49,9 @@ public final class TavernPlugin extends SeriesPlugin {
         shakers = new HandheldShaker(this);
         getServer().getPluginManager().registerEvents(shakers, this);
         getServer().getPluginManager().registerEvents(new TapRedstone(this), this);
+        molotovs = new Molotov(this);
+        getServer().getPluginManager().registerEvents(molotovs, this);
+        molotovs.start();
         command("ktavern", (sender, command, label, args) -> {
             if (!(sender instanceof Player player)) { sender.sendMessage("请在游戏内使用。"); return true; }
             attempt(player, () -> {
@@ -67,7 +74,7 @@ public final class TavernPlugin extends SeriesPlugin {
         return Math.clamp(item.getItemMeta().getPersistentDataContainer().getOrDefault(brewLevel, PersistentDataType.INTEGER, 0), 0, 6);
     }
 
-    @Override protected void stop() { if (effects != null) effects.stop(); if (shakers != null) shakers.close(); barrels.clear(); bottles.clear(); grapes.clear(); taps.clear(); }
+    @Override protected void stop() { if (effects != null) effects.stop(); if (shakers != null) shakers.close(); if (molotovs != null) molotovs.close(); boards.clear(); barrels.clear(); bottles.clear(); grapes.clear(); taps.clear(); }
 
     public ItemStack bottle(BrewBatch batch) {
         ItemStack item = Items.create(batch.recipe().output());

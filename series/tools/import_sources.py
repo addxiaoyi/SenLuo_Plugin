@@ -374,7 +374,11 @@ def tavern(source: Source) -> tuple[dict, dict, dict, list]:
             items[id_]["settings"] = {"consume_replacement": "kaleidoscope_tavern:empty_glassware"
                                      if len(catalog["effects"].get(id_, [])) <= 1 else "kaleidoscope_tavern:empty_bottle"}
         behavior = {"barrel": "barrel", "pressing_tub": "pressing_tub", "shaker": "shaker",
-                    "trellis": "grape", "tap": "tap", "empty_bottle": "bottle", "empty_glassware": "bottle"}.get(path)
+                    "trellis": "grape", "tap": "tap", "empty_bottle": "bottle", "empty_glassware": "bottle",
+                    "molotov": "molotov", "holder": "molotov", "tilted_rack": "molotov",
+                    "circular_rack": "molotov", "cellar_cabinet": "molotov"}.get(path)
+        if path.endswith("_sandwich_board") and path != "deco_sandwich_board":
+            behavior = "sandwich_board"
         seated = path.endswith(("_sofa", "_bar_stool"))
         if behavior or seated:
             placeable(items[id_], id_)
@@ -386,7 +390,9 @@ def tavern(source: Source) -> tuple[dict, dict, dict, list]:
         if recipe["output"] not in items:
             raise ValueError(f"Missing brewing output: {recipe['output']}")
     pending += ["handheld shaker uses vanilla use animation; native mod hand animation is unavailable",
-                "tap sources support barrels, melon, dragon heads, hives, waterlogged blocks and cauldrons; wild grape worldgen, thrown molotovs and remaining furniture behavior pending",
+                "tap sources support barrels, melon, dragon heads, hives, waterlogged blocks and cauldrons; wild grape worldgen and remaining furniture behavior pending",
+                "Molotov storage supports Molotov only; native snowball flight display, online same-region fire protection, no saved in-flight projectile across unload/restart",
+                "sandwich boards use native dialog and at most 8 CE text lines; non-ASCII/uniform/custom font metrics, exact outline, two-block waterlogging and collision need client parity acceptance",
                 "grape growth uses staggered loaded-furniture pulses; spread is restricted to same-owner trellises",
                 "barrel uses its inventory item model; full multi-block appearance pending"]
     recipes, skipped = crafting(tags, items)
@@ -514,6 +520,7 @@ def loot_components(table: dict) -> dict:
 
 
 def deco(source: Source) -> tuple[dict, dict, dict, list]:
+    from deco_seating import append_seating
     original: dict[str, bytes] = {}
     for path, content in source.files.items():
         if re.match(r"src/[^/]+/assets/", path):
@@ -582,6 +589,9 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
     tags = item_tag_sources(source.files)
     items, furnishings, entries, styles = {}, {}, [], []
     for index, (raw, path) in sorted(indexes.items()):
+        if index in ("chair", "cook_stool"):
+            # These use recipe inheritance for their wood and a dedicated cushion controller.
+            continue
         id_ = "kaleidoscope_deco:" + index.replace(":", "/")
         if not ID.fullmatch(id_):
             raise ValueError(f"Invalid Deco index: {index}")
@@ -634,9 +644,11 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
         except ValueError as error:
             pending.append(f"Furniture {index}: {error}")
     link_variants(entries, furnishings, pending)
+    seat_recipes = append_seating(source.files, original, namespaces, items, furnishings, entries,
+                                 model_tree, furniture, placeable)
     pending = [f"{message} ({count} uses)" if count > 1 else message for message, count in Counter(pending).items()]
     items["kaleidoscope_deco:state_tool"] = item("kaleidoscope_deco:state_tool", "minecraft:item/stick", "家具状态工具", max_stack=1)
-    return {"entries": entries, "styles": styles}, {"items": items, "furniture": furnishings}, assets, pending + [
+    return {"entries": entries, "styles": styles}, {"items": items, "furniture": furnishings, "recipes": seat_recipes}, assets, pending + [
         "only literal registered furniture exported; GUI-only models are not items",
         "source-driven simple transitions and sofa dye/modes supported; additional scripted events are individually reported",
         "Deco namespaces are prefixed with kdeco_ to prevent collisions with the full gameplay mods",

@@ -25,6 +25,22 @@ public final class InventoryTrade {
     /** Commit associated state after cancellation and drift checks, immediately before the inventory write. */
     public static boolean exchange(PlayerInventory inventory, Predicate<ItemStack> payment,
                                    int cost, List<ItemStack> rewards, BooleanSupplier beforeCommit) {
+        return exchange(inventory, payment, cost, rewards, beforeCommit, -1);
+    }
+
+    /** A block interaction pays from the actual selected hand, never an earlier identical stack. */
+    public static boolean exchangeHeld(PlayerInventory inventory, Predicate<ItemStack> payment,
+                                       int cost, List<ItemStack> rewards, BooleanSupplier beforeCommit) {
+        java.util.Objects.requireNonNull(beforeCommit, "beforeCommit");
+        int selected = inventory.getHeldItemSlot();
+        if (selected < 0 || selected > 8) throw new IllegalArgumentException("Invalid selected hotbar slot");
+        return exchange(inventory, payment, cost, rewards,
+                () -> inventory.getHeldItemSlot() == selected && beforeCommit.getAsBoolean()
+                        && inventory.getHeldItemSlot() == selected, selected);
+    }
+
+    private static boolean exchange(PlayerInventory inventory, Predicate<ItemStack> payment,
+                                    int cost, List<ItemStack> rewards, BooleanSupplier beforeCommit, int paymentSlot) {
         if (cost < 0) throw new IllegalArgumentException("Negative cost");
         java.util.Objects.requireNonNull(beforeCommit, "beforeCommit");
         Player player = inventory.getHolder() instanceof Player p ? p : null;
@@ -32,7 +48,7 @@ public final class InventoryTrade {
         UUID playerId = player == null ? null : player.getUniqueId();
         if (playerId != null && !ACTIVE.add(playerId)) return false;
         try {
-            return exchangeOnce(inventory, player, payment, cost, rewards, beforeCommit);
+            return exchangeOnce(inventory, player, payment, cost, rewards, beforeCommit, paymentSlot);
         } finally {
             if (playerId != null) ACTIVE.remove(playerId);
         }
@@ -40,7 +56,7 @@ public final class InventoryTrade {
 
     private static boolean exchangeOnce(PlayerInventory inventory, Player player,
                                         Predicate<ItemStack> payment, int cost, List<ItemStack> rewards,
-                                        BooleanSupplier beforeCommit) {
+                                        BooleanSupplier beforeCommit, int paymentSlot) {
         ItemStack[] original = inventory.getStorageContents().clone();
         ItemStack[] slots = original.clone();
         for (int i = 0; i < original.length; i++) {
@@ -51,6 +67,7 @@ public final class InventoryTrade {
         }
         int unpaid = cost;
         for (int i = 0; i < slots.length && unpaid > 0; i++) {
+            if (paymentSlot >= 0 && i != paymentSlot) continue;
             ItemStack stack = slots[i];
             if (stack == null || stack.isEmpty() || !payment.test(stack)) continue;
             int paid = Math.min(stack.getAmount(), unpaid);

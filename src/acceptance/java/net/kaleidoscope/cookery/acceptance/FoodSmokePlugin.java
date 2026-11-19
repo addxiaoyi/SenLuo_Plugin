@@ -45,6 +45,11 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 startProbe("millstone smoke", delay, () -> MillstoneSmoke.start(this));
             }
             List<String> precedingReports = new ArrayList<>();
+            if (getConfig().getBoolean("series-gameplay-smoke.enabled", false)) {
+                startProbe("series gameplay smoke", delay, () -> SeriesGameplaySmoke.start(this));
+                precedingReports.add("series-gameplay-smoke.json");
+                delay += 200;
+            }
             if (getConfig().getBoolean("scarecrow-hit-smoke.enabled", false)) {
                 startProbe("scarecrow hit smoke", delay, () -> ScarecrowHitSmoke.start(this));
                 precedingReports.add("scarecrow-hit-smoke.json");

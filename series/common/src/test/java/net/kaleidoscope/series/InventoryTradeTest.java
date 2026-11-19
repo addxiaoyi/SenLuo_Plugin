@@ -17,6 +17,34 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class InventoryTradeTest {
+    @Test void changingTheHeldSlotInsideTheFinalCallbackAlsoAbortsTheWrite() {
+        var inventory = inventory(stack("carpet", 3, 64), stack("carpet", 2, 64));
+        int[] selected = {1}; when(inventory.getHeldItemSlot()).thenAnswer(call -> selected[0]);
+        assertFalse(InventoryTrade.exchangeHeld(inventory, item -> true, 1, List.of(), () -> { selected[0] = 0; return true; }));
+        verify(inventory, never()).setStorageContents(any());
+    }
+    @Test void aHeldPaymentLeavesAnEarlierIdenticalStackUntouched() {
+        var inventory = inventory(stack("carpet", 3, 64), stack("carpet", 2, 64));
+        when(inventory.getHeldItemSlot()).thenReturn(1);
+        assertTrue(InventoryTrade.exchangeHeld(inventory, item -> item.toString().equals("carpet"), 1, List.of(), () -> true));
+        var changed = written(inventory);
+        assertEquals(3, changed[0].getAmount()); assertEquals(1, changed[1].getAmount());
+    }
+    @Test void anInsufficientHeldStackDoesNotBorrowFromOtherIdenticalStacks() {
+        var inventory = inventory(stack("carpet", 64, 64), stack("carpet", 1, 64));
+        when(inventory.getHeldItemSlot()).thenReturn(1);
+        assertFalse(InventoryTrade.exchangeHeld(inventory, item -> true, 2, List.of(), () -> true));
+        verify(inventory, never()).setStorageContents(any());
+    }
+    @Test void aTradeCallbackChangingTheHeldSlotCannotCommitThePlannedPayment() {
+        var inventory = inventory(stack("carpet", 3, 64), stack("carpet", 2, 64));
+        int[] selected = {1}; when(inventory.getHeldItemSlot()).thenAnswer(call -> selected[0]);
+        try (var player = new PlayerFixture(inventory)) {
+            doAnswer(call -> { selected[0] = 0; return null; }).when(player.plugins).callEvent(any());
+            assertFalse(InventoryTrade.exchangeHeld(inventory, item -> true, 1, List.of(), () -> true));
+            verify(inventory, never()).setStorageContents(any());
+        }
+    }
     @Test void insufficientPaymentLeavesAllSlotsUntouched() {
         ItemStack coin = stack("coin", 2, 64);
         PlayerInventory inventory = inventory(coin, null);

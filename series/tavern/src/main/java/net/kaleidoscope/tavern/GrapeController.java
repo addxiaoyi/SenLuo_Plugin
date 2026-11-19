@@ -165,7 +165,8 @@ final class GrapeController extends InteractiveFurniture {
 
     private void refresh() {
         changed();
-        if (!furniture().setVariant(growth.variant())) throw new IllegalStateException("Missing grape variant: " + growth.variant());
+        if (!furniture().setVariant(growth.variant()) && !growth.variant().equals(furniture().currentVariant().name()))
+            throw new IllegalStateException("Missing grape variant: " + growth.variant());
         failed = false;
     }
 

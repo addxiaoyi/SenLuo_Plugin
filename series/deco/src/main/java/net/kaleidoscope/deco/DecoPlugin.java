@@ -39,9 +39,11 @@ public final class DecoPlugin extends SeriesPlugin {
 
     @Override protected void registerFurniture() {
         net.kaleidoscope.series.FurnitureTypes.register("kaleidoscope_deco:interaction", f -> new DecoController(f, this));
+        net.kaleidoscope.series.FurnitureTypes.register("kaleidoscope_deco:wooden_seat", f -> new WoodenSeatController(f, this));
     }
 
     @Override protected void start() {
+        getServer().getPluginManager().registerEvents(new WoodenSeats(), this);
         catalog = Resources.read(this, "catalog.json", Catalog.class);
         entries = catalog.entries().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(Entry::id, e -> e));
         styles = java.util.Set.copyOf(catalog.styles());

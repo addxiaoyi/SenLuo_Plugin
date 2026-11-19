@@ -13424,6 +13424,150 @@
           "pending": false
         }
       ]
+    },
+    {
+      "id": "kaleidoscope_deco:chair/acacia",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/bamboo",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/birch",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/cherry",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/crimson",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/dark_oak",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/jungle",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/mangrove",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/oak",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/pale_oak",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/spruce",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:chair/warped",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/acacia",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/bamboo",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/birch",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/cherry",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/crimson",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/dark_oak",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/jungle",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/mangrove",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/oak",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/pale_oak",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/spruce",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
+    },
+    {
+      "id": "kaleidoscope_deco:cook_stool/warped",
+      "category": "kaleidoscope_cookery_plus",
+      "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/table.mcfunction",
+      "rules": []
     }
   ],
   "styles": [
