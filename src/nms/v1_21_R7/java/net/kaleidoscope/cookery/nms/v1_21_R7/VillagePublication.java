@@ -60,8 +60,9 @@ public final class VillagePublication implements VillagePublisher {
     @Override public VillagePublicationTransaction stage(Object rawRegistry, Object rawManager,
                                                          List<VillageTemplateMigrator.Prepared> templates,
                                                          VillagePoolPreparer.Prepared prepared,
-                                                         ExclusionScope scope) {
+                                                         ExclusionScope scope, Runnable verifyPublishedExtra) {
         Objects.requireNonNull(scope, "A real caller-owned publication exclusion is required").check();
+        Objects.requireNonNull(verifyPublishedExtra, "Independent publication verifier");
         require(rawRegistry instanceof RegistryAccess && rawManager instanceof StructureTemplateManager,
                 "Village publication requires native registry access and template manager");
         Objects.requireNonNull(templates); Objects.requireNonNull(prepared);
@@ -196,9 +197,12 @@ public final class VillagePublication implements VillagePublisher {
             processorSnapshot.check(access);
             publishedCache.forEach((key, value) -> require(sameCache(cacheValue(cache, key), value), "Published village template cache changed"));
             pools.forEach(pool -> pool.check(access, true));
+            scope.check();
+            verifyPublishedExtra.run();
+            scope.check();
         };
         scope.check(); preflight.run(); scope.check();
-        return new VillagePublicationTransaction(edits, scope, preflight, verifyPublished);
+        return new VillagePublicationTransaction(edits, scope, preflight, verifyPublished, preflight);
     }
 
     private static Edit<Reference> referenceEdit(String name, Access access, Field field, Object owner, Object before, Object after) {

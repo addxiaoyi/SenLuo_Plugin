@@ -143,6 +143,10 @@ tasks.named('test') {
     def pluginJar = tasks.named('shadowJar').get().archiveFile
     inputs.file(pluginJar)
     systemProperty 'cookery.pluginJar', pluginJar.get().asFile.absolutePath
+    dependsOn('acceptanceJar')
+    def acceptanceJarFile = layout.buildDirectory.file('acceptance/probe/CookeryAcceptanceProbe.jar')
+    inputs.file(acceptanceJarFile)
+    systemProperty 'cookery.acceptanceJar', acceptanceJarFile.get().asFile.absolutePath
 }
 
 shadowJar {

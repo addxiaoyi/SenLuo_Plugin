@@ -30,7 +30,12 @@ public final class FoodSmokePlugin extends JavaPlugin {
     private static final long PROBE_POLL_TICKS = 20;
     private static final long PROBE_WAIT_LIMIT = 20 * 240;
 
+    @Override public void onLoad() {
+        VillagePublicationSmoke.register(this);
+    }
+
     @Override public void onEnable() {
+        VillagePublicationSmoke.checkOnEnable(this);
         if (getConfig().getBoolean("connected-smoke.enabled", false)) ConnectedKitchenProbe.enable(this);
         if (getConfig().getBoolean("source-crops-smoke.enabled", false)) SourceCropProbe.enable(this);
         long bootStarted = System.currentTimeMillis();

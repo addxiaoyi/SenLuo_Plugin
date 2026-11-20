@@ -107,6 +107,7 @@ public final class VillagePublicationTransaction {
     private final ExclusionScope scope;
     private final Runnable preflight;
     private final Runnable verifyPublished;
+    private final Runnable verifyRestored;
     private final AtomicReference<Status> status = new AtomicReference<>(Status.NEW);
 
     /**
@@ -116,6 +117,12 @@ public final class VillagePublicationTransaction {
      */
     public VillagePublicationTransaction(List<? extends Edit<?>> edits, ExclusionScope scope,
                                          Runnable preflight, Runnable verifyPublished) {
+        this(edits, scope, preflight, verifyPublished, () -> {});
+    }
+
+    /** Adds original deep/native coherence verification after rollback, beyond field/cache identity. */
+    public VillagePublicationTransaction(List<? extends Edit<?>> edits, ExclusionScope scope,
+                                         Runnable preflight, Runnable verifyPublished, Runnable verifyRestored) {
         Objects.requireNonNull(edits, "Publication edits");
         if (edits.isEmpty() || edits.size() > MAX_EDITS)
             throw new IllegalArgumentException("Village publication edit count is outside its bound");
@@ -128,6 +135,7 @@ public final class VillagePublicationTransaction {
         this.scope = Objects.requireNonNull(scope, "Already-held publication exclusion scope");
         this.preflight = Objects.requireNonNull(preflight, "Publication preflight");
         this.verifyPublished = Objects.requireNonNull(verifyPublished, "Published-state verification");
+        this.verifyRestored = Objects.requireNonNull(verifyRestored, "Restored-state coherence verification");
     }
 
     public Status status() { return status.get(); }
@@ -187,6 +195,22 @@ public final class VillagePublicationTransaction {
                 catch (RuntimeException | Error verification) {
                     unconfirmed.add(edit.name());
                     failures.add(new RollbackFailure(edit.name(), "verification", verification));
+                }
+            }
+            try {
+                attempt.checkScope();
+                verifyRestored.run();
+                attempt.checkScope();
+            } catch (RuntimeException | Error coherence) {
+                failures.add(new RollbackFailure("<coherence>", "restored native verification", coherence));
+            }
+            // Even a supposedly read-only supplied verifier cannot silently replace an original
+            // field. Never repair such unknown changes by blindly replaying the rollback again.
+            for (Edit<?> edit : edits) {
+                try { attempt.requireState(edit, edit.before(), "after restored coherence verification"); }
+                catch (RuntimeException | Error verification) {
+                    if (!unconfirmed.contains(edit.name())) unconfirmed.add(edit.name());
+                    failures.add(new RollbackFailure(edit.name(), "after restored coherence verification", verification));
                 }
             }
             Status terminal = failures.isEmpty() ? Status.ROLLED_BACK : Status.INDETERMINATE;

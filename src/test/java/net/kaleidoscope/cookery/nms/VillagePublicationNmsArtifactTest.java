@@ -4,6 +4,7 @@ import net.kaleidoscope.cookery.worldgen.VillagePublisher;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -28,17 +29,20 @@ class VillagePublicationNmsArtifactTest {
     private static final String STRUCTURE = "net/minecraft/world/level/levelgen/structure/";
 
     private record Call(String owner, String name, String descriptor) {}
-    private record MethodBody(List<Call> calls, Set<String> strings) {}
+    private record MethodBody(List<Call> calls, Set<String> strings, List<Handle> handles) {}
     private static Map<String, MethodBody> read(ClassReader reader) {
         var result = new HashMap<String, MethodBody>();
         reader.accept(new ClassVisitor(Opcodes.ASM9) {
             @Override public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-                var body = new MethodBody(new ArrayList<>(), new HashSet<>()); result.put(name + descriptor, body);
+                var body = new MethodBody(new ArrayList<>(), new HashSet<>(), new ArrayList<>()); result.put(name + descriptor, body);
                 return new MethodVisitor(Opcodes.ASM9) {
                     @Override public void visitMethodInsn(int opcode, String target, String name, String descriptor, boolean itf) {
                         body.calls().add(new Call(target, name, descriptor));
                     }
                     @Override public void visitLdcInsn(Object value) { if (value instanceof String text) body.strings().add(text); }
+                    @Override public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrap, Object... arguments) {
+                        for (Object argument : arguments) if (argument instanceof Handle handle) body.handles().add(handle);
+                    }
                 };
             }
         }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
@@ -56,8 +60,13 @@ class VillagePublicationNmsArtifactTest {
                     boolean adapter = reader.getClassName().startsWith(OWNER);
                     for (var method : read(reader).entrySet()) {
                         for (Call call : method.getValue().calls()) {
+                            boolean internalVerifierOverload = reader.getClassName().equals("net/kaleidoscope/cookery/worldgen/VillagePublisher")
+                                    && method.getKey().startsWith("stage(")
+                                    && call.owner().equals(reader.getClassName()) && call.name().equals("stage")
+                                    && call.descriptor().endsWith("$ExclusionScope;Ljava/lang/Runnable;)L" + TRANSACTION + ";");
                             assertFalse((call.owner().equals(OWNER) || call.owner().equals("net/kaleidoscope/cookery/worldgen/VillagePublisher"))
-                                            && call.name().equals("stage"), "Publication must have no installed lifecycle caller");
+                                            && call.name().equals("stage") && !internalVerifierOverload,
+                                    "Publication must have no installed lifecycle caller; only its verifier overload may delegate");
                             if (!adapter) continue;
                             calls.add(call);
                             assertFalse(call.name().equals("bindValue") || call.name().equals("registerForHolder")
@@ -91,6 +100,33 @@ class VillagePublicationNmsArtifactTest {
         assertTrue(calls.stream().anyMatch(call -> call.owner().equals(TRANSACTION + "$ExclusionScope") && call.name().equals("check")));
         assertThrows(UnsupportedOperationException.class, () -> VillagePublisher.forMinecraft(null));
         assertThrows(UnsupportedOperationException.class, () -> VillagePublisher.forMinecraft("1.21.10"));
+    }
+
+    @Test void independentVerifierRunsAfterNativeCoherenceAndTheOriginalVerifierIsRetainedForRollback() throws Exception {
+        Map<String, MethodBody> methods;
+        try (var jar = new JarFile(plugin().toFile()); var input = jar.getInputStream(jar.getJarEntry(OWNER + ".class"))) {
+            methods = read(new ClassReader(input));
+        }
+        MethodBody stage = methods.entrySet().stream().filter(entry -> entry.getKey().startsWith("stage("))
+                .findFirst().orElseThrow().getValue();
+        assertTrue(stage.calls().stream().anyMatch(call -> call.owner().equals(TRANSACTION) && call.name().equals("<init>")
+                        && call.descriptor().equals("(Ljava/util/List;L" + TRANSACTION + "$ExclusionScope;"
+                        + "Ljava/lang/Runnable;Ljava/lang/Runnable;Ljava/lang/Runnable;)V")),
+                "The native publication transaction must retain original deep coherence verification after restoration");
+        Handle verifier = stage.handles().stream().filter(handle -> handle.getOwner().equals(OWNER)
+                        && handle.getName().startsWith("lambda$stage$")
+                        && handle.getDesc().endsWith("L" + TRANSACTION + "$ExclusionScope;Ljava/lang/Runnable;)V"))
+                .findFirst().orElseThrow();
+        MethodBody body = methods.get(verifier.getName() + verifier.getDesc()); assertNotNull(body);
+        List<Call> calls = body.calls();
+        Call scope = new Call(TRANSACTION + "$ExclusionScope", "check", "()V");
+        Call extra = new Call("java/lang/Runnable", "run", "()V");
+        assertTrue(calls.size() >= 4);
+        assertEquals(List.of(scope, extra, scope), calls.subList(calls.size() - 3, calls.size()),
+                "The independent verifier must run inside immediate scope checks, after all native checks");
+        assertTrue(calls.subList(0, calls.size() - 3).stream()
+                .anyMatch(call -> call.owner().equals("java/util/ArrayList") && call.name().equals("forEach")),
+                "The complete five-pool native verifier must finish before the independent callback");
     }
 
     private static Map<String, String> fields(String className) throws Exception {

@@ -287,6 +287,85 @@ class VillagePublicationTransactionTest {
         assertEquals(1, failure.getSuppressed().length);
     }
 
+    @Test void restoredNativeVerifierRunsOnlyAfterAllOriginalSlotsAndRetainsDeepContentFailure() {
+        var fixture = new Fixture(); var original = new ArrayList<>(List.of("native original"));
+        var deepSlot = new Cell<>("deep original list", new Reference(original), new Reference(List.of("native staged")), fixture.journal);
+        fixture.add(deepSlot);
+        var initial = new IllegalStateException("independent published-state rejection");
+        var coherence = new IllegalStateException("restored list contents changed");
+        AtomicInteger verified = new AtomicInteger();
+        Runnable reject = () -> { original.add("unexpected mutation"); throw initial; };
+        var transaction = new VillagePublicationTransaction(fixture.edits, fixture.scope, () -> {}, reject, () -> {
+            fixture.assertOriginals(); verified.incrementAndGet();
+            if (!original.equals(List.of("native original"))) throw coherence;
+        });
+        var failure = failed(transaction);
+        fixture.assertOriginals(); assertEquals(List.of("native original", "unexpected mutation"), original);
+        assertSame(initial, failure.getCause()); assertEquals(Status.INDETERMINATE, failure.status());
+        assertEquals(1, verified.get()); assertTrue(failure.unconfirmedSlots().isEmpty());
+        assertEquals(1, failure.rollbackFailures().size());
+        assertEquals("<coherence>", failure.rollbackFailures().getFirst().edit());
+        assertSame(coherence, failure.rollbackFailures().getFirst().cause());
+    }
+
+    @Test void successfulRestoredCoherenceVerifierStillPropagatesTheOriginalPublicationFailure() {
+        var fixture = new Fixture(); var initial = new IllegalStateException("independent rejection");
+        AtomicInteger verified = new AtomicInteger();
+        var transaction = new VillagePublicationTransaction(fixture.edits, fixture.scope, () -> {}, () -> { throw initial; }, () -> {
+            fixture.assertOriginals(); verified.incrementAndGet();
+        });
+        var failure = failed(transaction);
+        assertSame(initial, failure.getCause()); assertEquals(Status.ROLLED_BACK, failure.status());
+        assertEquals(1, verified.get()); assertTrue(failure.rollbackFailures().isEmpty()); fixture.assertOriginals();
+    }
+
+    @Test void restoredCoherenceVerifierCannotReplaceOriginalsSilentlyOrCauseBlindSecondRollback() {
+        var fixture = new Fixture(); var initial = new IllegalStateException("independent rejection");
+        Cell<Reference> target = referenceCell(fixture.cells.get(6)); Object intrusion = new Object();
+        var transaction = new VillagePublicationTransaction(fixture.edits, fixture.scope, () -> {}, () -> { throw initial; }, () -> {
+            fixture.assertOriginals(); target.current = new Reference(intrusion);
+        });
+        var failure = failed(transaction);
+        assertEquals(Status.INDETERMINATE, failure.status()); assertSame(initial, failure.getCause());
+        assertEquals(List.of(target.name), failure.unconfirmedSlots()); assertSame(intrusion, target.current.value());
+        assertEquals(1, fixture.journal.stream().filter(row -> row.equals(target.name + ":restore")).count());
+    }
+
+    @Test void lostScopeSkipsRestoredNativeVerifierAndReportsItsMissingCoherenceProof() {
+        var fixture = new Fixture();
+        fixture.cells.getFirst().afterWrite = value -> { if (!value.same(fixture.cells.getFirst().before)) fixture.scope.owned = false; };
+        var transaction = new VillagePublicationTransaction(fixture.edits, fixture.scope, () -> {}, () -> {},
+                () -> fail("No native coherence callback after losing exclusion"));
+        var failure = failed(transaction);
+        assertEquals(Status.INDETERMINATE, failure.status()); assertEquals(SLOT_COUNT, failure.unconfirmedSlots().size());
+        assertTrue(failure.rollbackFailures().stream().anyMatch(row -> row.edit().equals("<coherence>")));
+    }
+
+    @Test void restoredNativeVerifierCannotReenterAndLostScopeInsideItStillMakesRecoveryIndeterminate() {
+        var fixture = new Fixture(); var current = new AtomicReference<VillagePublicationTransaction>();
+        var transaction = new VillagePublicationTransaction(fixture.edits, fixture.scope, () -> {},
+                () -> { throw new IllegalStateException("independent rejection"); }, () -> {
+                    fixture.assertOriginals(); int checks = fixture.scope.calls;
+                    assertThrows(IllegalStateException.class, () -> current.get().publish());
+                    assertEquals(checks, fixture.scope.calls); fixture.scope.owned = false;
+                });
+        current.set(transaction); var failure = failed(transaction);
+        assertEquals(Status.INDETERMINATE, failure.status()); assertEquals(SLOT_COUNT, failure.unconfirmedSlots().size());
+        assertTrue(failure.rollbackFailures().stream().anyMatch(row -> row.edit().equals("<coherence>")));
+    }
+
+    @Test void restoredNativeVerifierDoesNotRunForSuccessOrBeforeAnyWriteAndCannotBeNull() {
+        var success = new Fixture();
+        var committed = new VillagePublicationTransaction(success.edits, success.scope, () -> {}, () -> {},
+                () -> fail("No recovery callback on commit"));
+        committed.publish(); assertEquals(Status.COMMITTED, committed.status());
+        var rejected = new Fixture();
+        var beforeWrite = new VillagePublicationTransaction(rejected.edits, rejected.scope,
+                () -> { throw new IllegalStateException("preflight"); }, () -> {}, () -> fail("No recovery callback before any write"));
+        assertEquals(Status.REJECTED, failed(beforeWrite).status());
+        assertThrows(NullPointerException.class, () -> new VillagePublicationTransaction(rejected.edits, rejected.scope, () -> {}, () -> {}, null));
+    }
+
     @Test void scopeLossAfterAWritePreventsAllRollbackAccessAndCannotBeRepairedByALaterSuccessfulCheck() {
         var fixture = new Fixture(); AtomicInteger failedChecks = new AtomicInteger();
         fixture.cells.getFirst().afterWrite = value -> { if (!value.same(fixture.cells.getFirst().before)) fixture.scope.owned = false; };

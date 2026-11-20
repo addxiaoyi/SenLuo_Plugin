@@ -2,6 +2,16 @@
 
 2026-11-20。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
 
+## 2026-11-20 真实冷启动发布／回滚验收入口
+
+独立验收 JAR 新增默认关闭的 `village-publication-smoke`，从 onLoad 注册 CE 初始后置回调，在真实冷启动窗口迁移／准备五模板并调用生产发布器。最终只读观察主动抛出本次独有异常，必须由同一生产事务完成完整回滚；核对 21 槽位、全部模板 cache、原生世界仍为空、窗口内排斥写入及关闭后可重新申请真实 lease。初始 maxSize 已为 MIN_VALUE 的槽位按 no-op 记录，不为凑数篡改缓存。生产插件仍无启动调用，未启用自然生成。
+
+生产事务补充调用方最终只读验证及回滚后的原始深度一致性验证；字段身份恢复但内容／CE 世代或验证失败仍为 `INDETERMINATE`。探针绑定并复核生产、探针、CE、原生服务器四份 defining JAR；UUID 注册与最终收据以强制写入的新临时文件和原子硬链接公布，拒绝覆盖，缺回调／重复回调另记失败。只读 Python 检查器核对独立冻结清单、注册阶段、完整来源、类型化身份、列表校验和、权重展开、完整 cache 及所有恢复状态；初稿六种矛盾／伪造记录被错误接收的问题已复现、保留并补回归拒绝。
+
+组合根 `test shadowJar acceptanceJar` 通过 **963 项 Java、102 套件，0 失败／错误／跳过**；根 Python **274/274**，新增报告合同 15 项使用合成夹具，不算运行收据。首轮全量 Python 因继承的空值临时 Git 配置在子进程中被拒绝，169 项执行、8 个 fixture 错误仍记 FAIL；仅在本次只读测试进程设 `GIT_CONFIG_COUNT=0` 后全量复跑通过，没有修改仓库／全局 Git 配置。Java 首轮通过。生产 JAR 为 `258dfd37c65126781493238fda02f71a0b39a2e0f9a5725290d1b16e11ae4f1d`，新探针为 `819ae2d0e9f47de7fb939a4154417b4d3e3ef163c68908398e7ec9d8536d2fb3`；两包哈希仍沿用下批。冻结证据位于 `build/evidence/village-publication-smoke-final-1/`，见[入口及配置](research/cookery-village-publication-smoke-2026-11-20.md)和[验证身份与限制](research/cookery-village-publication-smoke-validation-2026-11-20.json)。
+
+固定 Paper/Folia 字节码另证明 Bukkit.shutdown／native halt 不能保证在 STARTUP 回调返回后阻止首次 loadLevel，CE 和普通插件生命周期还会捕获 Throwable。因此未用抛错或 shutdown 冒充启动失败屏障；未知部分恢复仍缺安全阻止世界载入的边界。探针本身不认证完整 CE 配置／资源包，正式候选须另行冻结这些输入及整轮日志／退出／工作流。用户尚未安排实服窗口，本批探针仍 **NOT_RUN**；生产接线、完整资源屏障、自然生成／持久化、全部玩家／客户端验收和 watchdog 根因继续 OPEN，总目标未完成。
+
 ## 2026-11-20 村庄一致发布与冷启动窗口前置
 
 新增有界一次性发布事务及窄 R7 适配器，统一处理五模板 cache、原 processor list 与五个原 pool 的 raw／expanded／maxSize 共 21 个槽位。保留 registered 对象、holder、fallback 和第三方条目身份，不重新绑定 registry。候选重新与完整固定来源迁移及当前有效池比较，包含全部状态／NBT、实体／PDC、作者、合法查询 cache、厨房语义和 CE 世代。事务覆盖每个槽位写入前／后的失败切点，逆序恢复包含抛错槽位；未知外部值不覆盖，恢复异常及失去排他窗口明确报告 `INDETERMINATE`，不计成功。
