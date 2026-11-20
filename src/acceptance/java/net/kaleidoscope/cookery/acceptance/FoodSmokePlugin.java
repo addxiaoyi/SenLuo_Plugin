@@ -147,6 +147,7 @@ public final class FoodSmokePlugin extends JavaPlugin {
 
     private void verify() {
         List<String> failures = new ArrayList<>();
+        Map<String, Object> stackabilityMismatches = new LinkedHashMap<>();
         int checked = 0;
         int checkedBites = 0;
         for (var entry : CookeryCatalog.bundled().snapshot().items().values()) {
@@ -191,7 +192,17 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 long vanilla = expected.food().effects().stream().filter(effect -> effect.id().startsWith("minecraft:")).count();
                 check(actual == vanilla, entry.id() + ": duplicated/missing vanilla effects");
                 var created = InventoryUtils.createOrEmpty(Key.of(entry.id()));
-                check(direct.isSimilar(ItemStackUtils.getBukkitStack(created.minecraftItem())),
+                ItemStack production = ItemStackUtils.getBukkitStack(created.minecraftItem());
+                boolean canStack = direct.isSimilar(production);
+                if (!canStack) {
+                    stackabilityMismatches.put(entry.id(), Map.of(
+                            "directBytes", java.util.Base64.getEncoder().encodeToString(direct.serializeAsBytes()),
+                            "productionBytes", java.util.Base64.getEncoder().encodeToString(production.serializeAsBytes()),
+                            "directConsumable", String.valueOf(raw),
+                            "productionConsumable", String.valueOf(created.getComponentAsJson(
+                                    Key.of(modern ? "minecraft:consumable" : "minecraft:food")))));
+                }
+                check(canStack,
                         entry.id() + ": direct CE build cannot stack with the production BASE item");
                 var quality = CookeryFoodItems.bake(created, QualityProfile.of(DishQuality.STANDARD));
                 var scaled = CookeryFoodItems.read(ItemStackUtils.getBukkitStack(quality.minecraftItem()));
@@ -210,6 +221,7 @@ public final class FoodSmokePlugin extends JavaPlugin {
         report.put("checkedConsumables", checked);
         report.put("checkedBites", checkedBites);
         report.put("failures", failures);
+        report.put("stackabilityMismatches", stackabilityMismatches);
         report.put("playerFlow", "NOT_TESTED");
         report.put("clientResourcePack", "NOT_TESTED");
         try {
