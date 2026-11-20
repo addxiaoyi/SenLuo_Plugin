@@ -93,6 +93,17 @@ class VillagePublicationCandidateTest(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             self.freeze()
 
+    def test_paperclip_client_cache_is_frozen_without_expanding_to_other_cache_files(self):
+        relative = candidate.PAPERCLIP_CLIENT
+        self.write(relative, b'paperclip client jar')
+        self.write('cache/unrelated-transient.bin', b'not an input')
+        frozen = self.freeze()
+        self.assertEqual(candidate.fingerprint(self.instance / relative), frozen['files'][relative])
+        self.assertNotIn('cache/unrelated-transient.bin', frozen['files'])
+        self.write(relative, b'changed paperclip client jar')
+        with self.assertRaisesRegex(ReportError, 'Frozen candidate files drifted'):
+            candidate.verify(frozen)
+
     def test_freeze_refuses_used_world_or_existing_probe_evidence(self):
         for relative in ('acceptance-world/level.dat', 'plugins/CookeryAcceptanceProbe/village-publication-smoke-old.json'):
             with self.subTest(relative=relative):
@@ -101,6 +112,14 @@ class VillagePublicationCandidateTest(unittest.TestCase):
                     self.freeze()
                 self.assertFalse(self.output.exists())
                 (self.instance / relative).unlink()
+        for suffix in ('_nether', '_the_end'):
+            with self.subTest(suffix=suffix):
+                dimension = self.instance / ('acceptance-world' + suffix)
+                dimension.mkdir()
+                with self.assertRaisesRegex(ReportError, 'Nether or End'):
+                    self.freeze()
+                self.assertFalse(self.output.exists())
+                dimension.rmdir()
 
     def test_wrong_or_ambiguous_config_is_refused_before_outputs(self):
         path = self.instance / 'plugins/CraftEngine/config.yml'
@@ -235,12 +254,48 @@ class VillagePublicationCandidateTest(unittest.TestCase):
         path = self.instance / 'server.properties'
         original = path.read_bytes()
         for raw in (original.replace(b'initial-enabled-packs=vanilla,file/village.zip', b'initial-enabled-packs=vanilla'),
-                    original + b'initial-disabled-packs=file/village.zip\n'):
+                    original + b'initial-disabled-packs=file/village.zip\n', original + b'initial-disabled-packs=vanilla\n'):
             path.write_bytes(raw)
             with self.assertRaises(ReportError):
                 self.freeze()
             self.assertFalse(self.output.exists())
         path.write_bytes(original)
+
+    def test_rehashed_manifest_cannot_bypass_pack_selection_or_production_provenance(self):
+        frozen = self.freeze()
+        properties = self.instance / 'server.properties'
+        original = properties.read_bytes()
+        for raw in (original.replace(b'vanilla,file/village.zip', b'vanilla'),
+                    original + b'initial-disabled-packs=vanilla\n'):
+            changed = deepcopy(frozen)
+            properties.write_bytes(raw)
+            changed['files']['server.properties'] = candidate.fingerprint(properties)
+            with self.assertRaisesRegex(ReportError, 'Explicitly enable vanilla'):
+                candidate.verify(changed)
+        properties.write_bytes(original)
+        with self.zip(self.village) as archive:
+            archive.writestr(PROCESSOR_PATH, json.dumps({'processors': []}))
+            archive.writestr('village-manifest.json', json.dumps({**self.metadata, 'other': 'different provenance'}))
+            archive.writestr('pack.mcmeta', '{}')
+        frozen['files'][self.village] = candidate.fingerprint(self.instance / self.village)
+        for before_start in (True, False):
+            with self.subTest(before_start=before_start), self.assertRaisesRegex(ReportError, 'production JAR provenance'):
+                candidate.verify(frozen, before_start=before_start)
+
+    def test_native_properties_aliases_and_continuations_cannot_override_the_checked_fixture(self):
+        properties = self.instance / 'server.properties'
+        original = properties.read_bytes()
+        for extra in (b'server-ip =0.0.0.0\n', b' server-ip=0.0.0.0\n', b'server\\u002dip=0.0.0.0\n',
+                      b'server-ip:0.0.0.0\n', b'motd=hidden\\\nserver-ip=127.0.0.1\n'):
+            raw = original + extra
+            if extra.startswith(b'motd='):
+                raw = original.replace(b'server-ip=127.0.0.1\n', b'') + extra
+            properties.write_bytes(raw)
+            with self.subTest(extra=extra), self.assertRaisesRegex(ReportError, 'Unsupported server.properties'):
+                self.freeze()
+            self.assertFalse(self.output.exists())
+        properties.write_bytes(original + b'!Java properties comment\nlevel-type=minecraft\\:normal\n')
+        candidate.verify(self.freeze())
 
     def test_actual_linked_input_is_rejected_when_supported_by_the_host(self):
         external = self.root / 'external.jar'
@@ -284,15 +339,65 @@ class VillagePublicationCandidateTest(unittest.TestCase):
         registered_path, final_path = directory / (stem + '-registration.json'), directory / (stem + '.json')
         registered_path.write_text(json.dumps(registration), encoding='utf-8')
         final_path.write_text(json.dumps(report), encoding='utf-8')
-        result = candidate.verify_receipt(frozen, registered_path, final_path)
+        result, registered_snapshot, final_snapshot = candidate.verify_receipt_snapshots(frozen, registered_path, final_path)
         self.assertEqual('MATCHED', result['inputInventory'])
         self.assertEqual('NOT_CERTIFIED_BY_THIS_CHECK', result['wholeServerRun'])
+        self.assertEqual(registered_path.read_bytes(), registered_snapshot.raw)
+        self.assertEqual(final_path.read_bytes(), final_snapshot.raw)
+        real_verify = candidate.verify
+        calls = 0
+        marker = directory / (stem + '-missing-after-enable.json')
+        def write_late_failure(*args, **kwargs):
+            nonlocal calls
+            calls += 1
+            real_verify(*args, **kwargs)
+            if calls == 2:
+                marker.write_text('{}', encoding='utf-8')
+        with patch.object(candidate, 'verify', side_effect=write_late_failure):
+            with self.assertRaisesRegex(ReportError, 'supplemental failure marker'):
+                candidate.verify_receipt(frozen, registered_path, final_path)
+        marker.unlink()
+        saved_final = final_snapshot.raw
         report['artifacts']['server']['path'] = str(self.instance / 'other-server.jar')
         registration['artifacts']['server']['path'] = report['artifacts']['server']['path']
         registered_path.write_text(json.dumps(registration), encoding='utf-8')
         final_path.write_text(json.dumps(report), encoding='utf-8')
+        self.assertEqual(saved_final, final_snapshot.raw, 'Returned evidence bytes must remain the authenticated original snapshot')
         with self.assertRaises(ReportError):
             candidate.verify_receipt(frozen, registered_path, final_path)
+
+    def test_receipt_semantics_and_candidate_path_checks_use_the_same_loaded_object_without_a_second_read(self):
+        frozen = self.freeze()
+        registration, report, _ = receipt_fixture()
+        for value in (registration, report):
+            value['runId'] = self.run_id
+            value['artifacts'] = {name: {**identity, 'path': str(candidate.contained(self.instance, self.defining[name]))}
+                                  for name, identity in frozen['expected']['artifacts'].items()}
+        registration['registeredAt'] = report['registeredAt'] = (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat().replace('+00:00', 'Z')
+        report['completedAt'] = (datetime.now(timezone.utc) + timedelta(seconds=2)).isoformat().replace('+00:00', 'Z')
+        directory = self.instance / 'plugins/CookeryAcceptanceProbe'; stem = 'village-publication-smoke-' + self.run_id
+        registered_path, final_path = directory / (stem + '-registration.json'), directory / (stem + '.json')
+        registered_path.write_text(json.dumps(registration), encoding='utf-8'); final_path.write_text(json.dumps(report), encoding='utf-8')
+        actual_loader = candidate.load_receipt_snapshots
+        observed = None
+        def captured(*args):
+            nonlocal observed
+            loaded = actual_loader(*args)
+            observed = loaded[1].value
+            return loaded
+        actual_validate = candidate.validate
+        def semantic_validation(registered, final, expected):
+            self.assertIs(observed, final)
+            result = actual_validate(registered, final, expected)
+            # A path substituted in the already-loaded object must fail the following
+            # candidate binding. A separate second file read would hide this mismatch.
+            final['artifacts']['server']['path'] = str(self.instance / 'wrong-native-server.jar')
+            return result
+        with patch.object(candidate, 'load_receipt_snapshots', side_effect=captured), \
+                patch.object(candidate, 'validate', side_effect=semantic_validation), \
+                patch.object(candidate, 'read_json', side_effect=AssertionError('No second receipt read is allowed')):
+            with self.assertRaises(ReportError):
+                candidate.verify_receipt(frozen, registered_path, final_path)
 
 
 if __name__ == '__main__':

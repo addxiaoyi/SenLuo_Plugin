@@ -8,7 +8,9 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 
+import village_publication_report as report_tool
 from cookery_village import BIOMES, COMMIT, STRUCTURES
 from village_publication_report import (CODEC_SCOPE, MIRRORS, ROTATIONS, MAX_REPORT_BYTES, ReportError, SLOTS,
     main, read_json, validate, POOL_CLASS, RULE_CLASS, TEMPLATE_CLASS, _pinned_structures)
@@ -378,6 +380,106 @@ class VillagePublicationReportTest(unittest.TestCase):
                 arguments = ['check', '--registration', str(paths[0]), '--report', str(paths[1]), '--expected', str(paths[2])]
                 with patch('sys.argv', arguments), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     self.assertEqual(1, main())
+
+    def test_receipts_are_decoded_once_each_and_replacement_between_pair_reads_is_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registration, report, expected = fixture()
+            stem = 'village-publication-smoke-' + expected['runId']
+            paths = [Path(directory) / name for name in (stem + '-registration.json', stem + '.json')]
+            for path, value in zip(paths, (registration, report)):
+                path.write_text(json.dumps(value), encoding='utf-8')
+            original_decoder = report_tool.decode_json
+            with patch.object(report_tool, 'decode_json', wraps=original_decoder) as decoded:
+                loaded = report_tool.load_receipts(*paths, expected)
+            self.assertEqual(2, decoded.call_count)
+            self.assertEqual((registration, report), loaded)
+            snapshots = report_tool.load_receipt_snapshots(*paths, expected)
+            for path, snapshot in zip(paths, snapshots):
+                self.assertEqual(path.read_bytes(), snapshot.raw)
+                self.assertEqual(json.loads(snapshot.raw), snapshot.value)
+                self.assertEqual(path.resolve(), snapshot.path)
+            saved = snapshots[1].raw
+            paths[1].write_text(json.dumps({**report, 'status': 'FAIL'}), encoding='utf-8')
+            self.assertEqual(saved, snapshots[1].raw, 'Preserving a verified snapshot must not reread later changed file bytes')
+            paths[1].write_text(json.dumps(report), encoding='utf-8')
+            calls = 0
+            def change_registration_during_report_decode(raw):
+                nonlocal calls
+                calls += 1
+                value = original_decoder(raw)
+                if calls == 2:
+                    paths[0].write_text(json.dumps({**registration, 'status': 'FAIL'}), encoding='utf-8')
+                return value
+            with patch.object(report_tool, 'decode_json', side_effect=change_registration_during_report_decode):
+                with self.assertRaises(ReportError):
+                    report_tool.load_receipts(*paths, expected)
+
+    def test_receipt_descriptor_identity_growth_and_late_failure_marker_are_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registration, report, expected = fixture()
+            stem = 'village-publication-smoke-' + expected['runId']
+            paths = [Path(directory) / name for name in (stem + '-registration.json', stem + '.json')]
+            for path, value in zip(paths, (registration, report)):
+                path.write_text(json.dumps(value), encoding='utf-8')
+            actual_fstat = report_tool.os.fstat
+            calls = 0
+            def changed_descriptor(fd):
+                nonlocal calls
+                calls += 1
+                value = actual_fstat(fd)
+                if calls == 2:
+                    return SimpleNamespace(st_dev=value.st_dev, st_ino=value.st_ino, st_size=value.st_size + 1,
+                                           st_mtime_ns=value.st_mtime_ns, st_ctime_ns=value.st_ctime_ns)
+                return value
+            with patch.object(report_tool.os, 'fstat', side_effect=changed_descriptor):
+                with self.assertRaises(ReportError):
+                    report_tool.load_receipts(*paths, expected)
+            decoder = report_tool.decode_json
+            def late_marker(raw):
+                value = decoder(raw)
+                (Path(directory) / (stem + '-missing-after-enable.json')).write_text('{}', encoding='utf-8')
+                return value
+            with patch.object(report_tool, 'decode_json', side_effect=late_marker):
+                with self.assertRaises(ReportError):
+                    report_tool.load_receipts(*paths, expected)
+
+    def test_receipt_file_and_ancestor_symlinks_are_rejected_without_decoding_target(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registration, report, expected = fixture()
+            root = Path(directory); real = root / 'real'; real.mkdir()
+            stem = 'village-publication-smoke-' + expected['runId']
+            paths = [real / name for name in (stem + '-registration.json', stem + '.json')]
+            for path, value in zip(paths, (registration, report)):
+                path.write_text(json.dumps(value), encoding='utf-8')
+            linked = root / 'linked'; linked.mkdir()
+            try:
+                (linked / paths[0].name).symlink_to(paths[0])
+                (linked / paths[1].name).symlink_to(paths[1])
+                ancestor = root / 'ancestor'; ancestor.symlink_to(real, target_is_directory=True)
+            except OSError as error:
+                self.skipTest('This host does not permit test symlinks: ' + str(error))
+            with patch.object(report_tool, 'decode_json', side_effect=AssertionError('A linked receipt must not be decoded')):
+                for registration_path, report_path in ((linked / paths[0].name, linked / paths[1].name),
+                                                       (ancestor / paths[0].name, ancestor / paths[1].name)):
+                    with self.subTest(parent=registration_path.parent), self.assertRaises(ReportError):
+                        report_tool.load_receipts(registration_path, report_path, expected)
+
+    def test_a_dangling_missing_after_enable_marker_still_invalidates_a_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registration, report, expected = fixture()
+            root = Path(directory)
+            stem = 'village-publication-smoke-' + expected['runId']
+            paths = [root / name for name in (stem + '-registration.json', stem + '.json')]
+            for path, value in zip(paths, (registration, report)):
+                path.write_text(json.dumps(value), encoding='utf-8')
+            marker = root / (stem + '-missing-after-enable.json')
+            try:
+                marker.symlink_to(root / 'missing')
+            except OSError as error:
+                self.skipTest('This host does not permit test symlinks: ' + str(error))
+            self.assertFalse(marker.exists())
+            with self.assertRaisesRegex(ReportError, 'supplemental failure marker'):
+                report_tool.validate_files(*paths, expected)
 
 
 if __name__ == '__main__':

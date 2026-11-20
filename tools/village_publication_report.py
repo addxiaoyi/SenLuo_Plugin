@@ -6,12 +6,15 @@ candidate. This module reads files only and never launches or stops a server.
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import lru_cache
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
+import stat
 import sys
 import uuid
 
@@ -59,6 +62,88 @@ def read_json(path: Path) -> dict:
     with path.open('rb') as stream:
         raw = stream.read(MAX_REPORT_BYTES + 1)
     return decode_json(raw)
+
+
+def _receipt_path(path: Path) -> Path:
+    """Do not silently resolve a linked receipt or any linked ancestor."""
+    absolute = path.absolute()
+    require(all(not item.is_symlink() and not item.is_junction() for item in (absolute, *absolute.parents)),
+            'Linked receipt files or ancestors are unsupported')
+    return absolute.resolve()
+
+
+def _file_identity(value) -> tuple:
+    # On Windows Path.stat may expose creation time through legacy st_ctime while
+    # fstat exposes change time; compare the consistent identity/length/write time.
+    return (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns)
+
+
+@dataclass(frozen=True)
+class ReceiptSnapshot:
+    value: dict
+    raw: bytes
+    identity: tuple
+    path: Path
+
+
+def _read_receipt_snapshot(path: Path) -> ReceiptSnapshot:
+    """Read bounded bytes once and verify the same regular file across the read."""
+    path = _receipt_path(path)
+    before = path.stat()
+    require(stat.S_ISREG(before.st_mode) and 0 < before.st_size <= MAX_REPORT_BYTES,
+            'Receipt is not a bounded regular file')
+    with path.open('rb') as stream:
+        opened = os.fstat(stream.fileno())
+        require(_file_identity(opened) == _file_identity(before), 'Receipt changed before its descriptor was opened')
+        raw = stream.read(MAX_REPORT_BYTES + 1)
+        after_descriptor = os.fstat(stream.fileno())
+        require(_file_identity(after_descriptor) == _file_identity(opened) and len(raw) == opened.st_size,
+                'Receipt changed during its bounded read')
+    after_path = _receipt_path(path).stat()
+    require(_file_identity(after_path) == _file_identity(opened), 'Receipt path changed during its bounded read')
+    return ReceiptSnapshot(decode_json(raw), raw, _file_identity(opened), path)
+
+
+def _receipt_markers(directory: Path, stem: str) -> None:
+    try:
+        (directory / (stem + '-missing-after-enable.json')).lstat()
+    except FileNotFoundError:
+        pass
+    else:
+        raise ReportError('This run has a supplemental failure marker')
+    require(not any(directory.glob(stem + '-duplicate-callback-*.json')), 'This run has a supplemental failure marker')
+
+
+def check_current_receipt_snapshots(registration: ReceiptSnapshot, report: ReceiptSnapshot) -> None:
+    """Check that an already loaded pair and its failure markers have not changed."""
+    for snapshot in (registration, report):
+        require(_file_identity(_receipt_path(snapshot.path).stat()) == snapshot.identity, 'A receipt changed after it was read')
+    _receipt_markers(report.path.parent, report.path.stem)
+
+
+def load_receipt_snapshots(registration_path: Path, report_path: Path, expected: dict) -> tuple[ReceiptSnapshot, ReceiptSnapshot]:
+    """Load one stable decoded pair for both semantic and candidate path/time checks.
+
+    The normal runner calls this after the server has exited and closed its files.
+    File identities are rechecked after reading both receipts; markers are checked
+    before and after. This is not an external-writer lock or an evidence signature.
+    """
+    _manifest(expected)
+    registration_path, report_path = _receipt_path(registration_path), _receipt_path(report_path)
+    stem = 'village-publication-smoke-' + expected['runId']
+    require(report_path.name == stem + '.json' and registration_path.name == stem + '-registration.json'
+            and report_path.parent == registration_path.parent, 'Receipt filenames do not bind the frozen run')
+    directory = report_path.parent
+    _receipt_markers(directory, stem)
+    registration = _read_receipt_snapshot(registration_path)
+    report = _read_receipt_snapshot(report_path)
+    check_current_receipt_snapshots(registration, report)
+    return registration, report
+
+
+def load_receipts(registration_path: Path, report_path: Path, expected: dict) -> tuple[dict, dict]:
+    registration, report = load_receipt_snapshots(registration_path, report_path, expected)
+    return registration.value, report.value
 
 
 def decode_json(raw: bytes) -> dict:
@@ -405,14 +490,10 @@ def validate(registration: dict, report: dict, expected: dict) -> dict:
 
 
 def validate_files(registration_path: Path, report_path: Path, expected: dict) -> dict:
-    _manifest(expected)
-    stem = 'village-publication-smoke-' + expected['runId']
-    require(report_path.name == stem + '.json' and registration_path.name == stem + '-registration.json'
-            and report_path.resolve().parent == registration_path.resolve().parent, 'Receipt filenames do not bind the frozen run')
-    directory = report_path.parent
-    require(not (directory / (stem + '-missing-after-enable.json')).exists()
-            and not any(directory.glob(stem + '-duplicate-callback-*.json')), 'This run has a supplemental failure marker')
-    return validate(read_json(registration_path), read_json(report_path), expected)
+    registration, report = load_receipt_snapshots(registration_path, report_path, expected)
+    result = validate(registration.value, report.value, expected)
+    check_current_receipt_snapshots(registration, report)
+    return result
 
 
 def main() -> int:

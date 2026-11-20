@@ -84,8 +84,8 @@
       "commit26_9_1Matches": true
     }
   ],
-  "missing": "Native InjectedCustomChunkGenerator/FastNMS source absent from this commit tree; NMS helper source JAR routes return404",
-  "patchScope": "No complete barrier patch generated: native CE helper source and full admission/resume/read-write/startup-abort protocol remain missing; fixed server scheduler source identity is now verified",
+  "missing": "Complete nonblocking scheduler admission/resume, native whole-operation readers/writers and startup failure control are not implemented; first-party fixed scheduler and CE helper source/version associations are now located within the documented proof limits",
+  "patchScope": "No complete barrier patch generated; fixed public server and helper source locations plus exact published CE helper class identity are verified, while native protocols/coverage/startup abort and live acceptance remain OPEN",
   "nativeSchedulerSourceAudit": {
     "status": "source_identity_and_control_flow_verified_complete_barrier_open",
     "paper": {
@@ -269,5 +269,281 @@
     "jvmOrServerStarted": false,
     "runtimeAcceptanceClaimed": false,
     "fullBarrierImplemented": false
+  },
+  "previousMissingNativeSourceFinding": {
+    "finding": "Native InjectedCustomChunkGenerator/FastNMS source absent from this commit tree; NMS helper source JAR routes return404",
+    "evidenceDirectory": "build/followups/ce-upstream-resource-barrier-6",
+    "preservedAsHistorical": true,
+    "sourceJarRoutesRemain404": true,
+    "wrongRepositoryRoute": "https://api.github.com/repos/Xiao-MoMi/craft-engine-nms",
+    "newRepositoryDiscovered": "https://github.com/Xiao-MoMi/craft-engine-nms-helper"
+  },
+  "nativeHelperSourceAudit": {
+    "repository": "https://github.com/Xiao-MoMi/craft-engine-nms-helper",
+    "commit": "3c4fe899726dccf6f9405902c278792e26638f18",
+    "tree": "4b83d64e63429dc0f6fd1e7d7164ffc51ca27697",
+    "version": "1.0.234",
+    "sourceFiles": [
+      {
+        "localPath": "FastNMS.java",
+        "sourcePath": "common/src/main/java/net/momirealms/craftengine/bukkit/nms/FastNMS.java",
+        "gitBlob": "720837de646a8b4e70cb09b723f68249dfa8f076",
+        "bytes": 5661,
+        "sha256": "0b55bbe2554f57a7ba786a81c1c264a2bff83012d87f1e68222d1a8c678abb46",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/common/src/main/java/net/momirealms/craftengine/bukkit/nms/FastNMS.java"
+      },
+      {
+        "localPath": "FastNMSImpl.java",
+        "sourcePath": "reobf_1_21_R7/src/main/java/net/momirealms/craftengine/bukkit/nms/v1_21_11/FastNMSImpl.java",
+        "gitBlob": "078dc2283597cb78f43637c5b561d498c1e9d806",
+        "bytes": 12926,
+        "sha256": "0532593f56e449a43b230f200732eeb0f2f635a573e9ce2dd6551166186b348c",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/reobf_1_21_R7/src/main/java/net/momirealms/craftengine/bukkit/nms/v1_21_11/FastNMSImpl.java"
+      },
+      {
+        "localPath": "InjectedCustomChunkGenerator.java",
+        "sourcePath": "reobf_1_21_R7/src/main/java/net/momirealms/craftengine/bukkit/nms/v1_21_11/worldgen/InjectedCustomChunkGenerator.java",
+        "gitBlob": "b38c6efc9fefaacbe0160cde291ea28a94840b55",
+        "bytes": 14486,
+        "sha256": "d4af308f40ccb027725c83c871d5e6ea473ea3b59855bc51e58fafd4459f97d1",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/reobf_1_21_R7/src/main/java/net/momirealms/craftengine/bukkit/nms/v1_21_11/worldgen/InjectedCustomChunkGenerator.java"
+      },
+      {
+        "localPath": "helper-234-gradle.properties",
+        "sourcePath": "gradle.properties",
+        "gitBlob": "ffde1e04e4c0f478ba6fa4481baa8b2d5f514e7e",
+        "bytes": 264,
+        "sha256": "a85e16057e1775dcdd987ee85b604443e5d47e3d27e1071219fbed9ae63bf523",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/gradle.properties"
+      },
+      {
+        "localPath": "helper-234-root-build.gradle.kts",
+        "sourcePath": "build.gradle.kts",
+        "gitBlob": "3189bde8775c9c6e248e7cf0718cbcbfba2aae2d",
+        "bytes": 1244,
+        "sha256": "8e55d50779dc1826f489605705fd4dddfe310ba9015e12e4ce2c5ef90f2e396d",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/build.gradle.kts"
+      },
+      {
+        "localPath": "helper-234-build.gradle.kts",
+        "sourcePath": "helper/build.gradle.kts",
+        "gitBlob": "43bd8d4192ba457d46018595662ecd703484460a",
+        "bytes": 2069,
+        "sha256": "37c7a9a1d1ea06350e76bb0696a9d7673d696a627754b920591422552c9a71ed",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/helper/build.gradle.kts"
+      },
+      {
+        "localPath": "helper-234-mojmap-build.gradle.kts",
+        "sourcePath": "helper_mojmap/build.gradle.kts",
+        "gitBlob": "95c8edc0952f239123551e006f9235be273445cb",
+        "bytes": 1859,
+        "sha256": "3069444b000b71f7bad24543d4cf659609a23352d594800e3463140c6aacc325",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/helper_mojmap/build.gradle.kts"
+      },
+      {
+        "localPath": "helper-234-r7-build.gradle.kts",
+        "sourcePath": "reobf_1_21_R7/build.gradle.kts",
+        "gitBlob": "26e0a6fe15fa818763d733213936b40fbbf4edda",
+        "bytes": 333,
+        "sha256": "4e67f0dfadb5aa4023f300e09930c74582adc9282208ef1b1bd9af71b3ba8c80",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/reobf_1_21_R7/build.gradle.kts"
+      },
+      {
+        "localPath": "helper-234-settings.gradle.kts",
+        "sourcePath": "settings.gradle.kts",
+        "gitBlob": "291f09ef0ed5c0ec2b9dfc8f2e975cb9b88826e9",
+        "bytes": 601,
+        "sha256": "c827a68c9a4b2707aec2d319d7675c2a86e51ba8ea61f4cee62fdd11223bc423",
+        "url": "https://github.com/Xiao-MoMi/craft-engine-nms-helper/blob/3c4fe899726dccf6f9405902c278792e26638f18/settings.gradle.kts"
+      }
+    ],
+    "fixedCEJar": {
+      "path": "build\\acceptance\\v612\\paper\\plugins\\craftengine-26.9.1.jar",
+      "bytes": 10981948,
+      "sha256": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f"
+    },
+    "proofLimits": "Exact published mojmap binary equals all corresponding fixed CE classes; explicit version commit/source blobs and target source/debug/control-flow correspondence are retained. No source JAR, signed build attestation or reproduced compilation proves which Git commit generated the Maven binary; no JVM/rebuild/runtime acceptance was performed.",
+    "artifacts": [
+      {
+        "path": "official-helper-1.0.234.jar",
+        "module": {
+          "group": "net.momirealms",
+          "module": "craft-engine-nms-helper",
+          "version": "1.0.234",
+          "attributes": {
+            "org.gradle.status": "release"
+          }
+        },
+        "bytes": 1013863,
+        "sha256": "80c8e77f8393dcb7b2274b32f90d689094c24e8e1dff4879dec9af05bad6eef1",
+        "classes": 408,
+        "fixedCEIdenticalClasses": 160
+      },
+      {
+        "path": "official-helper-mojmap-1.0.234.jar",
+        "module": {
+          "group": "net.momirealms",
+          "module": "craft-engine-nms-helper-mojmap",
+          "version": "1.0.234",
+          "attributes": {
+            "org.gradle.status": "release"
+          }
+        },
+        "bytes": 1012708,
+        "sha256": "2b6fe20cbafa6fe4bae5e71da6fd5214eeab76e1bae537019465d0161890933c",
+        "classes": 408,
+        "fixedCEIdenticalClasses": 408
+      }
+    ],
+    "targetClasses": [
+      {
+        "name": "net/momirealms/craftengine/bukkit/nms/FastNMS.class",
+        "sha256": "54229328e6c56d097e7410f6ef98715bd5cb1f4c38aa26fb2a790f389281dcaf",
+        "sourceFile": "FastNMS.java"
+      },
+      {
+        "name": "net/momirealms/craftengine/bukkit/nms/v1_21_11/FastNMSImpl.class",
+        "sha256": "24c7c8d1074491954cf458bf8f14b4d289a807d68cb9412c56b1a352ec01e4f6",
+        "sourceFile": "FastNMSImpl.java"
+      },
+      {
+        "name": "net/momirealms/craftengine/bukkit/nms/v1_21_11/worldgen/InjectedCustomChunkGenerator.class",
+        "sha256": "19646553bf3ee951fad1645d75c177124a6865a1a11025ad266b06fcfb695440",
+        "sourceFile": "InjectedCustomChunkGenerator.java"
+      }
+    ],
+    "sourceToBuildClaim": "Explicit first-party version association and static target correspondence; no reproduced build or build attestation",
+    "fullResourceBarrierImplemented": false,
+    "jvmStarted": false,
+    "serverStarted": false,
+    "runtimeAcceptanceClaimed": false,
+    "status": "first_party_version_source_located_exact_published_mojmap_classes_match_fixed_ce_no_reproduced_build",
+    "earlierRoutesPreserved": {
+      "sourcesJar404EvidenceDirectory": "build/followups/ce-upstream-resource-barrier-6",
+      "wrongRepositoryRoute": "https://api.github.com/repos/Xiao-MoMi/craft-engine-nms",
+      "newRepositoryRoute": "https://api.github.com/repos/Xiao-MoMi/craft-engine-nms-helper",
+      "previousFindingsPreserved": true
+    },
+    "sourceToBuildAttestationAvailable": false,
+    "nativeCallChains": {
+      "factory": {
+        "source": "FastNMSImpl.java",
+        "lines": [
+          139,
+          140
+        ],
+        "behavior": "Creates v1_21_11 InjectedCustomChunkGenerator"
+      },
+      "featureCacheReader": {
+        "source": "InjectedCustomChunkGenerator.java",
+        "lines": [
+          52,
+          60
+        ],
+        "behavior": "Reads hasCustomFeatures and lastReloadFeatureTime, fetchFeatures, caches features and timestamp"
+      },
+      "biomeDecoration": {
+        "source": "InjectedCustomChunkGenerator.java",
+        "lines": [
+          179,
+          214
+        ],
+        "behavior": "handleChunkGenerate -> native target -> getFeatures -> biome/feature selection -> PlacedFeature.place -> prior runnable.run",
+        "stageCallbackAloneCoversDirectFeatureReader": false
+      },
+      "biomeDecorationFourArgumentOverload": {
+        "lines": [
+          218,
+          222
+        ],
+        "behavior": "Delegates directly to target; CE-hook routing is not assumed"
+      },
+      "noise": {
+        "source": "InjectedCustomChunkGenerator.java",
+        "lines": [
+          105,
+          118
+        ],
+        "behavior": "handleChunkGenerate -> native target.fillFromNoise future -> thenApply runnable.run"
+      },
+      "otherSynchronousStages": {
+        "hookLines": {
+          "CARVER": 75,
+          "SURFACE": 87,
+          "STRUCTURE": 285
+        },
+        "behavior": "stage hook -> native target -> returned runnable"
+      },
+      "completeNativeLeaseImplemented": false
+    },
+    "localEvidence": [
+      {
+        "path": "build/followups/ce-native-helper-source-8/REVIEW.md",
+        "bytes": 7704,
+        "sha256": "949a84c97abdcf8eeca8a32868031a541424ced623670dec341cf977a935d4fd"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/helper-provenance-proof.json",
+        "bytes": 520017,
+        "sha256": "cdc633c772d6b17fbd6b92e27810b878c9b4feb629fbdd79d2e62664d4988e72"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/source-provenance-summary.json",
+        "bytes": 7580,
+        "sha256": "24de253608d4cb285ffd55306264920c096921173a95318fa0b4e0ad81fda7d9"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/target-source-bytecode-references.json",
+        "bytes": 26197,
+        "sha256": "7d92b5cdd9a323b446b99896becbd8de5584147a5e9e47c94cf889830afa8fc2"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/verify_helper_provenance.py",
+        "bytes": 7720,
+        "sha256": "46d6e496c8e5fb9bef17e8b21550552b8c8580905d63d3506ef3509e80f456da"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/helper-vs-fixed-ce-class-comparison.json",
+        "bytes": 128536,
+        "sha256": "e3e6a2415a33c6e36dbdcff146c62b3c8aa0bfbe87cf3916dfa200c0d07ca54e"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/helper-mojmap-vs-fixed-ce-class-comparison.json",
+        "bytes": 128420,
+        "sha256": "811d55d01ecf5c195d744af22916848816cd3b17b4dc87cef10f087f0eae08a3"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/github-helper-commit-234.json",
+        "bytes": 33801,
+        "sha256": "873d4bbf239cb038a63291a544ddcee7201944c467fde1180cbc23f75510a0e1"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/github-helper-tree-234.json",
+        "bytes": 211410,
+        "sha256": "fb4c0100dd4590bfe14c7a145ac52f2b3e848b5579d16cc0b723ddb3e0d077dd"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/helper.module",
+        "bytes": 1107,
+        "sha256": "d480d0d98703cbced58d3e3eeea7838f106d2e3e7693398cf6bf0621ae1b408e"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/helper-mojmap.module",
+        "bytes": 1128,
+        "sha256": "693e36bb675d6ca86c56b6bef57846fabadf9ca632993383d46c97630f535742"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/helper-directory.html",
+        "bytes": 2639,
+        "sha256": "3b74a6b1370d72437c939b61d82e8f254cbbac7a741e5e89b1a73ded1fd9119d"
+      },
+      {
+        "path": "build/followups/ce-native-helper-source-8/helper-mojmap-directory.html",
+        "bytes": 2877,
+        "sha256": "c5e03cccbea44a4b6a7f54033a7c99cb2e9e14277b0f76d6c2bdd6416db475d2"
+      }
+    ],
+    "offlineReproduction": ".\\.venv\\Scripts\\python.exe build/followups/ce-native-helper-source-8/verify_helper_provenance.py",
+    "sourceJarListedInOfficialRelease": false
   }
 }

@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import stat
 import struct
 import sys
@@ -17,7 +18,8 @@ from zipfile import ZipFile, BadZipFile
 import yaml
 
 from cookery_village import COMMIT, PROCESSOR_PATH
-from village_publication_report import MAX_REPORT_BYTES, read_json, decode_json, require, _manifest, _time, validate_files
+from village_publication_report import (MAX_REPORT_BYTES, ReceiptSnapshot, check_current_receipt_snapshots, decode_json,
+                                        load_receipt_snapshots, read_json, require, validate, _manifest, _time)
 
 ROOT = Path(__file__).resolve().parents[1]
 ACCEPTANCE = ROOT / 'build/acceptance'
@@ -29,6 +31,11 @@ INPUT_TREES = ('libraries', 'versions', 'plugins/.paper-remapped', 'plugins/Craf
                'plugins/KaleidoscopeCookeryPlugin', 'config')
 BASE_FILES = ('server.jar', 'server.properties', 'plugins/CraftEngine/config.yml',
               'plugins/CookeryAcceptanceProbe/config.yml')
+# Paperclip keeps the vanilla client/runtime JAR at this stable path.  Include
+# only this known dependency when present; the rest of cache/ is mutable state.
+PAPERCLIP_CLIENT = 'cache/mojang_1.21.11.jar'
+FIXTURE_PROPERTIES = {'server-ip': '127.0.0.1', 'enable-rcon': 'false', 'level-name': 'acceptance-world'}
+PACK_PROPERTIES = {'initial-enabled-packs', 'initial-disabled-packs'}
 
 
 def unlinked_path(path: Path) -> Path:
@@ -140,6 +147,8 @@ def input_paths(instance: Path, extra: list[str]) -> list[str]:
     instance = instance.resolve()
     paths = list(BASE_FILES) + list(extra)
     paths.extend(name for name in ('eula.txt', 'bukkit.yml', 'spigot.yml') if (instance / name).exists())
+    if contained(instance, PAPERCLIP_CLIENT).exists():
+        paths.append(PAPERCLIP_CLIENT)
     plugins = instance / 'plugins'
     require(plugins.is_dir(), 'Missing candidate plugins directory')
     paths.extend(path.relative_to(instance).as_posix() for path in plugins.glob('*.jar'))
@@ -237,19 +246,31 @@ def inspect_fresh(instance: Path, run_id: str) -> dict:
     require(instance.is_dir() and instance.is_relative_to(ACCEPTANCE.resolve()) and instance != ACCEPTANCE.resolve(),
             'Use a fresh isolated instance under this checkout/build/acceptance')
     require(str(uuid.UUID(run_id)) == run_id, 'Run UUID must be canonical')
+    with fs_path(contained(instance, 'server.properties')).open('rb') as stream:
+        raw = stream.read(1_048_577)
+    require(len(raw) <= 1_048_576, 'server.properties exceeds its read bound')
     properties = {}
-    for line in contained(instance, 'server.properties').read_text(encoding='utf-8').splitlines():
-        if line.strip() and not line.startswith('#'):
-            require('=' in line, 'Unsupported server.properties syntax')
-            key, value = line.split('=', 1)
-            require(key not in properties, 'Duplicate server property')
-            properties[key] = value
-    for key, value in {'server-ip': '127.0.0.1', 'enable-rcon': 'false', 'level-name': 'acceptance-world'}.items():
+    # Accept only unambiguous keys; Java also interprets key escapes and continuations.
+    for line in raw.decode('utf-8').replace('\r\n', '\n').replace('\r', '\n').split('\n'):
+        stripped = line.lstrip(' \t\f')
+        if not stripped or stripped.startswith(('#', '!')):
+            continue
+        key, separator, value = line.partition('=')
+        require(separator and re.fullmatch(r'[A-Za-z0-9_.-]+', key), 'Unsupported server.properties key or separator')
+        require((len(value) - len(value.rstrip('\\'))) % 2 == 0, 'Unsupported server.properties continuation')
+        require(key not in properties, 'Duplicate server property')
+        require((key not in FIXTURE_PROPERTIES and key not in PACK_PROPERTIES) or '\\' not in value,
+                'Escaped fixture or datapack properties are unsupported')
+        properties[key] = value
+    for key, value in FIXTURE_PROPERTIES.items():
         require(properties.get(key) == value, 'Candidate is not the isolated loopback fixture: ' + key)
     world = contained(instance, 'acceptance-world')
     if world.exists():
         require(world.is_dir() and all(path.name == 'datapacks' for path in world.iterdir()),
                 'A fresh candidate may contain only preinstalled datapacks before its first world')
+    for suffix in ('_nether', '_the_end'):
+        require(not fs_path(contained(instance, 'acceptance-world' + suffix)).exists(),
+                'A fresh candidate cannot reuse a Nether or End world directory')
     reports = contained(instance, 'plugins/CookeryAcceptanceProbe')
     require(not any(reports.glob('village-publication-smoke-*.json')), 'Candidate already contains a village smoke receipt')
     probe = configuration(reports / 'config.yml').get('village-publication-smoke')
@@ -310,6 +331,24 @@ def check_packs(instance: Path, kitchen: str, village: str) -> None:
                 'Rollback smoke must not preload natural kitchens')
 
 
+def check_initial_pack_selection(properties: dict, village: str) -> None:
+    required = {'vanilla', 'file/' + Path(village).name}
+    enabled = {value.strip() for value in properties.get('initial-enabled-packs', '').split(',')}
+    disabled = {value.strip() for value in properties.get('initial-disabled-packs', '').split(',')}
+    require(required.issubset(enabled) and required.isdisjoint(disabled),
+            'Explicitly enable vanilla and the chosen village datapack for the initial native registry load')
+
+
+def check_production_provenance(instance: Path, production_path: str, village: str) -> None:
+    with bounded_zip(contained(instance, production_path)) as production, bounded_zip(contained(instance, village)) as datapack:
+        require(production.namelist().count('village-loot.json') == 1, 'Expected one production village manifest')
+        require(production.getinfo('village-loot.json').file_size <= 1_048_576
+                and datapack.getinfo('village-manifest.json').file_size <= 1_048_576,
+                'Village manifest exceeds its bound')
+        require(production.read('village-loot.json') == datapack.read('village-manifest.json'),
+                'Installed village data differs from the defining production JAR provenance')
+
+
 def freeze(instance: Path, platform: str, run_id: str, defining: dict[str, str], kitchen: str, village: str,
            java: Path, output: Path, source_plugins: dict | None = None) -> dict:
     instance = unlinked_path(instance)
@@ -318,18 +357,9 @@ def freeze(instance: Path, platform: str, run_id: str, defining: dict[str, str],
     require(all(path.endswith('.jar') for path in defining.values()), 'Defining inputs must be JAR files')
     require(len({contained(instance, path) for path in defining.values()}) == 4, 'Four defining roles must refer to distinct files')
     sources = plugin_sources(instance, defining, source_plugins)
-    pack_id = 'file/' + Path(village).name
-    enabled = {value.strip() for value in properties.get('initial-enabled-packs', '').split(',')}
-    disabled = {value.strip() for value in properties.get('initial-disabled-packs', '').split(',')}
-    require({'vanilla', pack_id}.issubset(enabled) and pack_id not in disabled,
-            'Explicitly enable the chosen village datapack for the initial native registry load')
+    check_initial_pack_selection(properties, village)
     check_packs(instance, kitchen, village)
-    with bounded_zip(contained(instance, defining['production'])) as production, bounded_zip(contained(instance, village)) as datapack:
-        require(production.getinfo('village-loot.json').file_size <= 1_048_576
-                and datapack.getinfo('village-manifest.json').file_size <= 1_048_576,
-                'Village manifest exceeds its bound')
-        require(production.read('village-loot.json') == datapack.read('village-manifest.json'),
-                'Installed village data differs from the defining production JAR provenance')
+    check_production_provenance(instance, defining['production'], village)
     paths = input_paths(instance, list(defining.values()) + [kitchen, village])
     before = inventory(instance, paths)
     java = unlinked_path(java)
@@ -377,9 +407,10 @@ def verify(candidate: dict, before_start: bool = True) -> None:
     plugin_sources(instance, candidate['definingPaths'], candidate['sourcePlugins'])
     extra = list(candidate['definingPaths'].values()) + [candidate['kitchenPack'], candidate['villagePack']]
     if before_start:
-        inspect_fresh(instance, candidate['runId'])
+        check_initial_pack_selection(inspect_fresh(instance, candidate['runId']), candidate['villagePack'])
         require(mutable_inputs(instance) == candidate['initialMutableInputs'], 'Initial CE mutable inputs drifted before startup')
     check_packs(instance, candidate['kitchenPack'], candidate['villagePack'])
+    check_production_provenance(instance, candidate['definingPaths']['production'], candidate['villagePack'])
     require(inventory(instance, input_paths(instance, extra)) == candidate['files'], 'Frozen candidate files drifted')
     require(type(candidate.get('javaExecutable')) is str and java_inventory(Path(candidate['javaExecutable'])) == candidate['javaRuntime'],
             'Frozen Java runtime drifted or was detached from its complete file inventory')
@@ -388,23 +419,34 @@ def verify(candidate: dict, before_start: bool = True) -> None:
         require(candidate['files'][relative] == candidate['expected']['artifacts'][name], 'Expected artifact is detached from frozen input')
 
 
-def verify_receipt(candidate: dict, registration: Path, report: Path) -> dict:
+def verify_receipt_snapshots(candidate: dict, registration: Path, report: Path) -> tuple[dict, ReceiptSnapshot, ReceiptSnapshot]:
+    """Authenticate one receipt pair and return the exact observed bytes for evidence preservation."""
     verify(candidate, before_start=False)
     instance = Path(candidate['instance']).resolve()
     expected_directory = instance / 'plugins/CookeryAcceptanceProbe'
     require(registration.resolve().parent == expected_directory and report.resolve().parent == expected_directory,
             'Receipts must belong to the frozen candidate instance')
-    result = validate_files(registration, report, candidate['expected'])
-    observed = read_json(report)
+    registration_snapshot, report_snapshot = load_receipt_snapshots(registration, report, candidate['expected'])
+    require(registration_snapshot.path.parent == expected_directory and report_snapshot.path.parent == expected_directory,
+            'Loaded receipts do not belong to the frozen candidate instance')
+    observed = report_snapshot.value
+    result = validate(registration_snapshot.value, observed, candidate['expected'])
     require(_time(candidate['frozenAt']) <= _time(observed['registeredAt']), 'Candidate was frozen after probe registration')
     for name, relative in candidate['definingPaths'].items():
         actual = observed['artifacts'][name].get('path')
-        require(type(actual) is str and Path(actual).resolve() == contained(instance, relative),
+        require(type(actual) is str and Path(actual).is_absolute()
+                and unlinked_path(Path(actual)) == contained(instance, relative),
                 'Actual defining JAR path differs from frozen candidate: ' + name)
     verify(candidate, before_start=False)
-    return {**result, 'inputInventory': 'MATCHED',
-            'initialMutableInputs': 'FROZEN_ONLY_REQUIRES_PRESTART_AND_RUNTIME_EVIDENCE',
-            'wholeServerRun': 'NOT_CERTIFIED_BY_THIS_CHECK'}
+    check_current_receipt_snapshots(registration_snapshot, report_snapshot)
+    return ({**result, 'inputInventory': 'MATCHED',
+             'initialMutableInputs': 'FROZEN_ONLY_REQUIRES_PRESTART_AND_RUNTIME_EVIDENCE',
+             'wholeServerRun': 'NOT_CERTIFIED_BY_THIS_CHECK'}, registration_snapshot, report_snapshot)
+
+
+def verify_receipt(candidate: dict, registration: Path, report: Path) -> dict:
+    result, _, _ = verify_receipt_snapshots(candidate, registration, report)
+    return result
 
 
 def main() -> int:

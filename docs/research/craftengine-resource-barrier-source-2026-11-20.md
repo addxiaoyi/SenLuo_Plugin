@@ -27,8 +27,18 @@
 
 初始启动也需要服务器在 STARTUP 插件返回后、首次 `loadLevel` 前明确检查失败结果并沿原生控制流拒绝。两个固定 Paper tree 的 `DedicatedServer.java.patch` 均为 `c8cd84714454c505dac5fb349b16ea376b39d9c6`；实际 Paper/Folia 字节码均为 `loadPlugins940 → enablePlugins950 → loadLevel1201`，中间没有运行／停机状态或资源失败结果的检查，Folia 的后续补丁没有改变这段启动流程。只改变 CE 任务为抛异常仍会被平台插件启用捕获，Bukkit shutdown 也没有这个前置控制保证。
 
-## 尚缺的实现输入
+## 已找到独立原生 helper 源码
 
-准确公开 CE tree 中没有 `InjectedCustomChunkGenerator`／`FastNMS` 实现；其依赖为独立 `craft-engine-nms-helper:1.0.234`，已检查的 source JAR 路径返回 404，POM 无 SCM 身份。固定服务器四个调度类与启动切点的源码身份现已补齐，但 CE 原生 helper 来源、新增准入／恢复协议、完整原生读写覆盖与启动失败控制仍未补齐，不能把 CE 公共文件的局部修改当作完整屏障补丁。没有据此切换到不安全 fallback 或缩小读写覆盖要求。
+此前准确公开 CE tree 中没有 `InjectedCustomChunkGenerator`／`FastNMS` 实现；对独立 `craft-engine-nms-helper:1.0.234` 检查的 source JAR 路径返回404，POM 无 SCM 身份，猜测的 `Xiao-MoMi/craft-engine-nms` 也返回404。这些原始路线和结果继续保留在本地 `ce-upstream-resource-barrier-6/`，不改写为成功。后续从作者公开仓库清单与第一方 GitHub 搜索找到正确的独立仓库 [`Xiao-MoMi/craft-engine-nms-helper`](https://github.com/Xiao-MoMi/craft-engine-nms-helper)。版本提交 [`3c4fe899726dccf6f9405902c278792e26638f18`](https://github.com/Xiao-MoMi/craft-engine-nms-helper/commit/3c4fe899726dccf6f9405902c278792e26638f18) 明确将 `projectVersion` 从1.0.233改为 **1.0.234**，对应 tree 为 `4b83d64e63429dc0f6fd1e7d7164ffc51ca27697`；没有用较新的 main 或相近版本代替。
 
-下一实现须先补齐这些原生来源，再以已识别的 CE 源码和明确 PREMIUM 变体核对完整补丁，验证取消／消耗顺序、所有读写切点、重入、公平性、恢复所属执行上下文、失败持久化，以及 Paper/Folia 真实重载和五 biome 自然生成。当前总目标继续进行，完整屏障仍 OPEN。
+官方 [`craft-engine-nms-helper-mojmap:1.0.234`](https://repo.momirealms.net/releases/net/momirealms/craft-engine-nms-helper-mojmap/1.0.234/craft-engine-nms-helper-mojmap-1.0.234.jar) 为1,012,708字节，SHA-256 `2b6fe20cbafa6fe4bae5e71da6fd5214eeab76e1bae537019465d0161890933c`，与其 Gradle module 元数据一致。其 **408个 class 与固定 `craftengine-26.9.1.jar` 内同路径 class 全部逐字节相同**，包括三个目标类。普通 helper 制品是混合重混淆产物，仅160／408相同，不能混作这个二进制对应。两个官方发布目录及 module 只有 binary shadow variant，没有列出 source 制品。
+
+已下载并核对版本 tree 中的三个准确源码 blob：`FastNMS.java` 为 `720837de646a8b4e70cb09b723f68249dfa8f076`，`v1_21_11/FastNMSImpl.java` 为 `078dc2283597cb78f43637c5b561d498c1e9d806`，`v1_21_11/worldgen/InjectedCustomChunkGenerator.java` 为 `b38c6efc9fefaacbe0160cde291ea28a94840b55`。Gradle 发布坐标、版本声明、SourceFile／LineNumberTable／方法引用与这些源码对应；这证明明确的第一方版本关联和目标静态调用对应，**不等于已复现二进制构建**。没有 source JAR、签名构建证明或本地重编译来证明 Maven 输出由哪一个 Git commit 编译产生。
+
+这个来源补足还确认了需要覆盖的实际读者：`FastNMSImpl.createInjectedChunkGenerator` 的139–140行创建 wrapper；生成器 `getFeatures` 的52–60行直接读取 `hasCustomFeatures`、`lastReloadFeatureTime`，调用 `fetchFeatures` 并更新本地缓存。三参数 `applyBiomeDecoration` 的182–208行先取得 CE stage 回调，再执行原生 target 装饰，然后独立读取 CE features、筛选 biome／feature 并调用原生 `PlacedFeature.place`，最后才执行先前的 Runnable。仅保护 `handleChunkGenerate` 或返回的 Runnable 覆盖不了这段直接读资源与放置；四参数 overload 的218–222行还会直接委托 target。`fillFromNoise` 的109–115行同样先取得 stage 回调，随后调用 target future，再 `thenApply` 执行 Runnable；其他 CARVER／SURFACE／STRUCTURE wrapper 也把原生 target 包在 stage 回调取得与最终执行之间。以上调用链已对照固定 class 的 BCI 和源码行表，不能从回调位置推定完整 native lease。
+
+新证据在本地 `build/followups/ce-native-helper-source-8/`，包括 `REVIEW.md`、官方两份制品及 module、第一方版本 commit／tree、逐 class 对照、三个源码和静态调用／行表。`verify_helper_provenance.py` 可离线重算九份 source／build 文件的 Git blob、两份制品摘要及408项完全一致的 mojmap 对照，无需 JVM；配对 JSON 保存对应摘要。旧目录缺失来源的历史结论保留，新目录记录本次补齐。
+
+## 尚缺的实现与验收
+
+固定服务器调度类、启动切点和独立 CE helper 的公开来源现已补齐到上述证据范围；新增非阻塞准入／恢复协议、完整原生读写覆盖、重入写入与启动失败控制仍未实现，不能把源码取证记作完整屏障补丁。下一实现须以这些固定来源和明确 PREMIUM 变体核对完整修改，验证取消／消耗顺序、所有读写切点、重入、公平性、恢复所属执行上下文、失败持久化，以及 Paper/Folia 真实重载和五 biome 自然生成。当前总目标继续进行，完整屏障仍 OPEN；本批未启动 JVM／服务器，未发送上游消息或 PR。

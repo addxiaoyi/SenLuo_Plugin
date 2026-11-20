@@ -2,6 +2,14 @@
 
 2026-11-20。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
 
+## 2026-11-21 村庄发布验收运行器与来源审查
+
+共享系列运行器已增加独立村庄发布验收模式：从已冻结候选和精确启动记录启动，不接受 Java／位置参数覆盖；复核工作流前后资源包、冷启动注册／回滚收据、食物与附魔 smoke、正常停服及所有冻结输入，并保留原始控制台和收据。离线回归还覆盖损坏候选的受控失败及实例／结果路径隔离。固定 `cache/mojang_1.21.11.jar` 若存在会绑定摘要；其他 cache 不扩张冻结范围。收据语义检查和证据保存复用同一份有界、身份稳定的原始字节快照。
+
+本批完整专项 Python 为 **70/70**（候选、收据报告、启动记录、共享运行器），伪进程测试不启动 Java 或 Minecraft；两套全量 discovery 也通过，`tools` **329/329**、`series/tools` **78/78**，共 **407/407**。准确的 CraftEngine helper 1.0.234 第一方仓库／提交／tree、408 个 mojmap class 与固定 CE JAR 的逐字节比对，以及 InjectedCustomChunkGenerator 直接读取特征的调用链已登记到[来源审查](research/craftengine-resource-barrier-source-2026-11-20.md)和 JSON 证据；这是静态来源对应，不是可复现构建证明。
+
+真实服务器窗口按用户安排延后。本批没有真实候选、Paper／Folia 冷启动或客户端验收。生产激活、所有 native reader／writer 的统一资源屏障、首次 `loadLevel` 前拒绝失败、自然五 biome 生成、完整玩家／客户端流程，以及 Folia watchdog 根因仍 OPEN；本运行器不能替代这些验收。C14 仍为 `unit_tested`，全系列 `accepted=[]`，总目标继续进行。
+
 ## 2026-11-20 原生结构 codec 与精确启动记录
 
 新增休眠的 `VillageStructureCodec`，仅由独立验收探针在真实冷启动窗口、完整原生预检通过且五模板临时发布时调用。未来运行必须完成 5 biome × 4 rotation 的 20 组实际具名元素／结构片保存恢复，以及 41 个来源 CE 方块位置 × 3 mirror × 4 rotation 的 492 组完整属性检查，随后仍由本次独有 sentinel 触发生产事务完整回滚。固定位置、ground delta 0、空 junctions；不放置世界，不预热查询 cache，不把原生 processor 输出、邻区生成或服务器重启算入这些数字。当前只通过编译与真实 ABI／调用边界检查，**真实 20／492 仍 NOT_RUN**。严格离线报告检查器从仓库内固定 NBT 独立导出完整位置／属性及旋转边界，拒绝缺失、重复、错位、摘要复用和伪整数；合成 fixture 不是原生运行证据。见[探针及覆盖边界](research/cookery-village-publication-smoke-2026-11-20.md)。
