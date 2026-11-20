@@ -21,6 +21,11 @@ repositories {
     // Spigot BuildTools installs the version-specific NMS dependencies here.
     mavenLocal()
     mavenCentral()
+    maven {
+        name = "mojangLogging"
+        url = 'https://libraries.minecraft.net/'
+        content { includeModule('com.mojang', 'logging') }
+    }
     exclusiveContent {
         forRepository { maven { url = 'https://api.modrinth.com/maven' } }
         filter { includeGroup('maven.modrinth') }
@@ -75,6 +80,9 @@ dependencies {
     // CE's published APIs omit relocated classes used by Player method signatures.
     testRuntimeOnly("maven.modrinth:craftengine:${craftEngineVersion}")
     testRuntimeOnly('com.mojang:authlib:7.0.61')
+    // Native NBT tag codecs require DynamicOps during the bounded source-reader tests.
+    testRuntimeOnly('com.mojang:datafixerupper:8.0.16')
+    testRuntimeOnly('com.mojang:logging:1.6.11')
     // CE's block API reads /version.json through a Minecraft class at initialization.
     testRuntimeOnly('org.spigotmc:spigot:1.21.11-R0.1-SNAPSHOT:remapped-mojang') { transitive = false }
     testRuntimeOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
