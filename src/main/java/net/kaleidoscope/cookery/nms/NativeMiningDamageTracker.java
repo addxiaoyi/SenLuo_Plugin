@@ -9,8 +9,10 @@ import java.util.function.Predicate;
 
 /** Keeps real native damage-event references until the complete synchronous mining call returns. */
 public final class NativeMiningDamageTracker {
+    /** completeObservation excludes known observer loss and attribution failures, independently of wear validity. */
     public record Decision(boolean valid, int baseWear, int originalEventWear, int finalEventWear,
-                           int resolvedWear, boolean observedEvent, boolean observedBreak, String reason) {}
+                           int resolvedWear, boolean observedEvent, boolean observedBreak,
+                           boolean completeObservation, String reason) {}
     private final BooleanSupplier available;
     private final ThreadLocal<Session> current = new ThreadLocal<>();
 
@@ -67,24 +69,27 @@ public final class NativeMiningDamageTracker {
         }
         public Decision finish() {
             if (closed || current.get() != this) throw new IllegalStateException("Native damage session is not current on this thread");
-            if (!available.getAsBoolean()) return invalid("native damage observer became unavailable");
-            if (observationFailure != null) return invalid("native damage event attribution failed: " + observationFailure);
+            if (!available.getAsBoolean()) return invalid("native damage observer became unavailable", false);
+            if (observationFailure != null) return invalid("native damage event attribution failed: " + observationFailure, false);
             if (foreignEvent) return invalid("an unrelated damage event occurred during the native mining transaction");
             if (count > 1 || breakCount > 1)
                 return invalid("multiple/reentrant native damage events cannot certify one mining transition");
             if (event == null) {
                 if (breakEvent != null) return invalid("a break event occurred without its native player damage event");
-                return new Decision(true, baseWear, 0, 0, 0, false, false, "native durability processing produced no damage event");
+                return new Decision(true, baseWear, 0, 0, 0, false, false, true, "native durability processing produced no damage event");
             }
             if (event.getOriginalDamage() != baseWear)
                 return invalid("native damage event base differs from the captured TOOL component");
             int finalDamage = event.isCancelled() ? 0 : event.getDamage();
             if (breakEvent != null && finalDamage <= 0) return invalid("a break event occurred without positive resolved damage");
             // Native applyDamage also accepts a negative event adjustment, clamped by setDamageValue.
-            return new Decision(true, baseWear, event.getOriginalDamage(), finalDamage, finalDamage, true, breakEvent != null,
+            return new Decision(true, baseWear, event.getOriginalDamage(), finalDamage, finalDamage, true, breakEvent != null, true,
                     event.isCancelled() ? "native damage event canceled" : "final PlayerItemDamageEvent adjustment");
         }
-        private Decision invalid(String reason) { return new Decision(false, baseWear, 0, 0, 0, event != null, breakEvent != null, reason); }
+        private Decision invalid(String reason) { return invalid(reason, true); }
+        private Decision invalid(String reason, boolean completeObservation) {
+            return new Decision(false, baseWear, 0, 0, 0, event != null, breakEvent != null, completeObservation, reason);
+        }
         @Override public void close() {
             if (closed) return;
             if (current.get() != this) throw new IllegalStateException("Native damage session closed on another thread or out of order");

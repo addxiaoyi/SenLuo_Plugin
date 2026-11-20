@@ -45,13 +45,15 @@ Crop 路径保留现有 `InteractGuard`、`SickleHarvestEvent` 以及 logging-on
 
 普通 Vegetation 破坏可能合法损耗主手工具，尤其主手本身就是镰刀。只用整挥初始完整组件快照会把自己的原生耐久变化误认为外部替换，使后续正常植物提前停止。
 
-真实 R7 指令链为 `ItemStack.mineBlock → Item.mineBlock → TOOL.damagePerBlock → hurtAndBreak`。非零硬度才使用 TOOL 损耗，原生 Unbreaking 处理后构造 `PlayerItemDamageEvent`，完整事件派发返回后读取最终 `cancelled/getDamage` 再 applyDamage；最终 damage 可被合法插件调高、取消或调为负数，不能把 TOOL 输入基数冒充最终上界。玩家的该分支跳过非玩家 EntityDamageItemEvent。
+真实 R7 普通物品指令链为 `ItemStack.mineBlock → Item.mineBlock → TOOL.damagePerBlock → hurtAndBreak`，非零硬度才使用 TOOL 损耗。剪刀另有 `ShearsItem.mineBlock` 覆盖：非 FIRE 方块即使零硬度也可损耗，且不进入 Item 的同名实现。当前按实际物品的反射声明类与完整方法签名捕获这两个已核实实现；未知 override 在原生破坏前拒绝。原生 Unbreaking 处理后构造 `PlayerItemDamageEvent`，完整事件派发返回后读取最终 `cancelled/getDamage` 再 applyDamage；最终 damage 可被合法插件调高、取消或调为负数，不能把 TOOL 输入基数冒充最终上界。玩家的该分支跳过非玩家 EntityDamageItemEvent。
 
-enable 时注册的只读 observer 在原生完整 `destroyBlock` 调用的 ThreadLocal 会话中保留真实 PlayerItemDamageEvent 和单工具断裂 PlayerItemBreakEvent 引用，调用返回才读取最终值。归属同时要求同一 actor、事件 `asCraftMirror` 内的原始 NMS handle，以及真实 Item.mineBlock 调用栈。asCraftMirror 和 Bukkit 事件本身保存同一底层对象，并非脱离原物品的副本；不能用两个 Bukkit wrapper 的 `==` 代替 handle 身份。
+enable 时注册的只读 observer 在原生完整 `destroyBlock` 调用的 ThreadLocal 会话中保留真实 PlayerItemDamageEvent 和单工具断裂 PlayerItemBreakEvent 引用，调用返回才读取最终值。归属同时要求同一 actor、事件 `asCraftMirror` 内的原始 NMS handle，以及捕获实现的真实声明类／完整签名调用栈。asCraftMirror 和 Bukkit 事件本身保存同一底层对象，并非脱离原物品的副本；不能用两个 Bukkit wrapper 的 `==` 代替 handle 身份。
 
 receipt 另行核对选中槽位、原始 native stack 身份、完整非 Damage 组件、数量、原损耗、最终事件值及断裂边界。旧完整单位副本只按已证实损耗更新 Damage；不把回调后的整手重新采纳为可信基线。零事件的 Unbreaking／不可损物品保持原状态；取消的最终损耗为 0，即使之后 listener 写负 damage。合法负数按原生 setDamageValue 的 clamp 复原预期。单件断裂须有它自己的真实 break event、只减少一件并保持原 broken stack 的组件边界。
 
 主手镰刀正常磨损可继续多株；它断裂则结束原始 use，不对空旧物品再次补伤。副手镰刀不因正常主手工具磨损／断裂而重新定义自身来源。重复／重入损耗事件、未知物品替换、组件漂移、无有效 observer、observer 中途失效均拒绝认证，必要时报告已经发生原生副作用的 PARTIAL。Bukkit disable 自动卸注册会使会话失效，但本方案不构成 CE 或插件 disable 的全局屏障。
+
+原生 `destroyBlock=false` 且完整观察未发现归属本操作的 damage／break 时，在槽位及组件认证前直接判定未提交。这样，取消破坏的外部监听器切换主手热栏不会把副手镰刀误记为已提交并扣额外耐久。若确实收到归属损耗／断裂、观察器失效、归属判断异常或原生调用抛错，仍保留 PARTIAL／异常，不把所有 false 都当成无副作用。
 
 ## 尚保留的目标策略与验收范围
 

@@ -21,7 +21,7 @@ public record VillageLootSpec(Map<String, String> itemMappings, List<Choice> rec
     static final String SOURCE_COMMIT = "2f4e386ce23f49a385ddf003c67fc6415c55417a";
     // Exact SHA-256 of the generated resource. Keeping this pin in the runtime parser
     // prevents packaged or test-supplied changes to source provenance and choices.
-    static final String RESOURCE_SHA256 = "2032a09155849f81000bd225780ccc526d775afb3e61b9d2f49440db6f92cf60";
+    static final String RESOURCE_SHA256 = "6dba1293d763b5bf62885e7a5d52397ab7e31fccb0a1156fbee69f62f1c669d8";
     static final String TOKEN_KEY = "kaleidoscopecookery:village_loot";
     static final String TOKEN_PREFIX = "v1|";
     private static final Pattern ID = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");

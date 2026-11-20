@@ -3896,10 +3896,20 @@
   },
   "tokenKey": "kaleidoscopecookery:village_loot",
   "tokenPrefix": "v1|",
+  "nativeProcessorRegistration": {
+    "key": "kaleidoscopecookery:crop_replace",
+    "path": "data/kaleidoscopecookery/worldgen/processor_list/crop_replace.json",
+    "sha256": "d2dbbd10311e970242ea8566861068c2f157089e4b8f4a0dd1753430bed9f4e3",
+    "mode": "DORMANT_EMPTY_PLACEHOLDER",
+    "installation": "PREINSTALL_AND_ENABLE_BEFORE_NATIVE_WORLDGEN_REGISTRY_LOAD",
+    "runtimeRules": "NOT_PUBLISHED",
+    "sourceRules": "source/crop_replace.json"
+  },
   "naturalVillageIntegration": "NOT_IMPLEMENTED",
   "runtime": "NOT_TESTED",
   "open": [
-    "Five natural pools/templates/processors and reload barrier are not installed by this loot pack.",
+    "Five natural pools/templates/runtime processor rules and reload barrier are not installed by this loot pack.",
+    "The empty named processor requires this pack enabled before native registry load; no automatic installation or activation is provided.",
     "Native1.21.11 codec/RNG, Bukkit token bridge, once-only chest and recipe player flows require runtime acceptance.",
     "Ingredient first alternatives use the pinned target tag expansion; external Forge mods/tags are unavailable.",
     "Native1.21.11 RNG algorithms are used; cross-version1.20.1 seed equivalence is not claimed."

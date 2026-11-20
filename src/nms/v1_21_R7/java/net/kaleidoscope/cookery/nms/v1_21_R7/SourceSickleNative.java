@@ -4,16 +4,21 @@ import net.kaleidoscope.cookery.nms.NativeSickleAccess;
 import net.kaleidoscope.cookery.nms.NativeSickleCropTransaction;
 import net.kaleidoscope.cookery.nms.NativeSickleDamageObserver;
 import net.kaleidoscope.cookery.nms.NativeMiningDamageTracker;
+import net.kaleidoscope.cookery.nms.NativeMiningImplementation;
 import net.kaleidoscope.cookery.nms.NativeToolWear;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ShearsItem;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.VegetationBlock;
@@ -38,6 +43,7 @@ import java.util.function.BooleanSupplier;
 public final class SourceSickleNative implements NativeSickleAccess {
     private static final Class<?>[] DESTROY_PARAMETERS = {Level.class, net.minecraft.world.entity.player.Player.class,
             BlockPos.class, BlockState.class, BlockEntity.class, ItemStack.class, boolean.class, boolean.class};
+    private static final Class<?>[] MINING_PARAMETERS = {ItemStack.class, Level.class, BlockState.class, BlockPos.class, LivingEntity.class};
     private static final MethodHandle STATS_ONLY = statsOnlyHandle();
     private static final MethodHandle RAW_COPY = rawCopyHandle();
     private static final MethodHandle MIRROR_HANDLE = mirrorHandle();
@@ -46,7 +52,7 @@ public final class SourceSickleNative implements NativeSickleAccess {
     private static final Set<Class<?>> VERIFIED_CROPS = ConcurrentHashMap.newKeySet();
 
     private record State(ServerLevel level, BlockPos pos, BlockState state, Kind kind) implements Snapshot {}
-    private record ToolSource(ItemStack identity, ItemStack before, int slot, int baseWear) {}
+    private record ToolSource(ItemStack identity, ItemStack before, int slot, int baseWear, NativeMiningImplementation mining) {}
 
     private static MethodHandle rawCopyHandle() {
         try { return MethodHandles.publicLookup().findVirtual(ItemStack.class, "copy", MethodType.methodType(ItemStack.class, boolean.class)); }
@@ -71,18 +77,19 @@ public final class SourceSickleNative implements NativeSickleAccess {
         catch (Throwable failure) { throw new IllegalStateException("Cannot preserve broken native stack components", failure); }
     }
 
-    private static boolean miningFrame() {
-        return WALKER.walk(frames -> frames.anyMatch(frame -> frame.getDeclaringClass() == net.minecraft.world.item.Item.class
-                && frame.getMethodName().equals("mineBlock")));
+    private static boolean miningFrame(NativeMiningImplementation implementation) {
+        return WALKER.walk(frames -> frames.anyMatch(implementation::matches));
     }
 
     private static ToolSource captureTool(ServerPlayer actor, org.bukkit.entity.Player player, State state) {
         ItemStack held = actor.getMainHandItem();
         ItemStack before = held.copy();
+        NativeMiningImplementation mining = NativeMiningImplementation.inspect(held.getItem().getClass(),
+                Item.class, ShearsItem.class, MINING_PARAMETERS);
         var tool = held.get(DataComponents.TOOL);
-        int base = !actor.preventsBlockDrops() && tool != null
-                && state.state().getDestroySpeed(state.level(), state.pos()) != 0 ? Math.max(0, tool.damagePerBlock()) : 0;
-        return new ToolSource(held, before, player.getInventory().getHeldItemSlot(), base);
+        int base = mining.baseWear(actor.preventsBlockDrops(), tool == null ? 0 : tool.damagePerBlock(),
+                state.state().getDestroySpeed(state.level(), state.pos()), state.state().is(BlockTags.FIRE));
+        return new ToolSource(held, before, player.getInventory().getHeldItemSlot(), base, mining);
     }
 
     private static Outcome certifyTool(ServerPlayer actor, org.bukkit.entity.Player player, ToolSource source,
@@ -233,14 +240,14 @@ public final class SourceSickleNative implements NativeSickleAccess {
             if (!matches(block, state) || !sourceUnchanged.getAsBoolean()) return Outcome.rejected();
             ToolSource tool = captureTool(actor, player, state);
             try (var damage = NativeSickleDamageObserver.begin(player, tool.baseWear(),
-                    event -> mirror(event.getItem()) == tool.identity() && miningFrame(),
-                    event -> mirror(event.getBrokenItem()) == tool.identity() && miningFrame())) {
+                    event -> mirror(event.getItem()) == tool.identity() && miningFrame(tool.mining()),
+                    event -> mirror(event.getBrokenItem()) == tool.identity() && miningFrame(tool.mining()))) {
                 if (damage == null) return Outcome.rejected();
                 // Do not duplicate BlockBreakEvent, impose EMPTY or reset a pitcher half.
                 boolean destroyed = actor.gameMode.destroyBlock(state.pos());
                 NativeMiningDamageTracker.Decision decision = damage.finish();
-                if (!destroyed && decision.observedEvent()) return Outcome.partial("native break reported no commit after tool damage");
-                return certifyTool(actor, player, tool, decision, destroyed ? Outcome.complete() : Outcome.rejected());
+                if (!destroyed) return NativeMiningImplementation.rejectedDestruction(decision);
+                return certifyTool(actor, player, tool, decision, Outcome.complete());
             } catch (LinkageError failure) {
                 return Outcome.failed("ordinary native vegetation linkage failed after entry",
                         new IllegalStateException("Native vegetation linkage failure", failure));

@@ -67,10 +67,15 @@ nmsVersions.each { sourceSetName, version ->
     }
 }
 
+configurations {
+    mockitoAgent
+}
+
 dependencies {
     testImplementation(platform('org.junit:junit-bom:5.11.4'))
     testImplementation('org.junit.jupiter:junit-jupiter')
     testImplementation('org.mockito:mockito-core:5.15.2')
+    mockitoAgent('org.mockito:mockito-core:5.15.2') { transitive = false }
     testImplementation('org.ow2.asm:asm:9.8')
     testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
@@ -127,6 +132,12 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // Load Mockito's supported premain agent with the test JVM. Dynamic
+    // attachment otherwise starts an extra external JVM and can fail before
+    // the first mock is initialized on constrained hosts.
+    jvmArgumentProviders.add({ ->
+        ["-javaagent:${configurations.mockitoAgent.singleFile.absolutePath}"]
+    } as org.gradle.process.CommandLineArgumentProvider)
     systemProperty 'file.encoding', 'UTF-8'
     dependsOn(tasks.named('shadowJar'))
     def pluginJar = tasks.named('shadowJar').get().archiveFile

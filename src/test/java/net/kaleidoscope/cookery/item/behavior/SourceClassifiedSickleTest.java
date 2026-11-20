@@ -4,6 +4,8 @@ import net.kaleidoscope.cookery.api.event.SickleHarvestEvent;
 import net.kaleidoscope.cookery.nms.NativeSickleAccess;
 import net.kaleidoscope.cookery.nms.NativeSickleAccessProvider;
 import net.kaleidoscope.cookery.nms.NativeToolWear;
+import net.kaleidoscope.cookery.nms.NativeMiningDamageTracker;
+import net.kaleidoscope.cookery.nms.NativeMiningImplementation;
 import net.kaleidoscope.cookery.util.EventUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
@@ -25,6 +27,9 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerItemBreakEvent;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -290,6 +295,99 @@ class SourceClassifiedSickleTest {
             assertEquals(hand == InteractionHand.MAIN_HAND ? 1 : 9, nativeAccess.vegetation);
             if (hand == InteractionHand.MAIN_HAND) verify(tool, never()).hurtAndBreak(anyInt(), any(), any());
             else verify(tool).hurtAndBreak(1, player, null);
+        }
+    }
+
+    public static class MiningItemFrame {
+        Runnable nativeDamage = () -> {};
+        public boolean mineBlock(Object stack, Object level, Object state, Object pos, Object actor) {
+            nativeDamage.run(); return true;
+        }
+    }
+    public static final class ShearsMiningFrame extends MiningItemFrame {
+        @Override public boolean mineBlock(Object stack, Object level, Object state, Object pos, Object actor) {
+            nativeDamage.run(); return true;
+        }
+    }
+
+    @ParameterizedTest @CsvSource({"SHORT_GRASS,0,normal", "SWEET_BERRY_BUSH,0.2,normal",
+            "SHORT_GRASS,0,unbreaking", "SWEET_BERRY_BUSH,0.2,unbreaking",
+            "SHORT_GRASS,0,cancel", "SWEET_BERRY_BUSH,0.2,cancel",
+            "SHORT_GRASS,0,break", "SWEET_BERRY_BUSH,0.2,break"})
+    void shearsMainHandReceiptsPreserveTheOriginalOffhandSickleAcrossTheWholeSweep(
+            Material material, float hardness, String scenario) {
+        values.put("radius", 1); when(world.getBlockAt(anyInt(), anyInt(), anyInt())).thenReturn(block);
+        when(context.getHand()).thenReturn(InteractionHand.OFF_HAND); when(block.getType()).thenReturn(material);
+        nativeAccess.kind = NativeSickleAccess.Kind.VEGETATION;
+        var implementation = NativeMiningImplementation.inspect(ShearsMiningFrame.class, MiningItemFrame.class,
+                ShearsMiningFrame.class, Object.class, Object.class, Object.class, Object.class, Object.class);
+        var walker = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+        var tracker = new NativeMiningDamageTracker(() -> true); var shears = new ShearsMiningFrame();
+        var mirror = mock(ItemStack.class); Object mainHandIdentity = new Object();
+        AtomicInteger mainDamage = new AtomicInteger(scenario.equals("break") ? 237 : 0);
+        AtomicInteger mainCount = new AtomicInteger(1);
+        nativeAccess.onAction = () -> {
+            if (mainCount.get() == 0) { nativeAccess.outcome = NativeSickleAccess.Outcome.complete(); return; }
+            int before = mainDamage.get();
+            int base = implementation.baseWear(false, 1, hardness, false);
+            try (var session = tracker.begin(actor, base,
+                    event -> event.getItem() == mirror && walker.walk(frames -> frames.anyMatch(implementation::matches)),
+                    event -> event.getBrokenItem() == mirror && walker.walk(frames -> frames.anyMatch(implementation::matches)))) {
+                assertNotNull(session);
+                shears.nativeDamage = () -> {
+                    if (scenario.equals("unbreaking")) return;
+                    var event = new PlayerItemDamageEvent(actor, mirror, 1, 1); tracker.observe(event);
+                    if (scenario.equals("cancel")) event.setCancelled(true);
+                    if (scenario.equals("break")) tracker.observe(new PlayerItemBreakEvent(actor, mirror));
+                };
+                shears.mineBlock(null, null, null, null, null);
+                var decision = session.finish(); assertTrue(decision.valid(), decision.reason());
+                assertEquals(1, decision.baseWear(), "Shears damage zero-hardness non-FIRE vegetation too");
+                if (!decision.observedEvent()) { nativeAccess.outcome = NativeSickleAccess.Outcome.complete(); return; }
+                int after = before + decision.resolvedWear(); mainDamage.set(after);
+                boolean broke = after >= 238; if (broke) mainCount.decrementAndGet();
+                nativeAccess.outcome = NativeSickleAccess.Outcome.complete().withWear(new NativeToolWear(mainHandIdentity,
+                        fullUnit(before, 238, "original-shears-components"), 2, 1, mainCount.get(),
+                        before, decision.resolvedWear(), after, 238, broke));
+            }
+        };
+        var behavior = behavior();
+        try (var scope = new Scope()) {
+            assertEquals(InteractionResult.SUCCESS_AND_CANCEL, behavior.useOnBlock(context));
+            assertEquals(9, nativeAccess.vegetation);
+            assertEquals(scenario.equals("break") ? 0 : 1, mainCount.get());
+            assertEquals(scenario.equals("break") ? 238 : scenario.equals("normal") ? 9 : 0, mainDamage.get());
+            verify(tool).hurtAndBreak(1, player, null);
+            verify(tool, never()).damage(any(Integer.class));
+            assertSame(tool, player.getItemInHand(InteractionHand.OFF_HAND));
+            assertTrue(tool.isSimilar(unit));
+        }
+    }
+
+    @ParameterizedTest @EnumSource(InteractionHand.class)
+    void nativeCancellationAndAListenersSlotChangeDoNotChargeEitherOriginalSickleHand(InteractionHand hand) {
+        when(context.getHand()).thenReturn(hand); nativeAccess.kind = NativeSickleAccess.Kind.VEGETATION;
+        var tracker = new NativeMiningDamageTracker(() -> true);
+        Consumer<BlockBreakEvent> cancelAndChangeSlot = event -> {
+            event.setCancelled(true); when(inventory.getHeldItemSlot()).thenReturn(3);
+        };
+        nativeAccess.onAction = () -> {
+            try (var session = tracker.begin(actor, 1, event -> false, event -> false)) {
+                assertNotNull(session);
+                var event = new BlockBreakEvent(block, actor); cancelAndChangeSlot.accept(event);
+                assertTrue(event.isCancelled()); assertEquals(3, inventory.getHeldItemSlot());
+                // Exercise the same production gate reached by native destroyBlock's canceled false result.
+                nativeAccess.outcome = NativeMiningImplementation.rejectedDestruction(session.finish());
+            }
+        };
+        var behavior = behavior();
+        try (var scope = new Scope()) {
+            assertEquals(InteractionResult.PASS, behavior.useOnBlock(context));
+            assertEquals(1, nativeAccess.vegetation);
+            assertEquals(NativeSickleAccess.Status.NOT_COMMITTED, nativeAccess.outcome.status());
+            verify(tool, never()).hurtAndBreak(anyInt(), any(), any());
+            verify(player, never()).swingHand(any(InteractionHand.class));
+            assertSame(tool, player.getItemInHand(hand));
         }
     }
 

@@ -15,7 +15,8 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from audit_upstream import AuditError, read_blobs
 from cookery_recipes import read_sources
 from cookery_village import (BIOMES, COMMIT, GEN, JAVA, JAVA_HASHES, NbtReader, NORMAL, RES,
-    RULE_HASHES, STRUCTURES, TOKEN_KEY, expected_loot, export, json_bytes, recipe_choices, structure_manifest)
+    PROCESSOR_KEY, PROCESSOR_PATH, RULE_HASHES, STRUCTURES, TOKEN_KEY, expected_loot, export, json_bytes,
+    recipe_choices, structure_manifest)
 from export_cookery_village import main as export_main
 
 SOURCE = Path(__file__).resolve().parents[2] / '.references/KaleidoscopeCookery'
@@ -67,6 +68,45 @@ class VillageExportTests(unittest.TestCase):
                     self.assertEqual(before.get('functions', []), after['functions'][1:])
                     self.assertIn('v1|item|' + before['name'], after['functions'][0]['tag'])
                     self.assertIn(TOKEN_KEY, after['functions'][0]['tag'])
+
+    def test_stable_named_processor_registers_only_an_empty_dormant_holder(self):
+        self.assertEqual('kaleidoscopecookery:crop_replace', PROCESSOR_KEY)
+        self.assertEqual('data/kaleidoscopecookery/worldgen/processor_list/crop_replace.json', PROCESSOR_PATH)
+        self.assertEqual({'processors': []}, json.loads(self.files[PROCESSOR_PATH]))
+        registration = self.manifest['nativeProcessorRegistration']
+        self.assertEqual(PROCESSOR_KEY, registration['key'])
+        self.assertEqual(PROCESSOR_PATH, registration['path'])
+        self.assertEqual(hashlib.sha256(self.files[PROCESSOR_PATH]).hexdigest(), registration['sha256'])
+        self.assertEqual('DORMANT_EMPTY_PLACEHOLDER', registration['mode'])
+        self.assertEqual('PREINSTALL_AND_ENABLE_BEFORE_NATIVE_WORLDGEN_REGISTRY_LOAD', registration['installation'])
+        self.assertEqual('NOT_PUBLISHED', registration['runtimeRules'])
+        self.assertEqual('source/crop_replace.json', registration['sourceRules'])
+        source = read_blobs(SOURCE, COMMIT, [RES + 'worldgen/processor_list/crop_replace.json'])
+        self.assertEqual(source[RES + 'worldgen/processor_list/crop_replace.json'], self.files[registration['sourceRules']])
+        self.assertEqual(2, len(json.loads(self.files[registration['sourceRules']])['processors'][0]['rules']))
+        # Native resources contain no unguarded kitchen selection or transient CE state reference.
+        self.assertEqual([PROCESSOR_PATH], [name for name in self.files if '/worldgen/' in name])
+        self.assertFalse(any('/template_pool/' in name or name.startswith('data/') and '/structure/' in name
+                             for name in self.files))
+
+    def test_cli_check_rejects_missing_or_active_replacement_of_the_dormant_processor(self):
+        with tempfile.TemporaryDirectory() as temp:
+            archive = Path(temp) / 'village.zip'
+            source_rules = self.files['source/crop_replace.json']
+            for changed in (None, source_rules, b'{"processors":[{"processor_type":"minecraft:nop"}]}\n'):
+                with self.subTest(missing=changed is None):
+                    with ZipFile(archive, 'w', compression=ZIP_DEFLATED) as output:
+                        for name, raw in sorted(self.files.items()):
+                            if name == PROCESSOR_PATH:
+                                if changed is None:
+                                    continue
+                                raw = changed
+                            output.writestr(name, raw)
+                    with patch('sys.argv', ['export_cookery_village', '--source', str(SOURCE),
+                                           '--output', str(archive), '--check']), \
+                            patch('export_cookery_village.export', return_value=(self.files, self.manifest)), \
+                            contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                        self.assertEqual(1, export_main())
 
     def test_nested_recipe_draw_is_one_equal_native_choice_in_source_food_order(self):
         table = json.loads(self.files['data/kaleidoscopecookery/loot_table/chest/recipe_randomly.json'])

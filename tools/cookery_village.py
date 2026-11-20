@@ -18,6 +18,8 @@ JAVA = 'src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/'
 RES = 'src/main/resources/data/' + ART + '/'
 GEN = 'src/generated/resources/data/' + ART + '/'
 BIOMES = ('plains', 'snowy', 'savanna', 'desert', 'taiga')
+PROCESSOR_KEY = PLUGIN + ':crop_replace'
+PROCESSOR_PATH = 'data/' + PLUGIN + '/worldgen/processor_list/crop_replace.json'
 STRUCTURES = dict(zip(BIOMES, (
     'ddca3c5a30a77379c231373af9cc0cee10efe17b897bbb94fdf419e60ccc13f5',
     'f7f14b7099d58e12ce4b9a956d07ee3b926d9771213eb89de50ec1c7684a0d2e',
@@ -245,6 +247,10 @@ def export(source: Path) -> tuple[dict[str, bytes], dict]:
         tables[name] = native_loot(original, choices)
     nested = {'pools': [{'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': 'minecraft:paper',
         'weight': 1, 'functions': [token('recipe|' + str(row['index']))]} for row in choices]}]}
+    # Register only the stable named native holder. CE states cannot be encoded here: their
+    # allocation exists only after CE configuration load. A separate guarded runtime publication
+    # must install the real rules before any kitchen can enter a natural generation pool.
+    placeholder = json_bytes({'processors': []})
     manifest = {'schemaVersion': 1, 'sourceCommit': COMMIT,
         'sourceFiles': {path: hashlib.sha256(raw).hexdigest() for path, raw in files.items()},
         'recipeSourceFiles': sources.files,
@@ -253,13 +259,19 @@ def export(source: Path) -> tuple[dict[str, bytes], dict]:
         'itemMappings': {ART + ':' + name: mapped(ART + ':' + name) for name, *_ in NORMAL + HIDDEN if name != 'recipe_item'},
         'tables': {PLUGIN + ':chest/' + name: name for name in TABLES},
         'tokenKey': TOKEN_KEY, 'tokenPrefix': TOKEN_PREFIX,
+        'nativeProcessorRegistration': {'key': PROCESSOR_KEY, 'path': PROCESSOR_PATH,
+            'sha256': hashlib.sha256(placeholder).hexdigest(), 'mode': 'DORMANT_EMPTY_PLACEHOLDER',
+            'installation': 'PREINSTALL_AND_ENABLE_BEFORE_NATIVE_WORLDGEN_REGISTRY_LOAD',
+            'runtimeRules': 'NOT_PUBLISHED', 'sourceRules': 'source/crop_replace.json'},
         'naturalVillageIntegration': 'NOT_IMPLEMENTED', 'runtime': 'NOT_TESTED',
-        'open': ['Five natural pools/templates/processors and reload barrier are not installed by this loot pack.',
+        'open': ['Five natural pools/templates/runtime processor rules and reload barrier are not installed by this loot pack.',
+                 'The empty named processor requires this pack enabled before native registry load; no automatic installation or activation is provided.',
                  'Native1.21.11 codec/RNG, Bukkit token bridge, once-only chest and recipe player flows require runtime acceptance.',
                  'Ingredient first alternatives use the pinned target tag expansion; external Forge mods/tags are unavailable.',
                  'Native1.21.11 RNG algorithms are used; cross-version1.20.1 seed equivalence is not claimed.']}
     output = {'pack.mcmeta': json_bytes({'pack': {'description': 'SenLuo pinned village loot; requires Cookery plugin bridge',
                 'min_format': [94, 1], 'max_format': [94, 1]}}), 'village-manifest.json': json_bytes(manifest)}
+    output[PROCESSOR_PATH] = placeholder
     for name, table in tables.items():
         output['data/' + PLUGIN + '/loot_table/chest/' + name + '.json'] = json_bytes(table)
     output['data/' + PLUGIN + '/loot_table/chest/recipe_randomly.json'] = json_bytes(nested)

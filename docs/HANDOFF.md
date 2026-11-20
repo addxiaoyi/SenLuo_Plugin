@@ -2,6 +2,18 @@
 
 2026-11-20。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
 
+## 2026-11-20 镰刀取消、共享读取门与有效村庄池前置
+
+修正普通植被破坏的剪刀损耗归属：实际 `ShearsItem.mineBlock` 不调用 `Item.mineBlock`，且零硬度非 FIRE 植物仍可磨损。现在按实际声明类及完整签名捕获两种已核实实现，保留原工具完整组件、数量、槽位、真实损耗／断裂事件认证。原生破坏被取消且完整观察无归属损耗时，外部监听器切槽不再误记为本操作已提交并扣镰刀耐久；观察失效、归属判断异常、真实损耗／断裂及原生异常仍保留 PARTIAL／失败。见[镰刀实现与边界](research/cookery-source-sickle-2026-11-20.md)。
+
+新增独立 CE 共享读取门，覆盖真实 lease、跨线程最后释放和加入读者验证竞态；尚未接入作物回调。五类原生有效池／processor 仅构造未发布候选，保持第三方对象、顺序、权重及 fallback，并拒绝 raw／expanded 分歧、语义冲突和超界分配。村庄包新增稳定命名的空 processor，占位必须在原生注册表读取前预装启用；没有自动安装或自然厨房接入。完整骨粉公开入口仍缺失，不从 PlayerInteract 回调提前执行原生物品事务。见[共享门及入口核查](research/cookery-resource-read-gate-2026-11-20.md)和[池准备及占位要求](research/cookery-village-pool-preparation-2026-11-20.md)。
+
+组合根 `test shadowJar acceptanceJar` 通过 **877 项 Java、97 套件，0 失败／错误／跳过**；根 Python **259/259**。独立村庄分支先通过 667 项 Java；组合结果才覆盖当前完整来源。Mockito 改用其支持的 premain agent。首轮 864 项中的一项新增字节码断言失败已修正；下一轮测试 JVM 原生分配 2,577,008 字节失败，完整崩溃、replay、XML 和 JAR 均保留，不计通过。最终仅限制本地测试即时编译开销后全量重跑通过，没有改变服务器堆、watchdog、其他项目进程或测试断言。
+
+生产 JAR SHA-256 为 `b65e3b412e2c7b186123eae179cfb4a3f0a447694b146409e6bc397722d52516`；探针仍为 `1edd0d2dae7fa867beb9285ac32bf0c0b22f9508054f09b2f349cd8dd88f0f35`，厨房包仍为 `32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe`。新村庄占位包为 `660e567a894617b318562205b8445058c07ebd055a322014e6da1bc9e7042174`。冻结产物、日志和 XML 位于本地 `build/evidence/resource-gate-sickle-village-final-5/`；完整身份与检查范围见[本批验证记录](research/cookery-resource-sickle-village-validation-2026-11-20.json)。
+
+用户选择先继续代码完善、实服窗口稍后安排，本批 Paper/Folia／客户端验收仍 **NOT_RUN**。一致发布／回滚、真实无生成读者生命周期、CE／数据包 reload 屏障、五 biome 自然选择与持久化、完整原生作物入口及 watchdog 根因继续 OPEN；C14 保持 `unit_tested`，全系列 `accepted=[]`，总目标未完成。
+
 ## 2026-11-20 来源镰刀原生分类与工具属性
 
 `c1e07c1` 将新导出的来源镰刀显式设为 `source-classified`：按真实原生 CropBlock 成熟状态用 EMPTY 掉落并复位，VegetationBlock 交原生普通破坏，可可等其他类型不再因 Bukkit Ageable 被误收。旧手写白名单缺省 `legacy-ageable` 保留；新策略与旧列表混用会拒绝而非静默忽略。四类瓜茎及附加原生／Cookery tag 黑名单保留。原生统计／饥饿和完整 loot 的提交边界、回调后的部分副作用均明确记录；异常不会被未认证耐久回执覆盖。

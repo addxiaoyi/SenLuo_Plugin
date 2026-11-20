@@ -64,6 +64,7 @@ class NativeMiningDamageTrackerTest {
         try (var session = begin(5)) {
             var receipt = session.finish();
             assertTrue(receipt.valid()); assertFalse(receipt.observedEvent());
+            assertTrue(receipt.completeObservation());
             assertEquals(5, receipt.baseWear()); assertEquals(0, receipt.resolvedWear());
         }
     }
@@ -116,6 +117,7 @@ class NativeMiningDamageTrackerTest {
             available.set(false);
             var receipt = session.finish();
             assertFalse(receipt.valid()); assertTrue(receipt.reason().contains("unavailable"));
+            assertFalse(receipt.completeObservation());
         }
         available.set(true);
         try (var session = begin(3)) { assertTrue(session.finish().valid()); }
@@ -144,6 +146,7 @@ class NativeMiningDamageTrackerTest {
             assertDoesNotThrow(() -> tracker.observe(new PlayerItemDamageEvent(actor, originalMirror, 3, 3)));
             var receipt = session.finish();
             assertFalse(receipt.valid()); assertTrue(receipt.reason().contains("attribution failed"));
+            assertFalse(receipt.completeObservation());
             assertTrue(receipt.reason().contains("raw mirror unavailable"));
         }
     }
