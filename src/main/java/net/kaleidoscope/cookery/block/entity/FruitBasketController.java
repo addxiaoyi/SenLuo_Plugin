@@ -190,6 +190,40 @@ public final class FruitBasketController extends BlockEntityController {
         return Item.empty();
     }
 
+    /** Stage both inventories before committing a bag/basket exchange. */
+    public Item exchangeLunchBag(Item original) {
+        var bagContents = net.kaleidoscope.cookery.item.LunchBagContents.read(original);
+        var basketContents = new ArrayList<Item>();
+        for (Item item : items) if (!ItemUtils.isEmpty(item)) basketContents.add(item.copy());
+        Item stagedBag = original.copy();
+        int moved = 0;
+        if (basketContents.isEmpty()) {
+            var remaining = new ArrayList<Item>();
+            for (Item item : bagContents) {
+                int inserted = net.kaleidoscope.cookery.item.LunchBagInventory.insert(basketContents, item, SLOTS);
+                moved += inserted;
+                if (inserted < item.count()) remaining.add(item.copyWithCount(item.count() - inserted));
+            }
+            net.kaleidoscope.cookery.item.LunchBagContents.write(stagedBag, remaining);
+        } else {
+            var remaining = new ArrayList<Item>();
+            for (Item item : basketContents) {
+                int inserted = net.kaleidoscope.cookery.item.LunchBagContents.canAdd(item)
+                        ? net.kaleidoscope.cookery.item.LunchBagInventory.insert(bagContents, item,
+                            net.kaleidoscope.cookery.item.LunchBagContents.MAX_SLOTS) : 0;
+                moved += inserted;
+                if (inserted < item.count()) remaining.add(item.copyWithCount(item.count() - inserted));
+            }
+            net.kaleidoscope.cookery.item.LunchBagContents.write(stagedBag, bagContents);
+            basketContents = remaining;
+        }
+        if (moved == 0) return Item.empty();
+        Arrays.fill(items, Item.empty());
+        for (int slot = 0; slot < basketContents.size(); slot++) items[slot] = basketContents.get(slot);
+        refresh();
+        return stagedBag;
+    }
+
     private void refresh() {
         ensurePositionsInitialized();
         for (int i = 0; i < SLOTS; i++) {

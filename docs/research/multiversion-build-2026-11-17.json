@@ -1,0 +1,395 @@
+{
+  "date": "2026-11-17",
+  "baselineCommit": "1d283d635909f1704f9d764188395c6ee8aca0ea",
+  "uncommittedWork": true,
+  "status": "development; full gameplay parity and all-version runtime acceptance incomplete",
+  "bundle": {
+    "path": "build/distribution/SenLuo-1.21.1-26.3-dev-20261117-v2.zip",
+    "bytes": 53233404,
+    "sha256": "c805536a0ed37a0357b68e456ed4d27ed9bc66c54a6862872ecaf5f0502e32d6",
+    "manifest": "build/distribution/SenLuo-1.21.1-26.3-dev-20261117-v2-BUILD-MANIFEST.json"
+  },
+  "javaTests": {
+    "cookery": {
+      "tests": 341,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "common": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "doll": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "tavern": {
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "deco": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "music": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "legacyApiTests": {
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pythonTests": {
+    "root": 113,
+    "series": 58,
+    "failures": 0
+  },
+  "versionedCookery": [
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.1.jar",
+      "minecraft": [
+        "1.21.1"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R1/NmsV1_21_R1.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.11.jar",
+      "minecraft": [
+        "1.21.11"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R7/NmsV1_21_R7.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.2-1.21.3.jar",
+      "minecraft": [
+        "1.21.2",
+        "1.21.3"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R2/NmsV1_21_R2.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.4.jar",
+      "minecraft": [
+        "1.21.4"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R3/NmsV1_21_R3.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.5.jar",
+      "minecraft": [
+        "1.21.5"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R4/NmsV1_21_R4.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.6-1.21.8.jar",
+      "minecraft": [
+        "1.21.6",
+        "1.21.7",
+        "1.21.8"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R5/NmsV1_21_R5.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.9-1.21.10.jar",
+      "minecraft": [
+        "1.21.9",
+        "1.21.10"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R6/NmsV1_21_R6.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.1-26.1.2.jar",
+      "minecraft": [
+        "26.1",
+        "26.1.1",
+        "26.1.2"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_1_R1/NmsV26_1_R1.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.2.jar",
+      "minecraft": [
+        "26.2"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_2_R1/NmsV26_2_R1.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.3.jar",
+      "minecraft": [
+        "26.3"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_3_R1/NmsV26_3_R1.class",
+      "runtime": "NOT_TESTED"
+    }
+  ],
+  "versionedCePacks": [
+    {
+      "file": "versioned-ce-packs/mc1.21.1/cookery-ce-pack-20261117.zip",
+      "family": "1.21.1",
+      "sourceSha256": "3d9936df2ac3c3a037419c3aed1ffcac2dbec4cb30ea6a5fe1e0469dcfcc7e3e",
+      "changes": [
+        {
+          "file": "cookery_kitchen/configuration/kitchen.yml",
+          "ironChainAliases": 1,
+          "legacyFoods": 103,
+          "legacyDrinkAnimations": 9,
+          "before": "78441b6782e9bb269314a6d8da8bf4375ef884ee2a119a4d67eb5c12dca62d95",
+          "after": "7640b86b308b7539eb11821e2a743d6007077c5f930c5fccc04d01e646567963"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [
+        {
+          "file": "configuration/content.yml",
+          "ironChainAliases": 39,
+          "legacyFoods": 38,
+          "legacyDrinkAnimations": 38,
+          "before": "204c87934f02eb7df59ef1c7c492e22b2db5dfce3ff0735b6672424394e9c64d",
+          "after": "95aaa40b21cc2e26dd18d754802e70ea120df0e05e0785f97127758601f1db67"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/cookery-ce-pack-20261117.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "3d9936df2ac3c3a037419c3aed1ffcac2dbec4cb30ea6a5fe1e0469dcfcc7e3e",
+      "changes": [
+        {
+          "file": "cookery_kitchen/configuration/kitchen.yml",
+          "ironChainAliases": 1,
+          "legacyFoods": 0,
+          "legacyDrinkAnimations": 0,
+          "before": "78441b6782e9bb269314a6d8da8bf4375ef884ee2a119a4d67eb5c12dca62d95",
+          "after": "c3410788b46299f677982eae84afb3b2b707f22568ed42e924d01560957d72f1"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [
+        {
+          "file": "configuration/content.yml",
+          "ironChainAliases": 39,
+          "legacyFoods": 0,
+          "legacyDrinkAnimations": 0,
+          "before": "204c87934f02eb7df59ef1c7c492e22b2db5dfce3ff0735b6672424394e9c64d",
+          "after": "f73ed6f60cda9df4e6b361471958c7ef7d4b4bce0f46ec6659b3b855a8ab5681"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/cookery-ce-pack-20261117.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "3d9936df2ac3c3a037419c3aed1ffcac2dbec4cb30ea6a5fe1e0469dcfcc7e3e",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    }
+  ],
+  "packValidation": {
+    "items": 1822,
+    "furniture": 1549,
+    "recipes": 117,
+    "reachable_custom_models": 2759,
+    "errors": [],
+    "scope": "Custom model parents, concrete texture references, item/furniture IDs and shared asset collisions; no server/render validation"
+  },
+  "servers": [
+    {
+      "minecraft": "1.21.1",
+      "java": 21,
+      "manifest": "build/acceptance/c/INSTALL-MANIFEST.json",
+      "manifestSha256": "942b367182dd6ac8e49621b3936f0156e2e2c36135415d19ffc732c80a32b63e",
+      "port": 25601,
+      "bind": "127.0.0.1",
+      "startup": "NOT_RUN",
+      "eulaAccepted": false,
+      "plugins": {
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "9959ceb3c032e48375e375bf28683306080d32c499a8a070caa90d03213a73c0",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "d31b574033ba73fe53402dff448577e8761bb7a749b7d65b8008f51c2c9a1884",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "a4bd957b5fb21ab11f5cee173bb8106ad2510bcee2fd685f0dca7d89a74e6032",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "79d69cbfd16be411e0ea93fe2c9d9c3023ac2c1eed55cc590906225d37f79465",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.1.jar": "0bdb212560b3892917e6039c16670c59a313b94e671463ce6087b8431223d8ea",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f"
+      },
+      "cePacks": {
+        "plugins/CraftEngine/resources/doll": "dfda4f7737340d2ea6f316a2ff523eaec464d2f7cda39f92b73efe5dab3a0295",
+        "plugins/CraftEngine/resources/tavern": "3339fbcf4b8daca7006a054aa37bc873f8116ca1b66aea4eda0c5698a3904724",
+        "plugins/CraftEngine/resources/deco": "a0a746077dae4b1f48de7e739015cab321e369a523f73e438c985c083278748f",
+        "plugins/CraftEngine/resources/music": "b612334a5fd7a19ecde6fed5bd8150ecbff6631633c3d35645b636aa12a7dc72",
+        "plugins/CraftEngine/resources/shared": "17bab28b4ad316e4998c339db805c1f2e9c04b1bf709a7e86641746f6bfff507",
+        "plugins/CraftEngine/resources/cookery_kitchen": "4f4b7f5187c6f999c4e119cbaa89ebc287b7fa8599bf8b98de48bf525ab83e58"
+      }
+    },
+    {
+      "minecraft": "26.3",
+      "java": 25,
+      "manifest": "build/acceptance/d/INSTALL-MANIFEST.json",
+      "manifestSha256": "468d616ae4b33ba993e5bc573adb4408dbb0bfc5c89e2c1a1bd228a637da0b6e",
+      "port": 25603,
+      "bind": "127.0.0.1",
+      "startup": "NOT_RUN",
+      "eulaAccepted": false,
+      "plugins": {
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "9959ceb3c032e48375e375bf28683306080d32c499a8a070caa90d03213a73c0",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "d31b574033ba73fe53402dff448577e8761bb7a749b7d65b8008f51c2c9a1884",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "a4bd957b5fb21ab11f5cee173bb8106ad2510bcee2fd685f0dca7d89a74e6032",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "79d69cbfd16be411e0ea93fe2c9d9c3023ac2c1eed55cc590906225d37f79465",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0-mc26.3.jar": "83d7f2e908bccbf05f7cf3fd359b33854980caa6c97473d4314a1d32a9b3b29b",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f"
+      },
+      "cePacks": {
+        "plugins/CraftEngine/resources/doll": "3f3e9517fe303da412f0b0dcaeb97d53262614a8604d79af763297adfb9af7f7",
+        "plugins/CraftEngine/resources/tavern": "6b4ae54d0408060ad99cd7e386d01fa945c9f7bcfaf4c9db6fd6d4594f3cb893",
+        "plugins/CraftEngine/resources/deco": "c686f2728322f2483b59c7c9f888a3d3fb2531fd6471ea2ee972000b0845ee44",
+        "plugins/CraftEngine/resources/music": "a1367ee6000a4da5c01dfca724c9981adfd3d2e0f755bedc79dc33313829f041",
+        "plugins/CraftEngine/resources/shared": "349474fdb327b34c3ec7b15972719e04671feab927c40f93780f638206407cee",
+        "plugins/CraftEngine/resources/cookery_kitchen": "74079b4b9babfc3346ff9684f966af87edb309bbc28ac1c6f149c2960a93d8b7"
+      }
+    }
+  ],
+  "cookeryRecipes": {
+    "source": 612,
+    "imported": 561,
+    "pending": 51
+  },
+  "limitations": [
+    "Minecraft EULA authorization requested; no answer received and no server launched.",
+    "Version-family artifacts prove compilation/configuration conversion only, not runtime on every intermediate version.",
+    "1.21.1 custom drinks use eating animation/sound; original client synthesis and geometry remain incomplete.",
+    "Historical Folia CraftEngine startup watchdog remains OPEN."
+  ],
+  "logs": [
+    "../cookery-build-all-2.log",
+    "../cookery-versioned.log",
+    "../series-ticker-build.log",
+    "../python-compat-final.log",
+    "../versioned-packs-v2.log",
+    "../development-bundle-v2.log",
+    "../version-servers-final.log"
+  ]
+}

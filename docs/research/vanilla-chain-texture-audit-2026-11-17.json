@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-17",
+  "source": "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
+  "versions": [
+    {
+      "version": "1.21.1",
+      "url": "https://piston-data.mojang.com/v1/objects/30c73b1c5da787909b2f73340419fdf13b9def88/client.jar",
+      "sha1": "30c73b1c5da787909b2f73340419fdf13b9def88",
+      "textures": {
+        "assets/minecraft/textures/block/chain.png": "44c712141c2914ef9d49143d5236b9f138810f947ab9c9992618e3b11d902ef4",
+        "assets/minecraft/textures/item/chain.png": "a2cfaf24d4442a9f3401b6df9ee3d30e33f39dd455786eaed3963d617f7869d9"
+      }
+    },
+    {
+      "version": "1.21.8",
+      "url": "https://piston-data.mojang.com/v1/objects/a19d9badbea944a4369fd0059e53bf7286597576/client.jar",
+      "sha1": "a19d9badbea944a4369fd0059e53bf7286597576",
+      "textures": {
+        "assets/minecraft/textures/block/chain.png": "44c712141c2914ef9d49143d5236b9f138810f947ab9c9992618e3b11d902ef4",
+        "assets/minecraft/textures/item/chain.png": "e5e0fee6cc772e68c50d1421ece0f4f44732e37657fd0758c5ce6f6979aa4fce"
+      }
+    },
+    {
+      "version": "1.21.9",
+      "url": "https://piston-data.mojang.com/v1/objects/ce92fd8d1b2460c41ceda07ae7b3fe863a80d045/client.jar",
+      "sha1": "ce92fd8d1b2460c41ceda07ae7b3fe863a80d045",
+      "textures": {
+        "assets/minecraft/textures/item/iron_chain.png": "e5e0fee6cc772e68c50d1421ece0f4f44732e37657fd0758c5ce6f6979aa4fce",
+        "assets/minecraft/textures/block/iron_chain.png": "44c712141c2914ef9d49143d5236b9f138810f947ab9c9992618e3b11d902ef4"
+      }
+    },
+    {
+      "version": "26.3",
+      "url": "https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar",
+      "sha1": "e877b6a07acd633fb3bb475002175cec036e7b87",
+      "textures": {
+        "assets/minecraft/textures/block/iron_chain.png": "44c712141c2914ef9d49143d5236b9f138810f947ab9c9992618e3b11d902ef4",
+        "assets/minecraft/textures/item/iron_chain.png": "e5e0fee6cc772e68c50d1421ece0f4f44732e37657fd0758c5ce6f6979aa4fce"
+      }
+    }
+  ],
+  "findings": [
+    "Block chain texture bytes match in 1.21.1, 1.21.8, 1.21.9 and 26.3; resource identifier changes at 1.21.9.",
+    "Modern item/iron_chain texture matches 1.21.8 item/chain, while 1.21.1 item texture differs.",
+    "Six Tavern pendant-lamp model particle textures reference old vanilla chain; custom model geometry is unaffected.",
+    "Official client archives are inspection inputs only and are not redistributed."
+  ]
+}

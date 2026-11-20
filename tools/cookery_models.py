@@ -103,7 +103,7 @@ def verify_models(assets: dict[str, bytes], roots: set[str]) -> int:
     checked: dict[str, dict] = {}
     visiting: set[str] = set()
 
-    def visit(identifier: str) -> dict:
+    def inherit(identifier: str) -> dict:
         if ':' not in identifier:
             identifier = 'minecraft:' + identifier
         if identifier.startswith(('minecraft:', 'builtin/')):
@@ -119,8 +119,18 @@ def verify_models(assets: dict[str, bytes], roots: set[str]) -> int:
         model = json.loads(assets[path], object_pairs_hook=unique_object)
         if 'loader' in model:
             raise AuditError(f'client-only loader remains: {identifier}')
-        inherited = visit(model['parent']) if 'parent' in model else {}
-        textures = {**inherited, **model.get('textures', {})}
+        inherited = inherit(model['parent']) if 'parent' in model else {}
+        effective = {**inherited, **model,
+                     'textures': {**inherited.get('textures', {}), **model.get('textures', {})}}
+        visiting.remove(identifier)
+        checked[identifier] = effective
+        return effective
+
+    def visit(identifier: str, override_chain: tuple[str, ...] = ()) -> None:
+        if identifier in override_chain:
+            raise AuditError(f'cyclic model override: {identifier}')
+        model = inherit(identifier)
+        textures = model.get('textures', {})
 
         def texture(ref: str, chain: frozenset[str] = frozenset()) -> None:
             if ref.startswith('#'):
@@ -138,9 +148,9 @@ def verify_models(assets: dict[str, bytes], roots: set[str]) -> int:
         for element in model.get('elements', []):
             for face in element.get('faces', {}).values():
                 texture(face['texture'])
-        visiting.remove(identifier)
-        checked[identifier] = textures
-        return textures
+        for override in model.get('overrides', []):
+            if 'model' in override:
+                visit(override['model'], override_chain + (identifier,))
 
     for identifier in sorted(roots):
         visit(identifier)
@@ -152,4 +162,6 @@ def model_roots(node: dict) -> set[str]:
         return {node['path']}
     if node['type'] == 'minecraft:select':
         return model_roots(node['fallback']) | set().union(*(model_roots(case['model']) for case in node['cases']))
+    if node['type'] == 'minecraft:range_dispatch':
+        return model_roots(node['fallback']) | set().union(*(model_roots(entry['model']) for entry in node['entries']))
     raise AuditError(f'unsupported item model node: {node["type"]}')

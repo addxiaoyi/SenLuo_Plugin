@@ -6,12 +6,14 @@ Assets are local build outputs; their upstream licenses are kept with the packs.
 from __future__ import annotations
 
 import copy
-from deco_interactions import item_tag_sources, rules as deco_rules, link_variants, selected_model
+from deco_interactions import item_tag_sources, rules as deco_rules, link_variants, selected_model, inventory_legacy_model
+from deco_geometry import legacy_composite
 
 import argparse
 from dataclasses import dataclass
 import io
 import json
+import math
 import re
 import subprocess
 import tarfile
@@ -419,6 +421,18 @@ def model_tree(model: dict[str, Any], namespaces: set[str]) -> dict[str, Any]:
     converted["type"] = "minecraft:" + kind
     if kind == "model":
         converted["path"] = converted.pop("model")
+        # Vanilla tint arrays are normalized RGB even when JSON spells them as integers.
+        # CE treats all-integer arrays as byte RGB. Decimal strings retain normalized
+        # precision and make the intended branch explicit, including scientific notation.
+        for tint in converted.get('tints', []):
+            field = 'value' if tint['type'].removeprefix('minecraft:') == 'constant' else 'default'
+            value = tint.get(field)
+            if isinstance(value, list):
+                if (len(value) != 3 or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                                         or not math.isfinite(v) or not 0 <= v <= 1 for v in value)):
+                    raise ValueError('Invalid normalized item tint color')
+                from decimal import Decimal
+                tint[field] = [format(Decimal(str(float(v))), 'f') for v in value]
     elif kind == "composite":
         converted["models"] = [model_tree(child, namespaces) for child in model["models"]]
     elif kind in ("select", "range_dispatch"):
@@ -511,12 +525,8 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
                 raise ValueError(f"Conflicting base Deco assets: {key}")
             original[key] = content
     namespaces = {key.split("/")[0] for key in original}
-    # These two upstream models still use the pre-move texture paths.
-    for plate in ("plate", "porcelain_plate"):
-        old = f"kaleidoscope_cookery/textures/block/{plate}.png"
-        new = f"kaleidoscope_cookery/textures/block/meals/{plate}.png"
-        if old not in original and new in original:
-            original[old] = original[new]
+    from deco_asset_aliases import add_moved_asset_aliases
+    add_moved_asset_aliases(original)
     assets = {"kdeco_" + key: json_bytes(remap_deco(parse_json(content), namespaces))
               if key.endswith(".json") else content for key, content in original.items()}
     indexes, templates, tables, pending = deco_indexes(source)
@@ -542,13 +552,30 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
             if not isinstance(cmd, dict):
                 cmd = {}
             flags = cmd.get("flags", [])
+            # SNBT stores booleans as byte 0/1; nbtlib unpacks them as Python ints.
+            if any(type(value) not in (bool, int) or value not in (0, 1) for value in flags):
+                raise ValueError('Invalid source custom model data flags')
+            flags = [bool(value) for value in flags]
             if index in ("kaleidoscope_bar:counter_stool_short", "kaleidoscope_bar:counter_stool_tall"):
                 flags = [index.endswith("short")]
-            model = model_tree(selected_model(selector, cmd.get("strings", []), flags), namespaces)
+            model = model_tree(selected_model(selector, cmd.get("strings", []), flags, cmd.get("floats", [])), namespaces)
             item_definition = {"material": "paper", "data": {"item_name": index}, "model": model}
+            legacy = inventory_legacy_model(model) or legacy_composite(model, assets)
+            if legacy is not None:
+                item_definition['legacy_model'] = legacy
             placeable(item_definition, id_)
             furnishing = furniture(id_, "kaleidoscope_deco:interaction", seated=definition.get("events", {}).get("right_click", {}).get("fallback", {}).get("event") == "sit")
             variant = furnishing["variants"]["ground"]
+            visual = selected_model(model, [], [], context='none')
+            if visual != model:
+                visual_id = id_ + '/ce_display'
+                if visual_id in items:
+                    raise ValueError(f'Generated display item collision: {visual_id}')
+                items[visual_id] = {'material': 'paper', 'model': visual}
+                visual_legacy = legacy_composite(visual, assets)
+                if visual_legacy is not None:
+                    items[visual_id]['legacy_model'] = visual_legacy
+                variant['elements'][0]['item'] = visual_id
             dimensions = definition.get("interactsize", {})
             if not isinstance(dimensions, dict):
                 raise ValueError("Multiple interaction boxes require adaptation")
@@ -558,7 +585,8 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
             items[id_] = item_definition
             furnishings[id_] = furnishing
             entries.append({"id": id_, "category": path.split("/")[1], "source": path,
-                            "rules": deco_rules(definition, source.files, pending, index, path.split("/")[1], tags)})
+                            "rules": [] if index in ('fishrack_0', 'fishrack_1', 'fishrack_2', 'fishrack_3') else
+                            deco_rules(definition, source.files, pending, index, path.split("/")[1], tags)})
             if index == "kaleidoscope_bar:sofa":
                 for color in ("none", *COLORS):
                     for mode in ("single", "left", "right", "middle"):
@@ -570,11 +598,11 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
                         styled["elements"][0]["item"] = visual_id
                         furnishing["variants"][style] = styled
                         styles.append(style)
-            if any(k.removeprefix("minecraft:") == "custom_model_data" for k in components):
-                pending.append(f"Component-selected appearance requires porting: {index}")
         except ValueError as error:
             pending.append(f"Furniture {index}: {error}")
     link_variants(entries, furnishings, pending)
+    from deco_fishrack import add_fishrack_variants
+    add_fishrack_variants(items, furnishings, assets)
     pending = [f"{message} ({count} uses)" if count > 1 else message for message, count in Counter(pending).items()]
     items["kaleidoscope_deco:state_tool"] = item("kaleidoscope_deco:state_tool", "minecraft:item/stick", "家具状态工具", max_stack=1)
     return {"entries": entries, "styles": styles}, {"items": items, "furniture": furnishings}, assets, pending + [
@@ -610,7 +638,7 @@ def music(source: Source) -> tuple[dict, dict, dict, list]:
     id_ = "musicplus:handheld_instrument"
     return {}, {"items": {id_: item(id_, "musicplus:item/handheld_instrument", "森罗乐器", max_stack=1)}}, assets, [
         "upstream Bedrock geometry and first-person animation require a client renderer; the CE item uses the official guitar texture with vanilla display transforms",
-        "MIDI is played as scheduled vanilla note sounds, without the mod's client synthesizer or sustained voice rendering",
+        "MIDI note-off, sustain pedal and channel stop events control bounded periodic vanilla note sounds; continuous client synthesizer timbres are unavailable",
     ]
 
 

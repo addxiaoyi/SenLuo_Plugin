@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-17",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "sourcePath": "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/animation/TrashCanAnimation.java",
+  "sourceSha256": "b321231200a615c2a43096784750d426f57e09e3ef57dc81dc39ad476a4825ad",
+  "resourceSha256": "e7d8b3f662393377dd26c5b150cad0e3bb5004454f7d74b4baefa998a01dd6de",
+  "animations": 5,
+  "channels": 15,
+  "keyframes": 51,
+  "geometryParts": {
+    "trashcan_1": [
+      "bone"
+    ],
+    "trashcan_2": [
+      "bone2",
+      "cube_r1"
+    ],
+    "trashcan_3": [
+      "eye"
+    ],
+    "trashcan_4": [
+      "bone3"
+    ]
+  },
+  "changes": [
+    "original fractional timestamps and destination-key LINEAR/CATMULLROM interpolation",
+    "independent pupil transform with parent eye translation",
+    "source coordinate Y/Z rotation signs and lid pivot",
+    "world-time source hash scheduling with Java int overflow",
+    "current trackers and late arrivals receive current pose",
+    "ticker replaces queued per-frame tasks; unload/load resets animation"
+  ],
+  "limitations": [
+    "20Hz server sampling and vanilla display interpolation differ from per-render-frame source evaluation",
+    "packet encoding without recipients does not prove client appearance",
+    "hiding, collision, waterlogging and HUD gaps remain"
+  ],
+  "subagentsUsed": false
+}

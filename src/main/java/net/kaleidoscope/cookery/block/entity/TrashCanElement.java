@@ -28,7 +28,7 @@ public final class TrashCanElement implements FurnitureElement {
     private static final int BODY_SLOT = 0;
     private static final int LID_SLOT = 1;
     private static final int EYE_SLOT = 2;
-    private static final float LID_PIVOT_Y = 0.421875f;
+    private static final int PUPIL_SLOT = 3;
 
     private static final int STORAGE_SLOTS = 3;
     // 三件掉落物的渲染位置 方块内相对坐标 0 到 1
@@ -40,8 +40,9 @@ public final class TrashCanElement implements FurnitureElement {
 
     private final TrashCanController controller;
     private final WorldPosition basePos;
-    // 槽 0 桶身 槽 1 桶盖 槽 2 眼睛
-    private final ItemDisplaySet display = new ItemDisplaySet(3);
+    // Source eye parent and bone3 child need separate transforms for blinking.
+    private final ItemDisplaySet display = new ItemDisplaySet(4);
+    private volatile TrashCanAnimation.Pose pose = TrashCanAnimation.Pose.REST;
     private final DroppedItemDisplay[] items = new DroppedItemDisplay[STORAGE_SLOTS];
     // 有玩家进入垃圾桶时隐藏桶内掉落物 物品仍然保存
     private boolean itemsHidden;
@@ -88,6 +89,7 @@ public final class TrashCanElement implements FurnitureElement {
             boolean was = items[i].present();
             items[i].set(itemPos(i), s[i].isEmpty() ? s[i] : s[i].copyWithCount(1));
             boolean now = items[i].present();
+            if (itemsHidden) continue;
             if (!was && now) {
                 for (Player p : tracked) {
                     items[i].show(p);
@@ -108,6 +110,7 @@ public final class TrashCanElement implements FurnitureElement {
         refreshPart(ItemKeys.TRASHCAN_BODY, BODY_SLOT);
         refreshPart(ItemKeys.TRASHCAN_LID, LID_SLOT);
         refreshPart(ItemKeys.TRASHCAN_EYE, EYE_SLOT);
+        refreshPart(ItemKeys.TRASHCAN_PUPIL, PUPIL_SLOT);
         refreshItems();
     }
 
@@ -117,19 +120,22 @@ public final class TrashCanElement implements FurnitureElement {
                 basePos.x - 0.5 + o[0], basePos.y - 0.5 + o[1], basePos.z - 0.5 + o[2]);
     }
 
-    public Object openFrameMeta(float rotXDeg, float posYModel, int durationTicks) {
-        float yaw = yawRad();
-        float angle = (float) Math.toRadians(rotXDeg);
-        float cos = (float) Math.cos(angle);
-        float sin = (float) Math.sin(angle);
-        Vector3f t = new Vector3f(0f, LID_PIVOT_Y * (1f - cos) + posYModel / 16f, -LID_PIVOT_Y * sin);
-        t.rotateY(yaw);
-        Quaternionf rot = new Quaternionf().rotateY(yaw).rotateX(angle);
-        return ItemDisplayPackets.builder()
-                .translation(t.x, t.y, t.z)
-                .leftRotation(rot)
-                .interpolation(durationTicks, 0)
-                .meta(display.id(LID_SLOT));
+    private List<Object> poseMetas(TrashCanAnimation.Pose frame,int duration) {
+        List<Object> packets=new ArrayList<>();
+        for(int part=0;part<4;part++) {
+            if(display.meta(part)==null)continue;
+            var transform=TrashCanTransforms.part(part,frame,yawRad());
+            Vector3f t=transform.translation();
+            packets.add(ItemDisplayPackets.builder().translation(t.x,t.y,t.z).leftRotation(transform.rotation())
+                    .interpolation(duration,0).meta(display.id(part)));
+        }
+        return packets;
+    }
+
+    public void applyPose(TrashCanAnimation.Pose frame,Iterable<Player> recipients,int duration) {
+        pose=frame;
+        List<Object> packets=poseMetas(frame,duration);
+        for(Player player:recipients)player.sendPackets(packets,false);
     }
 
     @Override
@@ -148,54 +154,17 @@ public final class TrashCanElement implements FurnitureElement {
         if (display.meta(EYE_SLOT) != null) {
             packets.add(display.meta(EYE_SLOT));
         }
+        if (display.meta(PUPIL_SLOT) != null) packets.add(display.meta(PUPIL_SLOT));
         if (!packets.isEmpty()) {
             player.sendPackets(packets, false);
         }
+        player.sendPackets(poseMetas(pose,0),false);
     }
 
     @Override
     public void gatherInteractableEntityId(IntConsumer collector) {
         collector.accept(display.id(BODY_SLOT));
         collector.accept(display.id(LID_SLOT));
-    }
-
-    // 进入动画
-    public Object bodyEnterFrameMeta(float rotYDeg, int durationTicks) {
-        float yaw = yawRad();
-        Quaternionf rot = new Quaternionf().rotateY(yaw + (float) Math.toRadians(rotYDeg));
-        return ItemDisplayPackets.builder()
-                .leftRotation(rot)
-                .interpolation(durationTicks, 0)
-                .meta(display.id(BODY_SLOT));
-    }
-
-    // 进入动画
-    public Object lidEnterFrameMeta(float rotZDeg, float posYModel, int durationTicks) {
-        float yaw = yawRad();
-        float angle = (float) Math.toRadians(rotZDeg);
-        float cos = (float) Math.cos(angle);
-        float sin = (float) Math.sin(angle);
-        Vector3f t = new Vector3f(LID_PIVOT_Y * sin, LID_PIVOT_Y * (1f - cos) + posYModel / 16f, 0f);
-        t.rotateY(yaw);
-        Quaternionf rot = new Quaternionf().rotateY(yaw).rotateZ(angle);
-        return ItemDisplayPackets.builder()
-                .translation(t.x, t.y, t.z)
-                .leftRotation(rot)
-                .interpolation(durationTicks, 0)
-                .meta(display.id(LID_SLOT));
-    }
-
-    // 待机动画
-    public Object eyeMeta(float posXModel, float posYModel, int durationTicks) {
-        float yaw = yawRad();
-        Vector3f t = new Vector3f(posXModel / 16f, posYModel / 16f, 0f);
-        t.rotateY(yaw);
-        Quaternionf rot = new Quaternionf().rotateY(yaw);
-        return ItemDisplayPackets.builder()
-                .translation(t.x, t.y, t.z)
-                .leftRotation(rot)
-                .interpolation(durationTicks, 0)
-                .meta(display.id(EYE_SLOT));
     }
 
     public void setItemsHidden(boolean hidden) {
@@ -219,6 +188,8 @@ public final class TrashCanElement implements FurnitureElement {
         display.showSlot(player, BODY_SLOT);
         display.showSlot(player, LID_SLOT);
         display.showSlot(player, EYE_SLOT);
+        display.showSlot(player, PUPIL_SLOT);
+        player.sendPackets(poseMetas(pose,0),false);
         if (!itemsHidden) {
             for (DroppedItemDisplay d : items) {
                 d.show(player);

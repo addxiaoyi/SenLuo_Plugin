@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-17",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "status": "PROTECTION_FIXED_PENDING_CONTENT_IMPORT",
+  "files": {
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/item/ScarecrowItem.java": "0d1dfc08f602e196c627e05cbe9f9585533a00e72db050452639556bf9151f4e",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/entity/ScarecrowEntity.java": "80c9938ed8bffd30040b7b28d0595e5ca0344e7836028886b603671a12c9ff03",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/event/ScarecrowFarmlandTrampleEvent.java": "0dd7e4909ee7467b30f430c06221fb51295da176ccd55ed1e795babd7291f720",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/model/ScarecrowModel.java": "65b42a8c680a16b5d7b4a9826ee6b60d674abb342b3213e19baaac2cf84498a5",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/render/entity/ScarecrowRender.java": "cb5bc1612f2ff7f8c7330da04d8a7891818cc71592607941099a553b9c33be1e"
+  },
+  "findings": {
+    "placement": [
+      "Entity dimensions 0.5 wide, 2.375 high; not a two-block structure.",
+      "Reject bottom face; check native block collision and all entities in bounding box.",
+      "Yaw quantized to eight 45-degree directions; armor stand placement sound and ENTITY_PLACE game event."
+    ],
+    "farmland": [
+      "Query new AABB(farmlandBlock).inflate(16); strict intersection with scarecrow entity bounding box.",
+      "Existing plugin uses a sphere around anchor and omits diagonal and tall vertical overlaps.",
+      "Chunk buckets must cover entity half-width beyond integer radius, including negative/fractional positions."
+    ],
+    "equipment": [
+      "Source empty hand takes main-hand first, then off-hand, regardless of which side was clicked.",
+      "Durable items fill first free hand, then second; existing plugin routes durable items only to main hand and accepts lanterns in off hand.",
+      "Source applies five-tick cooldown when entering head/hand handler, even if exchange returns PASS.",
+      "Source clears equipment before giving it; plugin takeSlot and preRemove hand off items before clearing, needing reentry audit.",
+      "Creative filled-head exchange behavior differs from existing plugin."
+    ],
+    "other": [
+      "Source shoulder occupant is saved entity NBT, with on-ground/no-water/no-powder-snow gate, <=1.5 squared-distance and release after twenty ticks.",
+      "Source hit handling has five-tick double-hit destruction, creative no item drops, explosions equipment-only; generic furniture is not equivalent.",
+      "Source entity can fall and ride minecarts; furniture is anchored.",
+      "Body/headless geometry needs conversion of hierarchical Java model, including 0.2182-radian hat rotation and 128px texture."
+    ]
+  },
+  "runtime": "NOT_TESTED",
+  "implementedThisIncrement": [
+    "Replaced spherical distance with strict AABB intersection including 0.5 width and 2.375 height.",
+    "Extended chunk registration radius by entity half-width rounded up; added four source-geometry regressions."
+  ]
+}

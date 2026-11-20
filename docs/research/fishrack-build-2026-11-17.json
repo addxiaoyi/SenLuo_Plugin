@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-17",
+  "status": "DEVELOPMENT_CHECKPOINT_VERIFIED",
+  "bundle": "build\\distribution\\SenLuo-1.21.1-26.3-dev-20261117-fishrack-v1.zip",
+  "bytes": 54598355,
+  "sha256": "f3e6d93628ea782d21405b17b0b4e463055227deef3a31d02e7de5578f4fa815",
+  "manifestFiles": 70,
+  "cookeryVersionJars": 10,
+  "versionedCePacks": 18,
+  "runtimeEvidence": "docs/research/fishrack-runtime-2026-11-17.json",
+  "javaTestExecutions": 742,
+  "pythonTests": {
+    "cookery": 138,
+    "series": 73
+  },
+  "runtimePluginHashesMatchBundle": true,
+  "serversStoppedAndPortsFree": true,
+  "subagentsUsed": false,
+  "limitations": "Full parity, clients, player flows, Folia and intermediate runtime versions remain unverified or incomplete."
+}

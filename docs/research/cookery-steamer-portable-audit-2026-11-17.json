@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-17",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "sourceFiles": {
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/blockentity/kitchen/SteamerBlockEntity.java": "0ed1b513a1077ffafd5d0b2610ad2117881586d76227aedefbfa8abaf1af4ee0",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/kitchen/SteamerBlock.java": "e76703c7cafb6ebb5718ebfe53750ecb418ace761d881d5cb33f8060d5918d55",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/item/SteamerItem.java": "1c232b06c1158c22899cc938c5abf81a9451d33be4a9ccc301f0a8c3b4d58971",
+    "src/main/resources/data/kaleidoscope_cookery/recipes/raw_dough_steamer.json": "06e1139a49f105ae08473b6468ab6e92237dbb9690d2dfcc8fe0c55594948bb3",
+    "src/main/resources/data/kaleidoscope_cookery/recipes/stuffed_dough_food_steamer.json": "d13087b3229c4d0b7d3ab34f091869f770eb9f66002789038a6cbbecf68f92af"
+  },
+  "implementedThisIncrement": [
+    "Portable four-slot custom_data codec, native item encoding, cooking state, detached metadata preservation and stack limit.",
+    "Strict rejection of ambiguous/legacy payloads; no silent old Forge migration.",
+    "Placement transaction merges lower/incoming slots, honors callbacks, preserves source on cancellation, and restores lower state on native write failure.",
+    "One/two portable containers replace loose contents and old base loot; creative and block-drop rule handling.",
+    "Exact two source recipes with four count-one raw ingredients and 1200 ticks, CE native shapeless postprocessor.",
+    "Compiled optional real CE recipe/native codec/disk reload probe; not executed."
+  ],
+  "pending": [
+    "All-at-once extraction, empty layer dismantle, offhand, nonheat support, source-facing/base rules.",
+    "Solid shape, waterlogging, filled item visuals/tooltips and legacy Forge item migration.",
+    "Native loot-context cancellation/explosion/tool semantics; controller onRemove currently emits portable drops.",
+    "Folia stack traversal, native fall callbacks, region ownership loss, unload/reload and forced replacement need runtime lifecycle validation.",
+    "All target-version server and vanilla-client acceptance remains NOT_TESTED."
+  ],
+  "recipes": {
+    "imported": 610,
+    "pending": 2,
+    "newFilledSteamerRecipesEnabled": true
+  },
+  "sourceHashEncoding": "SHA256 of local reference checkout bytes, including checkout line endings",
+  "priorAudit": "docs/research/cookery-steamer-state-audit-2026-11-17.json"
+}

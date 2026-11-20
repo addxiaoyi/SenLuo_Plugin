@@ -17,6 +17,7 @@ from export_cookery_catalog import COMMIT
 ART = 'kaleidoscope_cookery'
 PLUGIN = 'kaleidoscopecookery'
 VANILLA_ALIASES = {'minecraft:chain': 'minecraft:iron_chain'}
+PLUGIN_ITEM_ALIASES = {'kitchen_shovel': 'kitchen_shovel_no_oil', 'recipe_item': 'recipe_item_no_recipe'}
 RESOURCE = re.compile(r'src/(?:main|generated)/resources/data/([^/]+)/(recipes|tags/items)/(.+)\.json\Z')
 SCHEMAS = {
     'bamboo_tray': ({'duration', 'ingredient', 'result', 'subtype'}, set()),
@@ -55,6 +56,23 @@ PENDING = {
     'crafting_shapeless': 'Recipe references content not yet included in this kitchen pack.',
 }
 MILLSTONE_MISSING_TAGS = frozenset(('forge:gravel', 'forge:sand/red', 'forge:sand/colorless'))
+# Explicit vanilla members of Forge's standard tags. Bukkit has no Forge tag
+# registry; source-provided definitions always take precedence over these fallbacks.
+VANILLA_TAG_FALLBACKS = {
+    'forge:ingots/iron': ('minecraft:iron_ingot',),
+    'forge:ingots/gold': ('minecraft:gold_ingot',),
+    'forge:ingots/copper': ('minecraft:copper_ingot',),
+    'forge:gems/diamond': ('minecraft:diamond',),
+    'forge:nuggets/iron': ('minecraft:iron_nugget',),
+    'forge:mushrooms': ('minecraft:brown_mushroom', 'minecraft:red_mushroom'),
+    'forge:gravel': ('minecraft:gravel',),
+    'forge:sand/red': ('minecraft:red_sand',),
+    'forge:sand/colorless': ('minecraft:sand',),
+    # Forge 1.20.1-47.3.0 includes infested stone as well as the survival variants.
+    'forge:cobblestone': ('minecraft:cobblestone', 'minecraft:infested_cobblestone',
+                          'minecraft:mossy_cobblestone', 'minecraft:cobbled_deepslate'),
+}
+VANILLA_TAG_ALIASES = {'forge:fences/wooden': 'minecraft:wooden_fences'}
 
 
 def identifier(value: Any) -> str:
@@ -68,7 +86,7 @@ def mapped(value: str) -> str:
     if namespace == 'minecraft':
         return VANILLA_ALIASES.get(value, value)
     if namespace == ART:
-        return PLUGIN + ':' + name
+        return PLUGIN + ':' + PLUGIN_ITEM_ALIASES.get(name, name)
     raise AuditError(f'unmapped custom item: {value}')
 
 
@@ -160,6 +178,10 @@ class RecipeSources:
         if tag in chain:
             raise AuditError(f'cyclic ingredient tag: {chain + (tag,)}')
         if tag not in self.tags:
+            if tag in VANILLA_TAG_FALLBACKS:
+                return list(VANILLA_TAG_FALLBACKS[tag])
+            if tag in VANILLA_TAG_ALIASES:
+                return self.expand({'tag': VANILLA_TAG_ALIASES[tag]}, chain + (tag,), vanilla_tags, omissions)
             if vanilla_tags and tag.startswith('minecraft:'):
                 return ['#' + tag]
             raise MissingTag(f'required tag absent from pinned resources: {tag}')
@@ -172,7 +194,9 @@ class RecipeSources:
             identifier(ref.removeprefix('#'))
             optional = isinstance(entry, dict) and not entry['required']
             reason = None
-            if optional and ref.startswith('#') and ref[1:] not in self.tags and not ref.startswith('#minecraft:'):
+            if (optional and ref.startswith('#') and ref[1:] not in self.tags
+                    and ref[1:] not in VANILLA_TAG_FALLBACKS and ref[1:] not in VANILLA_TAG_ALIASES
+                    and not ref.startswith('#minecraft:')):
                 reason = 'Optional tag is absent from the fixed source tree.'
             elif optional and not ref.startswith(('#', 'minecraft:', ART + ':')):
                 reason = 'Optional external item has no mapping in the fixed plugin target.'
@@ -324,6 +348,66 @@ def crafting_recipes(sources: RecipeSources, records: list[dict], available: set
     return recipes
 
 
+def filled_steamer_recipes(records: list[dict], available: set[str]) -> tuple[dict, dict]:
+    """Translate only the two pinned four-slot Forge payloads using a runtime item codec."""
+    rows = [row for row in records if isinstance(row['original']['result'], dict) and 'nbt' in row['original']['result']]
+    expected_names = {'raw_dough_steamer': 'raw_dough', 'stuffed_dough_food_steamer': 'stuffed_dough_food'}
+    if {r['sourceId'] for r in rows} != {ART + ':' + n for n in expected_names} or len(rows) != 2:
+        raise AuditError('expected two pinned filled-steamer recipes')
+    recipes, manifest = {}, {}
+    for row in rows:
+        name = row['sourceId'].split(':')[1]
+        raw = ART + ':' + expected_names[name]
+        nbt = '{BlockEntityTag:{CookingProgress:[I;0,0,0,0],CookingTime:[I;1200,1200,1200,1200],Items:[' + ','.join(
+            '{Count:1b,Slot:' + str(i) + 'b,id:"' + raw + '"}' for i in range(4)) + ']}}'
+        expected = {'type': 'minecraft:crafting_shapeless', 'category': 'misc',
+                    'ingredients': [{'item': ART + ':steamer'}] + [{'item': raw}] * 4,
+                    'result': {'item': ART + ':steamer', 'nbt': nbt}}
+        if row['original'] != expected:
+            raise AuditError('unsupported filled-steamer source payload')
+        if not {PLUGIN + ':steamer', mapped(raw)} <= available:
+            raise AuditError('uninstalled filled-steamer ingredient')
+        key = PLUGIN + ':upstream/' + row['sourceId'].replace(':', '/')
+        recipes[key] = {'type': 'shapeless', 'category': 'misc',
+                        'ingredients': [PLUGIN + ':steamer'] + [mapped(raw)] * 4,
+                        'result': {'id': PLUGIN + ':steamer', 'count': 1,
+                                   'post_processors': [{'type': PLUGIN + ':filled_steamer', 'ingredient': mapped(raw)}]}}
+        manifest[key] = {'sourceId': row['sourceId'], 'slots': 4, 'countPerSlot': 1, 'cookingTime': 1200,
+                         'ingredient': mapped(raw), 'component': 'minecraft:custom_data', 'runtime': 'NOT_TESTED'}
+        row.update(status='imported', section='recipes', pluginIds=[key],
+                   reason='Exact Forge NBT contents converted to four portable slots by native item codec; player acceptance pending.')
+    return recipes, manifest
+
+
+def smithing_recipes(records: list[dict], available: set[str]) -> tuple[dict, dict]:
+    """The pinned knife upgrade uses native smithing slots plus explicit custom-data transfer."""
+    rows = [row for row in records if row['type'] == 'minecraft:smithing_transform']
+    if len(rows) != 1 or rows[0]['sourceId'] != 'minecraft:netherite_kitchen_knife_smithing':
+        raise AuditError('expected the one pinned kitchen-knife smithing recipe')
+    row = rows[0]
+    expected = {'type': 'minecraft:smithing_transform',
+                'template': {'item': 'minecraft:netherite_upgrade_smithing_template'},
+                'base': {'item': ART + ':diamond_kitchen_knife'},
+                'addition': {'item': 'minecraft:netherite_ingot'},
+                'result': {'item': ART + ':netherite_kitchen_knife'}}
+    if row['original'] != expected:
+        raise AuditError('unsupported kitchen-knife smithing source')
+    base, result = mapped(expected['base']['item']), mapped(expected['result']['item'])
+    if base not in available or result not in available:
+        raise AuditError('uninstalled kitchen-knife smithing item')
+    key = PLUGIN + ':upstream/minecraft/netherite_kitchen_knife_smithing'
+    recipe = {'type': 'smithing_transform', 'template_type': [expected['template']['item']],
+              'base': [base], 'addition': [expected['addition']['item']],
+              'result': {'id': result, 'count': 1}, 'merge_components': True,
+              'transform_processors': [{'type': PLUGIN + ':kitchen_knife_smithing'}]}
+    row.update(status='imported', section='recipes', pluginIds=[key],
+               reason='Native smithing with CE component merge and user custom_data transfer; player/shift/cancellation acceptance pending.')
+    return {key: recipe}, {key: {'sourceId': row['sourceId'], 'sourceCommit': COMMIT,
+        'base': base, 'result': result, 'template': expected['template']['item'], 'addition': expected['addition']['item'],
+        'count': 1, 'customData': 'preserve_base_user_values_and_target_craftengine_identity',
+        'runtime': 'NOT_TESTED', 'playerFlow': 'NOT_TESTED'}}
+
+
 def cooking_recipes(sources: RecipeSources, records: list[dict]) -> tuple[dict[str, dict], set[str]]:
     """Import vanilla furnace-family recipes whose item inputs are directly portable."""
     recipes, required = {}, set()
@@ -423,6 +507,11 @@ def recipe_report(sources: RecipeSources, records: list[dict], config: dict) -> 
                                           'policy': 'Only explicitly optional references absent from this fixed target are omitted; '
                                                     'installed external content requires an explicit mapping and a new import.'},
             'targetItemAliases': VANILLA_ALIASES,
+            'pluginItemAliases': PLUGIN_ITEM_ALIASES,
+            'externalTagFallbacks': VANILLA_TAG_FALLBACKS,
+            'externalTagAliases': VANILLA_TAG_ALIASES,
+            'externalTagPolicy': 'Explicit vanilla members only when the fixed source has no tag definition; '
+                                 'additional modded members require a configured mapping and a new import.',
             'sourceCount': len(records), 'statusCounts': dict(sorted(Counter(r['status'] for r in records).items())),
             'sourceTypes': dict(sorted(Counter(r['type'] for r in records).items())),
             'importedSections': {key: len(value) for key, value in config.items()},

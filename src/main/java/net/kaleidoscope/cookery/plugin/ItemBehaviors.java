@@ -13,11 +13,17 @@ public final class ItemBehaviors {
     public static ItemBehaviorType<TeapotItemBehavior> TEAPOT;
     public static ItemBehaviorType<OilPotItemBehavior> OIL_POT;
     public static ItemBehaviorType<TransmutationLunchBagBehavior> TRANSMUTATION_LUNCH_BAG;
+    public static ItemBehaviorType<net.kaleidoscope.cookery.item.behavior.EightImmortalsTableItemBehavior> EIGHT_IMMORTALS_TABLE;
     public static ItemBehaviorType<net.kaleidoscope.cookery.item.behavior.PlacedMealItemBehavior> PLACED_MEAL;
+    public static ItemBehaviorType<net.kaleidoscope.cookery.item.behavior.SteamerItemBehavior> STEAMER;
 
     private ItemBehaviors() {}
 
     public static void register() {
+        if (STEAMER == null) STEAMER = RegistryUtils.registerItemBehavior(
+                Key.of("kaleidoscopecookery:steamer_item"), net.kaleidoscope.cookery.item.behavior.SteamerItemBehavior.FACTORY);
+        if (EIGHT_IMMORTALS_TABLE == null) EIGHT_IMMORTALS_TABLE = RegistryUtils.registerItemBehavior(
+                Key.of("kaleidoscopecookery:eight_immortals_table_item"), net.kaleidoscope.cookery.item.behavior.EightImmortalsTableItemBehavior.FACTORY);
         if (PLACED_MEAL == null) PLACED_MEAL = RegistryUtils.registerItemBehavior(
                 Key.of("kaleidoscopecookery:placed_meal_item"), net.kaleidoscope.cookery.item.behavior.PlacedMealItemBehavior.FACTORY);
         if (SICKLE_RANGE_HARVEST == null) {

@@ -99,12 +99,14 @@ public final class Drinks implements Listener {
         String id = Items.id(event.getItem());
         if (!plugin.catalog().effects().containsKey(id) && !id.equals("kaleidoscope_tavern:signature_cocktail")) return;
         List<DrinkEffect> effects = effects(event.getItem());
-        plugin.later(event.getPlayer(), () -> effects.forEach(effect -> apply(event.getPlayer(), effect)));
+        plugin.later(event.getPlayer(), () -> {
+            if (!event.isCancelled()) effects.forEach(effect -> apply(event.getPlayer(), effect));
+        });
     }
 
     private void apply(Player player, DrinkEffect effect) {
         if (ThreadLocalRandom.current().nextDouble() >= effect.probability()) return;
-        var type = Registry.MOB_EFFECT.get(NamespacedKey.fromString(effect.effect()));
+        var type = Registry.EFFECT.get(NamespacedKey.fromString(effect.effect()));
         if (type != null) {
             player.addPotionEffect(new PotionEffect(type, Math.max(1, effect.duration() * 20), effect.amplifier()));
         } else custom.apply(player, effect);

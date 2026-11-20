@@ -19,7 +19,7 @@ class IndependenceTests(unittest.TestCase):
             first = root / "KaleidoscopeDoll-2.0.0.jar"
             first.write_bytes(b"jar")
             path, error = _single_match((root,), "KaleidoscopeDoll-*.jar")
-            self.assertEqual(first, path)
+            self.assertEqual(first.resolve(), path)
             self.assertIsNone(error)
             (root / "KaleidoscopeDoll-2.1.0.jar").write_bytes(b"jar")
             path, error = _single_match((root,), "KaleidoscopeDoll-*.jar")

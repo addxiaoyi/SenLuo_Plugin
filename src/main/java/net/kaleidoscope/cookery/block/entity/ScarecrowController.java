@@ -6,15 +6,15 @@ import net.kaleidoscope.cookery.api.KaleidoscopeAdvancements;
 
 import net.kaleidoscope.cookery.block.behavior.ScarecrowBehavior;
 import net.kaleidoscope.cookery.item.ItemKeys;
-import net.kaleidoscope.cookery.util.BlockEntityNbt;
 import net.kaleidoscope.cookery.util.ChunkIndex;
-import net.kaleidoscope.cookery.util.DropUtils;
 import net.kaleidoscope.cookery.util.FoliaUtil;
 import net.kaleidoscope.cookery.util.InteractGuard;
 import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.kaleidoscope.cookery.util.LightBlocks;
-import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.kaleidoscope.cookery.util.ScarecrowInventoryTransfer;
+import net.kaleidoscope.cookery.util.FurnitureRecovery;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.bukkit.api.event.FurnitureBreakEvent;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureController;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElement;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
@@ -23,7 +23,6 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
@@ -31,6 +30,8 @@ import net.momirealms.craftengine.libraries.nbt.CompoundTag;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.GameMode;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -45,7 +46,6 @@ import java.util.function.Consumer;
 // 稻草人
 public final class ScarecrowController extends FurnitureController {
     private static final String DATA_KEY = "kaleidoscopecookery:scarecrow";
-    private static final String K_ITEMS = "items";
 
     private static final ChunkIndex<Protection> INDEX = new ChunkIndex<>();
 
@@ -57,7 +57,17 @@ public final class ScarecrowController extends FurnitureController {
 
     private int tickCounter;
     private UUID perchUuid;
-    private volatile long lastInteractNanos;
+    private long perchSinceTick;
+    private final ScarecrowHitState hitState = new ScarecrowHitState();
+    private float wobbleAngle;
+    private FurnitureBreakEvent approvedBreak;
+    private long approvedBreakTick = Long.MIN_VALUE;
+    private boolean playerBreakEffects;
+    private long nextInteractTick;
+    private long equipmentRevision;
+    private boolean interacting, removing, unloaded;
+    private boolean removalConfirmed, removalSettled, creativeRemoval;
+    private CompoundTag rejectedState;
     private Protection indexedProtection;
     // 点亮的那一格 家具被旋转过后按现位置反算会清错格 所以记下点灯时那个坐标
     private BlockPos litPos;
@@ -70,8 +80,10 @@ public final class ScarecrowController extends FurnitureController {
     }
 
     public Item item(int slot) {
-        return this.items[slot];
+        return this.items[slot].copy();
     }
+
+    public float wobbleAngle() { return wobbleAngle; }
 
 
     public static boolean protects(World world, int x, int y, int z) {
@@ -115,7 +127,7 @@ public final class ScarecrowController extends FurnitureController {
         this.indexedProtection = new Protection(
                 position.x, position.y, position.z, this.behavior.protectionRadius);
         INDEX.register(this.indexedProtection, world,
-                (int) Math.floor(position.x), (int) Math.floor(position.z), this.behavior.protectionRadius);
+                (int) Math.floor(position.x), (int) Math.floor(position.z), this.indexedProtection.indexRadius());
     }
 
     private void removeFromIndex() {
@@ -129,31 +141,97 @@ public final class ScarecrowController extends FurnitureController {
     @Override
     public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
         Player player = context.getPlayer();
-        if (context.getHand() != InteractionHand.MAIN_HAND) {
+        if (player == null || context.getHand() != InteractionHand.MAIN_HAND) {
             return InteractionResult.PASS;
         }
-        if (!InteractGuard.canInteract(player, furniture().position())) {
-            return InteractionResult.PASS;
-        }
+        if (!accessible(player)) return InteractionResult.FAIL;
         int slot = slotOf(hitBox);
         if (slot < 0) {
             return InteractionResult.PASS;
         }
-        long now = System.nanoTime();
-        if (now - this.lastInteractNanos < this.behavior.interactCooldownNanos) {
+        return exchange(player, slot == ScarecrowElement.SLOT_HEAD);
+    }
+
+    private boolean usable() {
+        var pos=furniture().position();
+        return !removing&&!unloaded&&rejectedState==null&&furniture().isValid()
+                &&Bukkit.isOwnedByCurrentRegion((World)pos.world().platformWorld(),((int)Math.floor(pos.x))>>4,((int)Math.floor(pos.z))>>4);
+    }
+    private boolean accessible(Player player) {
+        if(player==null||interacting||!usable())return false;
+        return player.platformPlayer() instanceof org.bukkit.entity.Player actor && actor.getGameMode()!=GameMode.SPECTATOR
+                &&Bukkit.isOwnedByCurrentRegion(actor)&&actor.getWorld()==furniture().position().world().platformWorld()
+                &&InteractGuard.canInteract(player,furniture().position());
+    }
+
+    /** The source selects the hand area as a whole; either side uses main hand first. */
+    public InteractionResult exchange(Player player,boolean head) {
+        if(!accessible(player))return InteractionResult.FAIL;
+        Item expected=player.getItemInHand(InteractionHand.MAIN_HAND).copy();
+        if(!expected.isEmpty()&&expected.vanillaId().equals(net.momirealms.craftengine.core.util.Key.of("minecraft:name_tag")))
             return InteractionResult.PASS;
+        long now=((World)furniture().position().world().platformWorld()).getGameTime();
+        if(now<nextInteractTick)return InteractionResult.PASS;
+        // Entering either source handler starts cooldown even if the input is rejected.
+        nextInteractTick=now+behavior.interactCooldownTicks;
+        interacting=true;
+        try {
+            var plan=ScarecrowEquipment.plan(items,head,expected,!expected.isEmpty()&&isHeadItem(expected),player.canInstabuild());
+            if(plan==null)return InteractionResult.PASS;
+            long revision=equipmentRevision;
+            Item[] next=Arrays.stream(items).map(Item::copy).toArray(Item[]::new);
+            next[plan.slot()]=plan.stored();
+            validateEquipment(next);
+            var actor=(org.bukkit.entity.Player)player.platformPlayer();
+            var inventory=actor.getInventory();
+            ItemStack[] before=plan.taking()?copyStacks(inventory.getStorageContents()):null;
+            ItemStack[] after=plan.taking()?ScarecrowInventoryTransfer.plan(inventory,InventoryUtils.bukkitCopy(plan.hand())):null;
+            if(plan.taking()&&after==null)return InteractionResult.FAIL;
+            Item held=player.getItemInHand(InteractionHand.MAIN_HAND);
+            if(!usable()||equipmentRevision!=revision||!sameStack(held,expected)
+                    ||before!=null&&!Arrays.equals(before,inventory.getStorageContents()))return InteractionResult.FAIL;
+            // No event-emitting drop/give call: the empty hand guarantees storage space.
+            // Keep ownership in the furniture until the inventory write succeeds.
+            try {
+                if(plan.taking())inventory.setStorageContents(after);
+                else player.setItemInHand(InteractionHand.MAIN_HAND,plan.hand());
+            } catch(RuntimeException error) {
+                if(plan.taking()&&Arrays.equals(after,inventory.getStorageContents()))inventory.setStorageContents(before);
+                else if(!plan.taking()&&sameStack(player.getItemInHand(InteractionHand.MAIN_HAND),plan.hand()))
+                    player.setItemInHand(InteractionHand.MAIN_HAND,expected);
+                throw error;
+            }
+            this.items[plan.slot()]=plan.stored();equipmentRevision++;
+            refresh();
+            if(!plan.taking()) {
+                var pos=furniture().position();
+                ((World)pos.world().platformWorld()).playSound(new Location((World)pos.world().platformWorld(),pos.x,pos.y,pos.z),
+                        "minecraft:entity.item_frame.add_item",SoundCategory.NEUTRAL,1,1);
+            }
+            player.swingHand(InteractionHand.MAIN_HAND);
+            if(plan.placedHead())KaleidoscopeAdvancements.recordEvent(player,"place_head_on_scarecrow");
+            return InteractionResult.SUCCESS_AND_CANCEL;
+        } finally {
+            interacting=false;
+            if(removalConfirmed)finishRemoval();
         }
-        Item inHand = player.getItemInHand(InteractionHand.MAIN_HAND);
-        InteractionResult result = slot == ScarecrowElement.SLOT_HEAD
-                ? useOnHead(player, inHand)
-                : useOnHands(player, inHand, slot);
-        if (result != InteractionResult.PASS) {
-            this.lastInteractNanos = now;
-        }
-        return result;
+    }
+
+    private static ItemStack[] copyStacks(ItemStack[] source) {
+        return Arrays.stream(source).map(item->item==null?null:item.clone()).toArray(ItemStack[]::new);
+    }
+    private static boolean sameStack(Item first,Item second) {
+        return first!=null&&first.count()==second.count()&&(second.isEmpty()?first.isEmpty():first.isSimilar(second));
+    }
+    private static void validateEquipment(Item[] slots) {
+        CompoundTag root=new CompoundTag();
+        CookeryBlockStateEnvelope.put(root,DATA_KEY,ScarecrowEquipment.write(slots));
+        try {net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData.of(root).toBytes();}
+        catch(java.io.IOException error){throw new IllegalArgumentException("Cannot persist scarecrow equipment",error);}
     }
 
     private int slotOf(FurnitureHitBox hitBox) {
+        if(hitBox==null)return -1;
         for (int slot = 0; slot < this.slotHitboxes.length; slot++) {
             if (this.slotHitboxes[slot] == hitBox) {
                 return slot;
@@ -172,92 +250,24 @@ public final class ScarecrowController extends FurnitureController {
         }
     }
 
-    private InteractionResult useOnHead(Player player, Item inHand) {
-        if (ItemUtils.isEmpty(inHand)) {
-            return takeSlot(player, ScarecrowElement.SLOT_HEAD);
-        }
-        if (!isHeadItem(inHand)) {
-            return InteractionResult.PASS;
-        }
-        return putSlot(player, ScarecrowElement.SLOT_HEAD, inHand);
-    }
-
-    // 点哪只手取哪只手 但放置按分类走 灯笼只进副手 工具只进主手
-    private InteractionResult useOnHands(Player player, Item inHand, int clickedSlot) {
-        if (ItemUtils.isEmpty(inHand)) {
-            return takeSlot(player, clickedSlot);
-        }
-        if (ItemKeys.isLantern(inHand.vanillaId())) {
-            return putSlot(player, ScarecrowElement.SLOT_OFF_HAND, inHand);
-        }
-        if (isTool(inHand)) {
-            return putSlot(player, ScarecrowElement.SLOT_MAIN_HAND, inHand);
-        }
-        return InteractionResult.PASS;
-    }
-
     private boolean isHeadItem(Item item) {
         Material material = material(item);
         if (material == null) {
             return false;
         }
         String name = material.name();
-        return material.isItem() && (name.endsWith("_HEAD") || name.endsWith("_SKULL"));
-    }
-
-    // 创造模式只在空槽放且不扣物品 手里超过一个时只能放进空槽 正好一个时才交换
-    private InteractionResult putSlot(Player player, int slot, Item inHand) {
-        Item previous = this.items[slot];
-        if (player.canInstabuild()) {
-            if (!ItemUtils.isEmpty(previous)) {
-                return InteractionResult.PASS;
-            }
-            this.items[slot] = inHand.copyWithCount(1);
-        } else if (inHand.count() > 1) {
-            if (!ItemUtils.isEmpty(previous)) {
-                return InteractionResult.PASS;
-            }
-            this.items[slot] = inHand.copyWithCount(1);
-            InventoryUtils.shrinkHeld(player, inHand, 1);
-        } else {
-            this.items[slot] = inHand.copyWithCount(1);
-            InventoryUtils.shrinkHeld(player, inHand, 1);
-            if (!ItemUtils.isEmpty(previous)) {
-                InventoryUtils.giveOrHold(player, InteractionHand.MAIN_HAND, previous);
-            }
-        }
-        refresh();
-        player.swingHand(InteractionHand.MAIN_HAND);
-        if (slot == ScarecrowElement.SLOT_HEAD) {
-            KaleidoscopeAdvancements.recordEvent(player, "place_head_on_scarecrow");
-        }
-        return InteractionResult.SUCCESS_AND_CANCEL;
-    }
-
-    private InteractionResult takeSlot(Player player, int slot) {
-        if (ItemUtils.isEmpty(this.items[slot])) {
-            return InteractionResult.PASS;
-        }
-        InventoryUtils.giveOrHold(player, InteractionHand.MAIN_HAND, this.items[slot]);
-        this.items[slot] = Item.empty();
-        refresh();
-        player.swingHand(InteractionHand.MAIN_HAND);
-        return InteractionResult.SUCCESS_AND_CANCEL;
-    }
-
-    // 要判物品自己的最大耐久
-    // Material#getMaxDurability 是原版基材的耐久 自定义工具挂在无耐久基材上时会漏判
-    private boolean isTool(Item item) {
-        return !isHeadItem(item) && item.maxDamage() > 0;
+        return name.endsWith("_HEAD") || name.endsWith("_SKULL");
     }
 
     private Material material(Item item) {
-        ItemStack stack = ItemStackUtils.getBukkitStack(item.minecraftItem());
-        return stack == null ? null : stack.getType();
+        var key=item.vanillaId();
+        return key==null?null:Material.matchMaterial(key.asString());
     }
 
     // trackedBy 是列表快照 getTrackedBy 返回的是活的集合 别的 region 线程正在改它
     private void refresh() {
+        furniture().setUnsaved();
+        if(removing||unloaded)return;
         this.element.rebuild();
         furniture().trackedBy().forEach(this.element::update);
         refreshLight();
@@ -269,13 +279,25 @@ public final class ScarecrowController extends FurnitureController {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        if (!this.behavior.parrotPerch) {
-            return null;
+        return (FurnitureTicker<T>) (FurnitureTicker<ScarecrowController>) (furniture, controller) -> {
+            controller.tickWobble();
+            if (controller.behavior.parrotPerch) controller.tickPerch();
+        };
+    }
+
+    private void tickWobble() {
+        if (!usable()) return;
+        long now = ((World) furniture().position().world().platformWorld()).getGameTime();
+        if (approvedBreak != null && approvedBreakTick != now) approvedBreak = null;
+        float next = hitState.angle(now);
+        if (next != wobbleAngle) {
+            wobbleAngle = next;
+            element.applyWobble(next, furniture().trackedBy(), 1);
         }
-        return (FurnitureTicker<T>) (FurnitureTicker<ScarecrowController>) (furniture, controller) -> controller.tickPerch();
     }
 
     private void tickPerch() {
+        if(!usable()||interacting)return;
         if (++this.tickCounter < this.behavior.parrotScanInterval) {
             return;
         }
@@ -350,6 +372,7 @@ public final class ScarecrowController extends FurnitureController {
             return;
         }
         this.perchUuid = anchor.getUniqueId();
+        this.perchSinceTick = world.getGameTime();
     }
 
     private void releasePerch() {
@@ -376,6 +399,8 @@ public final class ScarecrowController extends FurnitureController {
 
     @Override
     public void onLoad() {
+        unloaded=false;
+        hitState.reset(); wobbleAngle = 0; approvedBreak = null;
         addToIndex();
         this.element.rebuild();
         refreshLight();
@@ -389,6 +414,8 @@ public final class ScarecrowController extends FurnitureController {
 
     @Override
     public void onUnload() {
+        unloaded=true;
+        hitState.reset(); wobbleAngle = 0; approvedBreak = null;
         removeFromIndex();
         // 这里跑在区块系统的实体状态变更回调里 移除实体会被 Paper 拒绝并刷一整页栈
         // 锚点是 setPersistent(false) 的 跟着区块一起消失 忘掉 uuid 就行
@@ -399,58 +426,137 @@ public final class ScarecrowController extends FurnitureController {
 
     @Override
     public InteractionResult onPlayerHit(Player player, FurnitureHitBox hitBox) {
-        releasePerch();
+        // CE invokes this during LOWEST FurnitureHitEvent. Defer all mutations
+        // until its break event has passed protection listeners.
         return InteractionResult.PASS;
+    }
+
+    public boolean playerStrike(org.bukkit.entity.Player actor) {
+        approvedBreak = null;
+        if (interacting || !usable() || actor == null || !Bukkit.isOwnedByCurrentRegion(actor)
+                || actor.getWorld() != furniture().position().world().platformWorld()
+                || actor.getGameMode() != GameMode.SURVIVAL && actor.getGameMode() != GameMode.CREATIVE) return false;
+        var pos = furniture().position();
+        Location at = new Location((World) pos.world().platformWorld(), pos.x, pos.y, pos.z);
+        if (!InteractGuard.canBreak(actor, at) || !usable()) return false;
+        long now = at.getWorld().getGameTime();
+        if (hitState.strike(now, actor.getGameMode() == GameMode.CREATIVE) == ScarecrowHitState.Result.DESTROY) return true;
+        // Source releases an occupied shoulder only once it has been held >20 ticks.
+        if (perchUuid != null && perchSinceTick + 20 < now) releasePerch();
+        ScarecrowHitEffects.hit(at, actor);
+        return false;
+    }
+
+    /** Called only for the final, uncanceled break event; consumed by immediate preRemove. */
+    public void acceptPlayerBreak(FurnitureBreakEvent event) {
+        if (event == null || event.isCancelled() || !usable()) return;
+        approvedBreak = event;
+        approvedBreakTick = ((World) furniture().position().world().platformWorld()).getGameTime();
     }
 
     @Override
     public void preRemove(Player player) {
+        if (removing) return;
+        removing=true;
+        creativeRemoval=player!=null&&player.canInstabuild();
+        var actor = player == null ? null : (org.bukkit.entity.Player) player.platformPlayer();
+        // CE event functions run after Bukkit MONITOR and may cancel or change drops.
+        // Read the final event state here rather than freezing the MONITOR verdict.
+        boolean approved = actor != null && approvedBreak != null && !approvedBreak.isCancelled()
+                && actor.getUniqueId().equals(approvedBreak.getPlayer().getUniqueId())
+                && approvedBreakTick == ((World) furniture().position().world().platformWorld()).getGameTime();
+        playerBreakEffects = approved;
+        if (approved && !approvedBreak.dropItems()) creativeRemoval = true;
+        approvedBreak = null;
         removeFromIndex();
         releasePerch();
         clearLight();
-        WorldPosition position = furniture().position();
-        // 从身上而不是脚下掉 免得物品卡进底座模型里
-        WorldPosition dropAt = new WorldPosition(position.world(), position.x, position.y + 1, position.z);
-        DropUtils.dropAll(position.world(), dropAt, Arrays.asList(this.items));
-        Arrays.fill(this.items, Item.empty());
+    }
+
+    @Override public void postRemove(Player player) {
+        removalConfirmed=true;
+        if(!interacting)finishRemoval();
+    }
+
+    private void finishRemoval() {
+        if(removalSettled)return;
+        removalSettled=true;
+        try { settleEquipment(); }
+        finally {
+            if (playerBreakEffects) {
+                var pos = furniture().position();
+                ScarecrowHitEffects.broken(new Location((World) pos.world().platformWorld(), pos.x, pos.y, pos.z));
+            }
+        }
+    }
+
+    private void settleEquipment() {
+        if(rejectedState!=null) {FurnitureRecovery.save(this,"scarecrow");return;}
+        if(creativeRemoval) {Arrays.fill(items,Item.empty());return;}
+        var pos=furniture().position();World world=(World)pos.world().platformWorld();
+        Location at=new Location(world,pos.x,pos.y+1,pos.z);
+        try {
+            for(int slot=0;slot<items.length;slot++) {
+                if(items[slot].isEmpty())continue;
+                ItemStack expected=InventoryUtils.bukkitCopy(items[slot]);
+                var drop=world.dropItemNaturally(at,expected.clone());
+                if(!drop.isValid()||!expected.equals(drop.getItemStack())) {
+                    if(drop.isValid())drop.remove();break;
+                }
+                items[slot]=Item.empty();equipmentRevision++;
+            }
+        } finally {
+            if(Arrays.stream(items).anyMatch(item->!item.isEmpty()))FurnitureRecovery.save(this,"scarecrow");
+        }
     }
 
     @Override
     public void saveCustomData(CompoundTag tag) {
-        CompoundTag data = BlockEntityNbt.newData();
-        data.put(K_ITEMS, BlockEntityNbt.saveSlots(this.items));
-        CookeryBlockStateEnvelope.put(tag, DATA_KEY, data);
+        if(rejectedState!=null) {
+            for(String key:new String[]{DATA_KEY,CookeryBlockStateEnvelope.sidecar(DATA_KEY)}) {
+                var original=rejectedState.get(key);
+                if(original==null)tag.remove(key);else tag.put(key,original.deepClone());
+            }
+            return;
+        }
+        CookeryBlockStateEnvelope.put(tag,DATA_KEY,ScarecrowEquipment.write(items));
     }
 
     @Override
     public void loadCustomData(CompoundTag tag) {
-        Arrays.fill(this.items, Item.empty());
-        CompoundTag data = CookeryBlockStateEnvelope.payload(tag, DATA_KEY);
-        if (data == null) {
-            return;
-        }
-        BlockEntityNbt.loadSlots(data.getList(K_ITEMS), BlockEntityNbt.dataVersion(data), this.items);
-        this.element.rebuild();
+        if(interacting)throw new IllegalStateException("Cannot reload scarecrow during exchange");
+        try {
+            if(tag.containsKey(DATA_KEY)&&!(tag.get(DATA_KEY) instanceof CompoundTag))throw new IllegalArgumentException("Invalid scarecrow payload");
+            Item[] restored=ScarecrowEquipment.read(CookeryBlockStateEnvelope.payload(tag,DATA_KEY));
+            System.arraycopy(restored,0,items,0,items.length);equipmentRevision++;
+            rejectedState=null;this.element.rebuild();
+        } catch(RuntimeException error) {rejectedState=tag.deepClone();throw error;}
     }
 
-    private static final class Protection {
+    static final class Protection {
         private final double x;
         private final double y;
         private final double z;
         private final double radius;
 
-        private Protection(double x, double y, double z, double radius) {
+        Protection(double x, double y, double z, double radius) {
             this.x = x;
             this.y = y;
             this.z = z;
             this.radius = radius;
         }
 
-        private boolean covers(int blockX, int blockY, int blockZ) {
-            double dx = this.x - (blockX + 0.5);
-            double dy = this.y - (blockY + 0.5);
-            double dz = this.z - (blockZ + 0.5);
-            return dx * dx + dy * dy + dz * dz <= this.radius * this.radius;
+        boolean covers(int blockX, int blockY, int blockZ) {
+            // Source queries AABB(farmland).inflate(radius) against a 0.5 x 2.375 entity.
+            // AABB.intersects uses strict bounds: merely touching a face is not protection.
+            return this.x + .25 > blockX - radius && this.x - .25 < blockX + 1.0 + radius
+                    && this.y + 2.375 > blockY - radius && this.y < blockY + 1.0 + radius
+                    && this.z + .25 > blockZ - radius && this.z - .25 < blockZ + 1.0 + radius;
+        }
+
+        int indexRadius() {
+            // Fractional anchors plus entity width can reach the next integer/chunk bucket.
+            return (int) Math.ceil(radius + .25);
         }
     }
 }

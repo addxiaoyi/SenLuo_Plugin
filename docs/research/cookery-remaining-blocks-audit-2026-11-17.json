@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-17",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "status": "AUDIT_ONLY_NOT_IMPLEMENTED",
+  "files": {
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/misc/OilBlock.java": "d33cad2b3a91aa3bf934c5628d41102f55da05b071a186885a0956f8b22ca5f5",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/misc/StrawBlocks.java": "f5cd513843c7cd02578670592e4a8238f1de54887a2a9b8526b7a7e5a29c2dfd",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/decoration/LongBenchBlock.java": "9e2452547b26dc2e6a154b9d7b08f94fc12794c99eb0e60b7bbd3a775c20c633",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/decoration/EightImmortalsTableBlock.java": "1884963c3394f88d1736edad4d465af931e8b10581776a79ad4668a5e6c90d27"
+  },
+  "findings": {
+    "oil_block": [
+      "Friction 0.985, slime sounds, full block geometry, disallows natural mob spawn.",
+      "UP face is fire source, not sticky to pistons.",
+      "Client ambient wax-off particles with 1/50 probability.",
+      "Compression and decompression recipes are pending until behavior is implemented."
+    ],
+    "straw_block": [
+      "Axis follows clicked face; grass sounds, hardness/resistance 0.5.",
+      "fallOn skips default fall damage; only living entities trigger sound/destruction.",
+      "Below 3 blocks no destruction; otherwise probability clamp(fallDistance/30,0,1).",
+      "Destroyed straw returns 5 rice_panicle and 4 rice_seed plus smoke, not its block item.",
+      "Requires protection, cancellation, region and exactly-once handling before enabling recipes."
+    ],
+    "long_bench": [
+      "One horizontal axis, joins only matching axis, 4 segment models.",
+      "Seat entity height 0.5, sneaking skips seat; passenger offset comes from SitEntity.",
+      "Direction-to-segment mapping differs from TableBlock; cannot blindly reuse table joining."
+    ],
+    "eight_immortals_table": [
+      "2x2 four-part block with facing and anchor at RIGHT_BOTTOM.",
+      "Placement validates every part against border, height, replaceability, collision and mayUseItemAt.",
+      "Removal clears matching neighbors without duplicate drops; piston reaction BLOCK.",
+      "Collision top y12..16 of 16, no source tabletop inventory."
+    ]
+  },
+  "next": "Continue these implementations with verified CE API support; existing table/chair checkpoint does not implement them."
+}

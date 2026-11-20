@@ -1,0 +1,476 @@
+{
+  "date": "2026-11-17",
+  "status": "DEVELOPMENT_CHECKPOINT; partial Paper endpoint runtime acceptance",
+  "bundle": {
+    "path": "build/distribution/SenLuo-1.21.1-26.3-dev-20261117-steamer-runtime-v3.zip",
+    "bytes": 54381041,
+    "sha256": "88b6d9e6aa87fe99716d370f11a0bccea776186b6a11aa06fd2ed89add051b8c",
+    "manifestFilesVerified": 68,
+    "crc": "PASS"
+  },
+  "javaTests": {
+    "cookery": {
+      "tests": 598,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "common": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "doll": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "tavern": {
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "deco": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "music": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "legacyPaperTests": {
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "legacyGsonTests": {
+    "tests": 60,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pythonTests": {
+    "root": 138,
+    "series": 59,
+    "failures": 0,
+    "log": "../steamer-interaction-python-final.log"
+  },
+  "runtimeEvidence": "docs/research/cookery-steamer-runtime-2026-11-17.json",
+  "runtimeEvidenceSha256": "1d90a456cd72361905965b8da40c1d95379a5255cd097d7952a18bc49e23f9cf",
+  "classHashes": {
+    "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.1.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.11.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.2-1.21.3.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.4.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.5.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.6-1.21.8.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.9-1.21.10.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.1-26.1.2.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.2.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.3.jar": {
+      "block/entity/SteamerInteraction": "4c01afe4485cb0fd5a3251083f6420bfaf6f8403d561a83184843676b4e89e64",
+      "block/entity/SteamerWorld": "3f40c8e14bf65145b9cce3b9299b8058b31a71d9f4aee50f0591b9a6bd3da959",
+      "block/entity/SteamerController": "5150d7b4003775c4f6c7af5a80ca11369ce231582477ed2659848bdfe95bc16f",
+      "block/listener/SteamerFallingBlockListener": "dd42015bb0ede6cdf8ea0e35756026801baf2b2a7ac7e35b587bac86a3002d8a",
+      "item/SteamerItemContents": "8aafa48cbb0ccf9fff86e17d842c3b7d4a19c8e0f0b0541b37aa07c5969e548a",
+      "catalog/CatalogJson": "75900af1cce1d540337cb37e3809c9ab2c98b161f362e042761fe050f5f590c0",
+      "catalog/StrictJsonTokens": "55044aaf0f3121350f3dd5906d5693c193859ea272766bd0ba27e7a42281d969",
+      "util/CookeryYaml": "004ac7b571776d118f2ec8a3428be73f1efea753b8006dc72dc4e4c16430036b",
+      "recipe/edit/RecipeFileStore": "15dae676750cc393c7f8c9bc4b468eef290b3de852793941a6731847c8c96be2"
+    }
+  },
+  "versionedCookery": [
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.1.jar",
+      "minecraft": [
+        "1.21.1"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R1/NmsV1_21_R1.class",
+      "runtime": "PARTIAL_PAPER_PROBES_PASS; no player/client/Folia proof",
+      "tested_servers": [
+        "1.21.1-133-3cb8529 (MC: 1.21.1)"
+      ]
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.11.jar",
+      "minecraft": [
+        "1.21.11"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R7/NmsV1_21_R7.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.2-1.21.3.jar",
+      "minecraft": [
+        "1.21.2",
+        "1.21.3"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R2/NmsV1_21_R2.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.4.jar",
+      "minecraft": [
+        "1.21.4"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R3/NmsV1_21_R3.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.5.jar",
+      "minecraft": [
+        "1.21.5"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R4/NmsV1_21_R4.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.6-1.21.8.jar",
+      "minecraft": [
+        "1.21.6",
+        "1.21.7",
+        "1.21.8"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R5/NmsV1_21_R5.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.9-1.21.10.jar",
+      "minecraft": [
+        "1.21.9",
+        "1.21.10"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R6/NmsV1_21_R6.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.1-26.1.2.jar",
+      "minecraft": [
+        "26.1",
+        "26.1.1",
+        "26.1.2"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_1_R1/NmsV26_1_R1.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.2.jar",
+      "minecraft": [
+        "26.2"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_2_R1/NmsV26_2_R1.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.3.jar",
+      "minecraft": [
+        "26.3"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_3_R1/NmsV26_3_R1.class",
+      "runtime": "PARTIAL_PAPER_PROBES_PASS; no player/client/Folia proof",
+      "tested_servers": [
+        "26.3-253-63e41db (MC: 26.3)"
+      ]
+    }
+  ],
+  "versionedCePacks": [
+    {
+      "file": "versioned-ce-packs/mc1.21.1/cookery-ce-pack-20261117-steamer-portable-v1.zip",
+      "family": "1.21.1",
+      "sourceSha256": "e7609d9843b1f9ae9b524f9470a92e457da7529635f09780bb6322268a589d87",
+      "changes": [
+        {
+          "file": "cookery_kitchen/configuration/kitchen.yml",
+          "ironChainAliases": 2,
+          "legacyFoods": 104,
+          "legacyDrinkAnimations": 9,
+          "legacyLunchBagMaterial": 1,
+          "before": "cfe1a3f6f6a4c5d45b9c6325930ceebcfb57a799793d86f28147999e3e18c943",
+          "after": "2ba593b04bf5c8e708edbadc73715e61b87de735abc61cbac76545c4fba8601e"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [
+        {
+          "file": "configuration/content.yml",
+          "ironChainAliases": 39,
+          "legacyFoods": 38,
+          "legacyDrinkAnimations": 38,
+          "before": "204c87934f02eb7df59ef1c7c492e22b2db5dfce3ff0735b6672424394e9c64d",
+          "after": "95aaa40b21cc2e26dd18d754802e70ea120df0e05e0785f97127758601f1db67"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/cookery-ce-pack-20261117-steamer-portable-v1.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "e7609d9843b1f9ae9b524f9470a92e457da7529635f09780bb6322268a589d87",
+      "changes": [
+        {
+          "file": "cookery_kitchen/configuration/kitchen.yml",
+          "ironChainAliases": 2,
+          "legacyFoods": 0,
+          "legacyDrinkAnimations": 0,
+          "before": "cfe1a3f6f6a4c5d45b9c6325930ceebcfb57a799793d86f28147999e3e18c943",
+          "after": "6980e282b8b0c240944883b1213edb5e16387388651341c12b779b6a926914c1"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [
+        {
+          "file": "configuration/content.yml",
+          "ironChainAliases": 39,
+          "legacyFoods": 0,
+          "legacyDrinkAnimations": 0,
+          "before": "204c87934f02eb7df59ef1c7c492e22b2db5dfce3ff0735b6672424394e9c64d",
+          "after": "f73ed6f60cda9df4e6b361471958c7ef7d4b4bce0f46ec6659b3b855a8ab5681"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/cookery-ce-pack-20261117-steamer-portable-v1.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "e7609d9843b1f9ae9b524f9470a92e457da7529635f09780bb6322268a589d87",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    }
+  ],
+  "sourceFiles": {
+    "src/main/java/net/kaleidoscope/cookery/block/entity/SteamerInteraction.java": "380e09e68768fee5b3e7edc50ffb38d54c04f0ee94a7da255ea81a7b47bd288b",
+    "src/main/java/net/kaleidoscope/cookery/block/entity/SteamerWorld.java": "d00e809b46f90ca62f02163cf3110d1c0127d48aa5eac7c861796207468253e3",
+    "src/main/java/net/kaleidoscope/cookery/block/listener/SteamerFallingBlockListener.java": "5c9e5a3b0b14d704bce66fc4682558f36dffd40d47a9c90e27f7cac84574e8e8",
+    "src/main/java/net/kaleidoscope/cookery/catalog/CatalogJson.java": "e582c81db99c228d66d8313f878e1bdcd127992dcdcaf50bb29b4c3b7372c73f",
+    "src/main/java/net/kaleidoscope/cookery/catalog/StrictJsonTokens.java": "67a8d0bc61e68ae6697fe8eea2a1e397c32596b2ed5fe53039bf40538ecd5eee",
+    "src/main/java/net/kaleidoscope/cookery/util/CookeryYaml.java": "b937bafb83620f91a83ca52d51516b268d3266aec92354ec2b0f5256bd2bb939",
+    "src/main/java/net/kaleidoscope/cookery/recipe/edit/RecipeFileStore.java": "e5f2c7f05d90e44d93683cb8a1d265dacc29123b1f5fbaebc355de759a5a1ffa"
+  },
+  "priorCheckpoint": "docs/research/cookery-steamer-portable-build-2026-11-17.json",
+  "limitations": [
+    "No player placement/break/crafting/shift/cancellation flow or vanilla-client visual acceptance.",
+    "No current Folia or intermediate-version runtime acceptance.",
+    "229 legacy model conversion warnings on 1.21.1; missing model/texture warnings remain on both targets.",
+    "26.3 CE default palm tree configured-feature conversion fails; not a kitchen feature.",
+    "26.3 host emits an OSHI Windows performance counter error.",
+    "CE 26.9.2 cache-resource-files=true can race initial asset caching and first workflow; disabled for final workflow.",
+    "Two Cookery recipes (scarecrow/trashcan) and broader series behavior gaps remain."
+  ],
+  "packagingDrafts": [
+    "runtime-v1: runtime evidence linked at wrong package-relative location",
+    "runtime-v2: generic per-variant NOT_TESTED labels not yet annotated from matching actual runtime hashes"
+  ],
+  "uncommitted": true,
+  "subagentsUsed": false
+}

@@ -51,6 +51,28 @@ class CookeryModelsTest(unittest.TestCase):
             with self.subTest(reason=reason), self.assertRaisesRegex(AuditError, reason):
                 verify_models({'cookery/models/pot.json': json_bytes(model)}, {'cookery:pot'})
 
+    def test_inherited_geometry_uses_each_childs_texture_bindings(self):
+        assets = {'cookery/models/template.json': json_bytes({
+            'elements': [{'faces': {'up': {'texture': '#particle'}}}]}),
+            'cookery/models/red.json': json_bytes({'parent': 'cookery:template',
+                                                  'textures': {'particle': 'cookery:red'}}),
+            'cookery/models/blue.json': json_bytes({'parent': 'cookery:template',
+                                                   'textures': {'particle': 'cookery:blue'}}),
+            'cookery/textures/red.png': b'fixture', 'cookery/textures/blue.png': b'fixture'}
+        self.assertEqual(3, verify_models(assets, {'cookery:red', 'cookery:blue'}))
+        del assets['cookery/textures/blue.png']
+        with self.assertRaisesRegex(AuditError, 'missing texture cookery:blue'):
+            verify_models(assets, {'cookery:red', 'cookery:blue'})
+
+    def test_unbound_template_as_a_render_root_and_override_cycles_fail(self):
+        assets = {'cookery/models/template.json': json_bytes({
+            'elements': [{'faces': {'up': {'texture': '#particle'}}}]})}
+        with self.assertRaisesRegex(AuditError, 'unresolved texture'):
+            verify_models(assets, {'cookery:template'})
+        assets['cookery/models/child.json'] = json_bytes({'overrides': [{'model': 'cookery:child'}]})
+        with self.assertRaisesRegex(AuditError, 'cyclic model override'):
+            verify_models(assets, {'cookery:child'})
+
 
 if __name__ == '__main__':
     unittest.main()

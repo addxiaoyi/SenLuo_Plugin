@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-17",
+  "status": "SOURCE_AND_API_AUDIT_ONLY",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "sourceFiles": {
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/decoration/LongBenchBlock.java": "9e2452547b26dc2e6a154b9d7b08f94fc12794c99eb0e60b7bbd3a775c20c633",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/decoration/EightImmortalsTableBlock.java": "1884963c3394f88d1736edad4d465af931e8b10581776a79ad4668a5e6c90d27",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/entity/SitEntity.java": "37ee89c4391651a49ed44f24d8070ac57e4e746d6862d458df31e781b432d96f",
+    "src/generated/resources/assets/kaleidoscope_cookery/blockstates/long_bench.json": "b45dd2b6ae56659f044ef01ee040d53bd07f535f90e57c30c023130a6f998401"
+  },
+  "longBench": {
+    "implemented": false,
+    "placement": "Axis is clockwise horizontal player direction. Axis never changes on neighbour updates. Only same type and matching axis connect.",
+    "positions": {
+      "neither": 0,
+      "negativeOnly": 1,
+      "both": 2,
+      "positiveOnly": 3
+    },
+    "visuals": "4 models, axis z rotated 90 degrees; 8 source states",
+    "interaction": "Sneaking PASS; source accepts either hand and any held item. Only one SitEntity per block, source entity Y=.5 and passenger offset=-.25; X faces SOUTH, Z faces EAST.",
+    "collision": "X box(0,0,3,16,8,13); Z box(3,0,0,13,8,16)",
+    "settings": "strength 2/3, WOOD map color, BASS, wood sounds, no occlusion, ignited by lava; ordinary piston behavior",
+    "ceOptions": {
+      "class": "net.momirealms.craftengine.bukkit.block.entity.SeatBlockEntityController",
+      "factory": "SeatBlockBehavior.FACTORY takes optional facing Direction property and seats list.",
+      "constraints": [
+        "SeatBlockBehavior useWithoutItem schedules using captured BlockEntity; plugin should check current identity and protection before seating.",
+        "SeatBlockEntityController is final; can instantiate as controller using a SeatBlockBehavior template and call spawnSeat(Player). onRemove destroys seats; unload/lifecycle still needs audit.",
+        "Native seat controller maps north=0 south=180 west=270 east=90 yaw, then applies SeatConfig yRot; BukkitSeat adds .6 to seat config Y.",
+        "Use only two facing values to encode two axes if reusing native seat direction; avoid declaring unsupported/redundant states.",
+        "EnumProperty factory accepts explicit values lists; state checker now handles axis x/y/z.",
+        "Bench connection signs differ from TableBehavior; do not reuse its flexible perpendicular/single-segment joining."
+      ]
+    }
+  },
+  "eightImmortals": {
+    "implemented": false,
+    "shape": "2x2 horizontal, right_bottom anchor; other cells at left, facing, left+facing.",
+    "placement": "Validate all four cells: height, border, replaceability, unobstructed, per-cell mayUseItemAt; plugin must also check protection/region/loaded state and rollback partial failure.",
+    "removal": "Removing any part clears only other matching type/facing/part without extra loot; piston BLOCK.",
+    "collision": "Full selection cube; collision only y12..16. No tabletop inventory in source."
+  },
+  "nextChecks": [
+    "Seat mount cancellation, reentry and block replacement/unload must not leave ghost seats.",
+    "CE no-server unit tests need scoped registry mocks; do not pollute MENU or other global registries.",
+    "Actual selection/collision and CE seat rider placement require runtime/client acceptance."
+  ],
+  "evidence": [
+    "build/bench-seat-api.txt",
+    "build/bench-properties-api.txt"
+  ],
+  "priorCheckpoint": "docs/research/cookery-hanging-strings-build-2026-11-17.json"
+}

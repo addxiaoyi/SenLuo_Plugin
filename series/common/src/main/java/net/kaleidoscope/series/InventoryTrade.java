@@ -18,19 +18,37 @@ public final class InventoryTrade {
 
     public static boolean exchange(PlayerInventory inventory, Predicate<ItemStack> payment,
                                    int cost, List<ItemStack> rewards) {
+        return exchange(inventory, payment, cost, rewards, () -> true);
+    }
+
+    public static boolean exchange(PlayerInventory inventory, Predicate<ItemStack> payment,
+                                   int cost, List<ItemStack> rewards, java.util.function.BooleanSupplier stillValid) {
+        return exchange(inventory, payment, cost, rewards, stillValid, -1);
+    }
+
+    /** Consume only the captured hand slot; identical stacks elsewhere are not substitutes. */
+    public static boolean exchangeSlot(PlayerInventory inventory, int slot, Predicate<ItemStack> payment,
+                                       int cost, List<ItemStack> rewards, java.util.function.BooleanSupplier stillValid) {
+        if (slot < 0 || slot >= inventory.getStorageContents().length) throw new IllegalArgumentException("Invalid payment slot");
+        return exchange(inventory, payment, cost, rewards, stillValid, slot);
+    }
+
+    private static boolean exchange(PlayerInventory inventory, Predicate<ItemStack> payment,
+                                    int cost, List<ItemStack> rewards, java.util.function.BooleanSupplier stillValid, int paymentSlot) {
         if (cost < 0) throw new IllegalArgumentException("Negative cost");
         Player player = inventory.getHolder() instanceof Player p ? p : null;
         UUID playerId = player == null ? null : player.getUniqueId();
         if (playerId != null && !ACTIVE.add(playerId)) return false;
         try {
-            return exchangeOnce(inventory, player, payment, cost, rewards);
+            return exchangeOnce(inventory, player, payment, cost, rewards, stillValid, paymentSlot);
         } finally {
             if (playerId != null) ACTIVE.remove(playerId);
         }
     }
 
     private static boolean exchangeOnce(PlayerInventory inventory, Player player,
-                                        Predicate<ItemStack> payment, int cost, List<ItemStack> rewards) {
+                                        Predicate<ItemStack> payment, int cost, List<ItemStack> rewards,
+                                        java.util.function.BooleanSupplier stillValid, int paymentSlot) {
         ItemStack[] original = inventory.getStorageContents().clone();
         ItemStack[] slots = original.clone();
         for (int i = 0; i < original.length; i++) {
@@ -41,6 +59,7 @@ public final class InventoryTrade {
         }
         int unpaid = cost;
         for (int i = 0; i < slots.length && unpaid > 0; i++) {
+            if (paymentSlot >= 0 && i != paymentSlot) continue;
             ItemStack stack = slots[i];
             if (stack == null || stack.isEmpty() || !payment.test(stack)) continue;
             int paid = Math.min(stack.getAmount(), unpaid);
@@ -72,6 +91,7 @@ public final class InventoryTrade {
             if (event.isCancelled()) return false;
             if (!sameInventory(original, inventory.getStorageContents())) return false;
         }
+        if (!stillValid.getAsBoolean()) return false;
         inventory.setStorageContents(slots);
         return true;
     }

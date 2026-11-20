@@ -86,7 +86,9 @@ public class LunchBagListener implements Listener {
             return;
         }
         event.setCancelled(true);
-        LunchBagEating.restore(event.getPlayer());
+        // The server reinserts the cancelled drop only after this event returns.
+        // Restore on the player's scheduler once that original stack is back.
+        FoliaUtil.runLater(() -> LunchBagEating.restore(event.getPlayer()), null, 1L, event.getPlayer());
     }
 
     // 硬崩溃时进食态会跟着背包落盘 重进服换回收纳态 内容物在组件里不会丢
@@ -95,10 +97,11 @@ public class LunchBagListener implements Listener {
         LunchBagEating.restore(event.getPlayer());
     }
 
-    // 底材是原版 minecraft:bundle 原版右键既能往里塞也能往外取 用的是同一个操作
-    // 只拦塞入不该收的东西 无差别取消右键会让玩家连自己的牛排都取不出来
-    @EventHandler(ignoreCancelled = true)
+    // Own bundle exchanges on normal storage slots; special machine slots have
+    // native mayPlace/mayPickup rules which a direct Bukkit write would bypass.
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onInventoryClick(InventoryClickEvent event) {
+        if (event.isCancelled()) return;
         ItemStack current = event.getCurrentItem();
         ItemStack cursor = event.getCursor();
         boolean bagInSlot = isLunchBag(current);
@@ -106,16 +109,49 @@ public class LunchBagListener implements Listener {
         if (!bagInSlot && !bagOnCursor) {
             return;
         }
-
-        // 光标空 = 从袋里取出 放行 光标有东西 = 往袋里塞 交给领域类判
-        // 手持袋子点别的物品 也是塞入
-        boolean inserting = (bagInSlot && LunchBagContents.rejectsInsert(cursor))
-                || (bagOnCursor && LunchBagContents.rejectsInsert(current));
-        if (event.getClick() == ClickType.RIGHT && inserting) {
-            event.setCancelled(true);
-            return;
+        if (event.getClick() != ClickType.RIGHT) return;
+        // Vanilla bundle clicks impose a one-stack weight limit; own both right-click
+        // directions so the source's 24 full slots work on every supported version.
+        event.setCancelled(true);
+        if ((bagInSlot && bagOnCursor) || event.getClickedInventory() == null
+                || event.getWhoClicked().getGameMode() == org.bukkit.GameMode.SPECTATOR
+                || !isStorageInventory(event.getClickedInventory().getType())
+                || event.getSlotType() == org.bukkit.event.inventory.InventoryType.SlotType.RESULT
+                || event.getSlotType() == org.bukkit.event.inventory.InventoryType.SlotType.ARMOR
+                || event.getSlotType() == org.bukkit.event.inventory.InventoryType.SlotType.FUEL) return;
+        ItemStack originalBag = bagInSlot ? current : cursor;
+        if (originalBag.getAmount() != 1) return;
+        Item bag = wrap(originalBag.clone());
+        ItemStack incoming = bagInSlot ? cursor : current;
+        try {
+            ItemStack exchanged;
+            if (incoming == null || incoming.getType().isAir()) {
+                Item extracted = LunchBagContents.removeFirstStack(bag);
+                if (ItemUtils.isEmpty(extracted)) return;
+                // The cloned bag is not committed on rejection; retain the whole
+                // stack if a custom inventory imposes a smaller slot limit.
+                if (!bagInSlot && extracted.count() > event.getClickedInventory().getMaxStackSize()) return;
+                exchanged = net.kaleidoscope.cookery.util.InventoryUtils.bukkitCopy(extracted);
+            } else {
+                int inserted = LunchBagContents.add(bag, wrap(incoming.clone()));
+                if (inserted <= 0) return;
+                exchanged = incoming.clone();
+                exchanged.setAmount(incoming.getAmount() - inserted);
+            }
+            ItemStack changed = net.kaleidoscope.cookery.util.InventoryUtils.bukkitCopy(bag);
+            event.setCurrentItem(bagInSlot ? changed : exchanged);
+            event.getWhoClicked().setItemOnCursor(bagInSlot ? exchanged : changed);
+        } catch (IllegalArgumentException exception) {
+            event.getWhoClicked().sendMessage("便当袋保存数据无法读取，物品已保留，请联系管理员。");
         }
-        scheduleSanitize(event.getWhoClicked());
+    }
+
+    private static boolean isStorageInventory(org.bukkit.event.inventory.InventoryType type) {
+        if (type == null) return false;
+        return switch (type) {
+            case PLAYER, CHEST, ENDER_CHEST, BARREL, SHULKER_BOX, HOPPER, DISPENSER, DROPPER -> true;
+            default -> false;
+        };
     }
 
     // 右键拖拽也能往收纳袋里塞
@@ -168,7 +204,7 @@ public class LunchBagListener implements Listener {
         if (stack == null || stack.getType().isAir()) {
             return Item.empty();
         }
-        Item item = BukkitItemManager.instance().wrap(stack);
+        Item item = net.kaleidoscope.cookery.util.InventoryUtils.wrap(stack);
         return ItemUtils.isEmpty(item) ? Item.empty() : item;
     }
 }

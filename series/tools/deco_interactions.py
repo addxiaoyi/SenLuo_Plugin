@@ -87,7 +87,8 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
     for event in [*click.get("criteria", []), click.get("fallback", {})]:
         if not event or event.get("event") in ("sit", "__nothing__"):
             continue
-        rule: dict[str, Any] = {"inputs": [], "wand": False, "sneak": -1, "target": "", "sounds": [], "pending": False}
+        rule: dict[str, Any] = {"inputs": [], "wand": False, "sneak": -1, "target": "", "sounds": [],
+                                "pending": False, "cost": 0, "rewards": []}
         predicate = event.get("predicate", "")
         if predicate:
             if predicate not in ("kaleidoscope:shift", "!kaleidoscope:shift"):
@@ -134,8 +135,21 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
                     rule["sounds"].append(sound if ":" in sound else "minecraft:" + sound)
                 elif kind == "custom" and args.get("func") in ("kaleidoscope:events/wand", "kaleidoscope:doll/events/note"):
                     continue
+                elif kind == "custom" and index.startswith("kaleidoscope_bar:blackboard/") and args.get("func") == "kaleidoscope:bar/events/custom_loot":
+                    item = args.get("item", "")
+                    if not re.fullmatch(r"(?:minecraft:)?[a-z0-9_]+", item) or rule["rewards"]:
+                        raise ValueError("Unsupported custom loot item")
+                    rule["rewards"] = [item if ":" in item else "minecraft:" + item]
+                elif kind == "custom" and index == "kaleidoscope_bar:blackboard/9" and args.get("func") == "kaleidoscope:bar/events/tulip_loot":
+                    if rule["rewards"]:
+                        raise ValueError("Multiple loot actions")
+                    rule["rewards"] = ["minecraft:" + color + "_tulip" for color in ("red", "orange", "white", "pink")]
                 else:
                     raise ValueError(f"Event pending: {kind}: {args.get('func', '')}")
+            if rule["rewards"] and not rule["target"]:
+                raise ValueError("Loot action requires a state transition to prevent repeated extraction")
+            if index == "kaleidoscope_bar:blackboard/0" and rule["target"] and rule["inputs"]:
+                rule["cost"] = 1
             if rule["target"] or rule["sounds"]:
                 converted.append(rule)
         except ValueError as error:
@@ -143,27 +157,89 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
                 rule["target"] = ""
                 rule["sounds"] = []
                 rule["pending"] = True
+                rule["cost"] = 0
+                rule["rewards"] = []
                 converted.append(rule)
             pending.append(f"Interaction action pending: {error}")
     return converted
 
 
-def selected_model(model: dict, strings: list[str], flags: list[bool]) -> dict:
-    """Resolve known CMD state to a static model, so CE cannot overwrite selector components."""
-    kind = model["type"].removeprefix("minecraft:")
-    if kind == "select" and model["property"].removeprefix("minecraft:") == "custom_model_data":
-        slot = model.get("index", 0)
-        value = strings[slot] if slot < len(strings) else ""
-        child = model.get("fallback", {"type": "minecraft:empty"})
-        for case in model["cases"]:
-            if value in (case["when"] if isinstance(case["when"], list) else [case["when"]]):
-                child = case["model"]
-                break
-        return selected_model(child, strings, flags)
-    if kind == "condition" and model["property"].removeprefix("minecraft:") == "custom_model_data":
-        slot = model.get("index", 0)
-        return selected_model(model["on_true"] if slot < len(flags) and flags[slot] else model["on_false"], strings, flags)
-    return copy.deepcopy(model)
+def selected_model(model: dict, strings: list[str], flags: list[bool], floats: list[float] | None = None,
+                   *, context: str | None = None) -> dict:
+    """Resolve pinned component state at every depth, preserving other live selectors."""
+    import math
+    import struct
+
+    def number(value):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise ValueError("Invalid custom model data number")
+        try:
+            result = struct.unpack('f', struct.pack('f', value))[0]
+        except (OverflowError, struct.error) as error:
+            raise ValueError("Custom model data number exceeds float range") from error
+        if not math.isfinite(result):
+            raise ValueError("Custom model data number exceeds float range")
+        return result
+
+    def visit(node, depth=0):
+        if depth > 64:
+            raise ValueError("Item model nesting exceeds 64 levels")
+        kind = node['type'].removeprefix('minecraft:')
+        prop = node.get('property', '').removeprefix('minecraft:')
+        if prop == 'custom_model_data':
+            slot = node.get('index', 0)
+            if type(slot) is not int or slot < 0:
+                raise ValueError("Invalid custom model data index")
+            if kind == 'condition':
+                value = flags[slot] if slot < len(flags) else False
+                if type(value) is not bool:
+                    raise ValueError("Invalid custom model data flag")
+                return visit(node['on_true'] if value else node['on_false'], depth + 1)
+            if kind == 'range_dispatch':
+                values = floats or []
+                value = number(number(values[slot] if slot < len(values) else 0) * number(node.get('scale', 1)))
+                entries = sorted((number(entry['threshold']), i, entry['model']) for i, entry in enumerate(node['entries']))
+                if len({threshold for threshold, _, _ in entries}) != len(entries):
+                    raise ValueError("Duplicate custom model data threshold")
+                child = node.get('fallback', {'type': 'minecraft:empty'})
+                for threshold, _, candidate in entries:
+                    if threshold <= value:
+                        child = candidate
+                return visit(child, depth + 1)
+        if kind == 'select' and (prop == 'custom_model_data' or prop == 'display_context' and context is not None):
+            value = (strings[slot] if slot < len(strings) else '') if prop == 'custom_model_data' else context
+            child = node.get('fallback', {'type': 'minecraft:empty'})
+            for case in node['cases']:
+                if value in (case['when'] if isinstance(case['when'], list) else [case['when']]):
+                    child = case['model']
+                    break
+            return visit(child, depth + 1)
+        result = copy.deepcopy(node)
+        if kind == 'composite':
+            result['models'] = [visit(child, depth + 1) for child in node['models']]
+        elif kind in ('select', 'range_dispatch'):
+            field = 'cases' if kind == 'select' else 'entries'
+            result[field] = [{**entry, 'model': visit(entry['model'], depth + 1)} for entry in node[field]]
+            if 'fallback' in node:
+                result['fallback'] = visit(node['fallback'], depth + 1)
+        elif kind == 'condition':
+            for field in ('on_true', 'on_false'):
+                result[field] = visit(node[field], depth + 1)
+        return result
+
+    return visit(model)
+
+
+def inventory_legacy_model(model: dict) -> dict | None:
+    """Only emit an exact shared model for inventory, hands and dropped items."""
+    contexts = ('gui', 'ground', 'firstperson_lefthand', 'firstperson_righthand',
+                'thirdperson_lefthand', 'thirdperson_righthand')
+    nodes = [selected_model(model, [], [], context=context) for context in contexts]
+    first = nodes[0]
+    if (first.get('type') in ('minecraft:model', 'model') and set(first) == {'type', 'path'}
+            and all(node == first for node in nodes)):
+        return {'path': first['path']}
+    return None
 
 
 def link_variants(entries: list[dict], furnishings: dict, pending: list[str]) -> None:
@@ -173,7 +249,7 @@ def link_variants(entries: list[dict], furnishings: dict, pending: list[str]) ->
         for rule in entry["rules"]:
             if rule["target"] and rule["target"] not in by_id:
                 pending.append(f"Transition target not exported: {entry['id']} -> {rule['target']}")
-                rule.update(target="", pending=True)
+                rule.update(target="", pending=True, cost=0, rewards=[])
     for origin in entries:
         seen, queue = set(), [origin["id"]]
         while queue:

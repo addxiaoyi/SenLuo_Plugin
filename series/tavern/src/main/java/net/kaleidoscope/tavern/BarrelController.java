@@ -130,7 +130,7 @@ public final class BarrelController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> tick());
+        return net.kaleidoscope.series.FurnitureTicks.current(BarrelController.class, BarrelController::tick);
     }
 
     private void tick() {

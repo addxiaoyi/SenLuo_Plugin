@@ -82,7 +82,7 @@ public final class AdvancementGameplayListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBucketSpawn(CreatureSpawnEvent event) {
-        if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.BUCKET) return;
+        if (!event.getSpawnReason().name().equals("BUCKET")) return;
         BucketRelease release = releases.remove(Thread.currentThread());
         if (release == null || event.isCancelled() || release.event().isCancelled()
                 || event.getEntityType() != release.type() || !sameBlock(event.getLocation(), release.location())) return;

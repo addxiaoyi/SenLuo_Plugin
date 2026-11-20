@@ -1,8 +1,6 @@
 package net.kaleidoscope.doll;
 
-import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.Consumable;
-import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
+import net.kaleidoscope.compat.ItemComponents;
 import io.papermc.paper.event.player.PlayerStopUsingItemEvent;
 import net.kaleidoscope.series.InventoryTrade;
 import net.kaleidoscope.series.Items;
@@ -65,8 +63,7 @@ final class MovingDolls implements Listener {
         if (!plugin.mayUse(player, player.getLocation()) || charges.containsKey(player.getUniqueId())) return;
         ItemStack original = held.clone();
         held = held.clone();
-        held.setData(DataComponentTypes.CONSUMABLE, Consumable.consumable().consumeSeconds(3600)
-                .animation(ItemUseAnimation.BOW).hasConsumeParticles(false).build());
+        ItemComponents.use(held, true, false);
         player.getInventory().setItemInMainHand(held);
         Charge charge = new Charge(player, player.getInventory().getHeldItemSlot(), original, held.clone());
         charges.put(player.getUniqueId(), charge);

@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-17",
+  "status": "DEVELOPMENT_CHECKPOINT_VERIFIED",
+  "bundle": "build\\distribution\\SenLuo-1.21.1-26.3-dev-20261117-resource-paths-v1.zip",
+  "bytes": 54605058,
+  "sha256": "a6c4ad844b50bc9359677fa20e3a4286846e4d2c3c41eb65bb77e3d3e59d6709",
+  "manifestFiles": 71,
+  "cookeryVersionJars": 10,
+  "versionedCePacks": 18,
+  "runtimeEvidence": "docs/research/resource-path-runtime-2026-11-17.json",
+  "javaTestExecutions": 742,
+  "pythonTests": {
+    "cookery": 140,
+    "series": 75
+  },
+  "runtimePluginHashesMatchBundle": true,
+  "serversStoppedAndPortsFree": true,
+  "subagentsUsed": false,
+  "limitations": "Full parity, clients, player flows, Folia and intermediate runtime versions remain unverified or incomplete."
+}

@@ -1,0 +1,59 @@
+{
+  "artifact": "net.minecraftforge:forge:1.20.1-47.3.0:universal",
+  "url": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.3.0/forge-1.20.1-47.3.0-universal.jar",
+  "sha256": "a3c07e6b33fe8a4b42fdb4841a37e3ffda62797366c7050c481d799d6d35831c",
+  "files": {
+    "data/forge/tags/items/cobblestone.json": {
+      "sha256": "766fccf825db6da570b7c1ade1a7e1787a5a5ef9aebd4a44d503e98543bbf176",
+      "content": {
+        "values": [
+          "#forge:cobblestone/normal",
+          "#forge:cobblestone/infested",
+          "#forge:cobblestone/mossy",
+          "#forge:cobblestone/deepslate"
+        ]
+      }
+    },
+    "data/forge/tags/items/cobblestone/deepslate.json": {
+      "sha256": "e5c6cffc9d96e8d6bc7a6def7dd20c8b8afb21f95020997cf5f8297a6b7bef9b",
+      "content": {
+        "values": [
+          "minecraft:cobbled_deepslate"
+        ]
+      }
+    },
+    "data/forge/tags/items/cobblestone/infested.json": {
+      "sha256": "df2744399b14291e798f6003b0cc873c27a4852de11f182c2242075941d9cde9",
+      "content": {
+        "values": [
+          "minecraft:infested_cobblestone"
+        ]
+      }
+    },
+    "data/forge/tags/items/cobblestone/mossy.json": {
+      "sha256": "11ae58a7fe0e20dfafdeb925c6105e46822be855334d72be3570d69a34e45e78",
+      "content": {
+        "values": [
+          "minecraft:mossy_cobblestone"
+        ]
+      }
+    },
+    "data/forge/tags/items/cobblestone/normal.json": {
+      "sha256": "dcfcccfdb03a9549aa5de527482ba5900b5de83041e0b7967ea6223d34e3c6fc",
+      "content": {
+        "values": [
+          "minecraft:cobblestone"
+        ]
+      }
+    },
+    "data/forge/tags/items/fences/wooden.json": {
+      "sha256": "2662a6e4fe42317040838e5e930789c407a19185dab490ac43795e1bb2777925",
+      "content": {
+        "values": [
+          "#minecraft:wooden_fences"
+        ]
+      }
+    }
+  },
+  "scope": "Explicit vanilla ingredient fallbacks and the native wooden_fences tag alias; external mod-added members are not inferred."
+}

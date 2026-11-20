@@ -13,9 +13,22 @@ def nmsVersions = [
         nmsV121R7: [path: 'v1_21_R7', dependency: '1.21.11-R0.1-SNAPSHOT', classifier: 'remapped-mojang'],
         nmsV261R1: [path: 'v26_1_R1', dependency: '26.1.2-R0.1-SNAPSHOT', javaVersion: 25],
         nmsV262R1: [path: 'v26_2_R1', dependency: '26.2-R0.1-SNAPSHOT', javaVersion: 25],
+        nmsV263R1: [path: 'v26_3_R1', dependency: '26.3-R0.1-SNAPSHOT', javaVersion: 25],
 ]
 
 def craftEngineVersion = providers.gradleProperty('craftEngineVersion').get()
+def paperApiVersion = providers.gradleProperty('paperApiVersion').getOrElse('1.21.1-R0.1-SNAPSHOT')
+
+sourceSets.main.java.srcDir('compat/src/main/java')
+sourceSets.create('modernCompat') {
+    java.srcDir('compat/src/modern/java')
+    java.srcDir('src/modern/java')
+    compileClasspath += sourceSets.main.output
+}
+sourceSets.test.runtimeClasspath += sourceSets.modernCompat.output
+
+configurations.compileClasspath.resolutionStrategy.force("io.papermc.paper:paper-api:${paperApiVersion}")
+configurations.create('legacyGsonRuntime')
 
 repositories {
     // Spigot BuildTools installs the version-specific NMS dependencies here.
@@ -63,6 +76,8 @@ nmsVersions.each { sourceSetName, version ->
 }
 
 dependencies {
+    legacyGsonRuntime('com.google.code.gson:gson:2.10.1') { transitive = false }
+    modernCompatCompileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testImplementation(platform('org.junit:junit-bom:5.11.4'))
     testImplementation('org.junit.jupiter:junit-jupiter')
     testImplementation('org.mockito:mockito-core:5.15.2')
@@ -85,7 +100,7 @@ dependencies {
     } else {
         compileOnly('com.frengor:ultimateadvancementapi:2.8.1') { transitive = false }
     }
-    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:${paperApiVersion}")
     compileOnly("net.momirealms:craft-engine-bukkit:${craftEngineVersion}")
     compileOnly("net.momirealms:craft-engine-core:${craftEngineVersion}")
     // The published Core API includes CraftEngine's relocated Adventure classes.
@@ -126,9 +141,21 @@ tasks.named('test') {
     systemProperty 'cookery.pluginJar', pluginJar.get().asFile.absolutePath
 }
 
+// Exercise the catalog parser with the Gson actually shipped by Paper 1.21.1.
+tasks.register('testLegacyGson', Test) {
+    dependsOn(tasks.named('testClasses'))
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath.filter { !(it.name ==~ /gson-[0-9].*\.jar/) } + configurations.legacyGsonRuntime
+    filter { includeTestsMatching('net.kaleidoscope.cookery.catalog.*') }
+    systemProperty 'file.encoding', 'UTF-8'
+}
+tasks.named('check') { dependsOn('testLegacyGson') }
+
 shadowJar {
     archiveClassifier.set('')
     from(nmsVersions.keySet().collect { sourceSets.named(it).get().output })
+    from(sourceSets.modernCompat.output)
     // Paper must not interpret Mojang names as Spigot names and remap them a second time.
     manifest.attributes('paperweight-mappings-namespace': 'mojang')
     // Spigot's compiler JARs retain versioned CraftBukkit packages; Paper 1.21+ does not.
@@ -138,6 +165,34 @@ shadowJar {
     relocate 'net.momirealms.antigrieflib', 'net.kaleidoscope.cookery.libs.antigrieflib'
     relocate 'org.bstats', 'net.kaleidoscope.cookery.libs.bstats'
 }
+
+// Publish a small Cookery JAR per NMS family as well as the universal JAR.
+// Each variant is compiled against its own server dependency above.
+def targetVersions = [
+        nmsV121R1: ['1.21.1'], nmsV121R2: ['1.21.2', '1.21.3'],
+        nmsV121R3: ['1.21.4'], nmsV121R4: ['1.21.5'],
+        nmsV121R5: ['1.21.6', '1.21.7', '1.21.8'],
+        nmsV121R6: ['1.21.9', '1.21.10'], nmsV121R7: ['1.21.11'],
+        nmsV261R1: ['26.1', '26.1.1', '26.1.2'],
+        nmsV262R1: ['26.2'], nmsV263R1: ['26.3'],
+]
+def variantTasks = nmsVersions.collect { sourceSetName, target ->
+    def versions = targetVersions[sourceSetName]
+    tasks.register("jar${sourceSetName.capitalize()}", com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+        archiveBaseName.set(project.name)
+        archiveVersion.set(project.version.toString())
+        archiveClassifier.set('mc' + (versions.size() == 1 ? versions.first() : versions.first() + '-' + versions.last()))
+        destinationDirectory.set(layout.buildDirectory.dir('libs/versions'))
+        from(sourceSets.main.output, sourceSets.modernCompat.output, sourceSets[sourceSetName].output)
+        configurations = [project.configurations.runtimeClasspath]
+        manifest.attributes('paperweight-mappings-namespace': 'mojang',
+                'SenLuo-Minecraft-Versions': versions.join(','), 'SenLuo-CraftEngine': craftEngineVersion)
+        if (target.path.startsWith('v1_21_')) relocate "org.bukkit.craftbukkit.${target.path}", 'org.bukkit.craftbukkit'
+        relocate 'net.momirealms.antigrieflib', 'net.kaleidoscope.cookery.libs.antigrieflib'
+        relocate 'org.bstats', 'net.kaleidoscope.cookery.libs.bstats'
+    }
+}
+tasks.register('versionedJars') { dependsOn variantTasks }
 
 jar {
     enabled = false
@@ -192,6 +247,8 @@ processResources {
 sourceSets.create('acceptance') {
     compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
 }
+// Compile modern optional probes here; each probe must gate newer runtime APIs.
+dependencies { acceptanceCompileOnly('io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT') }
 
 tasks.register('acceptanceJar', Jar) {
     dependsOn(tasks.named('acceptanceClasses'))

@@ -1,0 +1,31 @@
+{
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "sourceFiles": {
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/model/ScarecrowModel.java": "65b42a8c680a16b5d7b4a9826ee6b60d674abb342b3213e19baaac2cf84498a5",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/entity/ScarecrowEntity.java": "80c9938ed8bffd30040b7b28d0595e5ca0344e7836028886b603671a12c9ff03",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/item/ScarecrowItem.java": "0d1dfc08f602e196c627e05cbe9f9585533a00e72db050452639556bf9151f4e",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/render/entity/ScarecrowRender.java": "cb5bc1612f2ff7f8c7330da04d8a7891818cc71592607941099a553b9c33be1e",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/render/entity/layer/ScarecrowHandLayer.java": "a462cf12ae0a8104249cd86fd00fc36bc097d53c33779cb2e72609f0167f5dc8"
+  },
+  "implemented": [
+    "durable tool first-free main/off hand insertion; empty take main before off regardless clicked side",
+    "head single-item swaps including creative occupied slot",
+    "game-time cooldown applied even to rejected handler inputs; name tag passes",
+    "complete component persistence validated before inventory changes; changed source abort and reentry guard",
+    "strict saved slots and original rejected payload preservation",
+    "postRemove returns equipment, creative discards, canceled drops have durable recovery",
+    "13 source cubes/planes with mirrored UV; half-size JSON restored on display; arbitrary hat roll on independent display",
+    "eight-direction placement and source recipe imported"
+  ],
+  "recipeConfigImported": 612,
+  "recipeConfigTotal": 612,
+  "open": [
+    "source placement full collision/entity/default-stack/name contract",
+    "source five-tick double-hit damage, first-hit wobble, explosions and named drops",
+    "source gravity and minecart riding",
+    "source shoulder entity NBT and environment/distance/timing rules",
+    "precise head/tool display layer transforms",
+    "real player, client, Folia and intermediate-version acceptance"
+  ],
+  "subagentsUsed": false
+}

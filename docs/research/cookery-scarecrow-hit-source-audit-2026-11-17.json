@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-17",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "sourceSha256": "80c9938ed8bffd30040b7b28d0595e5ca0344e7836028886b603671a12c9ff03",
+  "runtimeCE": "26.9.2",
+  "ceApiFindings": {
+    "defaultHitData": "per-player wallclock 2000ms; distinct from entity source window",
+    "controllerHitHook": "FurnitureHitEvent LOWEST, before cancellation by later listeners",
+    "breakEvent": "AttackListener fires FurnitureBreakEvent then runs configured event functions then calls remove",
+    "removeApi": "does not itself fire FurnitureBreakEvent; invokes destroy preRemove/postRemove and optionally loot/sound"
+  },
+  "implemented": [
+    "entity-wide inclusive five game-tick hit window",
+    "hit_times=1 dispatches every hit to cancellable break listener",
+    "earlier canceled/protected/adventure/spectator hits do not prime",
+    "source sinusoidal wobble around feet on every visual part",
+    "source armor-stand hit sound and ENTITY_DAMAGE; breaking oak-plank particles after equipment settlement",
+    "final event cancellation/drop policy read during same-tick preRemove; expire retained event next tick"
+  ],
+  "limits": [
+    "client timing and 20Hz interpolation need visual acceptance",
+    "real network attacks/players and Folia unverified",
+    "source explosion, named drop, physics and full shoulder semantics remain"
+  ],
+  "subagentsUsed": false
+}

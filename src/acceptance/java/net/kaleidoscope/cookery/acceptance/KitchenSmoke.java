@@ -17,7 +17,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -142,12 +141,12 @@ final class KitchenSmoke {
 
     private void verifyItems() {
         try {
-            var config = new YamlConfiguration();
-            config.load(plugin.getDataFolder().toPath().getParent()
-                    .resolve("CraftEngine/resources/cookery_kitchen/configuration/kitchen.yml").toFile());
-            var items = config.getConfigurationSection("items");
-            check(items != null, "Kitchen fixture has no items section");
-            for (String id : items.getKeys(false)) {
+            var config = net.kaleidoscope.cookery.util.CookeryYaml.readMapping(plugin.getDataFolder().toPath().getParent()
+                    .resolve("CraftEngine/resources/cookery_kitchen/configuration/kitchen.yml"));
+            check(config.get("items") instanceof Map<?, ?>, "Kitchen fixture has no items section");
+            var items = (Map<?, ?>) config.get("items");
+            for (Object rawId : items.keySet()) {
+                String id = (String) rawId;
                 var buildable = BukkitItemManager.instance().getBuildableItem(Key.of(id)).orElseThrow();
                 var built = buildable.buildItem((net.momirealms.craftengine.core.entity.player.Player) null);
                 ItemStack stack = ItemStackUtils.getBukkitStack(built.minecraftItem());

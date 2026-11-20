@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-17",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "sourceFiles": {
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/blockentity/kitchen/SteamerBlockEntity.java": "0ed1b513a1077ffafd5d0b2610ad2117881586d76227aedefbfa8abaf1af4ee0",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/kitchen/SteamerBlock.java": "e76703c7cafb6ebb5718ebfe53750ecb418ace761d881d5cb33f8060d5918d55",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/item/SteamerItem.java": "1c232b06c1158c22899cc938c5abf81a9451d33be4a9ccc301f0a8c3b4d58971",
+    "src/main/resources/data/kaleidoscope_cookery/recipes/raw_dough_steamer.json": "06e1139a49f105ae08473b6468ab6e92237dbb9690d2dfcc8fe0c55594948bb3",
+    "src/main/resources/data/kaleidoscope_cookery/recipes/stuffed_dough_food_steamer.json": "d13087b3229c4d0b7d3ab34f091869f770eb9f66002789038a6cbbecf68f92af"
+  },
+  "implementedThisIncrement": [
+    "Physical slots 0-3 bottom and 4-7 top retained in inventory_schema=1; legacy dense data migrates without index shifts.",
+    "Atomic strict inventory/plan loading and rejected payload preservation; mutation and removal paused on malformed saves.",
+    "Whole output stack extraction, no dense compaction, new ingredients fill first empty physical slot.",
+    "Clear inventory before removal callbacks; repeated/reentrant removal cannot duplicate contents.",
+    "Ticker calls current supplied controller after reload.",
+    "Renderer uses sparse per-slot per-player visibility; loaded contents refresh on first tick.",
+    "Lid state reads current block property, so neighbor-driven uncovering stops stale covered cooking.",
+    "Stack placement delegates to registered BlockItemBehavior, allowing normal CE events, rollback and final debit.",
+    "Falling failure loose-item decoder supports both old dense and new sparse snapshots."
+  ],
+  "pending": [
+    "Filled item component codec and preflight validation. Existing loadCustomDataFromItem still reads obsolete root BlockEntityTag.",
+    "Merge incoming four slots into upper layer atomically through normal placement, preserving lower layer and cancelling safely.",
+    "Source dropAsItem carries contents/progress in one or two steamer items; current plugin still emits loose contents and bare containers.",
+    "Source takes all visible contents on one interaction and removes an empty exposed layer; current plugin extracts one complete slot.",
+    "Source supports either hand and placement on nonheat support; plugin still restricts main hand and heated placement.",
+    "Forge recipe import must retain exact four raw items and cooking time1200, not the plugin default200.",
+    "Solid shapes, waterlogging, source-facing/base rules, client filled-model and tooltip remain.",
+    "Protection callback invalidation, crossregion stack traversal and native fall cancellation/landing/reload need further lifecycle work.",
+    "Runtime and vanilla client not tested; no server launch."
+  ],
+  "recipes": {
+    "imported": 608,
+    "pending": 4,
+    "newFilledSteamerRecipesEnabled": false
+  },
+  "sourceHashEncoding": "SHA256 of local reference checkout bytes, including checkout line endings"
+}

@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-17",
+  "source": "Direct user answer to the pending local-test-server authorization question in this chat",
+  "answer": "我同意 EULA，继续本地测试",
+  "scope": "Local isolated Minecraft 1.21.1 and 26.3 test servers bound to 127.0.0.1",
+  "eula": "https://www.minecraft.net/eula",
+  "currentInstances": [
+    {"directory": "build/acceptance/g/paper", "minecraft": "1.21.1", "java": 21, "port": 25609},
+    {"directory": "build/acceptance/h/paper", "minecraft": "26.3", "java": 25, "port": 25611}
+  ],
+  "notes": "Fresh short-path copies preserve older a-f preparation evidence. Run sequentially; no public binding. Authorization persists for local testing of these two target versions."
+}

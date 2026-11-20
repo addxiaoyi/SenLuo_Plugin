@@ -63,8 +63,21 @@ final class DecoController extends InteractiveFurniture {
         if (rule.pending()) { player.sendMessage("这件家具的特殊事件尚未移植，当前状态已保留。"); return; }
         if (!rule.target().isEmpty()) {
             String previous = state;
+            String previousVariant = variant();
+            ItemStack held = player.getInventory().getItemInMainHand().clone();
+            List<ItemStack> rewards = rule.rewards().isEmpty() ? List.of() : List.of(Items.create(
+                    rule.rewards().get(java.util.concurrent.ThreadLocalRandom.current().nextInt(rule.rewards().size()))));
+            if (!furniture().setVariant(rule.target().replace(':', '/'))) throw new IllegalStateException("Missing Deco variant: " + rule.target());
+            boolean committed = false;
+            try {
+                committed = InventoryTrade.exchange(player.getInventory(), held::isSimilar,
+                        player.getGameMode() == GameMode.CREATIVE ? 0 : rule.cost(), rewards,
+                        () -> accessible(player) && !blocked() && state.equals(previous));
+            } finally {
+                if (!committed && furniture().isValid()) furniture().setVariant(previousVariant);
+            }
+            if (!committed) { player.sendMessage("操作已取消，或背包材料、空间不足。"); return; }
             state = rule.target();
-            if (!furniture().setVariant(variant())) { state = previous; throw new IllegalStateException("Missing Deco variant: " + rule.target()); }
             changed();
             saveSource();
         }

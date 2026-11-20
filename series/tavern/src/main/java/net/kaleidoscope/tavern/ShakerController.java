@@ -82,7 +82,7 @@ public final class ShakerController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> tick());
+        return net.kaleidoscope.series.FurnitureTicks.current(ShakerController.class, ShakerController::tick);
     }
 
     private void tick() {

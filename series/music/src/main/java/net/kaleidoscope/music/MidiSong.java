@@ -8,6 +8,9 @@ import javax.sound.midi.Track;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Map;
 
 public record MidiSong(List<Note> notes, long durationTicks) {
     private static final int MAX_EVENTS = 200_000;
@@ -15,7 +18,18 @@ public record MidiSong(List<Note> notes, long durationTicks) {
     private static final long MAX_MICROS = 1_800_000_000L;
     private static final long MICROS_PER_SERVER_TICK = 50_000;
 
-    public record Note(long tick, int key, int velocity, int program, boolean percussion) {}
+    public record Note(long tick, int key, int velocity, int program, boolean percussion, long durationTicks) {
+        public Note(long tick, int key, int velocity, int program, boolean percussion) {
+            this(tick, key, velocity, program, percussion, 1);
+        }
+        public Note {
+            if (tick < 0 || key < 0 || key > 127 || velocity < 1 || velocity > 127
+                    || program < 0 || program > 127 || durationTicks < 1 || durationTicks > 36_000)
+                throw new IllegalArgumentException("Invalid MIDI note");
+        }
+    }
+
+    private record Voice(int index, int channel, double startMicros) {}
 
     public MidiSong {
         notes = List.copyOf(notes);
@@ -35,6 +49,9 @@ public record MidiSong(List<Note> notes, long durationTicks) {
         long previousTick = 0;
         double micros = 0;
         List<Note> notes = new ArrayList<>();
+        Map<Integer, ArrayDeque<Voice>> active = new HashMap<>();
+        List<Voice> sustained = new ArrayList<>();
+        boolean[] pedal = new boolean[16];
         for (MidiEvent event : events) {
             long delta = event.getTick() - previousTick;
             if (delta < 0) throw new IllegalArgumentException("MIDI 时间戳无效。");
@@ -51,13 +68,60 @@ public record MidiSong(List<Note> notes, long durationTicks) {
             if (!(event.getMessage() instanceof ShortMessage message)) continue;
             int channel = message.getChannel();
             if (message.getCommand() == ShortMessage.PROGRAM_CHANGE) programs[channel] = message.getData1();
-            if (message.getCommand() != ShortMessage.NOTE_ON || message.getData2() == 0) continue;
+            int identity = channel * 128 + message.getData1();
+            if (message.getCommand() == ShortMessage.CONTROL_CHANGE) {
+                int control = message.getData1();
+                if (control == 64 || control == 121) {
+                    pedal[channel] = control == 64 && message.getData2() >= 64;
+                    if (!pedal[channel]) {
+                        for (var iterator = sustained.iterator(); iterator.hasNext();) {
+                            Voice voice = iterator.next();
+                            if (voice.channel() == channel) { finish(notes, voice, micros); iterator.remove(); }
+                        }
+                    }
+                } else if (control == 120 || control == 123) {
+                    for (var entry : active.entrySet()) {
+                        if (entry.getKey() / 128 != channel) continue;
+                        for (Voice voice : entry.getValue()) {
+                            if (control == 123 && pedal[channel]) sustained.add(voice);
+                            else finish(notes, voice, micros);
+                        }
+                        entry.getValue().clear();
+                    }
+                    if (control == 120) {
+                        for (var iterator = sustained.iterator(); iterator.hasNext();) {
+                            Voice voice = iterator.next();
+                            if (voice.channel() == channel) { finish(notes, voice, micros); iterator.remove(); }
+                        }
+                    }
+                }
+            }
+            if (message.getCommand() == ShortMessage.NOTE_OFF
+                    || message.getCommand() == ShortMessage.NOTE_ON && message.getData2() == 0) {
+                var queue = active.get(identity);
+                if (queue != null && !queue.isEmpty()) {
+                    Voice voice = queue.removeFirst();
+                    if (pedal[channel] && channel != 9) sustained.add(voice);
+                    else finish(notes, voice, micros);
+                }
+                continue;
+            }
+            if (message.getCommand() != ShortMessage.NOTE_ON) continue;
             if (notes.size() == MAX_NOTES) throw new IllegalArgumentException("MIDI 音符过多。");
+            active.computeIfAbsent(identity, ignored -> new ArrayDeque<>()).addLast(new Voice(notes.size(), channel, micros));
             notes.add(new Note((long) Math.floor(micros / MICROS_PER_SERVER_TICK), message.getData1(),
                     message.getData2(), programs[channel], channel == 9));
         }
+        for (var voices : active.values()) for (Voice voice : voices) finish(notes, voice, micros);
+        for (Voice voice : sustained) finish(notes, voice, micros);
         long duration = (long) Math.ceil(micros / MICROS_PER_SERVER_TICK);
         return new MidiSong(notes, duration);
+    }
+
+    private static void finish(List<Note> notes, Voice voice, double micros) {
+        Note note = notes.get(voice.index());
+        long duration = note.percussion() ? 1 : Math.max(1, (long) Math.ceil((micros - voice.startMicros()) / MICROS_PER_SERVER_TICK));
+        notes.set(voice.index(), new Note(note.tick(), note.key(), note.velocity(), note.program(), note.percussion(), duration));
     }
 
     public static float pitch(int key) {

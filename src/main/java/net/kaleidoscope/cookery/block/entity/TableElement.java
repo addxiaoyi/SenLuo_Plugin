@@ -16,15 +16,14 @@ import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 
-// 桌面上的桌布
+// 桌布与四件独立物品，共享追踪生命周期。
 public final class TableElement implements BlockEntityElement {
     private static final int DISPLAY_CARPET = 0;
-    private static final int DISPLAYS = 1;
+    private static final int DISPLAYS = 5;
 
     private static final byte ITEM_TRANSFORM_NONE = (byte) 0;
-    // 桌布得跟桌子模型同一套朝向 比模组渲染器再多转半圈 垂边才落在朝外那一侧
-    private static final float ROTATION_LINE_X = 0;
-    private static final float ROTATION_LINE_Z = (float) Math.toRadians(270);
+    private static final float ROTATION_LINE_X = (float) Math.toRadians(180);
+    private static final float ROTATION_LINE_Z = (float) Math.toRadians(90);
 
     private final TableController controller;
     private final ItemDisplaySet displays = new ItemDisplaySet(DISPLAYS);
@@ -45,6 +44,22 @@ public final class TableElement implements BlockEntityElement {
         Vec3d center = Vec3d.atCenterOf(blockEntity.pos);
         WorldPosition origin = new WorldPosition(blockEntity.world.world(), center.x(), center.y(), center.z());
         buildCarpet(origin, this.controller.position(state), new Quaternionf().rotateY(angle));
+        var contents = this.controller.displayedItems();
+        for (int slot = 0; slot < 4; slot++) {
+            int display = slot + 1;
+            if (slot >= contents.size()) {
+                this.displays.clear(display);
+                continue;
+            }
+            Item item = contents.get(slot);
+            var pose = TabletopLayout.pose(contents.size(), slot, this.controller.line(state), item.isBlockItem());
+            this.displays.setPackets(display,
+                    ItemDisplayPackets.at(origin).spawn(this.displays.id(display), this.displays.uuid(display)),
+                    ItemDisplayPackets.builder().item(item).scale(TabletopLayout.SCALE)
+                            .translation(pose.x(), pose.y(), pose.z())
+                            .leftRotation(new Quaternionf().rotateY(pose.yaw()))
+                            .itemTransform((byte) 8).meta(this.displays.id(display)));
+        }
         this.built = true;
     }
 

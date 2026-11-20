@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.libraries.nbt.ListTag;
@@ -22,7 +22,7 @@ import java.util.List;
 public final class LunchBagContents {
     private LunchBagContents() {}
 
-    public static final int MAX_SLOTS = 16;
+    public static final int MAX_SLOTS = 24;
 
     public static boolean isLunchBag(Item item) {
         return ItemMatch.is(item, ItemKeys.TRANSMUTATION_LUNCH_BAG);
@@ -41,30 +41,38 @@ public final class LunchBagContents {
         return switchForm(eating, ItemKeys.TRANSMUTATION_LUNCH_BAG);
     }
 
-    // 只搬内容物 名称 lore 附魔等不跟随 数量必须带上 否则整摞饭袋会被烧成一个
+    // Keep operator/player metadata while the target supplies its material and use components.
     private static Item switchForm(Item from, Key targetId) {
+        read(from); // Validation must also reject a non-list component, never erase it.
         Item target = InventoryUtils.createOrEmpty(targetId);
         if (ItemUtils.isEmpty(target)) {
             return Item.empty();
         }
         target.count(from.count());
+        from.customNameJson().ifPresent(target::customNameJson);
+        from.loreJson().ifPresent(target::loreJson);
+        for (Object component : new Object[]{DataComponentTypes.CUSTOM_DATA, DataComponentTypes.ENCHANTMENTS,
+                DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE}) {
+            Tag saved = from.getComponentAsSparrowTag(component);
+            if (saved != null) target.setSparrowTagComponent(component, saved.deepClone());
+        }
+        target.customId(targetId);
         Tag tag = from.getComponentAsSparrowTag(DataComponentTypes.BUNDLE_CONTENTS);
         if (tag instanceof ListTag list) {
-            target.setSparrowTagComponent(DataComponentTypes.BUNDLE_CONTENTS, list);
+            target.setSparrowTagComponent(DataComponentTypes.BUNDLE_CONTENTS, list.deepClone());
         }
         return target;
     }
 
-    // Retain vanilla steak and admit the imported edible dishes, using the existing bag format.
+    // Pinned upstream accepts edible stacks and drinkable potions, but never nested containers.
     public static boolean canAdd(Item food) {
-        if (ItemMatch.is(food, ItemKeys.COOKED_BEEF)) return true;
         if (ItemUtils.isEmpty(food)) return false;
+        if (isLunchBag(food) || isEatingForm(food)) return false;
         try {
-            var baked = CookeryFoodItems.read(ItemStackUtils.getBukkitStack(food.minecraftItem()));
-            return baked != null && !baked.drink();
+            var stack = ItemStackUtils.getBukkitStack(food.minecraftItem());
+            CookeryFoodItems.read(stack); // Malformed imported snapshots must not enter storage.
+            return stack.getType() == org.bukkit.Material.POTION || stack.getItemMeta().hasFood();
         } catch (IllegalArgumentException exception) {
-            net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin.instance().getLogger().log(
-                    java.util.logging.Level.WARNING, "Cannot insert corrupt food into lunch bag: " + food.id(), exception);
             return false;
         }
     }
@@ -94,35 +102,57 @@ public final class LunchBagContents {
             return items;
         }
         Tag tag = bag.getComponentAsSparrowTag(DataComponentTypes.BUNDLE_CONTENTS);
-        if (!(tag instanceof ListTag list)) {
-            return items;
+        // A native bundle component has already been upgraded by the server's item codec.
+        return decode(tag, entry -> {
+            Object parsed = ItemStackUtils.parseMinecraftItem(entry, VersionHelper.WORLD_VERSION);
+            return parsed == null ? null : ItemStackUtils.wrap(parsed);
+        });
+    }
+
+    static List<Item> decode(Tag tag, java.util.function.Function<Tag, Item> decoder) {
+        List<Item> items = new ArrayList<>(MAX_SLOTS);
+        if (tag == null) return items;
+        if (!(tag instanceof ListTag list) || list.size() > MAX_SLOTS) {
+            throw new IllegalArgumentException("Invalid lunch bag contents");
         }
-        // 传当前版本号会让 CE 的 dataVersion != currentVersion 判定恒不成立 数据修复器永远不执行
-        BlockEntityNbt.loadItems(list, Config.itemDataFixerUpperFallbackVersion(), items);
-        items.removeIf(ItemUtils::isEmpty);
+        for (Tag entry : list) {
+            if (!(entry instanceof net.momirealms.craftengine.libraries.nbt.CompoundTag))
+                throw new IllegalArgumentException("Invalid lunch bag item record");
+            Item decoded = decoder.apply(entry);
+            if (decoded == null) throw new IllegalArgumentException("Unreadable lunch bag item");
+            validateStack(decoded);
+            items.add(decoded);
+        }
         return items;
+    }
+
+    private static void validateStack(Item item) {
+        if (ItemUtils.isEmpty(item) || item.count() < 1 || item.maxStackSize() < 1 || item.count() > item.maxStackSize())
+            throw new IllegalArgumentException("Invalid lunch bag stack count");
     }
 
     public static void write(Item bag, List<Item> items) {
         List<Item> kept = new ArrayList<>(items.size());
         for (Item item : items) {
             if (!ItemUtils.isEmpty(item)) {
+                validateStack(item);
                 kept.add(item);
             }
         }
+        if (kept.size() > MAX_SLOTS) throw new IllegalArgumentException("Lunch bag exceeds 24 slots");
         // 清空要写空列表 不能用 removeComponent
         // removeComponent 是把组件标记为显式移除 袋子从此没有 bundle_contents 就不再是个能收纳的收纳袋了
-        bag.setSparrowTagComponent(DataComponentTypes.BUNDLE_CONTENTS,
-                kept.isEmpty() ? new ListTag() : BlockEntityNbt.saveItems(kept));
+        ListTag encoded = kept.isEmpty() ? new ListTag() : BlockEntityNbt.saveItems(kept);
+        if (encoded.size() != kept.size()) throw new IllegalArgumentException("Lunch bag item serialization failed");
+        bag.setSparrowTagComponent(DataComponentTypes.BUNDLE_CONTENTS, encoded);
     }
 
-    // 只看组件 别为了判空把整个列表解析出来
+    // Validate before beginning use; malformed content must never look like an empty bag.
     public static boolean isEmpty(Item bag) {
         if (ItemUtils.isEmpty(bag)) {
             return true;
         }
-        Tag tag = bag.getComponentAsSparrowTag(DataComponentTypes.BUNDLE_CONTENTS);
-        return !(tag instanceof ListTag list) || list.isEmpty();
+        return read(bag).isEmpty();
     }
 
     // 返回实际放入的数量 先并已有堆叠再开新槽
@@ -130,29 +160,9 @@ public final class LunchBagContents {
         if (!canAdd(food)) {
             return 0;
         }
+        if (food.count() < 1 || food.maxStackSize() < 1) throw new IllegalArgumentException("Invalid inserted stack");
         List<Item> items = read(bag);
-        int remaining = food.count();
-        int max = food.maxStackSize();
-
-        for (Item stored : items) {
-            if (remaining <= 0) {
-                break;
-            }
-            if (!stored.id().equals(food.id()) || stored.count() >= max) {
-                continue;
-            }
-            int toAdd = Math.min(max - stored.count(), remaining);
-            stored.grow(toAdd);
-            remaining -= toAdd;
-        }
-
-        while (remaining > 0 && items.size() < MAX_SLOTS) {
-            int toAdd = Math.min(max, remaining);
-            items.add(food.copyWithCount(toAdd));
-            remaining -= toAdd;
-        }
-
-        int added = food.count() - remaining;
+        int added = LunchBagInventory.insert(items, food, MAX_SLOTS);
         if (added > 0) {
             write(bag, items);
         }
@@ -185,6 +195,15 @@ public final class LunchBagContents {
         first.shrink(1);
         write(bag, items);
         return taken;
+    }
+
+    /** Inventory right-click removes the first entire stack, matching upstream. */
+    public static Item removeFirstStack(Item bag) {
+        List<Item> items = read(bag);
+        if (items.isEmpty()) return Item.empty();
+        Item first = items.remove(0);
+        write(bag, items);
+        return first;
     }
 
     // 倒出全部 返回被倒出的物品 袋空返回空列表
@@ -221,7 +240,9 @@ public final class LunchBagContents {
             if (!isLunchBag(bag) && !isEatingForm(bag)) {
                 continue;
             }
-            List<Item> removed = stripDisallowed(bag);
+            List<Item> removed;
+            try { removed = stripDisallowed(bag); }
+            catch (IllegalArgumentException exception) { continue; } // Preserve unreadable records for recovery.
             if (removed.isEmpty()) {
                 continue;
             }

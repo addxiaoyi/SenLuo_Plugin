@@ -37,7 +37,7 @@ jobs:
       - name: Run root tests and acceptance probe build
         run: |
           export GRADLE_OPTS="-Dorg.gradle.java.installations.paths=$JAVA_HOME_21_X64,$JAVA_HOME"
-          bash ./gradlew test shadowJar acceptanceJar --no-daemon --no-configuration-cache --console=plain
+          bash ./gradlew test testLegacyGson shadowJar versionedJars acceptanceJar --no-daemon --no-configuration-cache --console=plain
       - name: Build independent series plugins
         run: |
           export GRADLE_OPTS="-Dorg.gradle.java.installations.paths=$JAVA_HOME_21_X64,$JAVA_HOME"
@@ -51,7 +51,7 @@ jobs:
           path: |
             build/test-results/**
             series/**/build/test-results/**
-            build/libs/*.jar
+            build/libs/**/*.jar
             series/*/build/libs/*.jar
 
   python:

@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-17",
+  "status": "SOURCE_AND_API_AUDIT_ONLY",
+  "implemented": false,
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "source": {
+    "path": "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/decoration/EightImmortalsTableBlock.java",
+    "sha256": "1884963c3394f88d1736edad4d465af931e8b10581776a79ad4668a5e6c90d27"
+  },
+  "sourceSemantics": {
+    "anchor": "right_bottom at clicked position; facing equals player horizontal direction",
+    "cells": "right_bottom=anchor, left_bottom=anchor+counterclockwise(facing), right_top=anchor+facing, left_top=anchor+counterclockwise(facing)+facing",
+    "placement": "All four cells must be within build height and world border, replaceable with the placement context, unobstructed and permitted by mayUseItemAt.",
+    "removal": "Remove only same type, facing and expected part at the other three positions, without extra drops. Do not remove another table with mismatched orientation or part.",
+    "collision": "Full selection cube, solid top slab y=12..16; no tabletop inventory.",
+    "piston": "BLOCK"
+  },
+  "craftEngine": {
+    "version": "26.9.1",
+    "jarSha1Path": "81d834a916b071f6726b6a93fca5e5891373c46a",
+    "inspectedClasses": [
+      "net.momirealms.craftengine.bukkit.item.behavior.BlockItemBehavior",
+      "net.momirealms.craftengine.bukkit.block.behavior.DoubleHighBlockBehavior",
+      "net.momirealms.craftengine.core.block.behavior.BlockBehavior"
+    ],
+    "findings": [
+      "BlockItemBehavior.place creates a rollback list containing only the anchor BlockState. Its protected placeBlock override can append snapshots, but the caller discards its boolean result.",
+      "BlockPlaceEvent and CustomBlockPlaceEvent run before behavior.placeMultiState; a four-cell implementation only in placeMultiState would place secondary cells outside the default event/rollback window.",
+      "placeMultiState receives native world,pos,state,placer,item. It returns void; normal return continues with block entity load and item consumption.",
+      "Default placement fires BlockPlaceEvent rather than BlockMultiPlaceEvent. A four-cell item should present all snapshots to protection listeners.",
+      "The existing PlacedMealItemBehavior already has a separate transaction with per-cell snapshots, controller identity capture, attempted-place events, BlockMultiPlaceEvent, custom events, functions, final source-item validation and rollback.",
+      "That meal implementation is not directly reusable as an edible controller for this table: table source has no food portions or inventory. Its transaction structure is the closer implementation precedent.",
+      "Meal placement currently uses Bukkit isReplaceable and anchor collision validation; eight-immortals implementation must also account for source per-cell contextual replaceability, border, obstruction and use permissions. Do not silently inherit missing checks."
+    ]
+  },
+  "requiredRegressionScenarios": [
+    "All four facings and every part invert to the same anchor.",
+    "Reject blocked, unloaded, foreign-region, out-of-height or out-of-border cells before writes and before item debit.",
+    "Recheck protection and ownership after every event callback; rollback only cells still owned by this attempt.",
+    "Any failed write, cancellation or held-item change preserves source item and restores owned previous states.",
+    "Removal/explosion involving several parts yields at most one table item, preserves unrelated replacements, and cleans up matching remote parts safely.",
+    "Creative destruction, reload, unloaded neighbors and Folia boundaries need explicit lifecycle behavior."
+  ],
+  "localDisassembly": "build/multi-state-api.txt",
+  "runtime": "NOT_TESTED",
+  "priorSourceAudit": "docs/research/cookery-bench-table-api-audit-2026-11-17.json"
+}

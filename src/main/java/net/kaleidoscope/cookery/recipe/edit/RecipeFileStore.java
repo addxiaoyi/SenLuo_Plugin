@@ -634,12 +634,14 @@ public final class RecipeFileStore {
         Path targetPath = file.toAbsolutePath().normalize();
         CachedTargets cached;
         try {
-            long modified = Files.getLastModifiedTime(targetPath).toMillis();
-            long size = Files.size(targetPath);
-            cached = TARGET_CACHE.get(targetPath);
-            if (cached == null || cached.modified() != modified || cached.size() != size) {
-                cached = scanTargets(targetPath, modified, size);
-                TARGET_CACHE.put(targetPath, cached);
+            synchronized (fileLock(targetPath)) {
+                long modified = Files.getLastModifiedTime(targetPath).toMillis();
+                long size = Files.size(targetPath);
+                cached = TARGET_CACHE.get(targetPath);
+                if (cached == null || cached.modified() != modified || cached.size() != size) {
+                    cached = scanTargets(targetPath, modified, size);
+                    TARGET_CACHE.put(targetPath, cached);
+                }
             }
         } catch (IOException | RuntimeException error) {
             return List.of();
@@ -694,8 +696,16 @@ public final class RecipeFileStore {
         return asStringMap(expanded);
     }
 
-    private static CachedTargets scanTargets(Path file, long modified, long size) {
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file.toFile());
+    private static CachedTargets scanTargets(Path file, long modified, long size) throws IOException {
+        // Bukkit 1.21.1 cannot represent CE's empty block-variant keys. Only
+        // recipe/factory sections belong in its path-based configuration model.
+        var document = net.kaleidoscope.cookery.util.CookeryYaml.readMapping(file);
+        YamlConfiguration config = new YamlConfiguration();
+        for (var entry : document.entrySet()) {
+            if (!(entry.getKey() instanceof String rootKey) || !(entry.getValue() instanceof Map<?, ?> values)) continue;
+            String base = baseKey(rootKey);
+            if (kindOfSection(base) != null || matchesAlias(base, FACTORY_SECTIONS)) config.createSection(rootKey, values);
+        }
         Set<String> directNodes = new HashSet<>();
         Map<String, Map<String, Object>> directSources = new LinkedHashMap<>();
         Map<String, Integer> directOrdinals = new LinkedHashMap<>();

@@ -6,8 +6,8 @@
 
 Cookery 厨房 · Doll 玩偶 · Tavern 酒馆 · Deco 装饰 · MusicPlus 音乐
 
-![CraftEngine](https://img.shields.io/badge/CraftEngine-26.9.1-4C8BF5?style=flat-square)
-![Paper/Folia](https://img.shields.io/badge/Paper%2FFolia-1.21.11-EF6C00?style=flat-square)
+![CraftEngine](https://img.shields.io/badge/CraftEngine-26.9.2-4C8BF5?style=flat-square)
+![Paper/Folia](https://img.shields.io/badge/Build_Targets-1.21.1%E2%80%9326.3-EF6C00?style=flat-square)
 ![Java](https://img.shields.io/badge/Java-21%2F25-007396?style=flat-square)
 
 </div>
@@ -18,13 +18,17 @@ Cookery 厨房 · Doll 玩偶 · Tavern 酒馆 · Deco 装饰 · MusicPlus 音�
 
 每个插件都能独立发布。CraftEngine 是唯一硬依赖，系列共享代码在构建时 shade 进对应 JAR。跨插件联动通过 soft-depend、公开 API 或事件完成。
 
+**2026-11-17 当前构建检查点：** 五个插件和十组厨房专用 JAR 已编译，覆盖 1.21.1–26.3 的版本组；另提供三组 CE 配置处理旧 food 组件和铁链名称差异。厨房 598、系列 80、旧 API 专用 4 项 Java 测试通过，另有 Gson 2.10.1 专用 60 项通过，Python 140＋75 项通过。新增带内容蒸笼物品、双层合并与取消回滚、分层掉落及两条原料蒸笼合成，见 [带内容蒸笼](docs/STEAMER-PORTABLE.md)。前序新增下界合金菜刀锻造及用户数据保留，见 [菜刀锻造](docs/KITCHEN-KNIFE-SMITHING.md)。前序新增红灯笼模型/光照/配方，修正稻草人耕地方盒保护范围，见 [红灯笼与稻草人范围](docs/RED-LANTERN.md)。前序八仙桌四格放置事务、关联拆除和回调身份检查，见 [八仙桌检查点](docs/EIGHT-IMMORTALS-TABLE.md)。前序长凳同轴拼接、主副手乘坐和卸载/回调座位清理，见 [长凳检查点](docs/LONG-BENCH.md)。前序辣椒串/蘑菇串的采摘、塌落和亡灵伤害，修复先发物品的顺序及回调重入，见 [悬挂串检查点](docs/HANGING-STRINGS.md)。前序稻草块落地免伤/碎裂返物和油块服务端滑动/火源/粒子，见 [储物方块检查点](docs/STORAGE-BLOCKS.md)。前序 11 种连接桌、四件桌面物品与 64 种桌布显示，见 [桌子检查点](docs/TABLES.md)；22 种可放置座椅和 16 色坐垫，见 [座椅检查点](docs/SEATING.md)。便当袋已实现 24 槽、批量食用和果篮转移，详见 [便当袋检查点](docs/LUNCH-BAG.md)。选择 JAR、Java 和资源配置见 [版本兼容说明](docs/VERSION-COMPATIBILITY.md)。已按用户 EULA 授权启动本地 1.21.1/26.3 测试服。新增蒸笼一次填入/取全、空层拆除、副手、普通支撑与落地取消保护，以及旧 Gson/YAML 兼容修复，见 [本批运行与交互记录](docs/STEAMER-INTERACTION.md)。26.3 运行要求 CraftEngine 26.9.2；API 编译基线仍为 26.9.1。
+
+本批修正 [稻草人受击](docs/SCARECROW-HITS.md)：共享五tick窗口、首次晃动、创造无掉落与最终取消/掉落设置；前序接入 [稻草人](docs/SCARECROW.md)：双手与头颅装备规则、13块Java几何、独立倾斜草帽、重启恢复和取消移除回收；厨房612条来源配方配置全部导入，实体重力/矿车/鹦鹉等行为仍有差异。前序新增 [垃圾桶](docs/TRASH-CAN.md)：来源三槽投物/取回、红石筛选、完整物品存储、重启恢复和取消掉落回收，接入七块 Java 模型几何与合成配方。后续 [来源动画](docs/TRASH-CAN-ANIMATION.md) 保留五轨道51关键帧，拆分独立瞳孔，修正旋转方向与支点；20Hz采样不等同于客户端逐帧表现。当前分发为 `build/distribution/SenLuo-1.21.1-26.3-dev-20261117-scarecrow-hit-v1.zip`，双端各两轮十组探针见 [运行证据](docs/research/scarecrow-hit-runtime-2026-11-17.json)。前序 [挂鱼勾](docs/FISHRACK.md) 和 [资源路径修复](docs/RESOURCE-PATHS.md) 均保留；完整复刻尚未完成。
+
 | 插件 | JAR | CE 内容包 | 当前证据 | 主要缺口 |
 | --- | --- | --- | --- | --- |
-| Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 完整厨房包 1,206 物品（含 672 个茶旗显示物品）、63 方块、4,130 状态，536/612 来源配方已导入；319 Java/104 Python、茶旗接入地面和墙面显示实体。38 种大菜与 5 种盖饭 native recipe 各完成 Paper/Folia 三轮严格探针；旧厨房、取物盘、竹筛回归通过 | 茶旗原版旗杆摆动、真人营养/效果、Shift/自动合成、玩家/客户端、76 条 pending 配方、完整天气/自动化、保护/多人、卸载/跨区 |
+| Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` 或对应版本专用 JAR | `cookery_kitchen` | 完整厨房包 1,432 物品（含 672 个茶旗显示物品）、81 方块、25 家具、4,255 状态，612/612 来源配方已导入。38 种大菜与 5 种盖饭 native recipe 的历史 1.21.11 Paper/Folia 三轮探针记录保留 | 茶旗原版旗杆摆动、真人营养/效果、Shift/自动合成、玩家/客户端、稻草人完整实体行为、垃圾桶碰撞/躲藏/客户端动画、完整天气/自动化、保护/多人、卸载/跨区 |
 | Doll | `KaleidoscopeDoll-0.1.0-dev.jar` | `doll-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 精确物理、Bedrock 模型、玩家流程 |
 | Tavern | `KaleidoscopeTavern-0.1.0-dev.jar` | `tavern-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 葡萄世界生成、复杂家具、饮用和多人 |
-| Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载通过 | 418 条聚合缺口、脚本事件、座位/碰撞 |
-| MusicPlus | `KaleidoscopeMusic-0.1.0-dev.jar` | `music-ce-pack-*.zip` | Paper/Folia 启动加载通过，吉他纹理已接入 | Bedrock 几何、持续声部、客户端合成器 |
+| Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | 1.21.1/26.3 模型、11 家具及三格鱼架恢复检查，见 [鱼架检查点](docs/FISHRACK.md) | 186 条聚合差异、脚本事件、座位/碰撞和玩家流程 |
+| MusicPlus | `KaleidoscopeMusic-0.1.0-dev.jar` | `music-ce-pack-*.zip` | 历史 1.21.11 Paper/Folia 加载通过；note-off、延音、通道停止与原版声音持续声部回归通过 | Bedrock 几何、客户端连续合成器和听音验收 |
 
 当前代码、单测和服务器加载已经完成多层验证。原版客户端资源包、真人玩家闭环和许可证人工核验仍按台账记录，项目不把静态通过写成 100% 完成。
 
@@ -73,7 +77,7 @@ SenLuo_Plugin/
 
 完整厨房包包含 1,206 物品（含 672 个茶旗显示物品）、63 方块、4,130 状态、1 石磨家具和 1,218 个已检查模型。固定源码的 612 条配方中，536 条已导入、76 条 pending；包括茶旗配方、28 条竹筛配方、5 条盖饭 native recipe 和 73 条原版/合成配方配置（53 合成、20 炉具）。来源记录、模型引用和包内文件哈希仍严格校验。
 
-2026-11-16 附属物品静态导出已补入农夫靴、护腿、胸甲、草帽、花草帽、镰刀、厨铲和茶旗。镰刀配置连接现有范围收割行为；茶旗控制器支持 16 色、6 种原版旗帜图案、剪刀取下、物品状态存档和带状态掉落，资源包按地面/墙面、方向、颜色、图案和三段波形生成 672 个模型状态。锅铲基础/沾油 ID 与运行时代码一致，油态旧 ID 由 CE 生成独立 item-model；茶旗配方随本轮导入。新导出包为 1,206 物品（含 672 个茶旗显示物品）、63 方块、1,218 个已检查模型、536 imported/76 pending。原版旗杆摆动、原版客户端实机资源包、实际锅铲交互和农夫装备槽效果仍待实测，证据见 [附属物品审计](docs/research/cookery-auxiliary-items-2026-11-16.json) 和 [双端启动摘要](docs/research/cookery-shovel-runtime-2026-11-16.json)。
+2026-11-16 附属物品静态导出已补入农夫靴、护腿、胸甲、草帽、花草帽、镰刀、厨铲和茶旗。镰刀配置连接现有范围收割行为；茶旗控制器支持 16 色、6 种原版旗帜图案、剪刀取下、物品状态存档和带状态掉落，资源包按地面/墙面、方向、颜色、图案和三段波形生成 672 个模型状态。锅铲基础/沾油 ID 与运行时代码一致，油态旧 ID 由 CE 生成独立 item-model；茶旗配方随本轮导入。新导出包为 1,206 物品（含 672 个茶旗显示物品）、63 方块、1,218 个已检查模型、536 imported/74 pending。原版旗杆摆动、原版客户端实机资源包、实际锅铲交互和农夫装备槽效果仍待实测，证据见 [附属物品审计](docs/research/cookery-auxiliary-items-2026-11-16.json) 和 [双端启动摘要](docs/research/cookery-shovel-runtime-2026-11-16.json)。
 
 38 种直接食用大菜（`FoodBiteRegistry` 注册表 37＋`ModBlocks` 冷切火腿片 1）已接入 CE 代码与导出：34 种单格、3 种双格、1 种九格，共 49 个放置单元、1,024 个状态。每口快照、品质、多格归属、耗尽后保留容器和整菜/额外掉落已有实现；消费提交检查同步重入、过期回调和可取消饥饿事件。319 项 Java、102 项 Python 通过，盖饭 v2 Paper/Folia 各三轮 native 探针 PASS 并正常停服，`25583/25584` 已释放；详见 [大菜验收摘要](docs/research/cookery-placed-meals-acceptance-2026-11-15.json)。
 
@@ -162,7 +166,7 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/prepare_independent_server
   --base-resources build/acceptance/runtime/craftengine-resources \
   --paper-jar build/acceptance/runtime/paper-1.21.11-132.jar \
   --folia-jar build/acceptance/runtime/folia-1.21.11-14.jar \
-  --server-blocks 6000
+  --server-blocks 16000
 ```
 
 安装、升级和回滚说明见 [`docs/install-guide.md`](docs/install-guide.md) 与 [`docs/upgrade-guide.md`](docs/upgrade-guide.md)。
@@ -190,7 +194,7 @@ PYTHONPATH=series/tools .venv/bin/python series/tools/prepare_independent_server
 
 ## 主要剩余任务
 
-1. Cookery 继续验证大菜真人营养/效果、主副手、FOOD 效果桥、保护/多人和客户端表现；继续 76 条 pending 配方、原料获取与取物盘玩家闭环。竹筛还需雨天切换、上方/侧方漏斗、锁定/满目标/矿车、完整组件恢复、独立区块卸载和 Folia 跨区验收。
+1. Cookery 继续验证大菜真人营养/效果、主副手、FOOD 效果桥、保护/多人和客户端表现；继续 72 条 pending 配方、原料获取与取物盘玩家闭环。竹筛还需雨天切换、上方/侧方漏斗、锁定/满目标/矿车、完整组件恢复、独立区块卸载和 Folia 跨区验收。
 2. Doll 补精确物理、移动玩偶姿态和原版客户端显示。
 3. Tavern 补葡萄世界生成、酒桶液面、果盆碰撞和多人守恒。
 4. Deco 按模型组件、overlay、脚本事件、座位和碰撞分类处理 417 条聚合缺口。

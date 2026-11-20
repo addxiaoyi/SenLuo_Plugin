@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-17",
+  "status": "DEVELOPMENT_CHECKPOINT_VERIFIED",
+  "bundle": "build\\distribution\\SenLuo-1.21.1-26.3-dev-20261117-trashcan-v1.zip",
+  "bytes": 55023702,
+  "sha256": "46f58ea910f6dfb304c72630e6a6f4a210ad7377c9aef078a92f62124b459bf1",
+  "manifestFiles": 72,
+  "cookeryVersionJars": 10,
+  "versionedCePacks": 18,
+  "runtimeEvidence": "docs/research/trashcan-runtime-2026-11-17.json",
+  "javaTestExecutions": 752,
+  "pythonTests": {
+    "cookery": 143,
+    "series": 75
+  },
+  "runtimePluginHashesMatchBundle": true,
+  "serversStoppedAndPortsFree": true,
+  "subagentsUsed": false,
+  "limitations": "Full parity, clients, player flows, Folia and intermediate runtime versions remain unverified or incomplete."
+}

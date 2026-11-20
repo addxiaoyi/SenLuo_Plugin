@@ -134,7 +134,7 @@ public final class EntityProperties {
         builtin("is_visible_by_default", Entity::isVisibleByDefault);
         builtin("is_in_world", Entity::isInWorld);
         builtin("is_ticking", Entity::isTicking);
-        builtin("is_visual_fire", entity -> entity.getVisualFire() == TriState.TRUE);
+        builtin("is_visual_fire", Entity::isVisualFire);
         builtin("is_gliding", entity -> entity instanceof LivingEntity living && living.isGliding());
         builtin("is_riptiding", entity -> entity instanceof LivingEntity living && living.isRiptiding());
         builtin("is_sleeping", entity -> entity instanceof LivingEntity living && living.isSleeping());

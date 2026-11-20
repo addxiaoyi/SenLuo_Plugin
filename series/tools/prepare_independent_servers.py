@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import sys
@@ -22,6 +23,24 @@ SUITE = Path(__file__).resolve().parents[1]
 WORKSPACE = SUITE.parent
 MODULES = ("doll", "tavern", "deco", "music")
 PLATFORMS = {"paper": 25591, "folia": 25592}
+MINECRAFT_VERSIONS = ("1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6",
+                      "1.21.7", "1.21.8", "1.21.9", "1.21.10", "1.21.11",
+                      "26.1", "26.1.1", "26.1.2", "26.2", "26.3")
+
+
+def io_path(path: Path) -> Path:
+    """Use extended Windows paths without changing the machine's registry policy."""
+    absolute = str(path.resolve())
+    if os.name != "nt" or absolute.startswith("\\\\?\\"):
+        return Path(absolute)
+    return Path("\\\\?\\UNC\\" + absolute[2:] if absolute.startswith("\\\\") else "\\\\?\\" + absolute)
+
+
+def display_path(path: Path) -> str:
+    value = str(path)
+    if value.startswith("\\\\?\\UNC\\"):
+        return "\\\\" + value[8:]
+    return value[4:] if value.startswith("\\\\?\\") else value
 
 
 def digest(path: Path) -> str:
@@ -115,7 +134,7 @@ def required_artifacts(artifacts: Path, packs: Path, cookery_jar: Path | None,
 
 def _within(path: Path, parent: Path) -> bool:
     try:
-        path.resolve().relative_to(parent.resolve())
+        io_path(path).relative_to(io_path(parent))
         return True
     except ValueError:
         return False
@@ -123,6 +142,7 @@ def _within(path: Path, parent: Path) -> bool:
 
 def install_artifact(root: Path, relative: str, source: Path, kind: str) -> Path:
     archive_member(relative)
+    root = io_path(root)
     destination = root / "artifacts" / relative
     if not _within(destination, root / "artifacts"):
         raise ValueError(f"artifact destination escapes acceptance root: {relative}")
@@ -152,12 +172,21 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
             cookery_pack: Path | None = None, accept_eula: bool = False,
             paper_jar: Path | None = None, folia_jar: Path | None = None,
             craft_engine: Path | None = None, base_resources: Path | None = None,
-            server_blocks: int | None = None) -> dict:
+            server_blocks: int | None = None, minecraft: str = "1.21.11",
+            paper_port: int = 25591, folia_port: int = 25592) -> dict:
     root = root.resolve()
     allowed = WORKSPACE / "build" / "acceptance"
     # Keep test worlds out of the source tree and production locations.
     if not _within(root, allowed):
         raise ValueError(f"isolated server root must be under {allowed}")
+    if io_path(root) == io_path(allowed):
+        raise ValueError("use a separate directory under build/acceptance")
+    if minecraft not in MINECRAFT_VERSIONS:
+        raise ValueError(f"unsupported Minecraft version: {minecraft}")
+    ports = {"paper": paper_port, "folia": folia_port}
+    if any(type(port) is not int or not 1024 <= port <= 65535 for port in ports.values()) or paper_port == folia_port:
+        raise ValueError("Paper and Folia require distinct ports from 1024 to 65535")
+    root = io_path(root)
     if root.exists() and any(root.iterdir()):
         raise ValueError(f"refusing to overwrite existing acceptance root: {root}")
     artifacts = artifacts.resolve()
@@ -188,18 +217,21 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
         if matches != 1:
             raise ValueError("CraftEngine config.yml must define exactly one block.serverside-blocks value")
     runtimes = {"paper": paper_jar, "folia": folia_jar}
+    for platform, runtime in runtimes.items():
+        if runtime and not runtime.is_file():
+            raise ValueError(f"missing {platform} server JAR: {runtime}")
     report = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "scope": "isolated installation preparation; server and vanilla-client acceptance not run",
-        "minecraft": "1.21.11",
-        "java": 21,
+        "minecraft": minecraft,
+        "java": 25 if minecraft.startswith("26.") else 21,
         "craftEngine": "26.9.1",
         "independence": independent,
         "artifacts": {},
         "base_resources": [],
         "instances": {},
     }
-    root.mkdir(parents=True, exist_ok=False)
+    root.mkdir(parents=True, exist_ok=True)
     if engine_config is not None:
         config_path = "plugins/CraftEngine/config.yml"
         config_bytes = engine_config.encode("utf-8")
@@ -224,7 +256,7 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source, target)
             report["base_resources"].append({"name": source.name, "source": str(source)})
-    for platform, port in PLATFORMS.items():
+    for platform, port in ports.items():
         instance = root / platform
         plugins = instance / "plugins"
         plugins.mkdir(parents=True, exist_ok=True)
@@ -272,8 +304,12 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
             "#!/usr/bin/env sh\nset -eu\ncd \"$(dirname \"$0\")\"\n"
             "exec java -Xms512M -Xmx2G -Dfile.encoding=UTF-8 -jar server.jar nogui\n",
             encoding="utf-8")
+        (instance / "start.cmd").write_text(
+            "@echo off\ncd /d \"%~dp0\"\n"
+            "java -Xms512M -Xmx2G -Dfile.encoding=UTF-8 -jar server.jar nogui\n",
+            encoding="utf-8")
         report["instances"][platform] = {
-            "directory": str(instance), "port": port,
+            "directory": display_path(instance), "port": port,
             "serverJar": str(runtime) if runtime else None,
             "eulaAccepted": accept_eula,
             "startup": "NOT_RUN", "resourcePack": "NOT_RUN", "vanillaClient": "NOT_RUN",
@@ -297,6 +333,9 @@ def main() -> int:
     parser.add_argument("--paper-jar", type=Path)
     parser.add_argument("--folia-jar", type=Path)
     parser.add_argument("--craft-engine", type=Path, help="CraftEngine runtime plugin JAR")
+    parser.add_argument("--minecraft", choices=MINECRAFT_VERSIONS, default="1.21.11")
+    parser.add_argument("--paper-port", type=int, default=PLATFORMS["paper"])
+    parser.add_argument("--folia-port", type=int, default=PLATFORMS["folia"])
     parser.add_argument("--server-blocks", type=int,
                         help="Override block.serverside-blocks in a copy of the runtime's default config")
     parser.add_argument("--base-resources", type=Path,
@@ -309,7 +348,8 @@ def main() -> int:
                          cookery_pack=args.cookery_pack, accept_eula=args.accept_eula,
                          paper_jar=args.paper_jar, folia_jar=args.folia_jar,
                          craft_engine=args.craft_engine, base_resources=args.base_resources,
-                         server_blocks=args.server_blocks)
+                         server_blocks=args.server_blocks, minecraft=args.minecraft,
+                         paper_port=args.paper_port, folia_port=args.folia_port)
     except (OSError, ValueError, BadZipFile) as error:
         print(f"Independent server preparation failed: {error}", file=sys.stderr)
         return 1

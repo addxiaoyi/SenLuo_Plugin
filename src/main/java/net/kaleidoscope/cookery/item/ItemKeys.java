@@ -75,6 +75,7 @@ public final class ItemKeys {
     public static final Key TRASHCAN_BODY = Key.of("show:trashcan_1");
     public static final Key TRASHCAN_LID = Key.of("show:trashcan_2");
     public static final Key TRASHCAN_EYE = Key.of("show:trashcan_3");
+    public static final Key TRASHCAN_PUPIL = Key.of("show:trashcan_4");
     public static final Key TRASHCAN_HELMET = Key.of("kaleidoscopecookery:trashcan_helmet");
 
     public static final Key TEAPOT_LID = Key.of("show:teapot_1");

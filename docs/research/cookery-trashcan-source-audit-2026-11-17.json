@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "sourceFiles": {
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/model/TrashCanModel.java": "b3c9edd9574634f822c131686beef1b1e34c6745fd9409bafef8e48b295b1be3",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/misc/TrashCanBlock.java": "382f30cc24c09902038dd4e3b5952234ea7db2d7ae47b95264d5376c862a3714",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/blockentity/misc/TrashCanBlockEntity.java": "ab72a52598ae1d928793468ebf2ee47483da97db218d1e3290a11f8bafcc81be",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/render/block/TrashCanBlockEntityRender.java": "47a7e62c7ed9472275e69aaa3665fc2056b11b1504aac09b610b259a94ee0ff2",
+    "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/animation/TrashCanAnimation.java": "b321231200a615c2a43096784750d426f57e09e3ef57dc81dc39ad476a4825ad"
+  },
+  "sourceBehavior": {
+    "slots": 3,
+    "manualInsert": "component-equal merge first, empty slots next; evict oldest only if zero inserted; creative also consumes",
+    "manualWithdraw": "main hand empty + secondary use; last nonempty entire stack goes to main hand",
+    "emptyOrdinaryUse": "PASS",
+    "poweredFilter": "item bounding box overlaps y15/16..1; first same registered item slot only; discard whole entity even if full or metadata differs",
+    "break": "return remaining stored stacks",
+    "hiding": "fall distance >1, sit entity offset .875, clear nearby mob targeting within32"
+  },
+  "implementedThisCheckpoint": [
+    "corrected controls and creative payment",
+    "full component-sensitive manual merging",
+    "powered filter with CE custom IDs",
+    "strict saved state and preserved rejected payload",
+    "guarded live public interactions and detached storage snapshots",
+    "postRemove inventory drops and durable canceled-drop recovery",
+    "seven Java mesh cubes/planes, original textures, versioned overlay, recipe"
+  ],
+  "open": [
+    "source solid voxel collision and waterlogging",
+    "exact hardness/piston/explosion behavior",
+    "spectator-camera hiding differs from source ride; mode/teleport veto handling remains",
+    "exact Catmull-Rom animation and separate eyelid",
+    "source inventory HUD",
+    "real player/client/Folia/intermediate runtime acceptance"
+  ],
+  "subagentsUsed": false
+}

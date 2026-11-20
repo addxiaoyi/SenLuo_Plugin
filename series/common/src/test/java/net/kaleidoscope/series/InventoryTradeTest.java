@@ -10,6 +10,33 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class InventoryTradeTest {
+    @Test void capturedHandSlotConsumesThereEvenWhenEarlierSlotsContainIdenticalItems() {
+        ItemStack earlier = stack("fish", 30, 64), held = stack("fish", 5, 64);
+        PlayerInventory inventory = inventory(earlier, held);
+        assertTrue(InventoryTrade.exchangeSlot(inventory, 1, held::isSimilar, 1, List.of(), () -> true));
+        assertEquals(30, written(inventory)[0].getAmount());
+        assertEquals(4, written(inventory)[1].getAmount());
+        assertEquals(5, held.getAmount());
+    }
+
+    @Test void capturedSlotCannotBorrowPaymentFromOtherSlotsOrCommitAfterSlotSwitch() {
+        ItemStack fish = stack("fish", 30, 64);
+        PlayerInventory inventory = inventory(fish, stack("stone", 5, 64));
+        assertFalse(InventoryTrade.exchangeSlot(inventory, 1, fish::isSimilar, 1, List.of(), () -> true));
+        assertFalse(InventoryTrade.exchangeSlot(inventory, 0, fish::isSimilar, 1, List.of(), () -> false));
+        verify(inventory, never()).setStorageContents(any());
+        assertThrows(IllegalArgumentException.class, () -> InventoryTrade.exchangeSlot(inventory, -1, fish::isSimilar, 1, List.of(), () -> true));
+        assertThrows(IllegalArgumentException.class, () -> InventoryTrade.exchangeSlot(inventory, 2, fish::isSimilar, 1, List.of(), () -> true));
+    }
+
+    @Test void staleFurnitureCannotCommitPaymentOrRewards() {
+        ItemStack flower = stack("flower", 1, 64);
+        PlayerInventory inventory = inventory(flower);
+        assertFalse(InventoryTrade.exchange(inventory, flower::isSimilar, 1,
+                List.of(stack("refund", 1, 64)), () -> false));
+        verify(inventory, never()).setStorageContents(any());
+        assertEquals(1, flower.getAmount());
+    }
     @Test void insufficientPaymentLeavesAllSlotsUntouched() {
         ItemStack coin = stack("coin", 2, 64);
         PlayerInventory inventory = inventory(coin, null);

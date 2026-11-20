@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-17",
+  "status": "DEVELOPMENT_CHECKPOINT_VERIFIED",
+  "bundle": "build\\distribution\\SenLuo-1.21.1-26.3-dev-20261117-scarecrow-v1.zip",
+  "bytes": 55280734,
+  "sha256": "4ff5b04e5991a79744c91386eaae01802cf87ec4204541b480b80512eb4ad609",
+  "manifestFiles": 74,
+  "cookeryVersionJars": 10,
+  "versionedCePacks": 18,
+  "runtimeEvidence": "docs/research/scarecrow-runtime-2026-11-17.json",
+  "javaTestExecutions": 772,
+  "pythonTests": {
+    "cookery": 147,
+    "series": 75
+  },
+  "runtimePluginHashesMatchBundle": true,
+  "serversStoppedAndPortsFree": true,
+  "subagentsUsed": false,
+  "limitations": "Full parity, clients, player flows, Folia and intermediate runtime versions remain unverified or incomplete."
+}

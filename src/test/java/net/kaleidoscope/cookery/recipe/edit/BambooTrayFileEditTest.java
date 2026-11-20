@@ -24,6 +24,17 @@ class BambooTrayFileEditTest {
     @TempDir Path directory;
 
     @Test
+    void resolvesRecipeAlongsideEmptyBlockVariantAndRefreshesCache() throws Exception {
+        Path file = write("blocks:\n  test:plain:\n    states:\n      variants:\n        '': {model: test:plain}\n" + directYaml(100));
+        var first = RecipeFileStore.resolveTargets(RecipeSourceIndex.Kind.BAMBOO_TRAY, ID, file, NODE);
+        assertEquals(1, first.size());
+        assertEquals(100, first.getFirst().originalSource().get("time"));
+        Files.writeString(file, directYaml(2000));
+        var changed = RecipeFileStore.resolveTargets(RecipeSourceIndex.Kind.BAMBOO_TRAY, ID, file, NODE);
+        assertEquals(2000, changed.getFirst().originalSource().get("time"));
+    }
+
+    @Test
     void locatesNamedAliasAndDeletesOnlyThatRecipeAcrossReload() throws Exception {
         Path file = write("""
                 bamboo-tray-recipes#local:

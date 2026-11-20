@@ -5,6 +5,43 @@ import javax.sound.midi.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MidiSongTest {
+    @Test void noteOffAndTempoChangesDetermineHeldDuration() throws Exception {
+        Sequence sequence = new Sequence(Sequence.PPQ, 480);
+        Track track = sequence.createTrack();
+        note(track, 0, 60, 100);
+        track.add(new MidiEvent(new MetaMessage(0x51, new byte[]{0x0f, 0x42, 0x40}, 3), 480));
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, 60, 0), 960));
+        assertEquals(30, MidiSong.read(sequence).notes().getFirst().durationTicks());
+    }
+
+    @Test void pedalReleaseEndsOnlyItsChannelAndRepeatedKeysUseFifo() throws Exception {
+        Sequence sequence = new Sequence(Sequence.PPQ, 100);
+        Track track = sequence.createTrack();
+        note(track, 0, 60, 100);
+        note(track, 50, 60, 80);
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 64, 127), 60));
+        note(track, 100, 60, 0);
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_ON, 1, 60, 90), 100));
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 1, 60, 0), 150));
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 64, 0), 200));
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, 60, 0), 300));
+        var notes = MidiSong.read(sequence).notes();
+        assertEquals(20, notes.get(0).durationTicks());
+        assertEquals(25, notes.get(1).durationTicks());
+        assertEquals(5, notes.get(2).durationTicks());
+    }
+
+    @Test void allSoundOffStopsHeldPedalVoices() throws Exception {
+        Sequence sequence = new Sequence(Sequence.PPQ, 100);
+        Track track = sequence.createTrack();
+        note(track, 0, 60, 100);
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 64, 127), 1));
+        note(track, 50, 60, 0);
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 120, 0), 100));
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 64, 0), 200));
+        assertEquals(10, MidiSong.read(sequence).notes().getFirst().durationTicks());
+    }
+
     @Test void mergesTempoTrackAndNoteTracksInTickOrder() throws Exception {
         Sequence sequence = new Sequence(Sequence.PPQ, 480);
         Track tempo = sequence.createTrack();

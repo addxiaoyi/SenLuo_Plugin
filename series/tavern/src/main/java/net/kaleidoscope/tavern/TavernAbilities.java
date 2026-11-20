@@ -11,6 +11,7 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
+import net.kaleidoscope.compat.Attributes;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
@@ -197,10 +198,10 @@ final class TavernAbilities implements Listener {
     public void healAfterKill(EntityDeathEvent event) {
         Player player = event.getEntity().getKiller();
         if (player == null || !effects.active(player, "bloody_mary") || player == event.getEntity() || player.isDead()) return;
-        double healing = Math.floor(event.getEntity().getAttribute(Attribute.MAX_HEALTH).getValue() / 3);
+        double healing = Math.floor(event.getEntity().getAttribute(Attributes.MAX_HEALTH).getValue() / 3);
         if (healing <= 0) return;
         var heal = new EntityRegainHealthEvent(player, healing, EntityRegainHealthEvent.RegainReason.MAGIC);
-        if (heal.callEvent()) player.setHealth(Math.min(player.getAttribute(Attribute.MAX_HEALTH).getValue(), player.getHealth() + heal.getAmount()));
+        if (heal.callEvent()) player.setHealth(Math.min(player.getAttribute(Attributes.MAX_HEALTH).getValue(), player.getHealth() + heal.getAmount()));
     }
 
     private void surface(Player player) {

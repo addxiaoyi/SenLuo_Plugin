@@ -54,7 +54,7 @@ class NmsArtifactTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"v1_21_R1", "v1_21_R2", "v1_21_R3", "v1_21_R4", "v1_21_R5",
-            "v1_21_R6", "v1_21_R7", "v26_1_R1", "v26_2_R1"})
+            "v1_21_R6", "v1_21_R7", "v26_1_R1", "v26_2_R1", "v26_3_R1"})
     void shippedBridgeUsesPaperDescriptors(String version) throws IOException {
         Map<String, String> members = new HashMap<>();
         Set<String> types = new HashSet<>();
@@ -90,14 +90,26 @@ class NmsArtifactTest {
                 }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
             }
         }
-        // These descriptors were checked against all nine compiler JARs and the 1.21.11 Paper runtime.
-        assertEquals(PAPER_ABI, members, "Shipped NMS member descriptors differ: " + version);
+        // Compilation verifies each native consumption signature; runtime acceptance is separate.
+        Map<String, String> expected = new HashMap<>(PAPER_ABI);
+        expected.put(NMS + "world/level/Level.isOutsideBuildHeight", "(" + POS + ")Z");
+        expected.put(NMS + "world/level/Level.getWorldBorder", "()L" + NMS + "world/level/border/WorldBorder;");
+        expected.put(NMS + "world/level/border/WorldBorder.isWithinBounds", "(" + POS + ")Z");
+        expected.put(NMS + "world/phys/shapes/Shapes.box", "(DDDDDD)L" + NMS + "world/phys/shapes/VoxelShape;");
+        expected.put(NMS + "world/level/Level.isUnobstructed", "(" + ENTITY + "L" + NMS + "world/phys/shapes/VoxelShape;)Z");
+        expected.put(NMS + "core/Direction.UP", "L" + NMS + "core/Direction;");
+        expected.put(NMS + "world/entity/player/Player.mayUseItemAt", "(" + POS + "L" + NMS + "core/Direction;L" + NMS + "world/item/ItemStack;)Z");
+        boolean oldLevel = Set.of("v1_21_R1", "v1_21_R2", "v1_21_R3", "v1_21_R4").contains(version);
+        expected.put(NMS + "server/level/ServerPlayer.level", "()" + (oldLevel ? LEVEL : SERVER_LEVEL));
+        expected.put(NMS + "world/item/ItemStack.finishUsingItem",
+                "(" + LEVEL + "L" + NMS + "world/entity/LivingEntity;)L" + NMS + "world/item/ItemStack;");
+        assertEquals(expected, members, "Shipped NMS member descriptors differ: " + version);
         assertTrue(types.stream().noneMatch(type -> type.startsWith(CRAFT + "v")),
                 "Paper does not provide versioned CraftBukkit packages: " + types);
         assertTrue(types.contains(NMS + "network/protocol/game/ServerboundTeleportToEntityPacket"));
         if (version.equals("v26_1_R1")) {
             assertTrue(types.contains(NMS + "network/protocol/game/ServerboundSpectateEntityPacket"));
-        } else if (version.equals("v26_2_R1")) {
+        } else if (version.equals("v26_2_R1") || version.equals("v26_3_R1")) {
             assertTrue(types.contains(NMS + "network/protocol/game/ServerboundSpectatorActionPacket"));
         }
     }

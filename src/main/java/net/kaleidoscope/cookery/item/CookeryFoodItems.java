@@ -1,9 +1,6 @@
 package net.kaleidoscope.cookery.item;
 
-import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.Consumable;
-import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect;
-import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
+import net.kaleidoscope.compat.ItemComponents;
 import net.kaleidoscope.cookery.catalog.BakedFood;
 import net.kaleidoscope.cookery.catalog.BiteState;
 import net.kaleidoscope.cookery.catalog.CookeryCatalog;
@@ -66,20 +63,14 @@ public final class CookeryFoodItems {
         meta.setFood(food);
         meta.getPersistentDataContainer().set(FOOD_KEY, PersistentDataType.STRING, baked.encode());
         stack.setItemMeta(meta);
-        Consumable existing = stack.getData(DataComponentTypes.CONSUMABLE);
-        Consumable.Builder consumable = existing == null ? Consumable.consumable() : existing.toBuilder();
-        List<ConsumeEffect> effects = new ArrayList<>();
-        if (existing != null) existing.consumeEffects().stream()
-                .filter(effect -> !(effect instanceof ConsumeEffect.ApplyStatusEffects)).forEach(effects::add);
+        List<ItemComponents.Effect> effects = new ArrayList<>();
         for (var effect : baked.food().effects()) {
             if (!effect.id().startsWith("minecraft:")) continue;
             var type = Registry.EFFECT.get(NamespacedKey.fromString(effect.id()));
             if (type == null) throw new IllegalStateException("Unsupported vanilla food effect " + effect.id());
-            effects.add(ConsumeEffect.applyStatusEffects(List.of(new PotionEffect(type, effect.duration(), effect.amplifier())), (float) effect.probability()));
+            effects.add(new ItemComponents.Effect(new PotionEffect(type, effect.duration(), effect.amplifier()), (float) effect.probability()));
         }
-        consumable.consumeSeconds(baked.food().consumeTicks() / 20f).effects(effects)
-                .animation(baked.drink() ? ItemUseAnimation.DRINK : ItemUseAnimation.EAT);
-        stack.setData(DataComponentTypes.CONSUMABLE, consumable.build());
+        ItemComponents.food(stack, baked.food().consumeTicks() / 20f, baked.drink(), effects);
         return BukkitItemManager.instance().wrap(stack);
     }
 

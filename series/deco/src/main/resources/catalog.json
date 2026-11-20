@@ -13,7 +13,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -28,7 +30,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -43,7 +47,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -58,7 +64,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -73,7 +81,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -88,7 +98,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -105,7 +117,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -115,7 +129,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -132,7 +148,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -142,7 +160,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -159,7 +179,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -176,7 +198,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -186,7 +210,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -203,7 +229,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -213,7 +241,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -230,7 +260,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -247,7 +279,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -264,7 +298,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -281,7 +317,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -298,7 +336,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -308,7 +348,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -318,7 +360,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -328,7 +372,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -345,7 +391,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -355,7 +403,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -372,7 +422,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -382,7 +434,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -399,7 +453,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -416,7 +472,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -426,7 +484,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -443,7 +503,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -453,7 +515,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -470,7 +534,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -485,7 +551,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -500,7 +568,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -515,7 +585,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -530,7 +602,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -545,7 +619,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -560,7 +636,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -575,7 +653,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -590,7 +670,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -605,7 +687,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -620,7 +704,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -635,7 +721,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -650,7 +738,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -665,7 +755,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -680,7 +772,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -695,7 +789,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -710,7 +806,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -725,7 +823,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -740,7 +840,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -755,7 +857,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -770,7 +874,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -785,7 +891,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -800,7 +908,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -815,7 +925,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -830,7 +942,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -853,7 +967,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -870,7 +986,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -887,7 +1005,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -902,7 +1022,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -917,7 +1039,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -932,7 +1056,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -947,7 +1073,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -962,7 +1090,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -977,7 +1107,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -992,7 +1124,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1007,7 +1141,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1022,7 +1158,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1037,7 +1175,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1052,7 +1192,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1067,7 +1209,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1082,7 +1226,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1097,7 +1243,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1114,7 +1262,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1131,7 +1281,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1146,7 +1298,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1161,7 +1315,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1176,7 +1332,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1191,7 +1349,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1208,7 +1368,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1225,7 +1387,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1240,7 +1404,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1257,7 +1423,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1274,7 +1442,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1291,7 +1461,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1308,7 +1480,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1325,7 +1499,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1342,7 +1518,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1359,7 +1537,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1376,7 +1556,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1393,7 +1575,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1410,7 +1594,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1427,7 +1613,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1444,7 +1632,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1461,7 +1651,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1478,7 +1670,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1495,7 +1689,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1512,7 +1708,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1524,7 +1722,9 @@
           "sounds": [
             "minecraft:entity.snow_golem.shear"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -1534,7 +1734,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1551,7 +1753,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1568,7 +1772,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1585,7 +1791,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1602,7 +1810,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1619,7 +1829,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1636,7 +1848,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1653,7 +1867,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1670,7 +1886,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1687,7 +1905,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1704,7 +1924,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1721,7 +1943,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1738,7 +1962,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1757,7 +1983,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1769,7 +1997,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1781,7 +2011,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1793,7 +2025,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1803,7 +2037,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -1813,7 +2049,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1830,7 +2068,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1849,7 +2089,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1861,7 +2103,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1873,7 +2117,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1885,7 +2131,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1895,7 +2143,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -1905,7 +2155,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1924,7 +2176,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1936,7 +2190,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1948,7 +2204,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1960,7 +2218,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -1970,7 +2230,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -1980,7 +2242,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -1999,7 +2263,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -2011,7 +2277,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -2023,7 +2291,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -2035,7 +2305,9 @@
           "sounds": [
             "minecraft:entity.axolotl.idle_air"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -2045,7 +2317,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -2055,7 +2329,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2072,7 +2348,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2089,7 +2367,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2106,7 +2386,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2123,7 +2405,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2140,7 +2424,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2157,7 +2443,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2174,7 +2462,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2191,7 +2481,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2208,7 +2500,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2225,7 +2519,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2242,7 +2538,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2259,7 +2557,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2276,7 +2576,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2293,7 +2595,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2310,7 +2614,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2327,7 +2633,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2344,7 +2652,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2361,7 +2671,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2378,7 +2690,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2395,7 +2709,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2412,7 +2728,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2429,7 +2747,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2446,7 +2766,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2463,7 +2785,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2480,7 +2804,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2497,7 +2823,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2514,7 +2842,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2531,7 +2861,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2548,7 +2880,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2565,7 +2899,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2582,7 +2918,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2599,7 +2937,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2616,7 +2956,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2633,7 +2975,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2650,7 +2994,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2667,7 +3013,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -2675,7 +3023,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2698,7 +3048,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2715,7 +3067,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2732,7 +3086,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2749,7 +3105,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2766,7 +3124,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2783,7 +3143,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2800,7 +3162,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2817,7 +3181,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2834,7 +3200,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2851,7 +3219,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2868,7 +3238,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2885,7 +3257,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2902,7 +3276,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2919,7 +3295,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2936,7 +3314,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2953,7 +3333,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2970,7 +3352,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -2987,7 +3371,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3004,7 +3390,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3021,7 +3409,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3038,7 +3428,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3055,7 +3447,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3072,7 +3466,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3089,7 +3485,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3106,7 +3504,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3123,7 +3523,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3140,7 +3542,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3157,7 +3561,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3174,7 +3580,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3191,7 +3599,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3208,7 +3618,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3225,7 +3637,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3242,7 +3656,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3259,7 +3675,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3276,7 +3694,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3293,7 +3713,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3310,7 +3732,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3327,7 +3751,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3344,7 +3770,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3361,7 +3789,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3378,7 +3808,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3395,7 +3827,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3412,7 +3846,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3429,7 +3865,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3446,7 +3884,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3463,7 +3903,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3480,7 +3922,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3497,7 +3941,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3514,7 +3960,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3531,7 +3979,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3548,7 +3998,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3565,7 +4017,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3582,7 +4036,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3599,7 +4055,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3616,7 +4074,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3633,7 +4093,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3650,7 +4112,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3667,7 +4131,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3684,7 +4150,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3701,7 +4169,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3718,7 +4188,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3735,7 +4207,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3752,7 +4226,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3769,7 +4245,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3786,7 +4264,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3803,7 +4283,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3820,7 +4302,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3837,7 +4321,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3854,7 +4340,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3871,7 +4359,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3888,7 +4378,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3905,7 +4397,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3922,7 +4416,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3939,7 +4435,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3956,7 +4454,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3973,7 +4473,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -3990,7 +4492,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4007,7 +4511,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4024,7 +4530,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4041,7 +4549,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4058,7 +4568,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4075,7 +4587,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4092,7 +4606,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4109,7 +4625,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4126,7 +4644,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4143,7 +4663,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4160,7 +4682,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4177,7 +4701,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4194,7 +4720,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4211,7 +4739,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4228,7 +4758,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4245,7 +4777,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4262,7 +4796,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4279,7 +4815,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4296,7 +4834,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4313,7 +4853,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4330,7 +4872,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4347,7 +4891,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4364,7 +4910,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4381,7 +4929,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4398,7 +4948,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4415,7 +4967,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4432,7 +4986,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4449,7 +5005,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4466,7 +5024,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4483,7 +5043,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4500,7 +5062,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4517,7 +5081,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4534,7 +5100,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4551,7 +5119,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4568,7 +5138,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4585,7 +5157,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4602,7 +5176,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4619,7 +5195,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4636,7 +5214,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4653,7 +5233,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4670,7 +5252,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4687,7 +5271,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4704,7 +5290,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4721,7 +5309,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4738,7 +5328,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4755,7 +5347,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4772,7 +5366,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4789,7 +5385,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4806,7 +5404,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4823,7 +5423,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4840,7 +5442,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4857,7 +5461,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4874,7 +5480,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4891,7 +5499,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4908,7 +5518,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4925,7 +5537,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4942,7 +5556,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4959,7 +5575,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4976,7 +5594,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -4993,7 +5613,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5010,7 +5632,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5027,7 +5651,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5044,7 +5670,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5061,7 +5689,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5078,7 +5708,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5095,7 +5727,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5112,7 +5746,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5129,7 +5765,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5146,7 +5784,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5163,7 +5803,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5180,7 +5822,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5197,7 +5841,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5214,7 +5860,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5231,7 +5879,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5248,7 +5898,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5265,7 +5917,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5282,7 +5936,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5299,7 +5955,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5316,7 +5974,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5333,7 +5993,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5350,7 +6012,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5367,7 +6031,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5384,7 +6050,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5401,7 +6069,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5418,7 +6088,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5435,7 +6107,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5452,7 +6126,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5469,7 +6145,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5486,7 +6164,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5503,7 +6183,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5520,7 +6202,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:doll_s_linx_su",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -5530,7 +6214,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5547,7 +6233,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:doll_s_linx",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -5557,7 +6245,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5574,7 +6264,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5591,7 +6283,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5608,7 +6302,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5625,7 +6321,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5642,7 +6340,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5659,7 +6359,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5676,7 +6378,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5693,7 +6397,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5710,7 +6416,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5727,7 +6435,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5744,7 +6454,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5761,7 +6473,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5778,7 +6492,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5795,7 +6511,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5812,7 +6530,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5829,7 +6549,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5846,7 +6568,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5863,7 +6587,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5880,7 +6606,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5897,7 +6625,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5914,7 +6644,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5931,7 +6663,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5948,7 +6682,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5965,7 +6701,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5982,7 +6720,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -5999,7 +6739,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6016,7 +6758,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6033,7 +6777,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6050,7 +6796,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6067,7 +6815,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6084,7 +6834,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6101,7 +6853,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6118,7 +6872,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6135,7 +6891,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6152,7 +6910,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6169,7 +6929,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6186,7 +6948,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6203,7 +6967,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6220,7 +6986,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6237,7 +7005,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6254,7 +7024,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6271,7 +7043,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6288,7 +7062,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6305,7 +7081,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6322,7 +7100,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6339,7 +7119,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6356,7 +7138,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6373,7 +7157,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6390,7 +7176,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6407,7 +7195,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6424,7 +7214,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6441,7 +7233,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6458,7 +7252,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6475,7 +7271,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6492,7 +7290,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6509,7 +7309,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6526,7 +7328,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6543,7 +7347,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6560,7 +7366,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6577,7 +7385,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6594,7 +7404,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6611,7 +7423,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6628,7 +7442,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6645,7 +7461,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6662,7 +7480,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6679,7 +7499,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6696,7 +7518,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6713,7 +7537,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6730,7 +7556,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6747,7 +7575,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6764,7 +7594,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6781,7 +7613,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6798,7 +7632,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6815,7 +7651,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6832,7 +7670,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6849,7 +7689,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6866,7 +7708,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6883,7 +7727,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6900,7 +7746,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6917,7 +7765,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6934,7 +7784,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6951,7 +7803,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6968,7 +7822,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -6985,7 +7841,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7002,7 +7860,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7019,7 +7879,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7036,7 +7898,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7053,7 +7917,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7070,7 +7936,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7087,7 +7955,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7104,7 +7974,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7121,7 +7993,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7138,7 +8012,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7155,7 +8031,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7172,7 +8050,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7189,7 +8069,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7206,7 +8088,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7223,7 +8107,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7240,7 +8126,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7257,7 +8145,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7274,7 +8164,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7291,7 +8183,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7308,7 +8202,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7325,7 +8221,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7342,7 +8240,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7359,7 +8259,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7376,7 +8278,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7393,7 +8297,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7410,7 +8316,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7427,7 +8335,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7444,7 +8354,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7461,7 +8373,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7478,7 +8392,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7495,7 +8411,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7512,7 +8430,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7529,7 +8449,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7546,7 +8468,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7563,7 +8487,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7580,7 +8506,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7597,7 +8525,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7614,7 +8544,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7631,7 +8563,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7648,7 +8582,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7665,7 +8601,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7682,7 +8620,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7699,7 +8639,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7716,7 +8658,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7733,7 +8677,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7750,7 +8696,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7767,7 +8715,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7784,7 +8734,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7801,7 +8753,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7818,7 +8772,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7835,7 +8791,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7852,7 +8810,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7869,7 +8829,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7886,7 +8848,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7903,7 +8867,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7920,7 +8886,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7937,7 +8905,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7954,7 +8924,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7971,7 +8943,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -7988,7 +8962,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8005,7 +8981,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8022,7 +9000,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8039,7 +9019,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8056,7 +9038,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8073,7 +9057,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8090,7 +9076,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8107,7 +9095,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8124,7 +9114,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8141,7 +9133,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8158,7 +9152,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8175,7 +9171,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8192,7 +9190,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8209,7 +9209,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8226,7 +9228,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8243,7 +9247,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8260,7 +9266,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8277,7 +9285,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8294,7 +9304,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8311,7 +9323,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8328,7 +9342,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8345,7 +9361,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8362,7 +9380,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8379,7 +9399,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8394,7 +9416,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8409,7 +9433,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8424,7 +9450,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8439,7 +9467,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8454,7 +9484,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8469,7 +9501,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8484,7 +9518,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8499,7 +9535,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8513,52 +9551,19 @@
       "id": "kaleidoscope_deco:fishrack_1",
       "category": "kaleidoscope_cookery_plus",
       "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/fishrack.mcfunction",
-      "rules": [
-        {
-          "inputs": [
-            "minecraft:air"
-          ],
-          "wand": false,
-          "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
-        }
-      ]
+      "rules": []
     },
     {
       "id": "kaleidoscope_deco:fishrack_2",
       "category": "kaleidoscope_cookery_plus",
       "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/fishrack.mcfunction",
-      "rules": [
-        {
-          "inputs": [
-            "minecraft:air"
-          ],
-          "wand": false,
-          "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
-        }
-      ]
+      "rules": []
     },
     {
       "id": "kaleidoscope_deco:fishrack_3",
       "category": "kaleidoscope_cookery_plus",
       "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/fishrack.mcfunction",
-      "rules": [
-        {
-          "inputs": [
-            "minecraft:air"
-          ],
-          "wand": false,
-          "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
-        }
-      ]
+      "rules": []
     },
     {
       "id": "kaleidoscope_deco:fondant_eyes",
@@ -8571,7 +9576,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8586,7 +9593,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8601,7 +9610,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8616,7 +9627,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8631,7 +9644,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8646,7 +9661,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8661,7 +9678,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8676,7 +9695,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8691,7 +9712,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8706,7 +9729,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8721,7 +9746,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8736,7 +9763,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8751,7 +9780,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8766,7 +9797,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8781,7 +9814,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8796,7 +9831,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8811,7 +9848,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8826,7 +9865,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8841,7 +9882,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8856,7 +9899,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8871,7 +9916,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8886,7 +9933,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8901,7 +9950,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8918,7 +9969,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -8928,7 +9981,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -8938,7 +9993,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -8948,7 +10005,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -8958,7 +10017,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8975,7 +10036,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -8992,7 +10055,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9009,7 +10074,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9026,7 +10093,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9043,7 +10112,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9058,7 +10129,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9073,7 +10146,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9088,7 +10163,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9103,7 +10180,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9118,7 +10197,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9133,7 +10214,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9148,7 +10231,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9163,7 +10248,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9178,7 +10265,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9195,7 +10284,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9210,7 +10301,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9225,7 +10318,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9240,7 +10335,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9255,7 +10352,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9280,7 +10379,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9292,7 +10393,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9304,7 +10407,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9316,7 +10421,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9328,7 +10435,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9340,7 +10449,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9352,7 +10463,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9364,7 +10477,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9379,7 +10494,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9391,7 +10508,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9403,7 +10522,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9415,7 +10536,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [
@@ -9427,7 +10550,9 @@
           "sounds": [
             "minecraft:block.vine.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 1,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -9435,7 +10560,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9450,9 +10577,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:vine"
+          ]
         },
         {
           "inputs": [],
@@ -9460,7 +10594,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9475,9 +10611,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:torchflower"
+          ]
         },
         {
           "inputs": [],
@@ -9485,7 +10628,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9500,9 +10645,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:wither_rose"
+          ]
         },
         {
           "inputs": [],
@@ -9510,7 +10662,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9525,9 +10679,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:peony"
+          ]
         },
         {
           "inputs": [],
@@ -9535,7 +10696,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9550,9 +10713,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:pitcher_plant"
+          ]
         },
         {
           "inputs": [],
@@ -9560,7 +10730,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9575,9 +10747,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:pink_petals"
+          ]
         },
         {
           "inputs": [],
@@ -9585,7 +10764,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9600,9 +10781,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:sunflower"
+          ]
         },
         {
           "inputs": [],
@@ -9610,7 +10798,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9625,9 +10815,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:rose_bush"
+          ]
         },
         {
           "inputs": [],
@@ -9635,7 +10832,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9650,9 +10849,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:cornflower"
+          ]
         },
         {
           "inputs": [],
@@ -9660,7 +10866,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9675,9 +10883,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:blue_orchid"
+          ]
         },
         {
           "inputs": [],
@@ -9685,7 +10900,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9700,9 +10917,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:allium"
+          ]
         },
         {
           "inputs": [],
@@ -9710,7 +10934,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9725,9 +10951,16 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:oxeye_daisy"
+          ]
         },
         {
           "inputs": [],
@@ -9735,7 +10968,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9750,9 +10985,19 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "cost": 0,
+          "rewards": [
+            "minecraft:red_tulip",
+            "minecraft:orange_tulip",
+            "minecraft:white_tulip",
+            "minecraft:pink_tulip"
+          ]
         },
         {
           "inputs": [],
@@ -9760,7 +11005,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9775,7 +11022,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9790,7 +11039,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9805,7 +11056,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9820,7 +11073,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9835,7 +11090,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9850,7 +11107,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9865,7 +11124,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9880,7 +11141,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9895,7 +11158,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9910,7 +11175,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9925,7 +11192,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -9933,7 +11202,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9948,7 +11219,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -9956,7 +11229,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9971,7 +11246,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -9986,7 +11263,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10003,7 +11282,9 @@
           "sounds": [
             "minecraft:entity.copper_golem.step"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -10013,7 +11294,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10030,7 +11313,9 @@
           "sounds": [
             "minecraft:entity.copper_golem.step"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -10040,7 +11325,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10055,7 +11342,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10070,7 +11359,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10085,7 +11376,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10100,7 +11393,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10115,7 +11410,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10130,7 +11427,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10145,7 +11444,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10160,7 +11461,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10175,7 +11478,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10190,7 +11495,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10205,7 +11512,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10228,7 +11537,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10245,7 +11556,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10262,7 +11575,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10277,7 +11592,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -10287,7 +11604,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10302,7 +11621,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -10312,7 +11633,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10327,7 +11650,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -10337,7 +11662,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10352,7 +11679,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10367,7 +11696,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10382,7 +11713,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10397,7 +11730,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10414,7 +11749,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.open"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10429,7 +11766,9 @@
           "sneak": 1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -10439,7 +11778,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.close"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10456,7 +11797,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.open"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10471,7 +11814,9 @@
           "sneak": 1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -10481,7 +11826,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.close"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10498,7 +11845,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -10508,7 +11857,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.close"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10523,7 +11874,9 @@
           "sneak": 1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -10533,7 +11886,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.close"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10550,7 +11905,9 @@
           "sounds": [
             "minecraft:block.copper.step"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10583,7 +11940,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_chinese/river_lamp_purple",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10598,7 +11957,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_chinese/river_lamp_yellow",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10613,7 +11974,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_chinese/river_lamp_pink",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10628,7 +11991,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_chinese/river_lamp_green",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10649,7 +12014,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/2",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10664,7 +12031,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/11",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10679,7 +12048,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/12",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10694,7 +12065,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/13",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10709,7 +12082,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/14",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10724,7 +12099,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/15",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10739,7 +12116,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/16",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10754,7 +12133,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/17",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10769,7 +12150,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/1",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10784,7 +12167,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/3",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10799,7 +12184,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/4",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10814,7 +12201,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/5",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10829,7 +12218,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/6",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10844,7 +12235,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/7",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10859,7 +12252,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/8",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10874,7 +12269,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/9",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10889,7 +12286,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/lights/10",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10904,7 +12303,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade/2",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10919,7 +12320,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade/3",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10934,7 +12337,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade/4",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10949,7 +12354,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade/5",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10964,7 +12371,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade/6",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10979,7 +12388,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade/1",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -10994,7 +12405,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade_banner/2",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11009,7 +12422,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade_banner/3",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11024,7 +12439,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade_banner/4",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11039,7 +12456,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade_banner/5",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11054,7 +12473,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade_banner/6",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11069,7 +12490,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_holiday/sunshade_banner/1",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11086,7 +12509,9 @@
           "sounds": [
             "minecraft:block.copper.step"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11103,7 +12528,9 @@
           "sounds": [
             "minecraft:block.copper.step"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11120,7 +12547,9 @@
           "sounds": [
             "minecraft:block.copper.step"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11147,7 +12576,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11198,7 +12629,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11213,7 +12646,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11246,7 +12681,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_road/warning_sign_2",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11261,7 +12698,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_road/warning_sign_3",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11276,7 +12715,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_road/warning_sign_4",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11291,7 +12732,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_road/warning_sign_1",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11306,7 +12749,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_road/warning_sign_6",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11321,7 +12766,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_road/warning_sign_7",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11336,7 +12783,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_road/warning_sign_8",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11351,7 +12800,9 @@
           "sneak": -1,
           "target": "kaleidoscope_deco:kaleidoscope_road/warning_sign_5",
           "sounds": [],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11366,7 +12817,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11381,7 +12834,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11396,7 +12851,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11411,7 +12868,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11426,7 +12885,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11443,7 +12904,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11460,7 +12923,9 @@
           "sounds": [
             "minecraft:block.copper.fall"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11477,7 +12942,9 @@
           "sounds": [
             "minecraft:block.copper.fall"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11492,7 +12959,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11507,7 +12976,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11522,7 +12993,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11537,7 +13010,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11552,7 +13027,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11575,7 +13052,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11592,7 +13071,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11609,7 +13090,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11624,7 +13107,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11639,7 +13124,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11654,7 +13141,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11669,7 +13158,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11684,7 +13175,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11699,7 +13192,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11714,7 +13209,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11729,7 +13226,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11744,7 +13243,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11759,7 +13260,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11774,7 +13277,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11789,7 +13294,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11804,7 +13311,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11819,7 +13328,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11834,7 +13345,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11849,7 +13362,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11864,7 +13379,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11879,7 +13396,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11894,7 +13413,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11909,7 +13430,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11924,7 +13447,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11939,7 +13464,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11954,7 +13481,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11969,7 +13498,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11984,7 +13515,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -11999,7 +13532,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12014,7 +13549,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12031,7 +13568,9 @@
           "sounds": [
             "minecraft:block.stone.hit"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12046,7 +13585,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12061,7 +13602,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12076,7 +13619,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12091,7 +13636,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12108,7 +13655,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.open"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12125,7 +13674,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.close"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [
@@ -12135,7 +13686,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -12143,7 +13696,9 @@
           "sneak": 1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -12153,7 +13708,9 @@
           "sounds": [
             "minecraft:block.copper_trapdoor.close"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12174,7 +13731,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12189,7 +13748,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12204,7 +13765,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12219,7 +13782,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12234,7 +13799,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12249,7 +13816,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12264,7 +13833,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12279,7 +13850,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12294,7 +13867,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12309,7 +13884,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12324,7 +13901,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12339,7 +13918,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12354,7 +13935,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12369,7 +13952,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12384,7 +13969,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12399,7 +13986,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12414,7 +14003,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12429,7 +14020,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12444,7 +14037,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12459,7 +14054,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12474,7 +14071,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12489,7 +14088,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12504,7 +14105,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12519,7 +14122,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12534,7 +14139,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12549,7 +14156,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12564,7 +14173,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12581,7 +14192,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12596,7 +14209,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12611,7 +14226,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12626,7 +14243,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12641,7 +14260,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12656,7 +14277,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12671,7 +14294,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12686,7 +14311,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12701,7 +14328,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12716,7 +14345,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12731,7 +14362,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12746,7 +14379,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12761,7 +14396,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12776,7 +14413,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12791,7 +14430,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12806,7 +14447,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12821,7 +14464,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12836,7 +14481,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12851,7 +14498,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12866,7 +14515,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12881,7 +14532,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12896,7 +14549,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12911,7 +14566,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12928,7 +14585,9 @@
           "sounds": [
             "minecraft:block.chain.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -12938,7 +14597,9 @@
           "sounds": [
             "minecraft:block.lantern.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12955,7 +14616,9 @@
           "sounds": [
             "minecraft:block.chain.break"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -12965,7 +14628,9 @@
           "sounds": [
             "minecraft:block.lantern.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -12982,7 +14647,9 @@
           "sounds": [
             "minecraft:block.chain.break"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -12992,7 +14659,9 @@
           "sounds": [
             "minecraft:block.lantern.break"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13009,7 +14678,9 @@
           "sounds": [
             "minecraft:block.chain.place"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         },
         {
           "inputs": [],
@@ -13019,7 +14690,9 @@
           "sounds": [
             "minecraft:block.lantern.break"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13036,7 +14709,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13053,7 +14728,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13070,7 +14747,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13087,7 +14766,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13104,7 +14785,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13119,7 +14802,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13134,7 +14819,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13151,7 +14838,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13168,7 +14857,9 @@
           "sounds": [
             "minecraft:item.armor.equip_iron"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13185,7 +14876,9 @@
           "sounds": [
             "minecraft:item.armor.equip_iron"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13202,7 +14895,9 @@
           "sounds": [
             "minecraft:item.armor.equip_iron"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13219,7 +14914,9 @@
           "sounds": [
             "minecraft:item.armor.equip_iron"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13236,7 +14933,9 @@
           "sounds": [
             "minecraft:item.armor.equip_iron"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13253,7 +14952,9 @@
           "sounds": [
             "minecraft:item.armor.equip_iron"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13274,7 +14975,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13289,7 +14992,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13304,7 +15009,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13319,7 +15026,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13334,7 +15043,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13349,7 +15060,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13364,7 +15077,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13379,7 +15094,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13394,7 +15111,9 @@
           "sneak": -1,
           "target": "",
           "sounds": [],
-          "pending": true
+          "pending": true,
+          "cost": 0,
+          "rewards": []
         }
       ]
     },
@@ -13411,7 +15130,9 @@
           "sounds": [
             "kaleidoscope:toy"
           ],
-          "pending": false
+          "pending": false,
+          "cost": 0,
+          "rewards": []
         }
       ]
     }

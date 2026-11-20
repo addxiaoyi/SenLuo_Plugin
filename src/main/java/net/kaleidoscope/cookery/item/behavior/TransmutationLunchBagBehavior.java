@@ -1,9 +1,7 @@
 package net.kaleidoscope.cookery.item.behavior;
 
-import net.kaleidoscope.cookery.item.ItemKeys;
 import net.kaleidoscope.cookery.item.LunchBagContents;
 import net.kaleidoscope.cookery.item.LunchBagEating;
-import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -12,21 +10,17 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
-import org.bukkit.Sound;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
-// 嬗变饭袋 右键换成进食态由原版播放进食动画 潜行右键把背包里的熟牛肉装进去
+// 嬗变饭袋：背包右键装填，世界中右键使用。
 public class TransmutationLunchBagBehavior extends ItemBehavior {
     public static final ItemBehaviorFactory<TransmutationLunchBagBehavior> FACTORY = new Factory();
 
-    private static final float INSERT_VOLUME = 1.0f;
-    private static final float INSERT_PITCH = 1.0f;
 
     @Override
     public InteractionResult use(World world, @Nullable Player player, InteractionHand hand) {
@@ -36,9 +30,6 @@ public class TransmutationLunchBagBehavior extends ItemBehavior {
         Item bag = player.getItemInHand(hand);
         if (!LunchBagContents.isLunchBag(bag)) {
             return InteractionResult.PASS;
-        }
-        if (player.isSecondaryUseActive()) {
-            return fill(player, hand, bag);
         }
         if (LunchBagContents.isEmpty(bag)) {
             return InteractionResult.PASS;
@@ -52,32 +43,6 @@ public class TransmutationLunchBagBehavior extends ItemBehavior {
     @Override
     public InteractionResult useOnBlock(UseOnContext context) {
         return use(context.getLevel(), context.getPlayer(), context.getHand());
-    }
-
-    private InteractionResult fill(Player player, InteractionHand hand, Item bag) {
-        int owned = InventoryUtils.countItem(player, ItemKeys.COOKED_BEEF);
-        if (owned <= 0) {
-            return InteractionResult.PASS;
-        }
-        Item beef = InventoryUtils.createOrEmpty(ItemKeys.COOKED_BEEF);
-        if (ItemUtils.isEmpty(beef)) {
-            return InteractionResult.PASS;
-        }
-        int added = LunchBagContents.add(bag, beef.copyWithCount(owned));
-        if (added <= 0) {
-            return InteractionResult.PASS;
-        }
-        // 扣失败说明数量对不上 回滚已装入的部分 别让袋里凭空多出货
-        if (!InventoryUtils.consumeItem(player, ItemKeys.COOKED_BEEF, added)) {
-            LunchBagContents.remove(bag, added);
-            return InteractionResult.PASS;
-        }
-        // Item 是包装对象 改完必须写回手上槽位 与 TeapotItemBehavior 的约定一致
-        player.setItemInHand(hand, bag);
-        org.bukkit.entity.Player bukkitPlayer = (org.bukkit.entity.Player) player.platformPlayer();
-        bukkitPlayer.playSound(bukkitPlayer.getLocation(), Sound.ITEM_BUNDLE_INSERT, INSERT_VOLUME, INSERT_PITCH);
-        player.swingHand(hand);
-        return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
     private static class Factory implements ItemBehaviorFactory<TransmutationLunchBagBehavior> {

@@ -2,6 +2,8 @@ plugins {
     id 'com.gradleup.shadow' version '9.2.2' apply false
 }
 
+def paperApiVersion = providers.gradleProperty('paperApiVersion').getOrElse('1.21.1-R0.1-SNAPSHOT')
+
 subprojects {
     apply plugin: 'java-library'
     group = 'net.kaleidoscope'
@@ -17,7 +19,7 @@ subprojects {
         options.release.set(21)
     }
     dependencies {
-        compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+        compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
         compileOnly "net.momirealms:craft-engine-core:${craftEngineVersion}"
         compileOnly "net.momirealms:craft-engine-bukkit:${craftEngineVersion}"
         compileOnly 'net.momirealms:sparrow-nbt:0.18.8'
@@ -28,16 +30,47 @@ subprojects {
         testImplementation 'com.google.code.gson:gson:2.11.0'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
+    configurations.compileClasspath.resolutionStrategy.force("io.papermc.paper:paper-api:${paperApiVersion}")
+    if (name == 'common') {
+        sourceSets.main.java.srcDir(rootProject.file('../compat/src/main/java'))
+        sourceSets.create('modernCompat') {
+            java.srcDir(rootProject.file('../compat/src/modern/java'))
+            compileClasspath += sourceSets.main.output
+        }
+        dependencies { modernCompatCompileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT' }
+        tasks.named('jar') { from(sourceSets.modernCompat.output) }
+        sourceSets.create('legacyCompatTest') {
+            java.srcDir(rootProject.file('../compat/src/legacyTest/java'))
+            compileClasspath += sourceSets.main.output
+            runtimeClasspath += sourceSets.main.output
+        }
+        dependencies {
+            legacyCompatTestImplementation platform('org.junit:junit-bom:5.11.4')
+            legacyCompatTestImplementation 'org.junit.jupiter:junit-jupiter'
+            legacyCompatTestImplementation 'org.mockito:mockito-core:5.15.2'
+            legacyCompatTestImplementation 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+            legacyCompatTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        }
+        tasks.register('legacyCompatTest', Test) {
+            testClassesDirs = sourceSets.legacyCompatTest.output.classesDirs
+            classpath = sourceSets.legacyCompatTest.runtimeClasspath
+            useJUnitPlatform()
+        }
+        tasks.named('check') { dependsOn tasks.named('legacyCompatTest') }
+    }
     tasks.named('test') {
         useJUnitPlatform()
         systemProperty 'file.encoding', 'UTF-8'
     }
-    if (name in ['common', 'tavern']) {
+    if (name in ['common', 'tavern', 'deco']) {
         dependencies {
             testImplementation 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
             testImplementation "net.momirealms:craft-engine-core:${craftEngineVersion}"
             testImplementation 'org.mockito:mockito-core:5.15.2'
         }
+    }
+    if (name in ['common', 'deco']) {
+        dependencies { testImplementation "net.momirealms:craft-engine-bukkit:${craftEngineVersion}" }
     }
     if (name != 'common') {
         apply plugin: 'com.gradleup.shadow'
@@ -52,6 +85,7 @@ subprojects {
             archiveClassifier = ''
             relocate 'net.momirealms.antigrieflib', "net.kaleidoscope.${project.name}.libs.antigrief"
             relocate 'net.kaleidoscope.series', "net.kaleidoscope.${project.name}.internal"
+            relocate 'net.kaleidoscope.compat', "net.kaleidoscope.${project.name}.internal.compat"
         }
         tasks.named('jar') { enabled = false }
         tasks.named('assemble') { dependsOn tasks.named('shadowJar') }

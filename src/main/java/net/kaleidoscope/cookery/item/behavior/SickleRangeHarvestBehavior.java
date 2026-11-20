@@ -80,7 +80,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         org.bukkit.entity.Player bukkitPlayer = (org.bukkit.entity.Player) player.platformPlayer();
         Item held = context.getItem();
         ItemStack heldStack = held instanceof BukkitItem bukkitItem ? bukkitItem.getBukkitItem() : null;
-        if (heldStack != null && bukkitPlayer.hasCooldown(heldStack)) {
+        if (heldStack != null && net.kaleidoscope.compat.Cooldowns.has(bukkitPlayer, heldStack)) {
             return InteractionResult.PASS;
         }
 
@@ -109,7 +109,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
             held.hurtAndBreak(durabilityCost, player, null);
         }
         if (this.cooldownTicks > 0 && heldStack != null) {
-            bukkitPlayer.setCooldown(heldStack, this.cooldownTicks);
+            net.kaleidoscope.compat.Cooldowns.set(bukkitPlayer, heldStack, this.cooldownTicks);
         }
         return InteractionResult.SUCCESS_AND_CANCEL;
     }

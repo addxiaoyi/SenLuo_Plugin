@@ -1,0 +1,1504 @@
+{
+  "date": "2026-11-17",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "imported": 565,
+  "pending": 47,
+  "recipes": [
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_acacia",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_acacia.json",
+        "sha256": "e6b318a7db6cffa7012403c254f932707d915a9134dc4902ce70c16d3eaa91ae"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:acacia_fence"
+          },
+          "S": {
+            "item": "minecraft:acacia_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_acacia"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_bamboo",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_bamboo.json",
+        "sha256": "cc4e7a2ed3f4f75378963dbaecb78238a4336fa80596e543f950f029f12d007b"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:bamboo_block"
+          },
+          "S": {
+            "item": "minecraft:bamboo_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_bamboo"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_birch",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_birch.json",
+        "sha256": "be6f67bd4024c020cc5fbf8499de5237ed3f279ac5ec73c7dace92937047727b"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:birch_fence"
+          },
+          "S": {
+            "item": "minecraft:birch_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_birch"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_cherry",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_cherry.json",
+        "sha256": "c937b3bc1328597c7b9dd7bb03e5a3341a1134b8b3ec6039362138e366e54cab"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:cherry_fence"
+          },
+          "S": {
+            "item": "minecraft:cherry_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_cherry"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_crimson",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_crimson.json",
+        "sha256": "dd918630473b51e759d3ea08675befcd6093ed30bf4f5c011ca8933d741fd4ed"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:crimson_fence"
+          },
+          "S": {
+            "item": "minecraft:crimson_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_crimson"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_dark_oak",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_dark_oak.json",
+        "sha256": "30bfe959bd774f3bfb941c46b575e5d504883a605f0ca58c37e52a1ec2f6f430"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:dark_oak_fence"
+          },
+          "S": {
+            "item": "minecraft:dark_oak_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_dark_oak"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_jungle",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_jungle.json",
+        "sha256": "14cbdec6c79d04b656f35c9c03e3b4e701e40b2aed53d7bf34307f66f245d869"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:jungle_fence"
+          },
+          "S": {
+            "item": "minecraft:jungle_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_jungle"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_mangrove",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_mangrove.json",
+        "sha256": "79c96208fe341ef6d7247577677b2505c781d70974ab7476bbd090df286cde52"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:mangrove_fence"
+          },
+          "S": {
+            "item": "minecraft:mangrove_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_mangrove"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_oak",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_oak.json",
+        "sha256": "7406472fd26cb01fa78a609b4638d9b96d973456c2c95aaa22c453bc5c264a35"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:oak_fence"
+          },
+          "S": {
+            "item": "minecraft:oak_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_oak"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_spruce",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_spruce.json",
+        "sha256": "6440e9490182b4929f70d1ea0f301adc5888d6f5f23c346b66685da9b0a6729c"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:spruce_fence"
+          },
+          "S": {
+            "item": "minecraft:spruce_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_spruce"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chair_warped",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chair_warped.json",
+        "sha256": "1531c2ed0d6d9d6a8b624bc5303a50cc29004f86ff7e8ce6d672b0b5192844ab"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:warped_fence"
+          },
+          "S": {
+            "item": "minecraft:warped_slab"
+          }
+        },
+        "pattern": [
+          "F  ",
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chair_warped"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chili_ristra",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chili_ristra.json",
+        "sha256": "c7b47fb6eaca3430914c7a61c9fa4b4de7be6280fa1b740d972d1ca3c8148bc7"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "C": {
+            "item": "kaleidoscope_cookery:red_chili"
+          }
+        },
+        "pattern": [
+          "CC",
+          "CC",
+          "CC"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chili_ristra"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_acacia",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_acacia.json",
+        "sha256": "04604386f32d6697078bed8340448af3f7b1098749d9084c08551baf1ce56a59"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:acacia_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_acacia"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_bamboo",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_bamboo.json",
+        "sha256": "db1da6c66765c5e59f070a4326b7ec4b2b40b04a73fa63318232d0f284ca629e"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:bamboo_block"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_bamboo"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_birch",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_birch.json",
+        "sha256": "103acea075f7abed1cb25fe3a9cddc327bed16d60e1351b42c8a1065b1a4984d"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:birch_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_birch"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_cherry",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_cherry.json",
+        "sha256": "94a42a0016ab6f3cc3e9d918db33a1ed888452f2b482c1ccae76675e70f94f0d"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:cherry_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_cherry"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_crimson",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_crimson.json",
+        "sha256": "9a88a813421fbfdaf08842cd8cf2d4723aa6b786804d736c1eae6568d4ed4031"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:crimson_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_crimson"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_dark_oak",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_dark_oak.json",
+        "sha256": "f12d4598f12dc6049b8734309bf8f7366cd57ddede1c372bedf2f66a08328258"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:dark_oak_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_dark_oak"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_jungle",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_jungle.json",
+        "sha256": "9438992ae9a8bc68f2818e8c3997a1af1054bca9347e0200be2a1cca2adb7efb"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:jungle_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_jungle"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_mangrove",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_mangrove.json",
+        "sha256": "e8d7613291efec0f993aa444bc8a22a1013372082cfb11e3904f842a965e5955"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:mangrove_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_mangrove"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_oak",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_oak.json",
+        "sha256": "ced99c9ed396e13b012c527cbb587a28ae1594f3f85e0c753b7567f493ac5cc8"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:oak_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_oak"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_spruce",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_spruce.json",
+        "sha256": "885ff1672ed7c3ec3f20f18a84a7a2239dc1dce32ffcce8f051ce7dfca0a1631"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:spruce_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_spruce"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:cook_stool_warped",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/cook_stool_warped.json",
+        "sha256": "750f638552c1275de76a270ccd085f198550f6b83224106e13dbfa08613f4c89"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "item": "minecraft:warped_planks"
+          }
+        },
+        "pattern": [
+          "   ",
+          "###",
+          "# #"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:cook_stool_warped"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:eight_immortals_table",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/eight_immortals_table.json",
+        "sha256": "58d05017e561c8b3f7b8e153a7f89de9a832c05866da67ec32a5723ad955a159"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:oak_fence"
+          },
+          "P": {
+            "item": "minecraft:oak_planks"
+          }
+        },
+        "pattern": [
+          "FPF",
+          "PPP",
+          "FPF"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:eight_immortals_table"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:long_bench",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/long_bench.json",
+        "sha256": "ac5c4013d1f980211351b87f02babc3bc20703861dcb597285e09fa3027d18f7"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:oak_fence"
+          },
+          "P": {
+            "item": "minecraft:oak_planks"
+          },
+          "S": {
+            "item": "minecraft:stick"
+          }
+        },
+        "pattern": [
+          "PPP",
+          "FSF"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:long_bench"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:oil",
+      "type": "minecraft:crafting_shapeless",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/oil.json",
+        "sha256": "ff8f5d388c6a6bec5315785bd87345624b16c33a0bc68ed87a5cef2c9b708ccc"
+      },
+      "original": {
+        "type": "minecraft:crafting_shapeless",
+        "category": "misc",
+        "ingredients": [
+          {
+            "item": "kaleidoscope_cookery:oil_block"
+          }
+        ],
+        "result": {
+          "count": 9,
+          "item": "kaleidoscope_cookery:oil"
+        }
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Uninstalled ingredients or empty tag; no alternatives silently removed: kaleidoscopecookery:oil_block"
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:oil_block",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/oil_block.json",
+        "sha256": "825e7bde8a8e1afc11f3528f42c1652c478d33854d5b1400df7cc61c7cccb96d"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "O": {
+            "item": "kaleidoscope_cookery:oil"
+          }
+        },
+        "pattern": [
+          "OOO",
+          "OOO",
+          "OOO"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:oil_block"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:raw_dough_steamer",
+      "type": "minecraft:crafting_shapeless",
+      "source": {
+        "path": "src/main/resources/data/kaleidoscope_cookery/recipes/raw_dough_steamer.json",
+        "sha256": "a7e729ce9ae9040eef67314c270b779156e59e83d725155ea200c0c128e090b0"
+      },
+      "original": {
+        "type": "minecraft:crafting_shapeless",
+        "category": "misc",
+        "ingredients": [
+          {
+            "item": "kaleidoscope_cookery:steamer"
+          },
+          {
+            "item": "kaleidoscope_cookery:raw_dough"
+          },
+          {
+            "item": "kaleidoscope_cookery:raw_dough"
+          },
+          {
+            "item": "kaleidoscope_cookery:raw_dough"
+          },
+          {
+            "item": "kaleidoscope_cookery:raw_dough"
+          }
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:steamer",
+          "nbt": "{BlockEntityTag:{CookingProgress:[I;0,0,0,0],CookingTime:[I;1200,1200,1200,1200],Items:[{Count:1b,Slot:0b,id:\"kaleidoscope_cookery:raw_dough\"},{Count:1b,Slot:1b,id:\"kaleidoscope_cookery:raw_dough\"},{Count:1b,Slot:2b,id:\"kaleidoscope_cookery:raw_dough\"},{Count:1b,Slot:3b,id:\"kaleidoscope_cookery:raw_dough\"}]}}"
+        }
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Source embeds Forge block-entity NBT; conversion to plugin saves is pending."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:red_lantern",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/red_lantern.json",
+        "sha256": "ab30b687551ec36d3ddd4f753f942db40b105c4f7e04dfcf093523c80bb89d36"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "C": {
+            "item": "minecraft:chain"
+          },
+          "D": {
+            "item": "minecraft:red_dye"
+          },
+          "L": {
+            "item": "minecraft:candle"
+          },
+          "P": {
+            "item": "minecraft:paper"
+          }
+        },
+        "pattern": [
+          "PCP",
+          "DLD",
+          "PDP"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:red_lantern"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:rice_panicle",
+      "type": "minecraft:crafting_shapeless",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/rice_panicle.json",
+        "sha256": "48633605f456b6b9bb01902f4368703e3216f79cb32051237e35d812be1f3fdc"
+      },
+      "original": {
+        "type": "minecraft:crafting_shapeless",
+        "category": "misc",
+        "ingredients": [
+          {
+            "item": "kaleidoscope_cookery:straw_block"
+          }
+        ],
+        "result": {
+          "count": 9,
+          "item": "kaleidoscope_cookery:rice_panicle"
+        }
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Uninstalled ingredients or empty tag; no alternatives silently removed: kaleidoscopecookery:straw_block"
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:scarecrow",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/scarecrow.json",
+        "sha256": "99878eb4c0529bc8a1ca113e3aa4a62882133d85aa84b245208121cce874e482"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "tag": "kaleidoscope_cookery:straw_bale"
+          },
+          "H": {
+            "tag": "kaleidoscope_cookery:straw_hat"
+          },
+          "P": {
+            "item": "minecraft:pumpkin"
+          },
+          "S": {
+            "item": "minecraft:stick"
+          }
+        },
+        "pattern": [
+          " H ",
+          "SPS",
+          " # "
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:scarecrow"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:straw_block",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/straw_block.json",
+        "sha256": "d84601daacffae45893149887497144ad70fefc0dadf9e8c2ea8cdcaca08b048"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "R": {
+            "item": "kaleidoscope_cookery:rice_panicle"
+          }
+        },
+        "pattern": [
+          "RRR",
+          "RRR",
+          "RRR"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:straw_block"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:strung_mushrooms",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/strung_mushrooms.json",
+        "sha256": "47951c611c11f89f52e347cef2806ddfcf3dc97bdf9a5d0ccfb2a269b20c3999"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "M": {
+            "item": "minecraft:brown_mushroom"
+          }
+        },
+        "pattern": [
+          "MM",
+          "MM",
+          "MM"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:strung_mushrooms"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:stuffed_dough_food_steamer",
+      "type": "minecraft:crafting_shapeless",
+      "source": {
+        "path": "src/main/resources/data/kaleidoscope_cookery/recipes/stuffed_dough_food_steamer.json",
+        "sha256": "0dfd5a924919543339d9950fde5b955a1dfed56a5c69a5e77b1ea57995d6bb51"
+      },
+      "original": {
+        "type": "minecraft:crafting_shapeless",
+        "category": "misc",
+        "ingredients": [
+          {
+            "item": "kaleidoscope_cookery:steamer"
+          },
+          {
+            "item": "kaleidoscope_cookery:stuffed_dough_food"
+          },
+          {
+            "item": "kaleidoscope_cookery:stuffed_dough_food"
+          },
+          {
+            "item": "kaleidoscope_cookery:stuffed_dough_food"
+          },
+          {
+            "item": "kaleidoscope_cookery:stuffed_dough_food"
+          }
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:steamer",
+          "nbt": "{BlockEntityTag:{CookingProgress:[I;0,0,0,0],CookingTime:[I;1200,1200,1200,1200],Items:[{Count:1b,Slot:0b,id:\"kaleidoscope_cookery:stuffed_dough_food\"},{Count:1b,Slot:1b,id:\"kaleidoscope_cookery:stuffed_dough_food\"},{Count:1b,Slot:2b,id:\"kaleidoscope_cookery:stuffed_dough_food\"},{Count:1b,Slot:3b,id:\"kaleidoscope_cookery:stuffed_dough_food\"}]}}"
+        }
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Source embeds Forge block-entity NBT; conversion to plugin saves is pending."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_acacia",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_acacia.json",
+        "sha256": "510ff261cf057725aa571a35441a5b7fa3c0298709bed1f3dadcfaba0f3e8ebd"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:acacia_fence"
+          },
+          "S": {
+            "item": "minecraft:acacia_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_acacia"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_bamboo",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_bamboo.json",
+        "sha256": "c76d45463092d8854ba4b634b1e64f2ca3e1ec1e110ca701cab5872d0b0be28e"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:bamboo_block"
+          },
+          "S": {
+            "item": "minecraft:bamboo_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_bamboo"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_birch",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_birch.json",
+        "sha256": "a20b26d08632c254ea8a22f90bf6d41856fd9310216e6eecdc1d519f3d13426c"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:birch_fence"
+          },
+          "S": {
+            "item": "minecraft:birch_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_birch"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_cherry",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_cherry.json",
+        "sha256": "1d59b5b133b2bc8eaf93df4d218b3a96a6d31b1acee6ab8dc37ffcab456b099e"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:cherry_fence"
+          },
+          "S": {
+            "item": "minecraft:cherry_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_cherry"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_crimson",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_crimson.json",
+        "sha256": "4cf09b7025826000f3d95e8b4a39569c68dcba545b3f21ea90fd9db1988e82b1"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:crimson_fence"
+          },
+          "S": {
+            "item": "minecraft:crimson_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_crimson"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_dark_oak",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_dark_oak.json",
+        "sha256": "855ad09f7d9124d19d3fa474ed4202972fdc3f04a4c1b5d4e0b0c33ce64f767d"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:dark_oak_fence"
+          },
+          "S": {
+            "item": "minecraft:dark_oak_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_dark_oak"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_jungle",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_jungle.json",
+        "sha256": "71e98a868d81f56dbabe426c541500a1bb6d1197bcefada3519df6f0017258f0"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:jungle_fence"
+          },
+          "S": {
+            "item": "minecraft:jungle_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_jungle"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_mangrove",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_mangrove.json",
+        "sha256": "fd9f1bcc44a3337b0e037109ba0d4676c288f6887eed9aaa253dc2f37589a823"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:mangrove_fence"
+          },
+          "S": {
+            "item": "minecraft:mangrove_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_mangrove"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_oak",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_oak.json",
+        "sha256": "b056f8ada9e19565b8fe14af2ff05dc092e726f013566e55a228e955b1e42e95"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:oak_fence"
+          },
+          "S": {
+            "item": "minecraft:oak_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_oak"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_spruce",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_spruce.json",
+        "sha256": "bb4c73fb252d82eb4df157aff6a3b74cdb745e90841c26e89dd38ad7387151e7"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:spruce_fence"
+          },
+          "S": {
+            "item": "minecraft:spruce_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_spruce"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:table_warped",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/table_warped.json",
+        "sha256": "a4f2baf6181c62db222886bf4e97e8219c5e8fabff8718941baa3fde5361a745"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:warped_fence"
+          },
+          "S": {
+            "item": "minecraft:warped_slab"
+          }
+        },
+        "pattern": [
+          "SSS",
+          "F F"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:table_warped"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:trash_can",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/trash_can.json",
+        "sha256": "1fedf05a34ffe0f295ce18a13da2246ca6c5c32a0691a47e56c40acd3a380319"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "C": {
+            "item": "minecraft:composter"
+          },
+          "I": {
+            "tag": "forge:ingots/iron"
+          }
+        },
+        "pattern": [
+          "III",
+          "ICI",
+          "III"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:trash_can"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "minecraft:netherite_kitchen_knife_smithing",
+      "type": "minecraft:smithing_transform",
+      "source": {
+        "path": "src/generated/resources/data/minecraft/recipes/netherite_kitchen_knife_smithing.json",
+        "sha256": "1331b90a12144f5f6b2799a2c5575587bdc0e421894432019d2c7d6afe73bf5c"
+      },
+      "original": {
+        "type": "minecraft:smithing_transform",
+        "addition": {
+          "item": "minecraft:netherite_ingot"
+        },
+        "base": {
+          "item": "kaleidoscope_cookery:diamond_kitchen_knife"
+        },
+        "result": {
+          "item": "kaleidoscope_cookery:netherite_kitchen_knife"
+        },
+        "template": {
+          "item": "minecraft:netherite_upgrade_smithing_template"
+        }
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Smithing item components and enchantment preservation require acceptance."
+    }
+  ],
+  "scope": "Pinned recipe conversion gaps only; imported does not prove complete gameplay or runtime acceptance."
+}

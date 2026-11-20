@@ -10,7 +10,7 @@ import net.momirealms.craftengine.core.entity.furniture.tick.FurnitureTicker;
 import net.momirealms.craftengine.libraries.nbt.CompoundTag;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.GameRules;
+import net.kaleidoscope.compat.Rules;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -133,15 +133,17 @@ final class GrapeController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> {
-            if (!operational() || failed || !growth.planted() || ++elapsed < GrapeGrowth.PULSE_TICKS) return;
-            elapsed = 0;
-            try { grow(); }
-            catch (RuntimeException exception) {
-                failed = true;
-                plugin.getLogger().log(java.util.logging.Level.SEVERE, "葡萄生长已停止，存档已保留：" + location(), exception);
-            }
-        });
+        return net.kaleidoscope.series.FurnitureTicks.current(GrapeController.class, GrapeController::tick);
+    }
+
+    private void tick() {
+        if (!operational() || failed || !growth.planted() || ++elapsed < GrapeGrowth.PULSE_TICKS) return;
+        elapsed = 0;
+        try { grow(); }
+        catch (RuntimeException exception) {
+            failed = true;
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "葡萄生长已停止，存档已保留：" + location(), exception);
+        }
     }
 
     private void grow() {
@@ -149,7 +151,7 @@ final class GrapeController extends InteractiveFurniture {
         if (growth.fruit() >= 0 && owned(below) && !below.getBlock().isEmpty()) {
             growth = growth.harvested(); refresh();
         }
-        int speed = location().getWorld().getGameRuleValue(GameRules.RANDOM_TICK_SPEED);
+        int speed = location().getWorld().getGameRuleValue(Rules.RANDOM_TICK_SPEED);
         double chance = growth.probability(location().getBlock().getTemperature(), speed);
         if (ThreadLocalRandom.current().nextDouble() >= chance) return;
         Runnable grow = nextGrowth(owner == null ? null : Bukkit.getPlayer(owner));

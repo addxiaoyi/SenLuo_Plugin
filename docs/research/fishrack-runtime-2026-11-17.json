@@ -1,0 +1,737 @@
+{
+  "date": "2026-11-17",
+  "status": "PARTIAL_RUNTIME_ACCEPTANCE",
+  "baseline": "1d283d6",
+  "uncommitted": true,
+  "subagentsUsed": false,
+  "authorization": "docs/research/local-eula-authorization-2026-11-17.json",
+  "runtimeCraftEngine": {
+    "version": "26.9.2",
+    "id": "mwFiNxVO",
+    "games": [
+      "1.20",
+      "1.20.1",
+      "1.20.2",
+      "1.20.3",
+      "1.20.4",
+      "1.20.5",
+      "1.20.6",
+      "1.21",
+      "1.21.1",
+      "1.21.10",
+      "1.21.11",
+      "1.21.2",
+      "1.21.3",
+      "1.21.4",
+      "1.21.5",
+      "1.21.6",
+      "1.21.7",
+      "1.21.8",
+      "1.21.9",
+      "26.1",
+      "26.1.1",
+      "26.1.2",
+      "26.2",
+      "26.3"
+    ],
+    "changelog": "- 26.3 support\n- Improved chunk loading logics for paper 1.21.4+\n- Improved resource pack optimization speed\n- Fixed mcmeta not generated when using bbmodels",
+    "file": {
+      "id": "hsif1yl0",
+      "hashes": {
+        "sha512": "55bb3737df295490e0a446ee3daac6b72052e0e47aa7d8cda14455c03b6df08f6fea3be66e02d04007a3042ec153c8b7e195e66a38f75f64f08698340542d04c",
+        "sha1": "7376036e9893d8e96297fe5405739e35467f39bc"
+      },
+      "url": "https://cdn.modrinth.com/data/tRX6FMfQ/versions/mwFiNxVO/craft-engine-paper-plugin-26.9.2.jar",
+      "filename": "craft-engine-paper-plugin-26.9.2.jar",
+      "primary": true,
+      "size": 11169366,
+      "file_type": null
+    },
+    "sha256": "19535f1987e8a27ebe8c6d811e7deae9a1f05dbd3ef3359435aff5a3d819e0f9"
+  },
+  "requiredReports": [
+    "food-smoke.json",
+    "enchantment-smoke.json",
+    "smithing-smoke.json",
+    "steamer-item-smoke.json",
+    "kitchen-smoke.json",
+    "deco-model-smoke.json",
+    "fishrack-smoke.json"
+  ],
+  "verifiedRuns": [
+    {
+      "fixture": "g",
+      "cycle": 19,
+      "reason": "reports_and_pack_ready",
+      "returncode": 0,
+      "elapsedSeconds": 89.5,
+      "server": "C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin\\build\\acceptance\\g\\paper",
+      "java": "C:\\Users\\Administrator\\Documents\\luoseng\\.toolchains\\jdk-21.0.13.0.2+1\\bin\\java.exe",
+      "port": 25609,
+      "reports": {
+        "food-smoke.json": {
+          "server": "1.21.1-133-3cb8529 (MC: 1.21.1)",
+          "craftEngine": "26.9.2",
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "checkedConsumables": 103,
+          "checkedBites": 38,
+          "failures": [],
+          "playerFlow": "NOT_TESTED",
+          "clientResourcePack": "NOT_TESTED"
+        },
+        "enchantment-smoke.json": {
+          "server": "1.21.1-133-3cb8529 (MC: 1.21.1)",
+          "craftEngine": "26.9.2",
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "checkedTools": 5,
+          "reloadedTools": 5,
+          "failures": [],
+          "playerFlow": "NOT_TESTED",
+          "clientResourcePack": "NOT_TESTED"
+        },
+        "smithing-smoke.json": {
+          "server": "1.21.1-133-3cb8529 (MC: 1.21.1)",
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "assembled": 3,
+          "reloadedProducts": 1,
+          "rejectedInputs": 3,
+          "failures": [],
+          "nativeSlotConsumption": "NOT_TESTED",
+          "playerShiftCancellation": "NOT_TESTED"
+        },
+        "steamer-item-smoke.json": {
+          "server": "1.21.1-133-3cb8529 (MC: 1.21.1)",
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "assembledRecipes": 2,
+          "priorDiskProductsReloaded": 2,
+          "splitRoundTrips": 2,
+          "failures": [],
+          "playerPlacementBreakCrafting": "NOT_TESTED",
+          "worldCookingAndFalling": "NOT_TESTED"
+        },
+        "kitchen-smoke.json": {
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "server": "1.21.1-133-3cb8529 (MC: 1.21.1)",
+          "craftEngine": "26.9.2",
+          "checkedBlocks": 24,
+          "checkedStates": 418,
+          "checkedItems": 1422,
+          "placedBlocks": 0,
+          "reloadedBlocks": 24,
+          "nonemptyContainers": 2,
+          "failures": [],
+          "placementMethod": "SERVER_API; player placement and multi-block item behavior NOT_TESTED",
+          "playerFlow": "NOT_TESTED",
+          "clientResourcePack": "NOT_TESTED"
+        },
+        "deco-model-smoke.json": {
+          "samples": [
+            {
+              "variant": "kaleidoscope_deco/apple_platter",
+              "visual": "kaleidoscope_deco:apple_platter/ce_display",
+              "id": "kaleidoscope_deco:apple_platter"
+            },
+            {
+              "variant": "kaleidoscope_deco/apple_platter_1",
+              "visual": "kaleidoscope_deco:apple_platter_1/ce_display",
+              "id": "kaleidoscope_deco:apple_platter_1"
+            },
+            {
+              "variant": "kaleidoscope_deco/apple_platter_2",
+              "visual": "kaleidoscope_deco:apple_platter_2/ce_display",
+              "id": "kaleidoscope_deco:apple_platter_2"
+            },
+            {
+              "variant": "kaleidoscope_deco/apple_platter_3",
+              "visual": "kaleidoscope_deco:apple_platter_3/ce_display",
+              "id": "kaleidoscope_deco:apple_platter_3"
+            },
+            {
+              "variant": "kaleidoscope_deco/apple_platter_4",
+              "visual": "kaleidoscope_deco:apple_platter_4/ce_display",
+              "id": "kaleidoscope_deco:apple_platter_4"
+            },
+            {
+              "variant": "kaleidoscope_deco/lardpot",
+              "visual": "kaleidoscope_deco:lardpot",
+              "id": "kaleidoscope_deco:lardpot"
+            },
+            {
+              "variant": "kaleidoscope_deco/lardpot_open",
+              "visual": "kaleidoscope_deco:lardpot_open",
+              "id": "kaleidoscope_deco:lardpot_open"
+            },
+            {
+              "variant": "kaleidoscope_deco/teapot",
+              "visual": "kaleidoscope_deco:teapot/ce_display",
+              "id": "kaleidoscope_deco:teapot"
+            },
+            {
+              "variant": "kaleidoscope_deco/teapot_boil",
+              "visual": "kaleidoscope_deco:teapot_boil/ce_display",
+              "id": "kaleidoscope_deco:teapot_boil"
+            },
+            {
+              "variant": "kaleidoscope_deco/kaleidoscope_bar/sofa/style/none/single",
+              "visual": "kaleidoscope_deco:kaleidoscope_bar/sofa/style/none/single",
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa"
+            },
+            {
+              "variant": "kaleidoscope_deco/kaleidoscope_bar/sofa_cozy",
+              "visual": "kaleidoscope_deco:kaleidoscope_bar/sofa_cozy",
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa_cozy"
+            }
+          ],
+          "phase": "RELOADED",
+          "server": "1.21.1-133-3cb8529 (MC: 1.21.1)",
+          "checkedItems": 1115,
+          "checkedFurniture": 785,
+          "checkedVariants": 2423,
+          "placedFurniture": 0,
+          "reloadedFurniture": 11,
+          "switchedVariants": 92,
+          "failures": [],
+          "playerFlow": "NOT_TESTED; placement and variant changes use CE server APIs",
+          "clientResourcePack": "NOT_TESTED; this verifies server display definitions only"
+        },
+        "fishrack-smoke.json": {
+          "sourceLootAndBreakDefinitions": 4,
+          "reloadedItems": 3,
+          "canceledTakeChecks": 1,
+          "creativeTakeChecks": 1,
+          "lifoTakeChecks": 1,
+          "breakReturnedItems": 3,
+          "canceledRemovalRecoveryChecks": 1,
+          "phase": "RELOADED_TAKEN_REMOVED",
+          "server": "1.21.1-133-3cb8529 (MC: 1.21.1)",
+          "failures": [],
+          "playerFlow": "NOT_TESTED; uses installed public controller APIs and real Bukkit ItemSpawnEvent"
+        }
+      },
+      "jarHashes": {
+        "CookeryAcceptanceProbe.jar": "6a9ee302b388123b1c8bb328c23737b1236f107a17a1494d0c32794ef8b39df3",
+        "craft-engine-paper-plugin-26.9.2.jar": "19535f1987e8a27ebe8c6d811e7deae9a1f05dbd3ef3359435aff5a3d819e0f9",
+        "KaleidoscopeCookeryPlugin-1.3.0-mc1.21.1.jar": "72c2fca6f88696577c77ce625d275b766160b04080a9988752287f0f67adb57a",
+        "KaleidoscopeDeco-0.1.0-dev.jar": "82aa760444e4b31d8fe0f53211a4d403df3a5a8888e87c57e6c4face5ad6763a",
+        "KaleidoscopeDoll-0.1.0-dev.jar": "ee37d41f66dc71aab001e75ac0022df37805418e0c695253cc79c43b6b191636",
+        "KaleidoscopeMusic-0.1.0-dev.jar": "f96fbb132a890b9b9f01bcd9b3cccffe29ee1b6ded385c1d052a951f56a8bc3d",
+        "KaleidoscopeTavern-0.1.0-dev.jar": "bc989cb54803371961e128550596db2cb4691601543196bae781a93e0f829de3"
+      },
+      "packRequested": true,
+      "errorLines": []
+    },
+    {
+      "fixture": "h",
+      "cycle": 11,
+      "reason": "reports_and_pack_ready",
+      "returncode": 0,
+      "elapsedSeconds": 65.8,
+      "server": "C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin\\build\\acceptance\\h\\paper",
+      "java": "C:\\Users\\Administrator\\Documents\\luoseng\\.toolchains\\jdk-25.0.5.0.2+1\\bin\\java.exe",
+      "port": 25611,
+      "reports": {
+        "food-smoke.json": {
+          "server": "26.3-253-63e41db (MC: 26.3)",
+          "craftEngine": "26.9.2",
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "checkedConsumables": 103,
+          "checkedBites": 38,
+          "failures": [],
+          "playerFlow": "NOT_TESTED",
+          "clientResourcePack": "NOT_TESTED"
+        },
+        "enchantment-smoke.json": {
+          "server": "26.3-253-63e41db (MC: 26.3)",
+          "craftEngine": "26.9.2",
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "checkedTools": 5,
+          "reloadedTools": 5,
+          "failures": [],
+          "playerFlow": "NOT_TESTED",
+          "clientResourcePack": "NOT_TESTED"
+        },
+        "smithing-smoke.json": {
+          "server": "26.3-253-63e41db (MC: 26.3)",
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "assembled": 3,
+          "reloadedProducts": 1,
+          "rejectedInputs": 3,
+          "failures": [],
+          "nativeSlotConsumption": "NOT_TESTED",
+          "playerShiftCancellation": "NOT_TESTED"
+        },
+        "steamer-item-smoke.json": {
+          "server": "26.3-253-63e41db (MC: 26.3)",
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "assembledRecipes": 2,
+          "priorDiskProductsReloaded": 2,
+          "splitRoundTrips": 2,
+          "failures": [],
+          "playerPlacementBreakCrafting": "NOT_TESTED",
+          "worldCookingAndFalling": "NOT_TESTED"
+        },
+        "kitchen-smoke.json": {
+          "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+          "server": "26.3-253-63e41db (MC: 26.3)",
+          "craftEngine": "26.9.2",
+          "checkedBlocks": 24,
+          "checkedStates": 418,
+          "checkedItems": 1422,
+          "placedBlocks": 0,
+          "reloadedBlocks": 24,
+          "nonemptyContainers": 2,
+          "failures": [],
+          "placementMethod": "SERVER_API; player placement and multi-block item behavior NOT_TESTED",
+          "playerFlow": "NOT_TESTED",
+          "clientResourcePack": "NOT_TESTED"
+        },
+        "deco-model-smoke.json": {
+          "samples": [
+            {
+              "variant": "kaleidoscope_deco/apple_platter",
+              "visual": "kaleidoscope_deco:apple_platter/ce_display",
+              "id": "kaleidoscope_deco:apple_platter"
+            },
+            {
+              "variant": "kaleidoscope_deco/apple_platter_1",
+              "visual": "kaleidoscope_deco:apple_platter_1/ce_display",
+              "id": "kaleidoscope_deco:apple_platter_1"
+            },
+            {
+              "variant": "kaleidoscope_deco/apple_platter_2",
+              "visual": "kaleidoscope_deco:apple_platter_2/ce_display",
+              "id": "kaleidoscope_deco:apple_platter_2"
+            },
+            {
+              "variant": "kaleidoscope_deco/apple_platter_3",
+              "visual": "kaleidoscope_deco:apple_platter_3/ce_display",
+              "id": "kaleidoscope_deco:apple_platter_3"
+            },
+            {
+              "variant": "kaleidoscope_deco/apple_platter_4",
+              "visual": "kaleidoscope_deco:apple_platter_4/ce_display",
+              "id": "kaleidoscope_deco:apple_platter_4"
+            },
+            {
+              "variant": "kaleidoscope_deco/lardpot",
+              "visual": "kaleidoscope_deco:lardpot",
+              "id": "kaleidoscope_deco:lardpot"
+            },
+            {
+              "variant": "kaleidoscope_deco/lardpot_open",
+              "visual": "kaleidoscope_deco:lardpot_open",
+              "id": "kaleidoscope_deco:lardpot_open"
+            },
+            {
+              "variant": "kaleidoscope_deco/teapot",
+              "visual": "kaleidoscope_deco:teapot/ce_display",
+              "id": "kaleidoscope_deco:teapot"
+            },
+            {
+              "variant": "kaleidoscope_deco/teapot_boil",
+              "visual": "kaleidoscope_deco:teapot_boil/ce_display",
+              "id": "kaleidoscope_deco:teapot_boil"
+            },
+            {
+              "variant": "kaleidoscope_deco/kaleidoscope_bar/sofa/style/none/single",
+              "visual": "kaleidoscope_deco:kaleidoscope_bar/sofa/style/none/single",
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa"
+            },
+            {
+              "variant": "kaleidoscope_deco/kaleidoscope_bar/sofa_cozy",
+              "visual": "kaleidoscope_deco:kaleidoscope_bar/sofa_cozy",
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa_cozy"
+            }
+          ],
+          "phase": "RELOADED",
+          "server": "26.3-253-63e41db (MC: 26.3)",
+          "checkedItems": 1115,
+          "checkedFurniture": 785,
+          "checkedVariants": 2423,
+          "placedFurniture": 0,
+          "reloadedFurniture": 11,
+          "switchedVariants": 92,
+          "failures": [],
+          "playerFlow": "NOT_TESTED; placement and variant changes use CE server APIs",
+          "clientResourcePack": "NOT_TESTED; this verifies server display definitions only"
+        },
+        "fishrack-smoke.json": {
+          "sourceLootAndBreakDefinitions": 4,
+          "reloadedItems": 3,
+          "canceledTakeChecks": 1,
+          "creativeTakeChecks": 1,
+          "lifoTakeChecks": 1,
+          "breakReturnedItems": 3,
+          "canceledRemovalRecoveryChecks": 1,
+          "phase": "RELOADED_TAKEN_REMOVED",
+          "server": "26.3-253-63e41db (MC: 26.3)",
+          "failures": [],
+          "playerFlow": "NOT_TESTED; uses installed public controller APIs and real Bukkit ItemSpawnEvent"
+        }
+      },
+      "jarHashes": {
+        "CookeryAcceptanceProbe.jar": "6a9ee302b388123b1c8bb328c23737b1236f107a17a1494d0c32794ef8b39df3",
+        "craft-engine-paper-plugin-26.9.2.jar": "19535f1987e8a27ebe8c6d811e7deae9a1f05dbd3ef3359435aff5a3d819e0f9",
+        "KaleidoscopeCookeryPlugin-1.3.0-mc26.3.jar": "cd2766969260d56562331c76fd13f4a90cd01c8d7314e1e1ccd4227670365775",
+        "KaleidoscopeDeco-0.1.0-dev.jar": "82aa760444e4b31d8fe0f53211a4d403df3a5a8888e87c57e6c4face5ad6763a",
+        "KaleidoscopeDoll-0.1.0-dev.jar": "ee37d41f66dc71aab001e75ac0022df37805418e0c695253cc79c43b6b191636",
+        "KaleidoscopeMusic-0.1.0-dev.jar": "f96fbb132a890b9b9f01bcd9b3cccffe29ee1b6ded385c1d052a951f56a8bc3d",
+        "KaleidoscopeTavern-0.1.0-dev.jar": "bc989cb54803371961e128550596db2cb4691601543196bae781a93e0f829de3"
+      },
+      "packRequested": true,
+      "errorLines": [
+        "[11:09:45 ERROR]: [oshi.driver.windows.registry.HkeyPerformanceDataUtil] Unable to locate English counter names in registry Perflib 009. Counters may need to be rebuilt: ",
+        "com.sun.jna.platform.win32.Win32Exception: 参数错误。"
+      ]
+    }
+  ],
+  "generatedModels": {
+    "g": {
+      "deco": {
+        "runtime": "build\\acceptance\\g\\paper\\plugins\\CraftEngine",
+        "resourcePack": "build\\acceptance\\g\\paper\\plugins\\CraftEngine\\generated\\resource_pack.zip",
+        "bytes": 12970126,
+        "sha256": "0b05bf72560120fd0aae14566fb07c60173352e16de0a0c504dbfd13b7fbc84a",
+        "entries": 12906,
+        "checkedModernModels": 1088,
+        "checkedLegacyModels": 1087,
+        "modernModelsOmittedByLegacyConversion": [
+          "kaleidoscope_deco:kaleidoscope_bar/artistic0",
+          "kaleidoscope_deco:kaleidoscope_bar/artistic1",
+          "kaleidoscope_deco:kaleidoscope_bar/artistic2",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_brown",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_glow",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_gold",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_green",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_orange",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_pink",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_red",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_yellow",
+          "kaleidoscope_deco:kaleidoscope_bar/cognac",
+          "kaleidoscope_deco:kaleidoscope_bar/cube_large",
+          "kaleidoscope_deco:kaleidoscope_bar/cube_orange",
+          "kaleidoscope_deco:kaleidoscope_bar/cube_red",
+          "kaleidoscope_deco:kaleidoscope_bar/cube_yellow",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_blue",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_brown",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_green",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_jeb",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_pink",
+          "kaleidoscope_deco:kaleidoscope_bar/flask",
+          "kaleidoscope_deco:kaleidoscope_bar/spirit",
+          "kaleidoscope_deco:kaleidoscope_bar/tankard",
+          "kaleidoscope_deco:teapot",
+          "kaleidoscope_deco:teapot_boil"
+        ],
+        "legacyOutsideExactComparison": [
+          "kaleidoscope_deco:doll_62",
+          "kaleidoscope_deco:kaleidoscope_bar/artistic0",
+          "kaleidoscope_deco:kaleidoscope_bar/artistic1",
+          "kaleidoscope_deco:kaleidoscope_bar/artistic2",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_brown",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_glow",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_gold",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_green",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_orange",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_pink",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_red",
+          "kaleidoscope_deco:kaleidoscope_bar/bordeaux_yellow",
+          "kaleidoscope_deco:kaleidoscope_bar/cognac",
+          "kaleidoscope_deco:kaleidoscope_bar/cube_large",
+          "kaleidoscope_deco:kaleidoscope_bar/cube_orange",
+          "kaleidoscope_deco:kaleidoscope_bar/cube_red",
+          "kaleidoscope_deco:kaleidoscope_bar/cube_yellow",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_blue",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_brown",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_green",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_jeb",
+          "kaleidoscope_deco:kaleidoscope_bar/demi_pink",
+          "kaleidoscope_deco:kaleidoscope_bar/flask",
+          "kaleidoscope_deco:kaleidoscope_bar/spirit",
+          "kaleidoscope_deco:kaleidoscope_bar/tankard",
+          "kaleidoscope_deco:teapot",
+          "kaleidoscope_deco:teapot_boil"
+        ],
+        "failures": [],
+        "clientRendering": "NOT_TESTED"
+      },
+      "fishrack": {
+        "sourceCommit": "6ce180e1226ce93b0fb0d45ea80e0ed5b01b1dc0",
+        "checkedStates": 40,
+        "checkedFurnitureVariants": 160,
+        "checkedTextures": 4,
+        "resourcePackSha256": "0b05bf72560120fd0aae14566fb07c60173352e16de0a0c504dbfd13b7fbc84a",
+        "failures": [],
+        "clientRendering": "NOT_TESTED; compares generated geometry and texture bytes"
+      }
+    },
+    "h": {
+      "deco": {
+        "runtime": "build\\acceptance\\h\\paper\\plugins\\CraftEngine",
+        "resourcePack": "build\\acceptance\\h\\paper\\plugins\\CraftEngine\\generated\\resource_pack.zip",
+        "bytes": 12882106,
+        "sha256": "5f3c012c418cbdbc5c4caba3c2a8e95baa55fdd45693a8eded7a5cd278d9e42e",
+        "entries": 15467,
+        "checkedModernModels": 1115,
+        "checkedLegacyModels": 0,
+        "modernModelsOmittedByLegacyConversion": [],
+        "legacyOutsideExactComparison": [],
+        "failures": [],
+        "clientRendering": "NOT_TESTED"
+      },
+      "fishrack": {
+        "sourceCommit": "6ce180e1226ce93b0fb0d45ea80e0ed5b01b1dc0",
+        "checkedStates": 40,
+        "checkedFurnitureVariants": 160,
+        "checkedTextures": 4,
+        "resourcePackSha256": "5f3c012c418cbdbc5c4caba3c2a8e95baa55fdd45693a8eded7a5cd278d9e42e",
+        "failures": [],
+        "clientRendering": "NOT_TESTED; compares generated geometry and texture bytes"
+      }
+    }
+  },
+  "sourcePackChecks": {
+    "g": {
+      "cookery": {
+        "files": 2391,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.1\\cookery-ce-pack-20261117-steamer-portable-v1.zip",
+        "sha256": "c2154f63d03b5872209e0ed3fff7b2e793bdbfaae1bc3627fa714b937ffd361b"
+      },
+      "deco": {
+        "files": 3767,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.1\\deco-ce-pack-0.1.0-dev.zip",
+        "sha256": "f1ad3d81d2b14cc95f840bd6b1954dcd3d7dd78f9187743c4437e3a26121b8f6"
+      },
+      "doll": {
+        "files": 2986,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.1\\doll-ce-pack-0.1.0-dev.zip",
+        "sha256": "523eecd84fb70a4557ea9091e8a7860c1514e7ae81cf22cd03d8e2ed7fbb9c9f"
+      },
+      "music": {
+        "files": 9,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.1\\music-ce-pack-0.1.0-dev.zip",
+        "sha256": "30cc4a235d3558e6947cebb472192c1a081582839430be924994309746522412"
+      },
+      "shared": {
+        "files": 2,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.1\\shared-ce-pack-0.1.0-dev.zip",
+        "sha256": "dc4ce71a199c3ccbf42865b761828ad62d6a2c5f8a66dc98d21ca20dbc70613d"
+      },
+      "tavern": {
+        "files": 1348,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.1\\tavern-ce-pack-0.1.0-dev.zip",
+        "sha256": "524d25c4b944ed4c4f20a8d6f99ec20ad1f57f1dd264e92c5b6bec9d6edd86ec"
+      }
+    },
+    "h": {
+      "cookery": {
+        "files": 2391,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.9-26.3\\cookery-ce-pack-20261117-steamer-portable-v1.zip",
+        "sha256": "c5705dbdf5ce5a2c9b6024f086dbdc7d1e93f4f9aebef81d932da14be8fe0d35"
+      },
+      "deco": {
+        "files": 3767,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.9-26.3\\deco-ce-pack-0.1.0-dev.zip",
+        "sha256": "ad57bebd8fcd3d82616a8b7bad4c9f321d5834b23244d8aecc9161b951a148c9"
+      },
+      "doll": {
+        "files": 2986,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.9-26.3\\doll-ce-pack-0.1.0-dev.zip",
+        "sha256": "165846dba39e83530f12464d1bd379eb36c1ee36813db7423364c215a797fb65"
+      },
+      "music": {
+        "files": 9,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.9-26.3\\music-ce-pack-0.1.0-dev.zip",
+        "sha256": "959093aa3b2e835e3409cd5160b92ac40719c295d02ef837427831b12a4590b8"
+      },
+      "shared": {
+        "files": 2,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.9-26.3\\shared-ce-pack-0.1.0-dev.zip",
+        "sha256": "ef2cb4d8c46665e91f393e2688e497c9ae054a877fa0b6c788d0f188e564c385"
+      },
+      "tavern": {
+        "files": 1348,
+        "archive": "build\\distribution\\versioned-ce-packs-fishrack-v3\\mc1.21.9-26.3\\tavern-ce-pack-0.1.0-dev.zip",
+        "sha256": "62218a54a47890edbdfb18343c51fad9968896d7859218271d0c92138d965179"
+      }
+    }
+  },
+  "warningCounts": {
+    "g": {
+      "legacyConversion": 30,
+      "remaining": [
+        "[CraftEngine] Item '[kdeco_kaleidoscope_cookery:frogspawn_jelly]' is missing model file 'assets/kdeco_kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json'",
+        "[CraftEngine] Item '[kdeco_kaleidoscope_cookery:mysterious]' is missing model file 'assets/kdeco_kaleidoscope_cookery/models/item/mysterious.json'",
+        "[CraftEngine] Item '[kdeco_kaleidoscope_cookery:slime_ball_meal]' is missing model file 'assets/kdeco_kaleidoscope_cookery/models/item/slime_ball_meal.json'",
+        "[CraftEngine] Model '[default:item/togglable_light_block]' is missing texture 'assets/minecraft/textures/item/light.png'",
+        "[CraftEngine] Model '[kaleidoscope_tavern:block/deco/bell_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/bell_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/top]' is missing texture 'assets/minecraft/textures/block/chain.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope:block/doll/s/__waht]' is missing texture 'assets/minecraft/textures/block/waht.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_bar:item/cabinet/bottles/left/artistic2, kdeco_kaleidoscope_bar:item/cabinet/bottles/right/artistic2]' is missing texture 'assets/minecraft/textures/雪婆婆.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_cookery:gui/button/page_left]' is missing texture 'assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_left.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_cookery:gui/button/page_right]' is missing texture 'assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_right.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_cookery:icons/cookery]' is missing texture 'assets/kdeco_kaleidoscope_cookery/textures/item/icons/cookery.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_cookery:meals/gui/dark]' is missing texture 'assets/kdeco_kaleidoscope_cookery/textures/block/bowl.png'",
+        "[CraftEngine] Model 'kaleidoscope_doll:block/doll/doll_271' element 34 face 'east' uses out-of-bounds UV [-3.0, 0.5, -0.5, 0.75] with texture 'kaleidoscope_doll:block/doll/doll_271'. UV values outside [0, 16] can prevent 26.1+ clients from baking the model",
+        "[CraftEngine] Model 'kaleidoscope_doll:block/doll/doll_271' element 34 face 'north' uses out-of-bounds UV [-0.5, 0.5, 2.0, 0.75] with texture 'kaleidoscope_doll:block/doll/doll_271'. UV values outside [0, 16] can prevent 26.1+ clients from baking the model",
+        "[CraftEngine] Model 'kaleidoscope_doll:block/doll/doll_271' element 8 face 'north' uses out-of-bounds UV [-1.0, 0.5, 1.0, 1.0] with texture 'kaleidoscope_doll:block/doll/doll_271'. UV values outside [0, 16] can prevent 26.1+ clients from baking the model",
+        "[CraftEngine] Model 'kaleidoscope_doll:block/doll/doll_722' element 22 face 'south' uses out-of-bounds UV [37.0, 44.0, 51.0, 55.0] with texture 'kaleidoscope_doll:block/doll/doll_722'. UV values outside [0, 16] can prevent 26.1+ clients from baking the model",
+        "[CraftEngine] [10] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux_red - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [11] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux_yellow - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [12] items.kaleidoscope_deco:kaleidoscope_bar/cognac - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [13] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux_glow - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [14] items.kaleidoscope_deco:kaleidoscope_bar/cube_large - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [15] items.kaleidoscope_deco:kaleidoscope_bar/cube_orange - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [16] items.kaleidoscope_deco:kaleidoscope_bar/cube_red - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [17] items.kaleidoscope_deco:kaleidoscope_bar/cube_yellow - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [18] items.kaleidoscope_deco:kaleidoscope_bar/demi_blue - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [19] items.kaleidoscope_deco:kaleidoscope_bar/demi_green - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [1] items.kaleidoscope_deco:kaleidoscope_bar/artistic1 - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [1] items.kaleidoscopecookery:fruit_basket - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [20] items.kaleidoscope_deco:kaleidoscope_bar/demi_jeb - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [21] items.kaleidoscope_deco:kaleidoscope_bar/demi_pink - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [22] items.kaleidoscope_deco:kaleidoscope_bar/demi_brown - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [23] items.kaleidoscope_deco:kaleidoscope_bar/flask - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [24] items.kaleidoscope_deco:kaleidoscope_bar/spirit - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [25] items.kaleidoscope_deco:kaleidoscope_bar/tankard - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [26] items.kaleidoscope_deco:teapot - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [27] items.kaleidoscope_deco:teapot_boil - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [2] items.kaleidoscope_deco:kaleidoscope_bar/artistic2 - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [2] items.kaleidoscopecookery:teapot - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [3] items.kaleidoscope_deco:kaleidoscope_bar/artistic0 - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [3] items.kaleidoscopecookery:cold_cut_ham_slices - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [4] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [5] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux_brown - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [6] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux_green - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [7] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux_gold - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [8] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux_orange - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model",
+        "[CraftEngine] [9] items.kaleidoscope_deco:kaleidoscope_bar/bordeaux_pink - Cannot convert 1.21.4+ item model definition to legacy format. Please manually configure 'legacy_model' for this item: https://xiao-momi.github.io/craft-engine-wiki/configuration/item/models#legacy-model"
+      ]
+    },
+    "h": {
+      "legacyConversion": 0,
+      "remaining": [
+        "[CraftEngine] Item '[kdeco_kaleidoscope_cookery:frogspawn_jelly]' is missing model file 'assets/kdeco_kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json'",
+        "[CraftEngine] Item '[kdeco_kaleidoscope_cookery:mysterious]' is missing model file 'assets/kdeco_kaleidoscope_cookery/models/item/mysterious.json'",
+        "[CraftEngine] Item '[kdeco_kaleidoscope_cookery:slime_ball_meal]' is missing model file 'assets/kdeco_kaleidoscope_cookery/models/item/slime_ball_meal.json'",
+        "[CraftEngine] Model '[default:item/togglable_light_block]' is missing texture 'assets/minecraft/textures/item/light.png'",
+        "[CraftEngine] Model '[kaleidoscope_tavern:block/deco/bell_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/blue_pendant_lamp/bottom, kaleidoscope_tavern:block/deco/bell_pendant_lamp/top, kaleidoscope_tavern:block/deco/yellow_pendant_lamp/top]' is missing texture 'assets/minecraft/textures/block/chain.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope:block/doll/s/__waht]' is missing texture 'assets/minecraft/textures/block/waht.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_bar:item/cabinet/bottles/left/artistic2, kdeco_kaleidoscope_bar:item/cabinet/bottles/right/artistic2]' is missing texture 'assets/minecraft/textures/雪婆婆.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_cookery:gui/button/page_left]' is missing texture 'assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_left.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_cookery:gui/button/page_right]' is missing texture 'assets/kdeco_kaleidoscope_cookery/textures/item/ui/page_right.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_cookery:icons/cookery]' is missing texture 'assets/kdeco_kaleidoscope_cookery/textures/item/icons/cookery.png'",
+        "[CraftEngine] Model '[kdeco_kaleidoscope_cookery:meals/gui/dark]' is missing texture 'assets/kdeco_kaleidoscope_cookery/textures/block/bowl.png'",
+        "[CraftEngine] Model 'kaleidoscope_doll:block/doll/doll_271' element 34 face 'east' uses out-of-bounds UV [-3.0, 0.5, -0.5, 0.75] with texture '#missing'. UV values outside [0, 16] can prevent 26.1+ clients from baking the model",
+        "[CraftEngine] Model 'kaleidoscope_doll:block/doll/doll_271' element 34 face 'north' uses out-of-bounds UV [-0.5, 0.5, 2.0, 0.75] with texture 'kaleidoscope_doll:block/doll/doll_271'. UV values outside [0, 16] can prevent 26.1+ clients from baking the model",
+        "[CraftEngine] Model 'kaleidoscope_doll:block/doll/doll_271' element 8 face 'north' uses out-of-bounds UV [-1.0, 0.5, 1.0, 1.0] with texture 'kaleidoscope_doll:block/doll/doll_271'. UV values outside [0, 16] can prevent 26.1+ clients from baking the model",
+        "[CraftEngine] Model 'kaleidoscope_doll:block/doll/doll_722' element 22 face 'south' uses out-of-bounds UV [37.0, 44.0, 51.0, 55.0] with texture 'kaleidoscope_doll:block/doll/doll_722'. UV values outside [0, 16] can prevent 26.1+ clients from baking the model"
+      ]
+    }
+  },
+  "settings": {
+    "loopbackOnly": true,
+    "serverBlocks": 16000,
+    "resourcePackFileCache": false,
+    "compileCraftEngineApi": "26.9.1",
+    "runtimeCraftEngine": "26.9.2"
+  },
+  "placementRuns": [
+    {
+      "path": "build\\acceptance\\g\\paper\\cycle-18",
+      "fishrack": {
+        "sourceLootAndBreakDefinitions": 4,
+        "oversizedSaveRejectedBeforePayment": true,
+        "phase": "THREE_FISH_SAVED",
+        "storedItems": 3,
+        "sourceConsumptionChecks": 4,
+        "server": "1.21.1-133-3cb8529 (MC: 1.21.1)",
+        "failures": [],
+        "playerFlow": "NOT_TESTED; uses installed public controller APIs and real Bukkit ItemSpawnEvent"
+      },
+      "jarHashes": {
+        "CookeryAcceptanceProbe.jar": "6a9ee302b388123b1c8bb328c23737b1236f107a17a1494d0c32794ef8b39df3",
+        "craft-engine-paper-plugin-26.9.2.jar": "19535f1987e8a27ebe8c6d811e7deae9a1f05dbd3ef3359435aff5a3d819e0f9",
+        "KaleidoscopeCookeryPlugin-1.3.0-mc1.21.1.jar": "72c2fca6f88696577c77ce625d275b766160b04080a9988752287f0f67adb57a",
+        "KaleidoscopeDeco-0.1.0-dev.jar": "2db6ab80746d85154efd3404b64ecfaf6c397c1e85bf331034f86362df537e2b",
+        "KaleidoscopeDoll-0.1.0-dev.jar": "ee37d41f66dc71aab001e75ac0022df37805418e0c695253cc79c43b6b191636",
+        "KaleidoscopeMusic-0.1.0-dev.jar": "f96fbb132a890b9b9f01bcd9b3cccffe29ee1b6ded385c1d052a951f56a8bc3d",
+        "KaleidoscopeTavern-0.1.0-dev.jar": "bc989cb54803371961e128550596db2cb4691601543196bae781a93e0f829de3"
+      },
+      "scope": "Three fish inserted and persisted before clean shutdown; final v3 packs. g/18 preceded only a sound-category code correction; final runtime JARs are checked in verifiedRuns."
+    },
+    {
+      "path": "build\\acceptance\\h\\paper\\cycle-10",
+      "fishrack": {
+        "sourceLootAndBreakDefinitions": 4,
+        "oversizedSaveRejectedBeforePayment": true,
+        "phase": "THREE_FISH_SAVED",
+        "storedItems": 3,
+        "sourceConsumptionChecks": 4,
+        "server": "26.3-253-63e41db (MC: 26.3)",
+        "failures": [],
+        "playerFlow": "NOT_TESTED; uses installed public controller APIs and real Bukkit ItemSpawnEvent"
+      },
+      "jarHashes": {
+        "CookeryAcceptanceProbe.jar": "6a9ee302b388123b1c8bb328c23737b1236f107a17a1494d0c32794ef8b39df3",
+        "craft-engine-paper-plugin-26.9.2.jar": "19535f1987e8a27ebe8c6d811e7deae9a1f05dbd3ef3359435aff5a3d819e0f9",
+        "KaleidoscopeCookeryPlugin-1.3.0-mc26.3.jar": "cd2766969260d56562331c76fd13f4a90cd01c8d7314e1e1ccd4227670365775",
+        "KaleidoscopeDeco-0.1.0-dev.jar": "82aa760444e4b31d8fe0f53211a4d403df3a5a8888e87c57e6c4face5ad6763a",
+        "KaleidoscopeDoll-0.1.0-dev.jar": "ee37d41f66dc71aab001e75ac0022df37805418e0c695253cc79c43b6b191636",
+        "KaleidoscopeMusic-0.1.0-dev.jar": "f96fbb132a890b9b9f01bcd9b3cccffe29ee1b6ded385c1d052a951f56a8bc3d",
+        "KaleidoscopeTavern-0.1.0-dev.jar": "bc989cb54803371961e128550596db2cb4691601543196bae781a93e0f829de3"
+      },
+      "scope": "Three fish inserted and persisted before clean shutdown; final v3 packs. g/18 preceded only a sound-category code correction; final runtime JARs are checked in verifiedRuns."
+    }
+  ],
+  "retainedFailures": [
+    {
+      "paths": [
+        "build/acceptance/g/paper/cycle-16",
+        "build/acceptance/g/paper/cycle-17"
+      ],
+      "cause": "Runtime assertion found incorrect sound field (sound instead of CE id); corrected export. Next placement overlapped retained failed fixture; new tests moved to chunk 20. Collision checks remain enabled. Two overlapping empty failed fixtures archived with the whole entity region before targeted cleanup; other entities preserved."
+    },
+    {
+      "paths": [
+        "build/acceptance/g/paper/cycle-12",
+        "build/acceptance/g/paper/cycle-13"
+      ],
+      "cause": "CE onLoad was called inside pre-spawn consumer with isValid=false; corrected lifecycle deferral. Failed entities and logs retained."
+    },
+    {
+      "paths": [
+        "build/acceptance/h/paper/cycle-6",
+        "build/acceptance/h/paper/cycle-7"
+      ],
+      "cause": "All first-cycle probes passed but CE shutdown exceeded supervisor grace period; forced exit did not persist new entity. Restart correctly failed missing-UUID check. Retained checkpoint/logs; subsequent clean cycles passed. Intermittent shutdown root cause unresolved."
+    }
+  ],
+  "fixtureCleanup": {
+    "removedTestEntities": 2,
+    "retainedOtherEntities": 2,
+    "chunk": [
+      18,
+      0
+    ],
+    "position": [
+      292,
+      160,
+      8
+    ],
+    "beforeSha256": "a88979dcb2651d1b16821396c35ad232a1a914b883a73a665cd18f30c8c54300",
+    "afterSha256": "de316773f7a69813e7e999b961657226c6300445c337d455e4591e9f03424d6f",
+    "backup": "C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin\\build\\acceptance\\g\\paper\\failed-fishrack-fixture-backup",
+    "reason": "Failed g/16 and overlapping g/17 fishrack fixtures, no stored fish in either CE data blob"
+  },
+  "limits": [
+    "No player interactions, vanilla-client rendered screenshot proof or current Folia/intermediate-version acceptance.",
+    "30 legacy conversion warnings remain on 1.21.1: 27 Deco and 3 Cookery. These 27 Deco entries are also omitted from modern CMD output on old servers.",
+    "Final geometry and texture comparisons prove generated data, not client rendering or precise in-world alignment.",
+    "Interrupted/failed spawns during removal retain remaining fish in manual recovery/*.nbt; no automatic delivery.",
+    "Source missing textures/models, 26.3 Doll UV warnings, CE default palm-tree conversion and Windows OSHI performance counter error remain.",
+    "Cross-region movement/reload, protection plugins and complete player break paths remain unverified.",
+    "Many other scripted furniture behaviors remain unported; total project goal incomplete."
+  ]
+}

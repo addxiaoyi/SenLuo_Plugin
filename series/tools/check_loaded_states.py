@@ -16,6 +16,7 @@ import yaml
 SCOPE = "CE declared properties compared with internal state cache; registration only, no placement or client proof"
 NAMESPACE = "kaleidoscopecookery:"
 ENUM_VALUES = {
+    "axis": ("x", "y", "z"),
     "horizontal_direction": ("north", "east", "south", "west"),
     "4-direction": ("north", "east", "south", "west"),
     "anchor_type": ("floor", "wall", "ceiling"),

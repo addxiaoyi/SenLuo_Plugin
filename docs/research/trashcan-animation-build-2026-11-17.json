@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-17",
+  "status": "DEVELOPMENT_CHECKPOINT_VERIFIED",
+  "bundle": "build\\distribution\\SenLuo-1.21.1-26.3-dev-20261117-trashcan-animation-v1.zip",
+  "bytes": 55141173,
+  "sha256": "5ebd194e09257f3c64761d5e3028498c743b9031f39f5d567c9d54feb6366981",
+  "manifestFiles": 73,
+  "cookeryVersionJars": 10,
+  "versionedCePacks": 18,
+  "runtimeEvidence": "docs/research/trashcan-animation-runtime-2026-11-17.json",
+  "javaTestExecutions": 758,
+  "pythonTests": {
+    "cookery": 144,
+    "series": 75
+  },
+  "runtimePluginHashesMatchBundle": true,
+  "serversStoppedAndPortsFree": true,
+  "subagentsUsed": false,
+  "limitations": "Full parity, clients, player flows, Folia and intermediate runtime versions remain unverified or incomplete."
+}

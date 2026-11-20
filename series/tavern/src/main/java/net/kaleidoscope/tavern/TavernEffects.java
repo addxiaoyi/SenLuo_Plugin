@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
+import net.kaleidoscope.compat.Attributes;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -120,9 +121,9 @@ public final class TavernEffects implements Listener {
     }
 
     private void syncAttributes(Player player, Session session) {
-        attribute(player, Attribute.STEP_HEIGHT, heelsKey, session.timers.get("high_heels"), 0.5);
-        attribute(player, Attribute.BLOCK_INTERACTION_RANGE, reachKey, session.timers.get("long_reach"), 3);
-        attribute(player, Attribute.ENTITY_INTERACTION_RANGE, reachKey, session.timers.get("long_reach"), 3);
+        attribute(player, Attributes.STEP_HEIGHT, heelsKey, session.timers.get("high_heels"), 0.5);
+        attribute(player, Attributes.BLOCK_INTERACTION_RANGE, reachKey, session.timers.get("long_reach"), 3);
+        attribute(player, Attributes.ENTITY_INTERACTION_RANGE, reachKey, session.timers.get("long_reach"), 3);
     }
 
     private void attribute(Player player, Attribute attribute, NamespacedKey key, Timer timer, double base) {

@@ -1,7 +1,7 @@
 name: KaleidoscopeDollPlugin
 version: '${version}'
 main: net.kaleidoscope.doll.DollPlugin
-api-version: '1.21.11'
+api-version: '1.21'
 folia-supported: true
 depend: [CraftEngine]
 softdepend: [Dominion, KaleidoscopeCookeryPlugin, KaleidoscopeTavernPlugin]

@@ -38,6 +38,56 @@ class RecipeImportTest(unittest.TestCase):
             for key in row['pluginIds']:
                 self.assertIn(key, self.config[row['section']])
 
+    def test_knife_smithing_preserves_all_three_roles_and_custom_data_processor(self):
+        row = next(r for r in self.report['recipes'] if r['type'] == 'minecraft:smithing_transform')
+        self.assertEqual('imported', row['status'])
+        recipe = self.config['recipes'][row['pluginIds'][0]]
+        self.assertEqual('smithing_transform', recipe['type'])
+        self.assertEqual(['minecraft:netherite_upgrade_smithing_template'], recipe['template_type'])
+        self.assertEqual(['kaleidoscopecookery:diamond_kitchen_knife'], recipe['base'])
+        self.assertEqual(['minecraft:netherite_ingot'], recipe['addition'])
+        self.assertEqual({'id': 'kaleidoscopecookery:netherite_kitchen_knife', 'count': 1}, recipe['result'])
+        self.assertTrue(recipe['merge_components'])
+        self.assertEqual([{'type': 'kaleidoscopecookery:kitchen_knife_smithing'}], recipe['transform_processors'])
+        self.assertEqual('NOT_TESTED', self.manifest['smithing'][row['pluginIds'][0]]['runtime'])
+
+    def test_knife_smithing_rejects_missing_items_or_changed_source_semantics(self):
+        from cookery_recipes import smithing_recipes
+        rows = [copy.deepcopy(r) for r in self.report['recipes'] if r['type'] == 'minecraft:smithing_transform']
+        available = set(self.config['items'])
+        for role in ('template', 'base', 'addition', 'result'):
+            changed = copy.deepcopy(rows)
+            changed[0]['original'][role] = {'item': 'minecraft:stone'}
+            with self.assertRaisesRegex(AuditError, 'unsupported kitchen-knife'):
+                smithing_recipes(changed, available)
+        with self.assertRaisesRegex(AuditError, 'uninstalled'):
+            smithing_recipes(rows, available - {'kaleidoscopecookery:diamond_kitchen_knife'})
+        with self.assertRaisesRegex(AuditError, 'one pinned'):
+            smithing_recipes([], available)
+        self.assertEqual(self.report['recipes'][next(i for i,r in enumerate(self.report['recipes']) if r['type'] == 'minecraft:smithing_transform')], rows[0])
+
+    def test_filled_steamers_keep_four_separate_inputs_and_exact_runtime_payload(self):
+        for name in ('raw_dough', 'stuffed_dough_food'):
+            key = 'kaleidoscopecookery:upstream/' + ART + '/' + name + '_steamer'
+            recipe = self.config['recipes'][key]
+            self.assertEqual('shapeless', recipe['type'])
+            self.assertEqual(['kaleidoscopecookery:steamer'] + ['kaleidoscopecookery:' + name] * 4, recipe['ingredients'])
+            self.assertEqual({'id': 'kaleidoscopecookery:steamer', 'count': 1,
+                'post_processors': [{'type': 'kaleidoscopecookery:filled_steamer', 'ingredient': 'kaleidoscopecookery:' + name}]}, recipe['result'])
+            self.assertEqual(1200, self.manifest['filledSteamers'][key]['cookingTime'])
+
+    def test_changed_steamer_nbt_inputs_or_missing_content_fail_closed(self):
+        from cookery_recipes import filled_steamer_recipes
+        rows = [copy.deepcopy(r) for r in self.report['recipes'] if isinstance(r['original']['result'], dict) and 'nbt' in r['original']['result']]
+        available = set(self.config['items'])
+        for old, new in [('1200', '200'), ('Slot:0b', 'Slot:3b'), ('Count:1b', 'Count:2b')]:
+            changed = copy.deepcopy(rows); changed[0]['original']['result']['nbt'] = changed[0]['original']['result']['nbt'].replace(old, new)
+            with self.assertRaisesRegex(AuditError, 'unsupported filled-steamer'): filled_steamer_recipes(changed, available)
+        changed = copy.deepcopy(rows); changed[0]['original']['ingredients'].pop()
+        with self.assertRaisesRegex(AuditError, 'unsupported filled-steamer'): filled_steamer_recipes(changed, available)
+        with self.assertRaisesRegex(AuditError, 'uninstalled'): filled_steamer_recipes(rows, available - {'kaleidoscopecookery:raw_dough'})
+        with self.assertRaisesRegex(AuditError, 'two pinned'): filled_steamer_recipes(rows[:1], available)
+
     def test_tea_expansion_keeps_fluid_count_and_time(self):
         recipes = self.config['teapot_result']
         self.assertEqual(11, len(recipes))
@@ -70,9 +120,28 @@ class RecipeImportTest(unittest.TestCase):
                 recipe = self.config['recipes'][row['pluginIds'][0]]
                 self.assertEqual(row['type'], 'minecraft:' + recipe['type'])
 
+    def test_appliance_crafting_keeps_all_forge_material_alternatives(self):
+        by_id = {row['sourceId']: row for row in self.report['recipes']}
+        for name, center in (('stove_campfire', 'minecraft:campfire'),
+                             ('stove_soul_campfire', 'minecraft:soul_campfire')):
+            row = by_id[ART + ':' + name]
+            self.assertEqual('imported', row['status'])
+            recipe = self.config['recipes'][row['pluginIds'][0]]
+            self.assertEqual(['###', '#F#', '###'], recipe['pattern'])
+            self.assertEqual(center, recipe['ingredients']['F'])
+            self.assertEqual(['minecraft:cobblestone', 'minecraft:infested_cobblestone',
+                              'minecraft:mossy_cobblestone', 'minecraft:cobbled_deepslate'],
+                             recipe['ingredients']['#'])
+            self.assertEqual({'id': 'kaleidoscopecookery:stove', 'count': 1}, recipe['result'])
+        row = by_id[ART + ':millstone']
+        recipe = self.config['recipes'][row['pluginIds'][0]]
+        self.assertEqual([' F ', 'SG ', 'TTT'], recipe['pattern'])
+        self.assertEqual('#minecraft:wooden_fences', recipe['ingredients']['F'])
+        self.assertEqual({'id': 'kaleidoscopecookery:millstone', 'count': 1}, recipe['result'])
+
     def test_stockpot_keeps_exact_counts_and_distinct_matching_separate(self):
         recipes = self.config.get('stockpot_recipes', {})
-        self.assertEqual(101, len(recipes))
+        self.assertEqual(105, len(recipes))
         rice = recipes['kaleidoscopecookery:stockpot/rice_9']
         self.assertEqual('exact', rice['match'])
         self.assertEqual(9, len(rice['ingredients']))
@@ -89,12 +158,11 @@ class RecipeImportTest(unittest.TestCase):
                 self.assertIn(row['visuals'][field], self.config['items'])
         pending = [r for r in self.report['recipes'] if r['type'] in
                    (ART + ':stockpot', ART + ':flex_stockpot') and r['status'] == 'pending']
-        self.assertEqual(4, len(pending))
-        self.assertTrue(all('forge:mushrooms' in r['reason'] for r in pending))
+        self.assertEqual([], pending)
 
     def test_pot_import_preserves_every_alternative_and_official_batch_size(self):
         recipes = self.config.get('pot_recipes', {})
-        self.assertEqual(221, len(recipes))
+        self.assertEqual(225, len(recipes))
         rows = [r for r in self.report['recipes'] if r['type'] in (ART + ':pot', ART + ':flex_pot')]
         self.assertEqual(225, len(rows))
         for row in rows:
@@ -108,7 +176,7 @@ class RecipeImportTest(unittest.TestCase):
             self.assertEqual(original['stir_fry_count'], recipe['stir_fry_count'])
             self.assertEqual(original['time'], recipe['source_time'])
             self.assertEqual('distinct' if row['type'].endswith(':flex_pot') else 'exact', recipe['match'])
-        self.assertEqual(4, sum(row['status'] == 'pending' for row in rows))
+        self.assertEqual(0, sum(row['status'] == 'pending' for row in rows))
 
     def test_rice_bowls_keep_custom_matching_quality_and_rice_only_remainder_contract(self):
         rows = [row for row in self.report['recipes'] if row['type'] == ART + ':rice_bowl']
@@ -138,7 +206,7 @@ class RecipeImportTest(unittest.TestCase):
     def test_optional_source_dependencies_are_reported_for_all_nine_unblocked_recipes(self):
         rows = [row for row in self.report['recipes'] if row.get('optionalTagAbsences')]
         self.assertEqual(9, len(rows))
-        self.assertEqual({'statusCounts': {'imported': 536, 'pending': 76}}, {'statusCounts': self.report['statusCounts']})
+        self.assertEqual({'statusCounts': {'imported': 612}}, {'statusCounts': self.report['statusCounts']})
         for row in rows:
             self.assertEqual('imported', row['status'])
             for absent in row['optionalTagAbsences']:
@@ -178,12 +246,11 @@ class RecipeImportTest(unittest.TestCase):
 
     def test_millstone_keeps_all_inputs_outputs_and_one_revolution(self):
         recipes = {key: row for key, row in self.config['accurate_foods'].items() if row['cook'] == 'MILLSTONE'}
-        self.assertEqual(87, len(recipes))
+        self.assertEqual(90, len(recipes))
         rows = [row for row in self.report['recipes'] if row['type'] == ART + ':millstone']
         self.assertEqual(85, len(rows))
-        self.assertEqual(82, sum(row['status'] == 'imported' for row in rows))
-        self.assertEqual({'forge:gravel', 'forge:sand/red', 'forge:sand/colorless'},
-                         {row['original']['ingredient']['tag'] for row in rows if row['status'] == 'pending'})
+        self.assertEqual(85, sum(row['status'] == 'imported' for row in rows))
+        self.assertEqual(set(), {row['sourceId'] for row in rows if row['status'] == 'pending'})
         for row in rows:
             if row['status'] != 'imported':
                 self.assertIn('required tag absent', row['reason'])
@@ -253,7 +320,7 @@ class RecipeImportTest(unittest.TestCase):
             self.assertEqual(['LLL', 'LCL', 'LLL'], crafting[key]['pattern'])
         nbt = [row for row in self.report['recipes'] if isinstance(row['original']['result'], dict) and 'nbt' in row['original']['result']]
         self.assertEqual(2, len(nbt))
-        self.assertTrue(all(row['status'] == 'pending' and 'NBT' in row['reason'] for row in nbt))
+        self.assertTrue(all(row['status'] == 'imported' and 'NBT' in row['reason'] for row in nbt))
 
     def test_chain_uses_its_target_version_registry_name(self):
         self.assertEqual('minecraft:iron_chain', mapped('minecraft:chain'))

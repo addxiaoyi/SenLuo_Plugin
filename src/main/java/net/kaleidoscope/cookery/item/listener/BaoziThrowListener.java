@@ -16,6 +16,7 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.attribute.Attribute;
+import net.kaleidoscope.compat.Attributes;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
@@ -178,7 +179,7 @@ public final class BaoziThrowListener implements Listener, AutoCloseable {
 
     private void feedWolf(Player player, Wolf wolf) {
         if (!player.isOnline() || !wolf.isValid() || wolf.isDead() || !canInteract.test(player, wolf.getLocation())) return;
-        var attribute = wolf.getAttribute(Attribute.MAX_HEALTH);
+        var attribute = wolf.getAttribute(Attributes.MAX_HEALTH);
         if (attribute == null) return;
         double missing = Math.max(0, attribute.getValue() - wolf.getHealth());
         var regain = new EntityRegainHealthEvent(wolf, missing, EntityRegainHealthEvent.RegainReason.CUSTOM);

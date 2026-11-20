@@ -66,7 +66,7 @@ public final class PressingController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> tick());
+        return net.kaleidoscope.series.FurnitureTicks.current(PressingController.class, PressingController::tick);
     }
 
     private void tick() {

@@ -1,5 +1,7 @@
 package net.kaleidoscope.cookery.block.behavior;
 
+import net.momirealms.craftengine.core.util.ItemUtils;
+
 import net.kaleidoscope.cookery.block.entity.FruitBasketController;
 import net.kaleidoscope.cookery.nms.NmsBridgeProvider;
 import net.kaleidoscope.cookery.util.InteractGuard;
@@ -103,6 +105,15 @@ public final class FruitBasketBehavior extends BukkitBlockBehavior implements En
         Item itemInHand = player.getItemInHand(hand);
 
         return blockEntity.controller.let(FruitBasketController.class, this.controllerId, controller -> {
+            if (net.kaleidoscope.cookery.item.LunchBagContents.isLunchBag(itemInHand)) {
+                if (itemInHand.count() != 1) return InteractionResult.FAIL;
+                Item exchanged = controller.exchangeLunchBag(itemInHand);
+                if (!ItemUtils.isEmpty(exchanged)) {
+                    player.setItemInHand(hand, exchanged);
+                    player.swingHand(hand);
+                }
+                return InteractionResult.SUCCESS_AND_CANCEL;
+            }
             // 潜行 取出
             if (player.isSecondaryUseActive()) {
                 Item taken = controller.takeOut();

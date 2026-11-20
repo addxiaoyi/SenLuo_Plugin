@@ -3,12 +3,14 @@ package net.kaleidoscope.cookery.nms;
 import org.bukkit.Bukkit;
 
 public final class NmsBridgeProvider {
-    private static final NmsBridge BRIDGE = create();
+    private static final class Holder {
+        private static final NmsBridge BRIDGE = create();
+    }
 
     private NmsBridgeProvider() {}
 
     public static NmsBridge bridge() {
-        return BRIDGE;
+        return Holder.BRIDGE;
     }
 
     private static NmsBridge create() {
@@ -34,14 +36,11 @@ public final class NmsBridgeProvider {
         return version;
     }
 
-    private static String implementationClassName(String version) {
-        // 26.3 retains the entity, block-property and packet bindings used by 26.2.
-        if (version.startsWith("26.2") || version.startsWith("26.3")) {
-            return name("v26_2_R1", "NmsV26_2_R1");
-        }
-        if (version.startsWith("26.1")) return name("v26_1_R1", "NmsV26_1_R1");
-
+    static String implementationClassName(String version) {
         return switch (version) {
+            case "26.3" -> name("v26_3_R1", "NmsV26_3_R1");
+            case "26.2" -> name("v26_2_R1", "NmsV26_2_R1");
+            case "26.1", "26.1.1", "26.1.2" -> name("v26_1_R1", "NmsV26_1_R1");
             case "1.21", "1.21.1" -> name("v1_21_R1", "NmsV1_21_R1");
             case "1.21.2", "1.21.3" -> name("v1_21_R2", "NmsV1_21_R2");
             case "1.21.4" -> name("v1_21_R3", "NmsV1_21_R3");

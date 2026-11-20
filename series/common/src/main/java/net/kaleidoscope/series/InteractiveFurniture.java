@@ -14,6 +14,7 @@ public abstract class InteractiveFurniture extends FurnitureController {
     protected final SeriesPlugin plugin;
     private net.momirealms.craftengine.libraries.nbt.Tag rejectedState;
     private String rejectedKey;
+    private boolean interacting;
 
     protected InteractiveFurniture(Furniture furniture, SeriesPlugin plugin) {
         super(furniture);
@@ -33,13 +34,15 @@ public abstract class InteractiveFurniture extends FurnitureController {
     @Override public final InteractionResult useOnFurniture(FurnitureHitBox hitbox, InteractEntityContext context) {
         if (context.getHand() != InteractionHand.MAIN_HAND || context.getPlayer() == null) return InteractionResult.PASS;
         Player player = (Player) context.getPlayer().platformPlayer();
-        if (!accessible(player)) return InteractionResult.FAIL;
+        if (interacting || !accessible(player)) return InteractionResult.FAIL;
         if (blocked()) {
             player.sendMessage("家具存档无法读取，已停止操作并保留原始记录，请联系管理员。");
             return InteractionResult.FAIL;
         }
         if (!consumesInteraction(player)) return InteractionResult.PASS;
-        plugin.attempt(player, () -> interact(player));
+        interacting = true;
+        try { plugin.attempt(player, () -> interact(player)); }
+        finally { interacting = false; }
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
@@ -48,8 +51,13 @@ public abstract class InteractiveFurniture extends FurnitureController {
     protected final void changed() { furniture().setUnsaved(); }
 
     public boolean hasContents() { return false; }
+    public boolean allowsRemovalWithContents() { return false; }
 
     @Override public final void preRemove(net.momirealms.craftengine.core.entity.player.Player player) {
+        beforeRemoval(player);
+    }
+
+    protected void beforeRemoval(net.momirealms.craftengine.core.entity.player.Player player) {
         if (blocked() || hasContents()) plugin.recoverFurniture(this);
     }
 

@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
+import net.kaleidoscope.compat.Attributes;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.data.Lightable;
 import org.bukkit.entity.Creeper;
@@ -51,7 +52,7 @@ final class KitchenEffectHandlers {
     }
 
     private static void warmth(Player player, EffectState state) {
-        if (state.remaining() % 20 != 0 || player.getHealth() >= player.getAttribute(Attribute.MAX_HEALTH).getValue()) return;
+        if (state.remaining() % 20 != 0 || player.getHealth() >= player.getAttribute(Attributes.MAX_HEALTH).getValue()) return;
         Location origin = player.getLocation();
         World world = origin.getWorld();
         for (int x = -2; x <= 2; x++) for (int y = -1; y <= 1; y++) for (int z = -2; z <= 2; z++) {
@@ -69,7 +70,7 @@ final class KitchenEffectHandlers {
     private static void heal(Player player, double amount) {
         EntityRegainHealthEvent event = new EntityRegainHealthEvent(player, amount, EntityRegainHealthEvent.RegainReason.CUSTOM);
         if (event.callEvent() && !player.isDead()) {
-            player.setHealth(Math.min(player.getAttribute(Attribute.MAX_HEALTH).getValue(), player.getHealth() + event.getAmount()));
+            player.setHealth(Math.min(player.getAttribute(Attributes.MAX_HEALTH).getValue(), player.getHealth() + event.getAmount()));
         }
     }
 
@@ -79,7 +80,7 @@ final class KitchenEffectHandlers {
         if (!feet.isChunkLoaded() || !owned(feet, 0)) { clearTundra(player); return; }
         Material ground = feet.clone().subtract(0, .2, 0).getBlock().getType();
         double boost = ICE.contains(ground) ? (ground == Material.BLUE_ICE ? .1055 : .11) : SNOW.contains(ground) ? .3 : 0;
-        var speed = player.getAttribute(Attribute.MOVEMENT_SPEED);
+        var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed == null) return;
         var old = speed.getModifier(TUNDRA_SPEED);
         if (old != null && old.getAmount() == boost) return;
@@ -102,7 +103,7 @@ final class KitchenEffectHandlers {
     }
 
     private static void clearTundra(Player player) {
-        var speed = player.getAttribute(Attribute.MOVEMENT_SPEED);
+        var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (speed != null) speed.removeModifier(TUNDRA_SPEED);
     }
 

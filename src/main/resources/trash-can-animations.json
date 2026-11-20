@@ -1,0 +1,582 @@
+{
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "sourcePath": "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/client/animation/TrashCanAnimation.java",
+  "sourceSha256": "b321231200a615c2a43096784750d426f57e09e3ef57dc81dc39ad476a4825ad",
+  "coordinateSpace": "Source degreeVec/posVec inputs before the renderer transform",
+  "animations": {
+    "PUT": {
+      "length": 0.5833,
+      "channels": [
+        {
+          "part": "bone2",
+          "target": "ROTATION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.125,
+              "value": [
+                -12.5,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.2083,
+              "value": [
+                -12.5,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.3333,
+              "value": [
+                7.5,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.4167,
+              "value": [
+                -7.5,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.5,
+              "value": [
+                2.5,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.5417,
+              "value": [
+                -2.5,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.5833,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            }
+          ]
+        },
+        {
+          "part": "bone2",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.125,
+              "value": [
+                0.0,
+                2.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.2083,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            }
+          ]
+        }
+      ]
+    },
+    "WITHDRAW": {
+      "length": 0.5,
+      "channels": [
+        {
+          "part": "bone2",
+          "target": "ROTATION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.125,
+              "value": [
+                -7.5,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.25,
+              "value": [
+                5.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.375,
+              "value": [
+                -2.5,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.5,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        },
+        {
+          "part": "bone2",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.125,
+              "value": [
+                0.0,
+                1.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.25,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.375,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.5,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            }
+          ]
+        }
+      ]
+    },
+    "PLAYER1": {
+      "length": 1.0,
+      "channels": [
+        {
+          "part": "bone2",
+          "target": "ROTATION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                -10.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        },
+        {
+          "part": "bone2",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.5,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        },
+        {
+          "part": "eye",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                4.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        },
+        {
+          "part": "bone3",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.375,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.4573,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.4583,
+              "value": [
+                0.0,
+                -2.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.5823,
+              "value": [
+                0.0,
+                -2.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.5833,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        }
+      ]
+    },
+    "PLAYER2": {
+      "length": 2.75,
+      "channels": [
+        {
+          "part": "bone2",
+          "target": "ROTATION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                -10.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        },
+        {
+          "part": "bone2",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.5,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        },
+        {
+          "part": "eye",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                4.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        },
+        {
+          "part": "bone3",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.1667,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 0.375,
+              "value": [
+                -1.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 1.0417,
+              "value": [
+                -1.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 1.4167,
+              "value": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 2.4583,
+              "value": [
+                1.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            },
+            {
+              "time": 2.6667,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "LINEAR"
+            }
+          ]
+        }
+      ]
+    },
+    "ENTER": {
+      "length": 0.6667,
+      "channels": [
+        {
+          "part": "bone",
+          "target": "ROTATION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.125,
+              "value": [
+                0.0,
+                5.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.2083,
+              "value": [
+                0.0,
+                -5.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.2917,
+              "value": [
+                0.0,
+                5.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.375,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            }
+          ]
+        },
+        {
+          "part": "bone2",
+          "target": "ROTATION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.125,
+              "value": [
+                0.0,
+                0.0,
+                10.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.25,
+              "value": [
+                0.0,
+                0.0,
+                -5.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.375,
+              "value": [
+                0.0,
+                0.0,
+                2.5
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.5,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            }
+          ]
+        },
+        {
+          "part": "bone2",
+          "target": "POSITION",
+          "frames": [
+            {
+              "time": 0.0,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.125,
+              "value": [
+                0.0,
+                5.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            },
+            {
+              "time": 0.2917,
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "interpolation": "CATMULLROM"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

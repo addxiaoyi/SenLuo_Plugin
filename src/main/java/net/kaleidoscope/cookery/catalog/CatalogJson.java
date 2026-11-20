@@ -5,12 +5,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.Strictness;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +20,14 @@ public final class CatalogJson {
     private CatalogJson() {}
 
     public static JsonObject read(Reader input) throws IOException {
-        JsonReader reader = new JsonReader(input);
-        reader.setStrictness(Strictness.STRICT);
+        // Paper 1.21.1 supplies Gson 2.10.1. Its non-lenient reader still accepts
+        // uppercase literals, raw control characters and some invalid escapes.
+        StringWriter buffer = new StringWriter();
+        input.transferTo(buffer);
+        String source = buffer.toString();
+        StrictJsonTokens.validate(source);
+        JsonReader reader = new JsonReader(new StringReader(source));
+        reader.setLenient(false);
         JsonElement root = readValue(reader, 0);
         if (!root.isJsonObject() || reader.peek() != JsonToken.END_DOCUMENT) {
             throw new IllegalArgumentException("Expected a single JSON object");

@@ -3,29 +3,19 @@ package net.kaleidoscope.cookery.item;
 import net.kaleidoscope.cookery.api.KaleidoscopeAdvancements;
 
 import net.kaleidoscope.cookery.util.FoliaUtil;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
-import net.momirealms.craftengine.bukkit.item.DataComponentTypes;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.util.ItemUtils;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 // 饭袋进食态的生命周期
 // 原版收纳袋没有进食动画 所以右键时把手里的物品临时换成可食用的进食态 由原版驱动动画与中断 吃完再换回收纳态
@@ -33,20 +23,14 @@ public final class LunchBagEating {
     private LunchBagEating() {}
 
     private static final int MAX_FOOD_LEVEL = 20;
-    private static final float BURP_VOLUME = 0.5f;
-    private static final float BURP_PITCH = 1.0f;
     private static final float DROP_VOLUME = 1.0f;
     private static final float DROP_PITCH = 1.0f;
     // 换成进食态后客户端要隔一两 tick 才会重新发起使用 超过这个宽限还没抬手就说明只是点了一下 换回收纳态
     private static final int START_GRACE_TICKS = 20;
-    // CE 的 DataComponentTypes 没暴露 FOOD/CONSUMABLE 走 byId 查一次缓存
-    private static final Object FOOD_COMPONENT = DataComponentTypes.byId(DataComponentKeys.FOOD);
-    private static final Object CONSUMABLE_COMPONENT = DataComponentTypes.byId(DataComponentKeys.CONSUMABLE);
-    private static final String APPLY_EFFECTS_TYPE = "minecraft:apply_effects";
-    private static final int DEFAULT_EFFECT_TICKS = 20;
-
+    private static final java.util.Map<java.util.UUID, Object> STARTS = new java.util.concurrent.ConcurrentHashMap<>();
     // 换成进食态 玩家按住右键时客户端会自行重新发起使用 原版据 consumable 组件播放进食动画
     public static void begin(Player player, InteractionHand hand, Item bag) {
+        if (bag.count() != 1 || LunchBagContents.isEmpty(bag)) return;
         Item eating = LunchBagContents.toEatingForm(bag);
         if (ItemUtils.isEmpty(eating)) {
             return;
@@ -54,30 +38,89 @@ public final class LunchBagEating {
         player.setItemInHand(hand, eating);
 
         org.bukkit.entity.Player bukkitPlayer = (org.bukkit.entity.Player) player.platformPlayer();
+        Object token = new Object();
+        STARTS.put(bukkitPlayer.getUniqueId(), token);
         FoliaUtil.runLater(
-                () -> cancelIfNotEating(bukkitPlayer), null, START_GRACE_TICKS, bukkitPlayer);
+                () -> {
+                    if (STARTS.remove(bukkitPlayer.getUniqueId(), token)) cancelIfNotEating(bukkitPlayer);
+                }, () -> STARTS.remove(bukkitPlayer.getUniqueId(), token), START_GRACE_TICKS, bukkitPlayer);
     }
 
-    // 吃完一口 扣掉第一格的一个并结算营养 直接把收纳态写回手上
-    // 不走 restore 扫背包 免得和原版正在进行的物品栏改动抢同一个物品
-    public static void finish(org.bukkit.entity.Player bukkitPlayer, EquipmentSlot hand, Item eating) {
-        Item staged = eating.copy();
-        Item food = LunchBagContents.removeOne(staged);
-        if (!ItemUtils.isEmpty(food)) CookeryFoodItems.read(ItemStackUtils.getBukkitStack(food.minecraftItem()));
-        Item bag = LunchBagContents.toBagForm(staged);
-        if (ItemUtils.isEmpty(bag)) {
-            return;
+    private static final java.util.Set<java.util.UUID> ACTIVE = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    // One 32-tick use eats food until full, then still visits potion slots.
+    // Each unit commits the remaining bag before vanilla callbacks can re-enter.
+    public static void finish(org.bukkit.entity.Player player, EquipmentSlot hand, Item eating) {
+        if (!ACTIVE.add(player.getUniqueId())) return;
+        try {
+            ItemStack expected = InventoryUtils.bukkitCopy(eating);
+            if (!sameHeld(player, hand, expected)) return;
+            STARTS.remove(player.getUniqueId());
+            List<Item> remaining = LunchBagContents.read(eating);
+            for (Item item : remaining) CookeryFoodItems.read(InventoryUtils.bukkitCopy(item));
+            Item bag = LunchBagContents.toBagForm(eating);
+            if (ItemUtils.isEmpty(bag)) return;
+            int consumed = 0;
+            for (int slot = 0; slot < remaining.size(); slot++) {
+                Item stored = remaining.get(slot);
+                while (!ItemUtils.isEmpty(stored) && player.isOnline() && !player.isDead()) {
+                    ItemStack candidate = InventoryUtils.bukkitCopy(stored.copyWithCount(1));
+                    boolean edible = candidate.getItemMeta().hasFood();
+                    if ((edible && player.getFoodLevel() >= MAX_FOOD_LEVEL)
+                            || (!edible && candidate.getType() != org.bukkit.Material.POTION)) break;
+                    if (!sameHeld(player, hand, expected)) return;
+                    var event = new org.bukkit.event.player.PlayerItemConsumeEvent(player, candidate, hand);
+                    org.bukkit.Bukkit.getPluginManager().callEvent(event);
+                    if (event.isCancelled()) break;
+                    if (!sameHeld(player, hand, expected)) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                    Item actual = InventoryUtils.wrap(event.getItem().asQuantity(1));
+                    if (!LunchBagContents.canAdd(actual)) {
+                        event.setCancelled(true);
+                        break;
+                    }
+                    stored = stored.copyWithCount(stored.count() - 1);
+                    remaining.set(slot, stored);
+                    LunchBagContents.write(bag, remaining);
+                    expected = InventoryUtils.bukkitCopy(bag);
+                    player.getInventory().setItem(hand, expected.clone());
+                    Object leftover;
+                    try {
+                        leftover = net.kaleidoscope.cookery.nms.NmsBridgeProvider.bridge()
+                                .finishConsumingItem(actual.minecraftItem(), player);
+                    } catch (RuntimeException failure) {
+                        event.setCancelled(true);
+                        throw failure;
+                    }
+                    consumed++;
+                    if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+                        ItemStack replacement = event.getReplacement();
+                        Item result = replacement != null ? InventoryUtils.wrap(replacement)
+                                : InventoryUtils.wrapNative(leftover);
+                        if (!ItemUtils.isEmpty(result)) InventoryUtils.give(player, result);
+                    }
+                }
+            }
+            if (sameHeld(player, hand, expected)) {
+                player.getInventory().setItem(hand, InventoryUtils.bukkitCopy(bag));
+            }
+            if (consumed > 0) KaleidoscopeAdvancements.recordEvent(player, "use_transmutation_lunch_bag");
+            player.updateInventory();
+        } finally {
+            ACTIVE.remove(player.getUniqueId());
         }
-        bukkitPlayer.getInventory().setItem(hand, ItemStackUtils.getBukkitStack(bag));
-        if (!ItemUtils.isEmpty(food)) {
-            applyNutrition(bukkitPlayer, food);
-            KaleidoscopeAdvancements.recordEvent(bukkitPlayer, "use_transmutation_lunch_bag");
-        }
-        bukkitPlayer.updateInventory();
+    }
+
+    private static boolean sameHeld(org.bukkit.entity.Player player, EquipmentSlot hand, ItemStack expected) {
+        ItemStack current = player.getInventory().getItem(hand);
+        return current != null && current.getAmount() == expected.getAmount() && current.isSimilar(expected);
     }
 
     // 把玩家身上所有进食态换回收纳态 松手 切槽 重进服都走这里
     public static void restore(org.bukkit.entity.Player bukkitPlayer) {
+        STARTS.remove(bukkitPlayer.getUniqueId());
         PlayerInventory inventory = bukkitPlayer.getInventory();
         ItemStack[] contents = inventory.getContents();
         boolean changed = false;
@@ -91,7 +134,9 @@ public final class LunchBagEating {
             if (!LunchBagContents.isEatingForm(wrapped)) {
                 continue;
             }
-            Item bag = LunchBagContents.toBagForm(wrapped);
+            Item bag;
+            try { bag = LunchBagContents.toBagForm(wrapped); }
+            catch (IllegalArgumentException exception) { continue; }
             if (ItemUtils.isEmpty(bag)) {
                 continue;
             }
@@ -104,93 +149,12 @@ public final class LunchBagEating {
         }
     }
 
-    // 判据只能是手有没有抬起 宽限期 20t 短于进食 40t 这个兜底必然在进食中途触发一次
+    // 判据只能是手有没有抬起 宽限期 20t 短于进食 32t 这个兜底必然在进食中途触发一次
     // 再加附加条件一旦判失败就当场 restore 打断进食 残留交给 onStopUsing/onHeldChange/onDrop/onJoin 兜底
     private static void cancelIfNotEating(org.bukkit.entity.Player bukkitPlayer) {
         if (bukkitPlayer.isOnline() && !bukkitPlayer.isHandRaised()) {
             restore(bukkitPlayer);
         }
-    }
-
-    // food 组件里的 saturation 是饱和度绝对值 不是倍率 结算方式与原版 FoodData.eat 一致
-    private static void applyNutrition(org.bukkit.entity.Player bukkitPlayer, Item food) {
-        JsonElement json = food.getComponentAsJson(FOOD_COMPONENT);
-        if (!(json instanceof JsonObject properties)) {
-            return;
-        }
-        bukkitPlayer.playSound(bukkitPlayer.getLocation(), Sound.ENTITY_PLAYER_BURP, BURP_VOLUME, BURP_PITCH);
-        int nutrition = properties.has("nutrition") ? properties.get("nutrition").getAsInt() : 0;
-        float saturation = properties.has("saturation") ? properties.get("saturation").getAsFloat() : 0f;
-        int level = Math.min(bukkitPlayer.getFoodLevel() + nutrition, MAX_FOOD_LEVEL);
-        bukkitPlayer.setFoodLevel(level);
-        bukkitPlayer.setSaturation(Math.min(bukkitPlayer.getSaturation() + saturation, level));
-        applyConsumeEffects(bukkitPlayer, food);
-        var baked = CookeryFoodItems.read(ItemStackUtils.getBukkitStack(food.minecraftItem()));
-        if (baked != null) {
-            net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin.instance().cookeryConsumption().apply(bukkitPlayer, baked);
-            if (baked.container() != null) {
-                InventoryUtils.give(net.momirealms.craftengine.bukkit.api.BukkitAdaptor.adapt(bukkitPlayer),
-                        InventoryUtils.createOrEmpty(net.momirealms.craftengine.core.util.Key.of(baked.container())));
-            }
-        }
-    }
-
-    // 1.21.2 起进食附带的效果从 food.effects 移到了 consumable.on_consume_effects
-    // 当前仅支持 apply_effects，其他原版消费效果不在支持范围内
-    private static void applyConsumeEffects(org.bukkit.entity.Player bukkitPlayer, Item food) {
-        if (CONSUMABLE_COMPONENT == null) {
-            return;
-        }
-        if (!(food.getComponentAsJson(CONSUMABLE_COMPONENT) instanceof JsonObject consumable)) {
-            return;
-        }
-        JsonElement onConsume = consumable.get("on_consume_effects");
-        if (!(onConsume instanceof JsonArray entries)) {
-            return;
-        }
-        for (JsonElement entry : entries) {
-            if (!(entry instanceof JsonObject effectEntry)) {
-                continue;
-            }
-            if (!APPLY_EFFECTS_TYPE.equals(asString(effectEntry.get("type")))) {
-                continue;
-            }
-            float probability = effectEntry.has("probability") ? effectEntry.get("probability").getAsFloat() : 1f;
-            if (probability < 1f && ThreadLocalRandom.current().nextFloat() >= probability) {
-                continue;
-            }
-            if (effectEntry.get("effects") instanceof JsonArray effects) {
-                effects.forEach(e -> applySingleEffect(bukkitPlayer, e));
-            }
-        }
-    }
-
-    private static void applySingleEffect(org.bukkit.entity.Player bukkitPlayer, JsonElement element) {
-        if (!(element instanceof JsonObject effect)) {
-            return;
-        }
-        String id = asString(effect.get("id"));
-        if (id == null) {
-            return;
-        }
-        NamespacedKey key = NamespacedKey.fromString(id);
-        PotionEffectType type = key == null ? null : Registry.EFFECT.get(key);
-        if (type == null) {
-            return;
-        }
-        // duration 单位是 tick 缺省取原版默认的 1 秒
-        int duration = effect.has("duration") ? effect.get("duration").getAsInt() : DEFAULT_EFFECT_TICKS;
-        int amplifier = effect.has("amplifier") ? effect.get("amplifier").getAsInt() : 0;
-        boolean ambient = !effect.has("ambient") || effect.get("ambient").getAsBoolean();
-        boolean particles = !effect.has("show_particles") || effect.get("show_particles").getAsBoolean();
-        boolean icon = !effect.has("show_icon") || effect.get("show_icon").getAsBoolean();
-        if (!net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin.instance().cookeryConsumption().blocksHarmfulFood(bukkitPlayer, type)) {
-            bukkitPlayer.addPotionEffect(new PotionEffect(type, duration, amplifier, ambient, particles, icon));
-        }
-    }
-
-    private static String asString(JsonElement element) {
-        return element != null && element.isJsonPrimitive() ? element.getAsString() : null;
     }
 
     // 倒出全部 供潜行左键用

@@ -10,6 +10,7 @@ import argparse
 import copy
 import hashlib
 import itertools
+from cookery_recipes import smithing_recipes, filled_steamer_recipes
 import json
 from pathlib import Path
 import sys
@@ -27,6 +28,15 @@ from cookery_kitchen_displays import tea_cups, cutting_models, tea_bars, soup_mo
 from cookery_stockpot import stockpot_recipes
 from cookery_pot import pot_recipes
 from cookery_millstone import millstone_furniture
+from cookery_seating import seating_furniture
+from cookery_trash_can import trash_can
+from cookery_scarecrow import scarecrow
+from cookery_tables import table_blocks
+from cookery_storage_blocks import storage_blocks
+from cookery_hanging_strings import hanging_strings
+from cookery_long_bench import long_bench
+from cookery_eight_immortals_table import eight_immortals_table
+from cookery_red_lantern import red_lantern
 from cookery_placed_meals import placed_meals
 from export_bamboo_tray import export as export_bamboo_tray
 
@@ -317,8 +327,8 @@ def block_definition(assets: dict[str, bytes], items: dict, parts: dict, name: s
         behaviors.append({'type': 'double_high_block'})
         loot['pools'][0]['conditions'] = [{'type': 'match_block_property', 'properties': {'half': 'lower'}}]
     if name == 'steamer':
-        behaviors.append({'type': NAMESPACE + ':stacked_extra_drop',
-                          'extra_drops': [{'property': 'type', 'value': 'double', 'item': key, 'amount': 1}]})
+        behaviors[0]['portable_contents'] = True
+        loot = {'pools': []}  # Controller owns one portable item per layer, including its contents.
     dimensions = {'facing': FACING, **APPLIANCES[name]}
     source = [] if name in ('teapot', 'teacup_coaster') else source_states(assets, name)
     appearances, variants = {}, {}
@@ -407,6 +417,32 @@ def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
     oiled_shovel['data']['max_stack_size'] = 1
 
 
+def lunch_bag_items(items: dict, definitions: dict, names: dict) -> None:
+    key = NAMESPACE + ':transmutation_lunch_bag'
+    empty = ART + ':item/transmutation_lunch_bag_no_items'
+    full = ART + ':item/transmutation_lunch_bag_has_items'
+    if empty not in definitions or full not in definitions:
+        raise AuditError('missing source lunch bag models')
+    label = names.get('item.' + ART + '.transmutation_lunch_bag', '嬗变饭袋')
+    definition = item(key, {'type': 'minecraft:range_dispatch', 'property': 'minecraft:bundle/fullness',
+                           'fallback': definitions[empty], 'entries': [
+                               {'threshold': 0.000001, 'model': definitions[full]}]}, label)
+    definition['material'] = 'bundle'
+    definition['legacy_model'] = {'path': empty, 'overrides': [
+        {'path': full, 'predicate': {'filled': 0.000001}}]}
+    definition['data'].update({'max_stack_size': 1, 'components': {'minecraft:bundle_contents': []},
+                               'lore': ['<!i>背包中右键存取食物和药水（24 格）', '<!i>右键连续吃到饱；潜行左键取出全部',
+                                        '<!i>右键果篮：装入或取出内容物']})
+    definition['behavior'] = {'type': key}
+    items[key] = definition
+    eating = item(key + '_eating', definitions[full], label)
+    eating['data'].update({'max_stack_size': 1,
+        'food': {'nutrition': 0, 'saturation': 0.0, 'can_always_eat': True},
+        'components': {'minecraft:bundle_contents': [], 'minecraft:consumable': {
+            'consume_seconds': 1.6, 'animation': 'eat', 'on_consume_effects': []}}})
+    items[key + '_eating'] = eating
+
+
 def sound_aliases(assets: dict[str, bytes]) -> int:
     sounds = read_json(assets, ART + '/sounds.json')
     aliases = {}
@@ -440,6 +476,7 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
             raise AuditError(f'missing bamboo tray model: {model}')
     tools(items, definitions, names)
     auxiliary_items(items, definitions, names)
+    lunch_bag_items(items, definitions, names)
     blocks = {}
     tea_banner_key = NAMESPACE + ':tea_banner'
     tea_banner_model = ART + ':item/tea_banner'
@@ -489,7 +526,7 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
         model = model_node(parts['coaster']) if name == 'teacup_coaster' else definitions[ART + ':item/' + ('pot_has_oil' if name == 'oil_pot' else name)]
         items[key] = item(key, model, names.get(f'block.{ART}.{name}', '茶杯垫' if name == 'teacup_coaster' else name))
         placement = {'shawarma_spit': 'double_high_block_item', 'teapot': NAMESPACE + ':teapot_item',
-                     'oil_pot': NAMESPACE + ':oil_pot_item'}.get(name, 'block_item')
+                     'oil_pot': NAMESPACE + ':oil_pot_item', 'steamer': NAMESPACE + ':steamer_item'}.get(name, 'block_item')
         items[key]['behavior'] = {'type': placement, 'block': key}
         if name in ('oil_pot', 'teapot'):
             items[key]['data']['max_stack_size'] = 1
@@ -538,6 +575,24 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
                                 'stand=true': {'appearance': 'stand'}}}
     }
     furniture, millstone_model = millstone_furniture(source, assets, items, definitions)
+    seats, seating_manifest = seating_furniture(source, assets, items, definitions, names)
+    furniture.update(seats)
+    trash, trash_manifest = trash_can(source, assets, items, definitions)
+    furniture.update(trash)
+    scarecrows, scarecrow_manifest = scarecrow(source, assets, items, definitions)
+    furniture.update(scarecrows)
+    tables, table_manifest = table_blocks(source, assets, items, definitions, names, display)
+    blocks.update(tables)
+    storage, storage_manifest = storage_blocks(source, assets, items, definitions, names)
+    blocks.update(storage)
+    hanging, hanging_manifest = hanging_strings(source, assets, items, definitions, names, display)
+    blocks.update(hanging)
+    benches, bench_manifest = long_bench(source, assets, items, definitions, names, display)
+    blocks.update(benches)
+    eight_tables, eight_manifest = eight_immortals_table(source, assets, items, definitions, names, display)
+    blocks.update(eight_tables)
+    lantern, lantern_manifest = red_lantern(source, assets, items, definitions, names, display)
+    blocks.update(lantern)
     sounds = sound_aliases(assets)
     sources = read_sources(source)
     recipes, records, required = processing_recipes(sources)
@@ -572,7 +627,10 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
             raise AuditError(f'unregistered recipe ingredient or missing model: {key}')
         items[key] = item(key, definitions[model], names.get(f'item.{ART}.{name}', name))
     rice_bowls, rice_manifest = rice_bowl_recipes(sources, records, set(items))
-    recipes['recipes'] = {**cooking, **crafting_recipes(sources, records, set(items)), **rice_bowls}
+    smithing, smithing_manifest = smithing_recipes(records, set(items))
+    crafting = crafting_recipes(sources, records, set(items))
+    steamers, steamer_manifest = filled_steamer_recipes(records, set(items))
+    recipes['recipes'] = {**cooking, **crafting, **rice_bowls, **smithing, **steamers}
     recipe_manifest = recipe_report(sources, records, recipes)
     cups = tea_cups(assets, items, catalog)
     cutting_models(assets, items, records)
@@ -592,11 +650,19 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
     bundle[f'{PACK}/recipe-parity.json'] = json_bytes(recipe_manifest)
     manifest = {'sourceCommit': COMMIT, 'target': {'minecraft': '1.21.11', 'craftEngine': '26.9.1'},
                 'items': len(items), 'blocks': len(blocks), 'convertedPerspectives': converted, 'checkedModels': checked,
-                'furniture': len(furniture), 'millstoneModel': millstone_model,
+                'furniture': len(furniture), 'millstoneModel': millstone_model, 'seating': seating_manifest, 'tables': table_manifest, 'storageBlocks': storage_manifest,
+                'hangingStrings': hanging_manifest,
+                'longBench': bench_manifest,
+                'eightImmortalsTable': eight_manifest,
+                'redLantern': lantern_manifest,
+                'trashCan': trash_manifest,
+                'scarecrow': scarecrow_manifest,
                 'soundAliases': sounds, 'states': {key: len(value['states']['variants']) for key, value in blocks.items()},
                 'plates': plates,
                 'placedMeals': meal_manifest,
                 'riceBowls': rice_manifest,
+                'smithing': smithing_manifest,
+                'filledSteamers': steamer_manifest,
                 'optionalTagAbsences': recipe_manifest['optionalTagAbsences'],
                 'optionalDependencyContext': recipe_manifest['optionalDependencyContext'],
                 'recipeSources': recipe_manifest['sourceCount'], 'recipeStatuses': recipe_manifest['statusCounts'],

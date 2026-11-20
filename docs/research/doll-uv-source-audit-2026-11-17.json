@@ -1,0 +1,128 @@
+{
+  "date": "2026-11-17",
+  "sourceCommit": "62303aa58bbd5ee52498f3ad0fbf4a0c7d04c183",
+  "status": "OPEN_SOURCE_GEOMETRY_DEFECTS",
+  "models": [
+    {
+      "model": "doll_271",
+      "sourceFile": "src\\main\\resources\\assets\\kaleidoscope_doll\\models\\block\\doll\\doll_271.json",
+      "sha256": "170441b518165a2fb19543fcdf4dad3abd0d2af340f811b580bc7672c73fbbe2",
+      "textureSize": [
+        64,
+        64
+      ],
+      "outOfRangeFaces": [
+        {
+          "elementIndex": 7,
+          "face": "north",
+          "uv": [
+            -1,
+            0.5,
+            1,
+            1
+          ],
+          "texture": "#1",
+          "zeroAreaGeometry": true
+        },
+        {
+          "elementIndex": 7,
+          "face": "east",
+          "uv": [
+            -1,
+            0.5,
+            -1,
+            1
+          ],
+          "texture": "#1",
+          "zeroAreaGeometry": true
+        },
+        {
+          "elementIndex": 7,
+          "face": "up",
+          "uv": [
+            1,
+            0.5,
+            -1,
+            0.5
+          ],
+          "texture": "#1",
+          "zeroAreaGeometry": true
+        },
+        {
+          "elementIndex": 33,
+          "face": "north",
+          "uv": [
+            -0.5,
+            0.5,
+            2,
+            0.75
+          ],
+          "texture": "#1",
+          "zeroAreaGeometry": false
+        },
+        {
+          "elementIndex": 33,
+          "face": "east",
+          "uv": [
+            -3,
+            0.5,
+            -0.5,
+            0.75
+          ],
+          "texture": "#missing",
+          "zeroAreaGeometry": false
+        },
+        {
+          "elementIndex": 34,
+          "face": "north",
+          "uv": [
+            -2,
+            7,
+            1,
+            7
+          ],
+          "texture": "#missing",
+          "zeroAreaGeometry": true
+        },
+        {
+          "elementIndex": 34,
+          "face": "east",
+          "uv": [
+            -5,
+            7,
+            -2,
+            7
+          ],
+          "texture": "#missing",
+          "zeroAreaGeometry": true
+        }
+      ],
+      "unresolvedTextureFaces": 32
+    },
+    {
+      "model": "doll_722",
+      "sourceFile": "src\\main\\resources\\assets\\kaleidoscope_doll\\models\\block\\doll\\doll_722.json",
+      "sha256": "2470485159fc0adb28708838675f6192d4144add84297ad3e19417d956b27e19",
+      "textureSize": [
+        96,
+        96
+      ],
+      "outOfRangeFaces": [
+        {
+          "elementIndex": 21,
+          "face": "south",
+          "uv": [
+            37,
+            44,
+            51,
+            55
+          ],
+          "texture": "#0",
+          "zeroAreaGeometry": true
+        }
+      ],
+      "unresolvedTextureFaces": 0
+    }
+  ],
+  "decision": "No clamping, UV scaling or replacement art applied: source does not establish intended sampling for negative UVs, missing textures or the 37..55 coordinate face. Needs upstream/reference visual comparison before claiming faithful repair."
+}

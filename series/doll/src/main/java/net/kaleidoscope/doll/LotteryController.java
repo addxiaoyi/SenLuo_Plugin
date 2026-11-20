@@ -54,7 +54,7 @@ public final class LotteryController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return createTickerHelper((f, controller) -> tick());
+        return net.kaleidoscope.series.FurnitureTicks.current(LotteryController.class, LotteryController::tick);
     }
 
     private void tick() {

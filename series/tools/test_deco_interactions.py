@@ -4,6 +4,31 @@ from deco_interactions import function_sounds, item_tag_sources, link_variants, 
 
 
 class InteractionTests(unittest.TestCase):
+    def test_tulip_extraction_and_decoration_form_a_paid_cycle(self):
+        decorate = {"events": {"right_click": {"criteria": [{"event": "trans",
+                    "item": {"id": "#demo:tulips"}, "args": {"index": "kaleidoscope_bar:blackboard/9"}}]}}}
+        pending = []
+        parsed = rules(decorate, {}, pending, "kaleidoscope_bar:blackboard/0", "bar",
+                       {"demo:tulips": {"bar": {"values": ["red_tulip", "orange_tulip", "white_tulip", "pink_tulip"]}}})
+        self.assertEqual(1, parsed[0]["cost"])
+        extract = {"events": {"right_click": {"criteria": [{"event": "group", "item": {"id": "shears"},
+                   "args": {"events": [{"event": "custom", "args": {"func": "kaleidoscope:bar/events/tulip_loot"}},
+                                       {"event": "trans", "args": {"index": "kaleidoscope_bar:blackboard/0"}}]}}]}}}
+        parsed = rules(extract, {}, pending, "kaleidoscope_bar:blackboard/9")
+        self.assertFalse(parsed[0]["pending"])
+        self.assertEqual(4, len(parsed[0]["rewards"]))
+        self.assertEqual(0, parsed[0]["cost"])
+        self.assertEqual("kaleidoscope_deco:kaleidoscope_bar/blackboard/0", parsed[0]["target"])
+        self.assertEqual([], pending)
+
+    def test_loot_without_a_transition_cannot_repeat_forever(self):
+        definition = {"events": {"right_click": {"fallback": {"event": "custom",
+                      "args": {"func": "kaleidoscope:bar/events/custom_loot", "item": "rose_bush"}}}}}
+        pending = []
+        parsed = rules(definition, {}, pending, "kaleidoscope_bar:blackboard/4")
+        self.assertTrue(parsed[0]["pending"])
+        self.assertEqual([], parsed[0]["rewards"])
+
     def test_custom_tag_uses_its_module_and_does_not_guess_conflicting_overlays(self):
         tags = item_tag_sources({
             "src/cookery/data/demo/tags/item/fruit.json": b'{"values":["apple","#minecraft:flowers"]}',

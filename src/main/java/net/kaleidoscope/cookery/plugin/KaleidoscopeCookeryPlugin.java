@@ -93,6 +93,8 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
                 .build();
         FoodRecipeManager.registerParsers();
         net.kaleidoscope.cookery.recipe.RiceBowlRecipe.register();
+        net.kaleidoscope.cookery.recipe.KitchenKnifeSmithing.register();
+        net.kaleidoscope.cookery.recipe.FilledSteamerResult.register();
         MillstoneAnimals.registerParser();
         ItemTags.registerParser();
         FoodGroups.registerParser();
@@ -100,6 +102,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         BlockTags.registerParser();
         getServer().getPluginManager().registerEvents(new DishCarrierListener(), this);
         getServer().getPluginManager().registerEvents(new CaterpillarListener(), this);
+        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.OilBlockListener(), this);
         baoziThrows = new BaoziThrowListener(this);
         getServer().getPluginManager().registerEvents(baoziThrows, this);
         getServer().getPluginManager().registerEvents(new MillstoneDamageListener(), this);
@@ -108,6 +111,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SteamerFallingBlockListener(), this);
         steamerTransients = new SteamerTransientBlockListener(this);
         getServer().getPluginManager().registerEvents(new CustomBlockPlaceProtectionListener(), this);
+        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.EightImmortalsTableBreakListener(), this);
         getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.PlacedMealBreakListener(), this);
         getServer().getPluginManager().registerEvents(new FruitBasketCatListener(this), this);
         getServer().getPluginManager().registerEvents(new TrashCanListener(), this);
@@ -115,6 +119,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new TrashCanLandListener(), this);
         }
         getServer().getPluginManager().registerEvents(new ScarecrowTrampleListener(), this);
+        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.ScarecrowHitListener(), this);
         getServer().getPluginManager().registerEvents(new PaddyTillListener(), this);
         getServer().getPluginManager().registerEvents(new DisplayTrackingListener(), this);
         getServer().getPluginManager().registerEvents(new LunchBagListener(), this);

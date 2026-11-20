@@ -1,0 +1,802 @@
+{
+  "date": "2026-11-17",
+  "status": "DEVELOPMENT_CHECKPOINT",
+  "baseline": "1d283d6",
+  "uncommitted": true,
+  "bundle": {
+    "path": "build/distribution/SenLuo-1.21.1-26.3-dev-20261117-storage-v1.zip",
+    "size": 53518066,
+    "sha256": "6caf75d24e84951fb42a2759a535d418c14376abeaef189be5e923959bd0f29f",
+    "verifiedManifestFiles": 59,
+    "crc": "PASS"
+  },
+  "javaTests": {
+    "cookery": {
+      "tests": 414,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "common": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "doll": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "tavern": {
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "deco": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "music": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "legacyCompatTests": {
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pythonTests": {
+    "root": 126,
+    "series": 58,
+    "failures": 0,
+    "additionalAxisRegression": 1
+  },
+  "content": {
+    "items": 1400,
+    "blocks": 76,
+    "furniture": 23,
+    "checkedModels": 1458,
+    "recipeStatuses": {
+      "imported": 602,
+      "pending": 10
+    },
+    "recipes": {
+      "teapot_result": 11,
+      "accurate_foods": 94,
+      "chopping_board_raws": 16,
+      "bamboo_tray_recipes": 28,
+      "stockpot_recipes": 105,
+      "pot_recipes": 225,
+      "recipes": 132
+    },
+    "storageBlocks": {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "blocks": 2,
+      "recipes": 4,
+      "sourceFiles": {
+        "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/misc/OilBlock.java": "d33cad2b3a91aa3bf934c5628d41102f55da05b071a186885a0956f8b22ca5f5",
+        "src/main/java/com/github/ysbbbbbb/kaleidoscopecookery/block/misc/StrawBlocks.java": "f5cd513843c7cd02578670592e4a8238f1de54887a2a9b8526b7a7e5a29c2dfd"
+      },
+      "runtime": "NOT_TESTED",
+      "vanillaClient": "NOT_TESTED",
+      "differences": [
+        "Oil server friction is 0.985; vanilla-client movement on its note-block appearance still needs reconciliation.",
+        "Oil rejects natural/chunk/patrol/raid/reinforcement spawns through Bukkit; other spawn-placement paths remain unverified.",
+        "Oil ambient particles run on a server ticker instead of client animateTick.",
+        "Oil cannot yet opt out of slime/honey adhesion while permitting normal piston pushes.",
+        "Straw fall destruction adds protection and EntityChangeBlockEvent cancellation; emitted drops need third-party cancellation acceptance."
+      ]
+    }
+  },
+  "states": {
+    "explicit": 4222,
+    "expectedInternal": 5566,
+    "registered": "NOT_TESTED"
+  },
+  "classHashes": {
+    "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.1.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.11.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.2-1.21.3.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.4.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.5.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.6-1.21.8.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.9-1.21.10.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.1-26.1.2.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.2.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    },
+    "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.3.jar": {
+      "block/behavior/StrawBlockBehavior": "0a093dfcdec4afc3fcdf53a8b7d3ee93ac1ee4e8dc8e8ce29bf340970cfcaf93",
+      "block/behavior/StrawLanding": "394ee23618b761a8cb200f08ddc77c80e1a6a4cdd75cbffe9d8b6fe527ffb585",
+      "block/behavior/OilBlockBehavior": "a3846caeaffb925803b954f1c152558404ab8e04cbed93e238484feae3053fa3",
+      "block/entity/OilBlockController": "53c2b595dae71e7a42b8aeb0f7947a45fe059cdb35b6136b4510e7ca5fd3e795",
+      "block/listener/OilBlockListener": "fed197ceb30137ee1d4ba46898dfee461152ee13bb7eacebfa25f1e4251a08e2"
+    }
+  },
+  "versionedCookery": [
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.1.jar",
+      "minecraft": [
+        "1.21.1"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R1/NmsV1_21_R1.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.11.jar",
+      "minecraft": [
+        "1.21.11"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R7/NmsV1_21_R7.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.2-1.21.3.jar",
+      "minecraft": [
+        "1.21.2",
+        "1.21.3"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R2/NmsV1_21_R2.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.4.jar",
+      "minecraft": [
+        "1.21.4"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R3/NmsV1_21_R3.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.5.jar",
+      "minecraft": [
+        "1.21.5"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R4/NmsV1_21_R4.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.6-1.21.8.jar",
+      "minecraft": [
+        "1.21.6",
+        "1.21.7",
+        "1.21.8"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R5/NmsV1_21_R5.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc1.21.9-1.21.10.jar",
+      "minecraft": [
+        "1.21.9",
+        "1.21.10"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v1_21_R6/NmsV1_21_R6.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.1-26.1.2.jar",
+      "minecraft": [
+        "26.1",
+        "26.1.1",
+        "26.1.2"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_1_R1/NmsV26_1_R1.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.2.jar",
+      "minecraft": [
+        "26.2"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_2_R1/NmsV26_2_R1.class",
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versions/KaleidoscopeCookeryPlugin-1.3.0-mc26.3.jar",
+      "minecraft": [
+        "26.3"
+      ],
+      "bridge": "net/kaleidoscope/cookery/nms/v26_3_R1/NmsV26_3_R1.class",
+      "runtime": "NOT_TESTED"
+    }
+  ],
+  "versionedCePacks": [
+    {
+      "file": "versioned-ce-packs/mc1.21.1/cookery-ce-pack-20261117-storage-v1.zip",
+      "family": "1.21.1",
+      "sourceSha256": "e67edd266fa5d3286f37a60e376fa6ea176d5a7bfab35d602b9247aad679ca53",
+      "changes": [
+        {
+          "file": "cookery_kitchen/configuration/kitchen.yml",
+          "ironChainAliases": 1,
+          "legacyFoods": 104,
+          "legacyDrinkAnimations": 9,
+          "legacyLunchBagMaterial": 1,
+          "before": "f9eb52a2352be5760096f5d0558ac1659da662c02c5ed996400d23fe3ad81dac",
+          "after": "a123e900fd7fbe7355110849b34fe33e722277dcc4bde71e931b8d1606035914"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.1/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.1",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [
+        {
+          "file": "configuration/content.yml",
+          "ironChainAliases": 39,
+          "legacyFoods": 38,
+          "legacyDrinkAnimations": 38,
+          "before": "204c87934f02eb7df59ef1c7c492e22b2db5dfce3ff0735b6672424394e9c64d",
+          "after": "95aaa40b21cc2e26dd18d754802e70ea120df0e05e0785f97127758601f1db67"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/cookery-ce-pack-20261117-storage-v1.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "e67edd266fa5d3286f37a60e376fa6ea176d5a7bfab35d602b9247aad679ca53",
+      "changes": [
+        {
+          "file": "cookery_kitchen/configuration/kitchen.yml",
+          "ironChainAliases": 1,
+          "legacyFoods": 0,
+          "legacyDrinkAnimations": 0,
+          "before": "f9eb52a2352be5760096f5d0558ac1659da662c02c5ed996400d23fe3ad81dac",
+          "after": "dcb4687cbd22a128f1437466973cc9efdccb9e4a5944593cc5fa1204e0fa1366"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.2-1.21.8/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.2-1.21.8",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [
+        {
+          "file": "configuration/content.yml",
+          "ironChainAliases": 39,
+          "legacyFoods": 0,
+          "legacyDrinkAnimations": 0,
+          "before": "204c87934f02eb7df59ef1c7c492e22b2db5dfce3ff0735b6672424394e9c64d",
+          "after": "f73ed6f60cda9df4e6b361471958c7ef7d4b4bce0f46ec6659b3b855a8ab5681"
+        }
+      ],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/cookery-ce-pack-20261117-storage-v1.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "e67edd266fa5d3286f37a60e376fa6ea176d5a7bfab35d602b9247aad679ca53",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/deco-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "99fc3f8c7d19a1a8c15a698c06004b7d98f1adb5c5a53175b1fbbd3ef7f0056f",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/doll-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "dad75e04d0f6fece6f7dbf9906ac6e22193e21702cac5acd38500102d0e08350",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/music-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "ca8a87566e289d6da88ba9881ddb45d0bfa7869e1c1c30bd5a854468b598171b",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/shared-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "69d440bb4fc0d89814e3036cc025cbcf41742fbcc538ef4f7bcc811bac8437d4",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    },
+    {
+      "file": "versioned-ce-packs/mc1.21.9-26.3/tavern-ce-pack-0.1.0-dev.zip",
+      "family": "1.21.9-26.3",
+      "sourceSha256": "3926a9caa84d61b4b88e26da0284ddee379a02ed950fe0ac492119dd3cc9c132",
+      "changes": [],
+      "runtime": "NOT_TESTED"
+    }
+  ],
+  "pendingRecipes": [
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:chili_ristra",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/chili_ristra.json",
+        "sha256": "c7b47fb6eaca3430914c7a61c9fa4b4de7be6280fa1b740d972d1ca3c8148bc7"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "C": {
+            "item": "kaleidoscope_cookery:red_chili"
+          }
+        },
+        "pattern": [
+          "CC",
+          "CC",
+          "CC"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:chili_ristra"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:eight_immortals_table",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/eight_immortals_table.json",
+        "sha256": "58d05017e561c8b3f7b8e153a7f89de9a832c05866da67ec32a5723ad955a159"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:oak_fence"
+          },
+          "P": {
+            "item": "minecraft:oak_planks"
+          }
+        },
+        "pattern": [
+          "FPF",
+          "PPP",
+          "FPF"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:eight_immortals_table"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:long_bench",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/long_bench.json",
+        "sha256": "ac5c4013d1f980211351b87f02babc3bc20703861dcb597285e09fa3027d18f7"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "F": {
+            "item": "minecraft:oak_fence"
+          },
+          "P": {
+            "item": "minecraft:oak_planks"
+          },
+          "S": {
+            "item": "minecraft:stick"
+          }
+        },
+        "pattern": [
+          "PPP",
+          "FSF"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:long_bench"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:raw_dough_steamer",
+      "type": "minecraft:crafting_shapeless",
+      "source": {
+        "path": "src/main/resources/data/kaleidoscope_cookery/recipes/raw_dough_steamer.json",
+        "sha256": "a7e729ce9ae9040eef67314c270b779156e59e83d725155ea200c0c128e090b0"
+      },
+      "original": {
+        "type": "minecraft:crafting_shapeless",
+        "category": "misc",
+        "ingredients": [
+          {
+            "item": "kaleidoscope_cookery:steamer"
+          },
+          {
+            "item": "kaleidoscope_cookery:raw_dough"
+          },
+          {
+            "item": "kaleidoscope_cookery:raw_dough"
+          },
+          {
+            "item": "kaleidoscope_cookery:raw_dough"
+          },
+          {
+            "item": "kaleidoscope_cookery:raw_dough"
+          }
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:steamer",
+          "nbt": "{BlockEntityTag:{CookingProgress:[I;0,0,0,0],CookingTime:[I;1200,1200,1200,1200],Items:[{Count:1b,Slot:0b,id:\"kaleidoscope_cookery:raw_dough\"},{Count:1b,Slot:1b,id:\"kaleidoscope_cookery:raw_dough\"},{Count:1b,Slot:2b,id:\"kaleidoscope_cookery:raw_dough\"},{Count:1b,Slot:3b,id:\"kaleidoscope_cookery:raw_dough\"}]}}"
+        }
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Source embeds Forge block-entity NBT; conversion to plugin saves is pending."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:red_lantern",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/red_lantern.json",
+        "sha256": "ab30b687551ec36d3ddd4f753f942db40b105c4f7e04dfcf093523c80bb89d36"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "C": {
+            "item": "minecraft:chain"
+          },
+          "D": {
+            "item": "minecraft:red_dye"
+          },
+          "L": {
+            "item": "minecraft:candle"
+          },
+          "P": {
+            "item": "minecraft:paper"
+          }
+        },
+        "pattern": [
+          "PCP",
+          "DLD",
+          "PDP"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:red_lantern"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:scarecrow",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/scarecrow.json",
+        "sha256": "99878eb4c0529bc8a1ca113e3aa4a62882133d85aa84b245208121cce874e482"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "#": {
+            "tag": "kaleidoscope_cookery:straw_bale"
+          },
+          "H": {
+            "tag": "kaleidoscope_cookery:straw_hat"
+          },
+          "P": {
+            "item": "minecraft:pumpkin"
+          },
+          "S": {
+            "item": "minecraft:stick"
+          }
+        },
+        "pattern": [
+          " H ",
+          "SPS",
+          " # "
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:scarecrow"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:strung_mushrooms",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/strung_mushrooms.json",
+        "sha256": "47951c611c11f89f52e347cef2806ddfcf3dc97bdf9a5d0ccfb2a269b20c3999"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "M": {
+            "item": "minecraft:brown_mushroom"
+          }
+        },
+        "pattern": [
+          "MM",
+          "MM",
+          "MM"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:strung_mushrooms"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:stuffed_dough_food_steamer",
+      "type": "minecraft:crafting_shapeless",
+      "source": {
+        "path": "src/main/resources/data/kaleidoscope_cookery/recipes/stuffed_dough_food_steamer.json",
+        "sha256": "0dfd5a924919543339d9950fde5b955a1dfed56a5c69a5e77b1ea57995d6bb51"
+      },
+      "original": {
+        "type": "minecraft:crafting_shapeless",
+        "category": "misc",
+        "ingredients": [
+          {
+            "item": "kaleidoscope_cookery:steamer"
+          },
+          {
+            "item": "kaleidoscope_cookery:stuffed_dough_food"
+          },
+          {
+            "item": "kaleidoscope_cookery:stuffed_dough_food"
+          },
+          {
+            "item": "kaleidoscope_cookery:stuffed_dough_food"
+          },
+          {
+            "item": "kaleidoscope_cookery:stuffed_dough_food"
+          }
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:steamer",
+          "nbt": "{BlockEntityTag:{CookingProgress:[I;0,0,0,0],CookingTime:[I;1200,1200,1200,1200],Items:[{Count:1b,Slot:0b,id:\"kaleidoscope_cookery:stuffed_dough_food\"},{Count:1b,Slot:1b,id:\"kaleidoscope_cookery:stuffed_dough_food\"},{Count:1b,Slot:2b,id:\"kaleidoscope_cookery:stuffed_dough_food\"},{Count:1b,Slot:3b,id:\"kaleidoscope_cookery:stuffed_dough_food\"}]}}"
+        }
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Source embeds Forge block-entity NBT; conversion to plugin saves is pending."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "kaleidoscope_cookery:trash_can",
+      "type": "minecraft:crafting_shaped",
+      "source": {
+        "path": "src/generated/resources/data/kaleidoscope_cookery/recipes/trash_can.json",
+        "sha256": "1fedf05a34ffe0f295ce18a13da2246ca6c5c32a0691a47e56c40acd3a380319"
+      },
+      "original": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "C": {
+            "item": "minecraft:composter"
+          },
+          "I": {
+            "tag": "forge:ingots/iron"
+          }
+        },
+        "pattern": [
+          "III",
+          "ICI",
+          "III"
+        ],
+        "result": {
+          "item": "kaleidoscope_cookery:trash_can"
+        },
+        "show_notification": true
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Recipe references content not yet included in this kitchen pack."
+    },
+    {
+      "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+      "sourceId": "minecraft:netherite_kitchen_knife_smithing",
+      "type": "minecraft:smithing_transform",
+      "source": {
+        "path": "src/generated/resources/data/minecraft/recipes/netherite_kitchen_knife_smithing.json",
+        "sha256": "1331b90a12144f5f6b2799a2c5575587bdc0e421894432019d2c7d6afe73bf5c"
+      },
+      "original": {
+        "type": "minecraft:smithing_transform",
+        "addition": {
+          "item": "minecraft:netherite_ingot"
+        },
+        "base": {
+          "item": "kaleidoscope_cookery:diamond_kitchen_knife"
+        },
+        "result": {
+          "item": "kaleidoscope_cookery:netherite_kitchen_knife"
+        },
+        "template": {
+          "item": "minecraft:netherite_upgrade_smithing_template"
+        }
+      },
+      "pluginIds": [],
+      "status": "pending",
+      "reason": "Smithing item components and enchantment preservation require acceptance."
+    }
+  ],
+  "priorEvidence": "docs/research/cookery-tables-build-2026-11-17.json",
+  "runtime": "NOT_TESTED",
+  "vanillaClient": "NOT_TESTED",
+  "preparedServers": "e/f retain lunchbag v6 JARs and v4 content; no seating/table/storage update; eula=false; no launch",
+  "logs": [
+    "../storage-block-build-all.log",
+    "../storage-block-python-all.log",
+    "../storage-block-content.log",
+    "../storage-block-bundle.log"
+  ],
+  "retainedFailures": [
+    {
+      "log": "../storage-block-compile.log",
+      "cause": "Ticker generic inference; fixed explicit generic types."
+    },
+    {
+      "log": "../storage-block-tests.log",
+      "cause": "Material.isAir needs server registry in test fixture; fixed using Block.isEmpty."
+    },
+    {
+      "cause": "Post-build state audit rejected axis; added x/y/z support and missing-axis regression (7 state checks passed)."
+    }
+  ]
+}

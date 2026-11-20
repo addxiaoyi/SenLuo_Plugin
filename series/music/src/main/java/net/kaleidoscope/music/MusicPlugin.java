@@ -126,7 +126,7 @@ public final class MusicPlugin extends SeriesPlugin implements Listener {
     }
 
     private void startSong(Player player, MidiSong song, UUID token) {
-        int[] cursor = {0};
+        MusicTransport transport = new MusicTransport(song);
         long[] tick = {0};
         ScheduledTask task = player.getScheduler().runAtFixedRate(this, running -> {
             if (!isEnabled() || !holding(player) || !token.equals(requests.get(player.getUniqueId()))
@@ -135,17 +135,14 @@ public final class MusicPlugin extends SeriesPlugin implements Listener {
                 running.cancel();
                 return;
             }
-            int sounds = 0;
-            while (cursor[0] < song.notes().size() && song.notes().get(cursor[0]).tick() <= tick[0]) {
-                MidiSong.Note note = song.notes().get(cursor[0]++);
-                if (++sounds > 64) {
-                    player.sendMessage("该 MIDI 同时发出的音符过多，播放已停止。");
-                    stopSong(player.getUniqueId(), token);
-                    return;
-                }
-                playNote(player, note);
+            try {
+                for (MidiSong.Note note : transport.tick(tick[0])) playNote(player, note);
+            } catch (IllegalArgumentException exception) {
+                player.sendMessage(exception.getMessage());
+                stopSong(player.getUniqueId(), token);
+                return;
             }
-            if (cursor[0] == song.notes().size() && tick[0] >= song.durationTicks()) {
+            if (transport.finished(tick[0])) {
                 stopSong(player.getUniqueId(), token);
                 return;
             }

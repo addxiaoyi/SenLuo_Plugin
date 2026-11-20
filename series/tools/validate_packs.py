@@ -94,6 +94,9 @@ def validate(files: dict[str, bytes]) -> dict[str, Any]:
 
     for id_, definition in items.items():
         model_tree(definition.get('model', {}))
+        legacy = definition.get('legacy_model', {})
+        if isinstance(legacy, dict) and 'path' in legacy:
+            model(legacy['path'])
         behavior = definition.get('behavior', {})
         if behavior.get('type') == 'furniture_item' and behavior.get('furniture') not in furnishings:
             errors.add(f'{id_}: undefined furniture {behavior.get("furniture")}')

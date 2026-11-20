@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfigs;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import org.joml.Vector3f;
+import net.momirealms.craftengine.core.util.Key;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +29,13 @@ public final class ScarecrowBehavior extends FurnitureBehaviorTemplate {
     public final Vector3f shoulderOffset;
     public final int lanternLightLevel;
     public final long interactCooldownNanos;
+    public final int interactCooldownTicks;
     public final Vector3f bodyOffset;
     public final SlotConfig[] slots;
+    public float bodyScale = 1;
+    public Key hatItem;
+    public Vector3f hatPivot = new Vector3f();
+    public float hatRoll;
 
     private ScarecrowBehavior(FurnitureDefinition furniture, int protectionRadius, boolean parrotPerch,
                               int parrotScanInterval, double parrotPickupRange, Vector3f shoulderOffset,
@@ -43,6 +49,7 @@ public final class ScarecrowBehavior extends FurnitureBehaviorTemplate {
         this.shoulderOffset = shoulderOffset;
         this.lanternLightLevel = Math.max(0, Math.min(LightBlocks.MAX_LEVEL, lanternLightLevel));
         this.interactCooldownNanos = interactCooldownTicks * 50L * 1_000_000L;
+        this.interactCooldownTicks = Math.max(0, interactCooldownTicks);
         this.bodyOffset = bodyOffset;
         this.slots = slots;
     }
@@ -97,7 +104,7 @@ public final class ScarecrowBehavior extends FurnitureBehaviorTemplate {
                 ConfigSection slotSection = slotsSection == null ? null : slotsSection.getSection(SLOT_NAMES[slot]);
                 slots[slot] = slotConfig(slot, slotSection);
             }
-            return new ScarecrowBehavior(
+            ScarecrowBehavior result = new ScarecrowBehavior(
                     furniture,
                     BehaviorConfig.getInt(section, DEFAULT_PROTECTION_RADIUS, PROTECTION_RADIUS),
                     BehaviorConfig.getBoolean(section, true, PARROT_PERCH),
@@ -109,6 +116,14 @@ public final class ScarecrowBehavior extends FurnitureBehaviorTemplate {
                     BehaviorConfig.getVector3f(section, DEFAULT_BODY_OFFSET, BODY_OFFSET),
                     slots
             );
+            result.bodyScale = BehaviorConfig.getFloat(section, 1, "body_scale", "body-scale");
+            if (!Float.isFinite(result.bodyScale) || result.bodyScale <= 0)
+                throw new IllegalArgumentException("Invalid scarecrow body scale");
+            String hat = BehaviorConfig.getString(section, "", "hat_item", "hat-item");
+            if (!hat.isEmpty()) result.hatItem = Key.of(hat);
+            result.hatPivot = BehaviorConfig.getVector3f(section, result.hatPivot, "hat_pivot", "hat-pivot");
+            result.hatRoll = BehaviorConfig.getFloat(section, 0, "hat_roll", "hat-roll");
+            return result;
         }
 
         private static SlotConfig slotConfig(int slot, ConfigSection section) {

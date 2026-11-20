@@ -22,7 +22,7 @@ def main() -> None:
     args = parser.parse_args()
     if not args.skip_java:
         wrapper = ["gradlew.bat"] if os.name == "nt" else ["bash", "./gradlew"]
-        run(wrapper + ["test", "shadowJar", "acceptanceJar", "--no-daemon", "--no-configuration-cache", "--console=plain"])
+        run(wrapper + ["test", "testLegacyGson", "shadowJar", "versionedJars", "acceptanceJar", "--no-daemon", "--no-configuration-cache", "--console=plain"])
         run(wrapper + ["-p", "series", "build", "--no-daemon", "--no-configuration-cache", "--console=plain"])
     if not args.skip_python:
         run([sys.executable, "-m", "unittest", "discover", "-s", "tools", "-p", "test_*.py", "-v"])

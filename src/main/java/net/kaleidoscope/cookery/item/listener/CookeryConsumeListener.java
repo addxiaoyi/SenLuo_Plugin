@@ -1,6 +1,6 @@
 package net.kaleidoscope.cookery.item.listener;
 
-import io.papermc.paper.datacomponent.DataComponentTypes;
+import net.kaleidoscope.compat.ItemComponents;
 import net.kaleidoscope.cookery.catalog.BakedFood;
 import net.kaleidoscope.cookery.effect.CookeryEffects;
 import net.kaleidoscope.cookery.item.CookeryFoodItems;
@@ -50,7 +50,7 @@ public final class CookeryConsumeListener implements Listener {
             if (food != null) {
                 apply(player, food);
                 // Existing configured carriers keep their established handling.
-                if (food.container() != null && DishCarriers.of(Key.of(food.itemId())) == null && !stack.hasData(DataComponentTypes.USE_REMAINDER)
+                if (food.container() != null && DishCarriers.of(Key.of(food.itemId())) == null && !ItemComponents.hasRemainder(stack)
                         && player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
                     InventoryUtils.give(BukkitAdaptor.adapt(player), InventoryUtils.createOrEmpty(Key.of(food.container())));
                 }

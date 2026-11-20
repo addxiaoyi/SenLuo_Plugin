@@ -41,7 +41,10 @@ public final class DishCarrierListener implements Listener {
         Player player = BukkitAdaptor.adapt(event.getPlayer());
         event.getPlayer().getScheduler().run(
                 KaleidoscopeCookeryPlugin.instance(),
-                task -> DropUtils.dropAtPlayer(player, container.copyWithCount(1)),
+                task -> {
+                    if (!event.isCancelled() && event.getPlayer().getGameMode() != org.bukkit.GameMode.CREATIVE)
+                        DropUtils.dropAtPlayer(player, container.copyWithCount(1));
+                },
                 null);
     }
 }

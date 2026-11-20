@@ -2,15 +2,11 @@ package net.kaleidoscope.cookery.block.entity;
 
 import net.kaleidoscope.cookery.util.CookeryBlockStateEnvelope;
 
-import net.kaleidoscope.cookery.util.MessageKeys;
 import net.kaleidoscope.cookery.block.behavior.TrashCanBehavior;
-import net.kaleidoscope.cookery.util.BlockEntityNbt;
 import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
 import net.kaleidoscope.cookery.util.FoliaUtil;
-import net.kaleidoscope.cookery.util.Localization;
 import net.kaleidoscope.cookery.block.entity.render.Particles;
-import net.kaleidoscope.cookery.block.entity.render.TrackedPlayers;
 import net.kaleidoscope.cookery.nms.NmsBridgeProvider;
 
 import io.netty.channel.Channel;
@@ -34,7 +30,6 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.InteractEntityContext;
@@ -43,7 +38,6 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.Clientbo
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetEquipmentPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
 import net.momirealms.craftengine.libraries.nbt.CompoundTag;
-import net.momirealms.craftengine.libraries.nbt.ListTag;
 import net.momirealms.craftengine.libraries.nbt.Tag;
 import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import org.bukkit.Bukkit;
@@ -72,15 +66,10 @@ import java.util.function.Consumer;
 
 public class TrashCanController extends FurnitureController {
     private static final int SLOTS = 3;
-    private static final String SOUND = "kaleidoscopecookery:trashcan";
     private static final String DATA_KEY = "kaleidoscopecookery:trashcan";
-    private static final String K_DATA_VERSION = "data_version";
-    private static final String K_ITEMS = "items";
-    private static final String K_SLOT = "slot";
-    private static final String K_ITEM = "item";
 
     private static final NamespacedKey RESTORE_GAMEMODE_KEY =
-            new NamespacedKey(KaleidoscopeCookeryPlugin.instance(), "trashcan_restore_gamemode");
+            new NamespacedKey("kaleidoscopecookeryplugin", "trashcan_restore_gamemode");
 
     private static final Map<BlockKey, TrashCanController> BY_BLOCK = new ConcurrentHashMap<>();
 
@@ -99,65 +88,16 @@ public class TrashCanController extends FurnitureController {
     // 重发间隔 客户端预测性挪走假头盔后最多这么久遮罩就回来
     private static final int HELMET_RESEND_INTERVAL = 10;
 
-    private static final float[][] BODY_ENTER = {
-            {0f, 0f},
-            {2f, 5f},
-            {4f, -5f},
-            {6f, 5f},
-            {8f, 0f},
-    };
-
-    private static final float[][] LID_ENTER = {
-            {0f,  0f,   0f},
-            {2f,  10f,  5f},
-            {5f,  -5f,  0f},
-            {7f,  2.5f, 0f},
-            {10f, 0f,   0f},
-    };
-
-    private static final float LID_IDLE_ROT = -10f;
-    private static final float LID_IDLE_Y = 0.5f;
-    private static final float EYE_PEEK_Y = 4f;
-    private static final int IDLE_PERIOD = 61;
-
-    private static final float[][] EYE_BOB = {
-            {0f, 0f, 0f},
-            {2f, 0f, -2f},
-            {6f, 0f, 0f},
-    };
-
-    private static final float[][] EYE_SWAY = {
-            {0f,  0f,  0f},
-            {8f,  -1f, 0f},
-            {28f, 1f,  0f},
-            {40f, 0f,  0f},
-    };
-
-    private static final float[][] OPEN_FRAMES = {
-            {0f,  0f,     0f},
-            {2f,  -12.5f, 2f},
-            {4f,  -12.5f, 0f},
-            {7f,  7.5f,   0f},
-            {8f,  -7.5f,  0f},
-            {10f, 2.5f,   0f},
-            {11f, -2.5f,  0f},
-            {12f, 0f,     0f},
-    };
-
-    private static final float[][] WITHDRAW_FRAMES = {
-            {0f,  0f,    0f},
-            {2f,  -7.5f, 1f},
-            {5f,  5f,    0f},
-            {8f,  -2.5f, 0f},
-            {10f, 0f,    0f},
-    };
-
     private final TrashCanElement element;
     private final Item[] storage = new Item[SLOTS];
-    private final int animChunkRadius;
     private final int srcChunkX;
     private final int srcChunkZ;
     private boolean animating;
+    private boolean interacting, removed, unloaded;
+    private final TrashCanAnimation animation = new TrashCanAnimation();
+    private long animationTick;
+    private TrashCanAnimation.Pose lastPose = TrashCanAnimation.Pose.REST;
+    private CompoundTag rejectedState;
     // 是否有玩家进入桶内 占用时禁止投放取出 桶内掉落物隐藏
     private boolean occupied;
     private UUID occupantId;
@@ -176,14 +116,13 @@ public class TrashCanController extends FurnitureController {
         Arrays.fill(this.storage, Item.empty());
         WorldPosition pos = furniture.position();
         this.behavior = behavior;
-        this.animChunkRadius = behavior.animChunkRadius;
         this.srcChunkX = ((int) Math.floor(pos.x)) >> 4;
         this.srcChunkZ = ((int) Math.floor(pos.z)) >> 4;
         this.element = new TrashCanElement(this, pos);
     }
 
     public Item[] storage() {
-        return storage;
+        return TrashCanInventory.copy(storage);
     }
 
     public boolean isAnimating() {
@@ -205,77 +144,58 @@ public class TrashCanController extends FurnitureController {
     @Override
     public InteractionResult useOnFurniture(FurnitureHitBox hitBox, InteractEntityContext context) {
         Player player = context.getPlayer();
-        if (!InteractGuard.canInteract(player, furniture().position())) {
-            return InteractionResult.PASS;
-        }
-        if (occupied || animating) {
-            return InteractionResult.PASS;
-        }
-
+        if (player == null || context.getHand() != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
+        if (!accessible(player)) return InteractionResult.FAIL;
         Item itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
-        // 空手潜行才倒空 手上有东西时潜行右键仍然是丢垃圾 免得误清
-        if (player.isSneaking() && itemInHand.isEmpty()) {
-            if (!clearStorage()) {
-                return InteractionResult.PASS;
-            }
-            player.sendActionBar(Localization.component(MessageKeys.TRASHCAN_CLEARED));
-            player.swingHand(InteractionHand.MAIN_HAND);
-            return InteractionResult.SUCCESS_AND_CANCEL;
-        }
-
         if (itemInHand.isEmpty()) {
-            if (!withdrawItem(player, InteractionHand.MAIN_HAND)) {
+            if (!player.isSecondaryUseActive() || !withdrawItem(player, InteractionHand.MAIN_HAND)) {
                 return InteractionResult.PASS;
             }
-            player.swingHand(InteractionHand.MAIN_HAND);
-            return InteractionResult.SUCCESS_AND_CANCEL;
+        } else if (!insertItem(itemInHand, player)) {
+            return InteractionResult.FAIL;
         }
-        putItem(itemInHand, player);
         player.swingHand(InteractionHand.MAIN_HAND);
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
-    // 满了挤掉最旧的 新物品放末位
-    public void putItem(Item held, Player player) {
-        int before = held.count();
-        Item remaining = held.copy();
-        for (int i = 0; i < SLOTS && !remaining.isEmpty(); i++) {
-            if (!storage[i].isEmpty() && InventoryUtils.isSameType(storage[i], remaining)) {
-                int room = storage[i].maxStackSize() - storage[i].count();
-                if (room > 0) {
-                    int move = Math.min(room, remaining.count());
-                    storage[i] = storage[i].copyWithCount(storage[i].count() + move);
-                    remaining = remaining.copyWithCount(remaining.count() - move);
-                }
-            }
-        }
-        for (int i = 0; i < SLOTS && !remaining.isEmpty(); i++) {
-            if (storage[i].isEmpty()) {
-                int move = Math.min(remaining.maxStackSize(), remaining.count());
-                storage[i] = remaining.copyWithCount(move);
-                remaining = remaining.copyWithCount(remaining.count() - move);
-            }
-        }
-        int stored;
-        if (remaining.count() == before) {
-            storage[0] = storage[1];
-            storage[1] = storage[2];
-            int move = Math.min(held.maxStackSize(), held.count());
-            storage[2] = held.copyWithCount(move);
-            stored = move;
-        } else {
-            stored = before - remaining.count();
-        }
+    private boolean usable() {
+        WorldPosition pos = furniture().position();
+        return !removed && !unloaded && rejectedState == null && furniture().isValid()
+                && Bukkit.isOwnedByCurrentRegion((World) pos.world().platformWorld(), srcChunkX, srcChunkZ);
+    }
 
-        InventoryUtils.shrinkHeld(player, held, stored);
-        element.refreshItemsAndBroadcast();
-        playEffects(1.0f);
-        playAnimation(OPEN_FRAMES);
-        furniture().setUnsaved();
+    private boolean accessible(Player player) {
+        if (player == null || interacting || !usable()) return false;
+        var bukkit = (org.bukkit.entity.Player) player.platformPlayer();
+        return bukkit != null && bukkit.getGameMode() != GameMode.SPECTATOR && Bukkit.isOwnedByCurrentRegion(bukkit)
+                && InteractGuard.canInteract(player, furniture().position());
+    }
+
+    // Compatibility entry point; creative players also pay, matching upstream.
+    public void putItem(Item held, Player player) {
+        insertItem(held, player);
+    }
+
+    public boolean insertItem(Item held, Player player) {
+        if (!accessible(player) || ItemUtils.isEmpty(held)) return false;
+        interacting = true;
+        try {
+            Item expected = held.copy();
+            TrashCanInventory.Insert plan = TrashCanInventory.insert(storage, expected);
+            validateSave(plan.slots());
+            Item current = player.getItemInHand(InteractionHand.MAIN_HAND);
+            if (!usable() || current.isEmpty() || current.count() != expected.count() || !current.isSimilar(expected)) return false;
+            player.setItemInHand(InteractionHand.MAIN_HAND, current.copyWithCount(current.count() - plan.consumed()));
+            replace(plan.slots());
+            playEffects("minecraft:block.barrel.open", .5f);
+            playAnimation(TrashCanAnimation.Clip.PUT);
+            return true;
+        } finally { interacting = false; }
     }
 
     // 潜行右键倒空 内容直接销毁不返还 空桶返回 false 让调用方 PASS
     public boolean clearStorage() {
+        if (!usable() || interacting) return false;
         boolean any = false;
         for (int i = 0; i < SLOTS; i++) {
             if (!storage[i].isEmpty()) {
@@ -287,64 +207,102 @@ public class TrashCanController extends FurnitureController {
             return false;
         }
         element.refreshItemsAndBroadcast();
-        playEffects(0.6f);
-        playAnimation(WITHDRAW_FRAMES);
+        playEffects("minecraft:block.barrel.close", 0.6f);
+        playAnimation(TrashCanAnimation.Clip.WITHDRAW);
         furniture().setUnsaved();
         return true;
     }
 
     public boolean withdrawItem(Player player, InteractionHand hand) {
-        for (int i = SLOTS - 1; i >= 0; i--) {
-            if (!storage[i].isEmpty()) {
-                InventoryUtils.giveOrHold(player, hand, storage[i].copy());
+        if (hand != InteractionHand.MAIN_HAND || !accessible(player)
+                || !player.getItemInHand(hand).isEmpty()) return false;
+        interacting = true;
+        try {
+            for (int i = SLOTS - 1; i >= 0; i--) {
+                if (storage[i].isEmpty()) continue;
+                Item taken = storage[i].copy();
+                // Main hand is empty: no inventory merge, drop callback, or loss when full.
+                player.setItemInHand(hand, taken);
                 storage[i] = Item.empty();
-                element.refreshItemsAndBroadcast();
-                playEffects(0.8f);
-                playAnimation(WITHDRAW_FRAMES);
-                furniture().setUnsaved();
+                changed();
+                playEffects("minecraft:block.barrel.close", .8f);
+                playAnimation(TrashCanAnimation.Clip.WITHDRAW);
                 return true;
             }
-        }
-        return false;
+            return false;
+        } finally { interacting = false; }
     }
 
-    private void playAnimation(float[][] frames) {
+    private static void validateSave(Item[] slots) {
+        CompoundTag root = new CompoundTag();
+        CookeryBlockStateEnvelope.put(root, DATA_KEY, TrashCanInventory.write(slots));
+        // CE's own encoder rejects payloads that cannot fit its persistent envelope.
+        try { net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData.of(root).toBytes(); }
+        catch (java.io.IOException error) { throw new IllegalArgumentException("Cannot persist trash can contents", error); }
+    }
+
+    private void replace(Item[] next) {
+        System.arraycopy(next, 0, storage, 0, SLOTS);
+        changed();
+    }
+
+    private void changed() {
+        furniture().setUnsaved();
+        element.refreshItemsAndBroadcast();
+    }
+
+    private void playAnimation(TrashCanAnimation.Clip clip) {
+        animationTick = ((World) furniture().position().world().platformWorld()).getGameTime();
+        animation.start(clip, animationTick);
         animating = true;
-        List<Player> recipients = rangePlayers();
-        Location loc = topCenter();
-        for (int i = 1; i < frames.length; i++) {
-            int delay = (int) frames[i - 1][0];
-            int duration = Math.max(1, (int) (frames[i][0] - frames[i - 1][0]));
-            float rot = frames[i][1];
-            float posY = frames[i][2];
-            Runnable send = () -> {
-                Object meta = element.openFrameMeta(rot, posY, duration);
-                recipients.forEach(p -> p.sendPacket(meta, false));
-            };
-            if (delay <= 0) {
-                send.run();
-            } else {
-                FoliaUtil.runLater(send, delay, loc);
-            }
-        }
-        int totalTicks = (int) frames[frames.length - 1][0];
-        FoliaUtil.runLater(() -> animating = false, totalTicks, loc);
+        updateAnimationPose();
     }
 
-    private void playEffects(float pitch) {
+    private void tickAnimation() {
+        if (!usable()) return;
+        animationTick = ((World) furniture().position().world().platformWorld()).getGameTime();
+        WorldPosition position = furniture().position();
+        int hash = ((int) Math.floor(position.y) + (int) Math.floor(position.z) * 31) * 31
+                + (int) Math.floor(position.x);
+        if (occupied && Math.floorMod(animationTick + hash, 61) == 0)
+            animation.start(ThreadLocalRandom.current().nextBoolean() ? TrashCanAnimation.Clip.PLAYER1
+                    : TrashCanAnimation.Clip.PLAYER2, animationTick);
+        if (!occupied && Math.floorMod(animationTick + hash, 5) == 0) animation.stopIdle();
+        animating = animation.moving(animationTick);
+        updateAnimationPose();
+    }
+
+    private void updateAnimationPose() {
+        TrashCanAnimation.Pose next = animation.pose(animationTick);
+        if (next.equals(lastPose)) return;
+        lastPose = next;
+        // Current trackers and later arrivals must see the same pose. Sampling at
+        // 20 Hz preserves source times/curves at tick boundaries; clients interpolate.
+        element.applyPose(next, furniture().trackedBy(), 1);
+    }
+
+    private void resetAnimation() {
+        animation.clear();
+        animating = false;
+        lastPose = TrashCanAnimation.Pose.REST;
+        element.applyPose(lastPose, furniture().trackedBy(), 0);
+    }
+
+    private void playEffects(String sound, float pitch) {
         Location loc = topCenter();
         Particles.emit(loc.getWorld(), Particle.SMOKE, loc.getX(), loc.getY(), loc.getZ(), 3, 0.2, 0.05, 0.2, 0.01, null);
-        loc.getWorld().playSound(loc, SOUND, SoundCategory.BLOCKS, 1.0f, pitch);
+        loc.getWorld().playSound(loc, sound, SoundCategory.BLOCKS, 1.0f, pitch);
     }
 
     private Location topCenter() {
         WorldPosition p = furniture().position();
-        return new Location((World) p.world().platformWorld(), p.x, p.y + 1.1, p.z);
+        return new Location((World) p.world().platformWorld(), p.x, p.y + 1.25, p.z);
     }
 
     // 进入桶内 旁观相机锁视角 戴南瓜遮罩 隐藏掉落物
     public void enter(org.bukkit.entity.Player player) {
-        if (occupied || animating) {
+        if (!usable() || interacting || occupied || animating || !canHide(player)
+                || player.getGameMode() == GameMode.SPECTATOR || !Bukkit.isOwnedByCurrentRegion(player)) {
             return;
         }
         // 掉入也要校验 别让没有交互权限的玩家靠跳进去占用别人领地里的桶
@@ -387,10 +345,7 @@ public class TrashCanController extends FurnitureController {
 
         element.setItemsHidden(true);
         clearNearbyHostility(player);
-        playEnterAnimation();
-        // 进入摆动结束后转入占用待机 盖子微抬 眼睛冒出 并开始微动循环
-        int enterEnd = (int) LID_ENTER[LID_ENTER.length - 1][0] + 1;
-        FoliaUtil.runLater(() -> beginOccupiedIdle(gen), enterEnd, topCenter());
+        playAnimation(TrashCanAnimation.Clip.ENTER);
     }
 
     // 进桶头盔
@@ -608,57 +563,6 @@ public class TrashCanController extends FurnitureController {
         }
     }
 
-    // 占用待机 盖子定格微抬 眼睛冒出 然后开始微动循环
-    private void beginOccupiedIdle(int gen) {
-        if (!occupied || gen != occupancyId) {
-            return;
-        }
-        sendToTracked(element.openFrameMeta(LID_IDLE_ROT, LID_IDLE_Y, 5));
-        sendToTracked(element.eyeMeta(0f, EYE_PEEK_Y, 5));
-        scheduleIdle(gen);
-    }
-
-    // 待机微动循环 每 IDLE_PERIOD 随机播眼睛下沉或左右摆 代次变化或占用结束自动停止
-    private void scheduleIdle(int gen) {
-        if (!occupied || gen != occupancyId) {
-            return;
-        }
-        if (ThreadLocalRandom.current().nextBoolean()) {
-            playEyeTrack(EYE_BOB);
-        } else {
-            playEyeTrack(EYE_SWAY);
-        }
-        FoliaUtil.runLater(() -> scheduleIdle(gen), IDLE_PERIOD, topCenter());
-    }
-
-    // 播放一条眼睛轨道 每个关键帧把下一帧目标发给追踪玩家 Y 叠加在冒出基准上
-    private void playEyeTrack(float[][] frames) {
-        List<Player> recipients = rangePlayers();
-        Location loc = topCenter();
-        for (int i = 1; i < frames.length; i++) {
-            int delay = (int) frames[i - 1][0];
-            int duration = Math.max(1, (int) (frames[i][0] - frames[i - 1][0]));
-            float x = frames[i][1];
-            float y = frames[i][2];
-            Runnable send = () -> {
-                Object meta = element.eyeMeta(x, EYE_PEEK_Y + y, duration);
-                recipients.forEach(p -> p.sendPacket(meta, false));
-            };
-            scheduleFrame(send, delay, loc);
-        }
-    }
-
-    // 动画视距内的追踪玩家 远处玩家反正不渲染动画 不发动画包
-    private List<Player> rangePlayers() {
-        return TrackedPlayers.snapshotInRange(furniture().getTrackedBy(), srcChunkX, srcChunkZ, animChunkRadius);
-    }
-
-    // 一次性静态姿态走这里 必须发给全部追踪玩家 走 rangePlayers 会让视距外的桶永久卡在开盖姿态
-    // 只有多帧动画的插值帧才用 rangePlayers 过滤
-    private void sendToTracked(Object meta) {
-        TrackedPlayers.forEach(furniture().getTrackedBy(), p -> p.sendPacket(meta, false));
-    }
-
     // 退出垃圾桶 解除相机 还原模式与头盔 传送回桶顶 恢复交互与掉落物显示
     public void exit() {
         exit(false);
@@ -722,8 +626,7 @@ public class TrashCanController extends FurnitureController {
         }
         if (!shutdown) {
             // 还原盖子与眼睛到静止姿势
-            sendToTracked(element.openFrameMeta(0f, 0f, 5));
-            sendToTracked(element.eyeMeta(0f, 0f, 5));
+            resetAnimation();
             element.setItemsHidden(false);
         }
         this.previousGameMode = null;
@@ -785,8 +688,7 @@ public class TrashCanController extends FurnitureController {
             }
             camera = null;
         }
-        sendToTracked(element.openFrameMeta(0f, 0f, 5));
-        sendToTracked(element.eyeMeta(0f, 0f, 5));
+        resetAnimation();
         element.setItemsHidden(false);
         this.previousGameMode = null;
     }
@@ -834,44 +736,6 @@ public class TrashCanController extends FurnitureController {
         }
     }
 
-    // 进入动画
-    private void playEnterAnimation() {
-        animating = true;
-        List<Player> recipients = rangePlayers();
-        Location loc = topCenter();
-        for (int i = 1; i < BODY_ENTER.length; i++) {
-            int delay = (int) BODY_ENTER[i - 1][0];
-            int duration = Math.max(1, (int) (BODY_ENTER[i][0] - BODY_ENTER[i - 1][0]));
-            float rotY = BODY_ENTER[i][1];
-            Runnable send = () -> {
-                Object meta = element.bodyEnterFrameMeta(rotY, duration);
-                recipients.forEach(p -> p.sendPacket(meta, false));
-            };
-            scheduleFrame(send, delay, loc);
-        }
-        for (int i = 1; i < LID_ENTER.length; i++) {
-            int delay = (int) LID_ENTER[i - 1][0];
-            int duration = Math.max(1, (int) (LID_ENTER[i][0] - LID_ENTER[i - 1][0]));
-            float rotZ = LID_ENTER[i][1];
-            float posY = LID_ENTER[i][2];
-            Runnable send = () -> {
-                Object meta = element.lidEnterFrameMeta(rotZ, posY, duration);
-                recipients.forEach(p -> p.sendPacket(meta, false));
-            };
-            scheduleFrame(send, delay, loc);
-        }
-        int total = (int) LID_ENTER[LID_ENTER.length - 1][0];
-        FoliaUtil.runLater(() -> animating = false, total, loc);
-    }
-
-    private void scheduleFrame(Runnable send, int delay, Location loc) {
-        if (delay <= 0) {
-            send.run();
-        } else {
-            FoliaUtil.runLater(send, delay, loc);
-        }
-    }
-
     // 落地进桶 落地事件在移动处理中触发 延后一 tick 再切模式与传送 避免在下落步骤里传送玩家
     // landing 单独传入 移动包路径下玩家实体还停在落地前的位置 不能拿 getLocation
     public static void tryEnterOnLand(org.bukkit.entity.Player player, Location landing) {
@@ -911,8 +775,46 @@ public class TrashCanController extends FurnitureController {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return null;
+        return (FurnitureTicker<T>) (FurnitureTicker<TrashCanController>) (furniture, controller) -> { controller.tickAnimation(); controller.tickFilter(); };
+    }
+
+    /** Source suction zone: the top 1/16 block, enabled only by neighbor power. */
+    public void tickFilter() {
+        if (!usable() || interacting) return;
+        WorldPosition pos = furniture().position();
+        World world = (World) pos.world().platformWorld();
+        int x = (int) Math.floor(pos.x), y = (int) Math.floor(pos.y), z = (int) Math.floor(pos.z);
+        // Entity bounds and neighbor signal reads may touch adjacent chunks.
+        for (int cx = (x - 1) >> 4; cx <= (x + 1) >> 4; cx++)
+            for (int cz = (z - 1) >> 4; cz <= (z + 1) >> 4; cz++)
+                if (!Bukkit.isOwnedByCurrentRegion(world, cx, cz)) return;
+        if (!world.getBlockAt(x, y, z).isBlockPowered() && !world.getBlockAt(x, y, z).isBlockIndirectlyPowered()) return;
+        var zone = new org.bukkit.util.BoundingBox(x, y + 15.0 / 16, z, x + 1, y + 1, z + 1);
+        for (Entity entity : world.getNearbyEntities(zone)) {
+            if (!(entity instanceof org.bukkit.entity.Item dropped) || !entity.isValid()
+                    || !Bukkit.isOwnedByCurrentRegion(entity) || !zone.overlaps(entity.getBoundingBox())) continue;
+            filterItem(dropped);
+        }
+    }
+
+    private void filterItem(org.bukkit.entity.Item entity) {
+        if (interacting || !usable()) return;
+        interacting = true;
+        try {
+            ItemStack expected = entity.getItemStack().clone();
+            Item[] next = TrashCanInventory.filter(storage, InventoryUtils.wrap(expected));
+            if (next == null) return;
+            validateSave(next);
+            if (!usable() || !entity.isValid() || !expected.equals(entity.getItemStack())) return;
+            Location at = entity.getLocation();
+            entity.remove();
+            if (entity.isValid()) return;
+            replace(next);
+            Particles.emit(at.getWorld(), Particle.CLOUD, at.getX(), at.getY() + entity.getHeight(), at.getZ(),
+                    1, .1, .1, .1, .01, null);
+        } finally { interacting = false; }
     }
 
     @Override
@@ -926,12 +828,18 @@ public class TrashCanController extends FurnitureController {
 
     @Override
     public void onLoad() {
+        unloaded = false;
+        animation.clear();
         BY_BLOCK.put(myBlockKey(), this);
         element.rebuildPackets();
+        resetAnimation();
     }
 
     @Override
     public void onUnload() {
+        unloaded = true;
+        animation.clear();
+        animating = false;
         unregisterFromBlock();
         if (occupied && !CraftEngine.instance().isStopping()) {
             exit();
@@ -941,56 +849,84 @@ public class TrashCanController extends FurnitureController {
     @Override
     public void preRemove(Player player) {
         unregisterFromBlock();
+        unloaded = true;
+        animation.clear();
         if (occupied) {
             exit();
         }
+    }
+
+    @Override
+    public void postRemove(Player player) {
+        if (removed) return;
+        removed = true;
+        if (rejectedState != null || interacting) { recoverContents(); return; }
+        interacting = true;
         World world = (World) furniture().position().world().platformWorld();
         WorldPosition p = furniture().position();
         Location dropLoc = new Location(world, p.x, p.y + 0.5, p.z);
-        for (Item item : storage) {
-            if (!item.isEmpty()) {
-                world.dropItemNaturally(dropLoc, ItemStackUtils.getBukkitStack(item.minecraftItem()));
+        try {
+            for (int i = 0; i < SLOTS; i++) {
+                if (storage[i].isEmpty()) continue;
+                ItemStack expected = InventoryUtils.bukkitCopy(storage[i]);
+                var drop = world.dropItemNaturally(dropLoc, expected.clone());
+                if (!drop.isValid() || !expected.equals(drop.getItemStack())) {
+                    if (drop.isValid()) drop.remove();
+                    break;
+                }
+                storage[i] = Item.empty();
             }
+        } finally {
+            interacting = false;
+            if (Arrays.stream(storage).anyMatch(item -> !item.isEmpty())) recoverContents();
         }
-        Arrays.fill(storage, Item.empty());
+    }
+
+    private void recoverContents() {
+        CompoundTag saved = new CompoundTag(); saveCustomData(saved);
+        WorldPosition pos = furniture().position();
+        saved.putString("recovery_world", ((World) pos.world().platformWorld()).getUID().toString());
+        saved.putString("recovery_position", pos.x + "," + pos.y + "," + pos.z);
+        saved.putString("recovery_furniture", furniture().id().asString());
+        var plugin = KaleidoscopeCookeryPlugin.instance();
+        var file = plugin.getDataFolder().toPath().resolve("recovery").resolve("trash-can-" + UUID.randomUUID() + ".nbt");
+        try {
+            byte[] bytes = net.momirealms.craftengine.core.entity.furniture.FurniturePersistentData.of(saved).toBytes();
+            java.nio.file.Files.createDirectories(file.getParent());
+            try (var channel = java.nio.channels.FileChannel.open(file, java.nio.file.StandardOpenOption.CREATE_NEW,
+                    java.nio.file.StandardOpenOption.WRITE)) {
+                var buffer = java.nio.ByteBuffer.wrap(bytes);
+                while (buffer.hasRemaining()) channel.write(buffer);
+                channel.force(true);
+            }
+        } catch (java.io.IOException error) { throw new IllegalStateException("Cannot preserve trash can contents " + file, error); }
+        plugin.getLogger().warning("垃圾桶移除后仍有未发放内容，已保存至 " + file + "；请核对后人工恢复。");
     }
 
     @Override
     public void saveCustomData(CompoundTag tag) {
-        CompoundTag data = new CompoundTag();
-        data.putInt(K_DATA_VERSION, VersionHelper.WORLD_VERSION);
-        data.put(K_ITEMS, BlockEntityNbt.saveSlots(storage));
-        CookeryBlockStateEnvelope.put(tag, DATA_KEY, data);
+        if (rejectedState != null) {
+            for (String key : new String[]{DATA_KEY, CookeryBlockStateEnvelope.sidecar(DATA_KEY)}) {
+                Tag original = rejectedState.get(key);
+                if (original == null) tag.remove(key); else tag.put(key, original.deepClone());
+            }
+            return;
+        }
+        CookeryBlockStateEnvelope.put(tag, DATA_KEY, TrashCanInventory.write(storage));
     }
 
     @Override
     public void loadCustomData(CompoundTag tag) {
-        Arrays.fill(storage, Item.empty());
-        CompoundTag data = CookeryBlockStateEnvelope.payload(tag, DATA_KEY);
-        if (data == null) {
+        try {
+            if (tag.containsKey(DATA_KEY) && !(tag.get(DATA_KEY) instanceof CompoundTag))
+                throw new IllegalArgumentException("Invalid trash can payload");
+            Item[] restored = TrashCanInventory.read(CookeryBlockStateEnvelope.payload(tag, DATA_KEY));
+            System.arraycopy(restored, 0, storage, 0, SLOTS);
+            rejectedState = null;
             element.refreshItems();
-            return;
+        } catch (RuntimeException error) {
+            rejectedState = tag.deepClone();
+            throw error;
         }
-        ListTag list = data.getList(K_ITEMS);
-        if (list == null) {
-            element.refreshItems();
-            return;
-        }
-        int dataVersion = data.getInt(K_DATA_VERSION, Config.itemDataFixerUpperFallbackVersion());
-        for (Tag t : list) {
-            if (!(t instanceof CompoundTag e)) {
-                continue;
-            }
-            int slot = e.getInt(K_SLOT, -1);
-            if (slot < 0 || slot >= SLOTS) {
-                continue;
-            }
-            // 存档损坏时 parseMinecraftItem 返回 null 保留该格的空物品
-            Object nms = ItemStackUtils.parseMinecraftItem(e.getCompound(K_ITEM), dataVersion);
-            if (nms != null) {
-                storage[slot] = ItemStackUtils.wrap(nms);
-            }
-        }
-        element.refreshItems();
     }
 }

@@ -1,8 +1,6 @@
 package net.kaleidoscope.tavern;
 
-import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.Consumable;
-import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
+import net.kaleidoscope.compat.ItemComponents;
 import io.papermc.paper.event.player.PlayerStopUsingItemEvent;
 import net.kaleidoscope.series.ItemState;
 import net.kaleidoscope.series.Items;
@@ -43,9 +41,7 @@ final class HandheldShaker implements Listener {
 
     ItemStack pack(ItemStack source, ShakerContents contents) {
         ItemStack packed = ItemState.write(source.asQuantity(1), key, contents.save());
-        if (contents.full() && contents.cocktail == null) packed.setData(DataComponentTypes.CONSUMABLE,
-                Consumable.consumable().consumeSeconds(3600).animation(ItemUseAnimation.DRINK).hasConsumeParticles(false).build());
-        else packed.unsetData(DataComponentTypes.CONSUMABLE);
+        ItemComponents.use(packed, contents.full() && contents.cocktail == null, true);
         return packed;
     }
 

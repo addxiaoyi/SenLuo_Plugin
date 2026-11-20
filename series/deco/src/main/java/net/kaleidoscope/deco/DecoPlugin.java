@@ -42,7 +42,9 @@ public final class DecoPlugin extends SeriesPlugin {
         entries = catalog.entries().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(Entry::id, e -> e));
         styles = java.util.Set.copyOf(catalog.styles());
         stateKey = new org.bukkit.NamespacedKey(this, "deco_state_v1");
-        net.kaleidoscope.series.FurnitureTypes.register("kaleidoscope_deco:interaction", f -> new DecoController(f, this));
+        net.kaleidoscope.series.FurnitureTypes.register("kaleidoscope_deco:interaction", f ->
+                f.id().asString().matches("kaleidoscope_deco:fishrack_[0-3]")
+                        ? new FishRackController(f, this) : new DecoController(f, this));
         command("kdeco", (sender, command, label, args) -> {
             if (!(sender instanceof Player player)) { sender.sendMessage("请在游戏内使用。"); return true; }
             attempt(player, () -> categories(player));

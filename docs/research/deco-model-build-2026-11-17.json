@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-17",
+  "status": "DEVELOPMENT_CHECKPOINT_VERIFIED",
+  "bundle": "build\\distribution\\SenLuo-1.21.1-26.3-dev-20261117-deco-models-v1.zip",
+  "bytes": 54372709,
+  "sha256": "25dae36a7e520e317a82779be1558aaa457cdbafa751a1081646bc06144d318f",
+  "manifestFiles": 69,
+  "cookeryVersionJars": 10,
+  "versionedCePacks": 18,
+  "runtimeEvidence": "docs/research/deco-model-runtime-2026-11-17.json",
+  "javaTestExecutions": 733,
+  "pythonTests": {
+    "cookery": 138,
+    "series": 69
+  },
+  "runtimePluginHashesMatchBundle": true,
+  "serversStoppedAndPortsFree": true,
+  "subagentsUsed": false,
+  "limitations": "Full parity, clients, player flows, Folia and intermediate runtime versions remain unverified or incomplete."
+}

@@ -17,6 +17,19 @@ ROOT = SUITE.parent
 DIST = SUITE / 'build/distribution'
 MODULES = ('doll', 'tavern', 'deco', 'music')
 PACK_MODULES = MODULES + ('shared',)
+BASE_RUNTIME_REPORTS = frozenset(('food-smoke.json', 'enchantment-smoke.json', 'smithing-smoke.json',
+                                  'steamer-item-smoke.json', 'kitchen-smoke.json'))
+
+
+def validate_runtime_reports(evidence: dict, run: dict) -> None:
+    required = evidence.get('requiredReports', sorted(BASE_RUNTIME_REPORTS))
+    if (not isinstance(required, list) or any(not isinstance(name, str) for name in required)
+            or len(set(required)) != len(required) or not BASE_RUNTIME_REPORTS.issubset(required)):
+        raise ValueError('Runtime evidence has an invalid required report list')
+    reports = run.get('reports', {})
+    if (set(reports) != set(required)
+            or any(not isinstance(report, dict) or report.get('failures') != [] for report in reports.values())):
+        raise ValueError('Runtime evidence contains a failed or incomplete probe run')
 
 
 def digest(content: bytes) -> str:
@@ -62,6 +75,39 @@ def load_module_packs(folder: Path) -> tuple[dict[str, bytes], list[Path]]:
     return merged, archives
 
 
+def load_versioned_packs(folder: Path) -> tuple[dict[str, bytes], list[dict]]:
+    entries, reports = {}, []
+    for family in ('1.21.1', '1.21.2-1.21.8', '1.21.9-26.3'):
+        archives = sorted((folder / ('mc' + family)).glob('*-ce-pack-*.zip'))
+        expected = {'cookery', *PACK_MODULES}
+        if len(archives) != 6 or {path.name.split('-ce-pack-')[0] for path in archives} != expected:
+            raise ValueError(f'Expected six independent CE packs for {family}')
+        module_files = {}
+        for path in archives:
+            with ZipFile(path) as archive:
+                if archive.testzip():
+                    raise ValueError(f'Invalid CE ZIP: {path.name}')
+                report = json.loads(archive.read('VERSION-MANIFEST.json'))
+                if report['configurationFamily'] != family:
+                    raise ValueError(f'CE configuration family mismatch: {path}')
+                if set(archive.namelist()) != {*report['files'], 'VERSION-MANIFEST.json'}:
+                    raise ValueError(f'Unaccounted CE files: {path}')
+                for name, checksum in report['files'].items():
+                    if digest(archive.read(name)) != checksum:
+                        raise ValueError(f'CE file checksum mismatch: {path.name}/{name}')
+                module = path.name.split('-ce-pack-')[0]
+                if module != 'cookery':
+                    module_files.update({f'{module}/{name}': archive.read(name) for name in archive.namelist()})
+            relative = f'versioned-ce-packs/mc{family}/{path.name}'
+            entries[relative] = path.read_bytes()
+            reports.append({'file': relative, 'family': family, 'sourceSha256': report['sourceSha256'],
+                            'changes': report['changes'], 'runtime': report['runtime']})
+        validation = validate(module_files)
+        if validation['errors']:
+            raise ValueError(f'Invalid CE content for {family}: {validation["errors"]}')
+    return entries, reports
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--packs', type=Path, default=DIST / 'KaleidoscopeSeries-CE-Packs-0.1.0-dev.zip')
@@ -69,6 +115,9 @@ def main() -> None:
                         help='Directory containing one <module>-ce-pack-<version>.zip per plugin')
     parser.add_argument('--cookery-pack', type=Path,
                         help='Independent cookery CE ZIP produced by export_cookery_kitchen_pack.py')
+    parser.add_argument('--versioned-cookery', action='store_true', help='Include all ten individually compiled Cookery NMS families')
+    parser.add_argument('--versioned-ce-packs', type=Path, help='Three configuration families produced by export_versioned_ce_pack.py')
+    parser.add_argument('--runtime-evidence', type=Path, help='Local runtime report whose tested plugin hashes must match this bundle')
     parser.add_argument('--output', type=Path, default=DIST / 'KaleidoscopeSeries-0.1.0-dev.zip')
     args = parser.parse_args()
     DIST.mkdir(parents=True, exist_ok=True)
@@ -97,7 +146,7 @@ def main() -> None:
             if any(name.endswith('.class') and name.startswith(forbidden) for name in names):
                 raise ValueError(f'Unrelocated or server/test classes bundled in {jar.name}')
             metadata = archive.read('plugin.yml').decode('utf-8')
-            if "api-version: '1.21.11'" not in metadata or '${version}' in metadata:
+            if "api-version: '1.21'" not in metadata or '${version}' in metadata:
                 raise ValueError(f'Incorrect plugin metadata: {jar.name}')
             catalog = (SUITE / module / 'src/main/resources/catalog.json').read_bytes()
             if archive.read('catalog.json') != catalog:
@@ -107,6 +156,29 @@ def main() -> None:
         entries['plugins/' + jar.name] = jar.read_bytes()
     kitchen = ROOT / 'build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar'
     entries['plugins/' + kitchen.name] = kitchen.read_bytes()
+    with ZipFile(kitchen) as archive:
+        kitchen_metadata = archive.read('plugin.yml')
+    versioned = []
+    if args.versioned_cookery:
+        variants = sorted((ROOT / 'build/libs/versions').glob('KaleidoscopeCookeryPlugin-*-mc*.jar'))
+        if len(variants) != 10:
+            raise ValueError(f'Expected ten Cookery version families, found {len(variants)}')
+        for jar in variants:
+            with ZipFile(jar) as archive:
+                bridges = [name for name in archive.namelist() if name.startswith('net/kaleidoscope/cookery/nms/')
+                           and name.rsplit('/', 1)[-1].startswith('NmsV') and name.endswith('.class')]
+                if len(bridges) != 1:
+                    raise ValueError(f'Expected one NMS bridge in {jar.name}: {bridges}')
+                attributes = archive.read('META-INF/MANIFEST.MF').decode().replace('\r\n ', '').replace('\n ', '')
+                versions = next((line.split(': ', 1)[1] for line in attributes.splitlines()
+                                 if line.startswith('SenLuo-Minecraft-Versions: ')), None)
+                if not versions or 'paperweight-mappings-namespace: mojang' not in attributes:
+                    raise ValueError(f'Missing version/mapping metadata: {jar.name}')
+                if archive.read('plugin.yml') != kitchen_metadata:
+                    raise ValueError(f'Versioned metadata differs from universal JAR: {jar.name}')
+            entries['versions/' + jar.name] = jar.read_bytes()
+            versioned.append({'file': 'versions/' + jar.name, 'minecraft': versions.split(','), 'bridge': bridges[0],
+                              'runtime': 'NOT_TESTED'})
     cookery_pack = None
     if args.cookery_pack:
         cookery_pack = args.cookery_pack.resolve()
@@ -122,6 +194,10 @@ def main() -> None:
             entries['ce-packs/' + archive.name] = archive.read_bytes()
     else:
         entries[packs.name] = packs.read_bytes()
+    versioned_packs = []
+    if args.versioned_ce_packs:
+        adapted, versioned_packs = load_versioned_packs(args.versioned_ce_packs)
+        entries.update(adapted)
     entries['README.md'] = (SUITE / 'docs/INSTALL.md').read_bytes()
     for path in (SUITE / 'docs').glob('*'):
         if path.is_file():
@@ -132,17 +208,47 @@ def main() -> None:
     for path in (ROOT / 'docs/install-guide.md', ROOT / 'docs/upgrade-guide.md'):
         if path.is_file():
             entries['docs/' + path.name] = path.read_bytes()
+    for name in ('VERSION-COMPATIBILITY.md', 'LUNCH-BAG.md', 'SEATING.md', 'TABLES.md', 'STORAGE-BLOCKS.md', 'HANGING-STRINGS.md', 'LONG-BENCH.md', 'EIGHT-IMMORTALS-TABLE.md', 'RED-LANTERN.md', 'KITCHEN-KNIFE-SMITHING.md', 'STEAMER-STATE.md', 'STEAMER-PORTABLE.md', 'STEAMER-INTERACTION.md', 'DECO-MODELS.md', 'FISHRACK.md', 'RESOURCE-PATHS.md', 'TRASH-CAN.md', 'TRASH-CAN-ANIMATION.md', 'SCARECROW.md', 'SCARECROW-HITS.md'):
+        guide = ROOT / 'docs' / name
+        if guide.is_file():
+            entries['docs/' + name] = guide.read_bytes()
     matrix = SUITE / 'docs/acceptance-matrix.json'
     if matrix.is_file():
         entries['docs/acceptance-matrix.json'] = matrix.read_bytes()
     entries['organization-checkouts.json'] = (ROOT / 'docs/research/organization-checkouts.json').read_bytes()
+    runtime_evidence = None
+    runtime_evidence_path = None
+    if args.runtime_evidence:
+        raw = args.runtime_evidence.read_bytes()
+        runtime_evidence = json.loads(raw)
+        shipped = {Path(name).name: digest(content) for name, content in entries.items() if name.endswith('.jar')}
+        for run in runtime_evidence['verifiedRuns']:
+            tested = run['jarHashes']
+            for name in (name for name in tested if name.startswith('Kaleidoscope')):
+                if shipped.get(name) != tested[name]:
+                    raise ValueError(f'Runtime evidence uses a different plugin JAR: {name}')
+            validate_runtime_reports(runtime_evidence, run)
+            for variant in versioned:
+                if Path(variant['file']).name in tested:
+                    variant['runtime'] = 'PARTIAL_PAPER_PROBES_PASS; no player/client/Folia proof'
+                    server = run['reports']['food-smoke.json']['server']
+                    coverage = variant.setdefault('tested_servers', [])
+                    if server not in coverage:
+                        coverage.append(server)
+        runtime_evidence_path = 'docs/research/' + args.runtime_evidence.name
+        entries[runtime_evidence_path] = raw
     manifest = {
         'created_at': datetime.now().astimezone().isoformat(),
-        'status': 'development; server and vanilla-client acceptance not performed',
+        'status': 'development; see VERSION-COMPATIBILITY.md for runtime coverage; vanilla-client acceptance not performed',
         'baseline_commit': subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip(),
         'uncommitted_work': True,
-        'compile_target': {'java': 21, 'paper_api': '1.21.11', 'craftengine_api': '26.9.1'},
+        'compile_target': {'java': 21, 'paper_api': '1.21.1', 'modern_components_api': '1.21.11', 'craftengine_api': '26.9.1'},
         'java_tests': java_tests,
+        'legacy_compat_tests': tests(SUITE / 'common/build/test-results/legacyCompatTest'),
+        'legacy_gson_tests': tests(ROOT / 'build/test-results/testLegacyGson'),
+        'runtime_evidence': runtime_evidence_path,
+        'versioned_cookery': versioned,
+        'versioned_ce_packs': versioned_packs,
         'pack_validation': validation,
         'independent_ce_packs': (['cookery-ce-pack-1.3.0.zip'] if cookery_pack else [])
                                 + [path.name for path in module_archives],
