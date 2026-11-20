@@ -10,6 +10,7 @@ import struct
 import tempfile
 import unittest
 from unittest.mock import patch
+from zipfile import ZipFile, ZIP_DEFLATED
 
 from audit_upstream import AuditError, read_blobs
 from cookery_recipes import read_sources
@@ -179,6 +180,88 @@ class VillageExportTests(unittest.TestCase):
         self.assertEqual(json_bytes(self.manifest), resource.read_bytes())
         self.assertEqual('NOT_IMPLEMENTED', self.manifest['naturalVillageIntegration'])
         self.assertEqual('NOT_TESTED', self.manifest['runtime'])
+
+    def test_packaged_template_archives_match_the_exact_five_pinned_sources(self):
+        directory = Path(__file__).resolve().parents[1] / 'src/main/resources/village/source'
+        self.assertEqual(sorted(biome + '_kitchen.nbt' for biome in BIOMES), sorted(p.name for p in directory.iterdir()))
+        for biome in BIOMES:
+            filename = biome + '_kitchen.nbt'
+            raw = (directory / filename).read_bytes()
+            self.assertEqual(self.files['source/structure/' + filename], raw)
+            self.assertEqual(STRUCTURES[biome], hashlib.sha256(raw).hexdigest())
+            self.assertEqual(self.manifest['sourceFiles'][RES + 'structures/village/houses/' + filename],
+                             hashlib.sha256(raw).hexdigest())
+            self.assertEqual(self.manifest['structures'][biome], structure_manifest(raw, biome))
+
+    def test_cli_template_archives_are_reproducible_and_refuse_existing_directory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp)
+            def run(*args):
+                with patch('sys.argv', ['export_cookery_village', '--source', str(SOURCE), *map(str, args)]), \
+                        patch('export_cookery_village.export', return_value=(self.files, self.manifest)), \
+                        contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    return export_main()
+            first, second = directory / 'a.zip', directory / 'b.zip'
+            a, b = directory / 'a-sources', directory / 'b-sources'
+            self.assertEqual(0, run('--output', first, '--runtime-template-dir', a))
+            self.assertEqual(0, run('--output', second, '--runtime-template-dir', b))
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            self.assertEqual(sorted(p.name for p in a.iterdir()), sorted(p.name for p in b.iterdir()))
+            for biome in BIOMES:
+                filename = biome + '_kitchen.nbt'
+                self.assertEqual((a / filename).read_bytes(), (b / filename).read_bytes())
+            self.assertEqual(0, run('--output', first, '--runtime-template-dir', a, '--check'))
+            self.assertEqual(1, run('--output', directory / 'not-created.zip', '--runtime-template-dir', a))
+            self.assertFalse((directory / 'not-created.zip').exists())
+
+    def test_cli_archive_check_rejects_missing_extra_and_mutated_template_bytes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp)
+            archive, templates = directory / 'a.zip', directory / 'sources'
+            def run(*args):
+                with patch('sys.argv', ['export_cookery_village', '--source', str(SOURCE), '--output', str(archive),
+                                       '--runtime-template-dir', str(templates), *args]), \
+                        patch('export_cookery_village.export', return_value=(self.files, self.manifest)), \
+                        contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    return export_main()
+            self.assertEqual(0, run())
+            original_archive = archive.read_bytes()
+            for biome in BIOMES:
+                path = templates / (biome + '_kitchen.nbt')
+                original = path.read_bytes()
+                for mutation in (None, original[:-1], original + b'\0', bytes([original[0] ^ 1]) + original[1:]):
+                    if mutation is None:
+                        path.unlink()
+                    else:
+                        path.write_bytes(mutation)
+                    self.assertEqual(1, run('--check'), (biome, mutation is None))
+                    path.write_bytes(original)
+            (templates / 'extra.nbt').write_bytes(b'extra')
+            self.assertEqual(1, run('--check'))
+            (templates / 'extra.nbt').unlink()
+            self.assertEqual(0, run('--check'))
+            self.assertEqual(original_archive, archive.read_bytes())
+
+    def test_cli_check_refuses_wrong_sizes_before_reading_archive_or_manifest_payloads(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp)
+            archive, resource = directory / 'a.zip', directory / 'runtime.json'
+            def run(*args):
+                with patch('sys.argv', ['export_cookery_village', '--source', str(SOURCE), '--output', str(archive), *args]), \
+                        patch('export_cookery_village.export', return_value=(self.files, self.manifest)), \
+                        contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    return export_main()
+            first = sorted(self.files)[0]
+            with ZipFile(archive, 'x', compression=ZIP_DEFLATED) as output:
+                for name, raw in sorted(self.files.items()):
+                    output.writestr(name, raw + b'\0' if name == first else raw)
+            with patch.object(ZipFile, 'read', side_effect=AssertionError('wrong-size entry must not be read')):
+                self.assertEqual(1, run('--check'))
+            archive.unlink()
+            self.assertEqual(0, run('--runtime-manifest', str(resource)))
+            resource.write_bytes(json_bytes(self.manifest) + b'\0')
+            with patch.object(Path, 'read_bytes', side_effect=AssertionError('wrong-size manifest must not be read')):
+                self.assertEqual(1, run('--runtime-manifest', str(resource), '--check'))
 
 
 if __name__ == '__main__':

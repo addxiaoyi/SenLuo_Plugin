@@ -1,6 +1,7 @@
 # These snapshots and evidence files are verified byte for byte across devices.
 src/main/resources/cookery-parity.json -text
 src/main/resources/village-loot.json -text
+src/main/resources/village/source/*.nbt -text
 # The animation exporter emits LF; preserve its byte-locked snapshot on Windows.
 src/main/resources/trash-can-animations.json text eol=lf
 series/*/src/main/resources/catalog.json -text
