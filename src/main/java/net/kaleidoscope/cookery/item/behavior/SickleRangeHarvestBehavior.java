@@ -6,6 +6,9 @@ import net.kaleidoscope.cookery.api.event.SickleHarvestEvent;
 import net.kaleidoscope.cookery.block.behavior.GenericAgeCrop;
 import net.kaleidoscope.cookery.block.behavior.HarvestableCrop;
 import net.kaleidoscope.cookery.item.CookeryEnchantments;
+import net.kaleidoscope.cookery.nms.NativeSickleAccess;
+import net.kaleidoscope.cookery.nms.NativeSickleAccessProvider;
+import net.kaleidoscope.cookery.nms.NativeToolWear;
 import net.kaleidoscope.cookery.util.BehaviorConfig;
 import net.kaleidoscope.cookery.util.EventUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
@@ -30,15 +33,20 @@ import org.bukkit.Effect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.GameMode;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.inventory.ItemStack;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 // 镰刀范围收割
 public final class SickleRangeHarvestBehavior extends ItemBehavior {
@@ -51,6 +59,12 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
     private static final float SWEEP_VOLUME = 1.0f;
     private static final float SWEEP_PITCH = 1.0f;
     private static final String SWEEP_SOUND = "minecraft:entity.player.attack.sweep";
+    private static final Set<Block> ACTIVE = ConcurrentHashMap.newKeySet();
+    private static final Logger LOGGER = Logger.getLogger(SickleRangeHarvestBehavior.class.getName());
+    private static final Set<Key> SOURCE_BLACKLIST = Set.of(Key.of("minecraft:melon_stem"), Key.of("minecraft:pumpkin_stem"),
+            Key.of("minecraft:attached_melon_stem"), Key.of("minecraft:attached_pumpkin_stem"));
+
+    enum VanillaPolicy { LEGACY_AGEABLE, SOURCE_CLASSIFIED }
 
     private final int horizontalRadius;
     private final int height;
@@ -60,9 +74,13 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
     private final Set<Key> crops;
     private final Set<Key> bushes;
     private final Set<Key> blacklist;
+    private final VanillaPolicy vanillaPolicy;
+    private final Set<Key> nativeAllowlist;
+    private final NativeSickleAccess nativeAccess;
 
     private SickleRangeHarvestBehavior(int horizontalRadius, int height, int cooldownTicks, boolean damageItem,
-                                       int durabilityPerUse, Set<Key> crops, Set<Key> bushes, Set<Key> blacklist) {
+                                       int durabilityPerUse, Set<Key> crops, Set<Key> bushes, Set<Key> blacklist,
+                                       VanillaPolicy vanillaPolicy, Set<Key> nativeAllowlist, NativeSickleAccess nativeAccess) {
         this.horizontalRadius = horizontalRadius;
         this.height = height;
         this.cooldownTicks = cooldownTicks;
@@ -71,6 +89,9 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         this.crops = crops;
         this.bushes = bushes;
         this.blacklist = blacklist;
+        this.vanillaPolicy = vanillaPolicy;
+        this.nativeAllowlist = nativeAllowlist;
+        this.nativeAccess = nativeAccess;
     }
 
     @Override
@@ -97,7 +118,8 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         }
 
         Sweep sweep = new Sweep(context.getLevel(), (org.bukkit.World) context.getLevel().platformWorld(),
-                player, bukkitPlayer, hand, heldStack, source, new LongOpenHashSet());
+                player, bukkitPlayer, hand, heldStack, source, new LongOpenHashSet(), new NativeProblem());
+        ItemStack cooldownStack = heldStack == null ? null : heldStack.clone();
         BlockPos origin = context.getClickedPos();
         int sweepLevel = CookeryEnchantments.sweepLevel(held);
         int radius = Math.min(MAX_HORIZONTAL_RADIUS, CookeryEnchantments.sweepRadius(this.horizontalRadius, sweepLevel));
@@ -117,12 +139,15 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
                 SoundCategory.PLAYERS, SWEEP_VOLUME, SWEEP_PITCH);
         player.swingHand(context.getHand());
         // 按次扣不按格扣 照格扣一挥就是几十点耐久
-        if (this.damageItem && held != null && !player.canInstabuild()) {
+        if (this.damageItem && held != null && !source.exhausted && !player.canInstabuild()) {
             held.hurtAndBreak(durabilityCost, player, null);
         }
-        if (this.cooldownTicks > 0 && heldStack != null) {
-            bukkitPlayer.setCooldown(heldStack, this.cooldownTicks);
+        if (this.cooldownTicks > 0 && cooldownStack != null) {
+            bukkitPlayer.setCooldown(cooldownStack, this.cooldownTicks);
         }
+        if (sweep.nativeProblem().outcome != null && sweep.nativeProblem().outcome.failure() != null)
+            throw new IllegalStateException("Native source sickle partially committed; per-swing durability policy was applied",
+                    sweep.nativeProblem().outcome.failure());
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
@@ -130,24 +155,53 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
     // stalks 记已收过的根部 多段作物一刀会同时命中同一株的两段
     private record Sweep(World level, org.bukkit.World world, Player player,
                          org.bukkit.entity.Player bukkitPlayer, InteractionHand hand, ItemStack sickle,
-                         HarvestSource source, LongSet stalks) {
+                         HarvestSource source, LongSet stalks, NativeProblem nativeProblem) {
         boolean sourceMatches() { return source.matches(player, bukkitPlayer); }
     }
 
+    private static final class NativeProblem { private NativeSickleAccess.Outcome outcome; }
+
     /** Lock the actual interaction hand before protection or takeover callbacks can replace it. */
-    private record HarvestSource(InteractionHand hand, int slot, Item unit, int count) {
+    private static final class HarvestSource {
+        private final InteractionHand hand;
+        private final int slot;
+        private Item unit;
+        private int count;
+        private boolean exhausted;
+        private HarvestSource(InteractionHand hand, int slot, Item unit, int count) {
+            this.hand = hand; this.slot = slot; this.unit = unit; this.count = count;
+        }
         boolean matches(Player player, org.bukkit.entity.Player actor) {
-            if (player.platformPlayer() != actor || ItemUtils.isEmpty(unit)
+            if (exhausted || player.platformPlayer() != actor || ItemUtils.isEmpty(unit)
                     || (hand == InteractionHand.MAIN_HAND && actor.getInventory().getHeldItemSlot() != slot)) return false;
             Item current = player.getItemInHand(hand);
             return !ItemUtils.isEmpty(current) && current.count() == count && current.isSimilar(unit);
+        }
+
+        boolean acceptNativeWear(NativeToolWear wear, Player player, org.bukkit.entity.Player actor) {
+            if (hand != InteractionHand.MAIN_HAND) return matches(player, actor);
+            if (exhausted || slot != wear.selectedSlot() || count != wear.beforeCount()
+                    || !unit.isSimilar(wear.beforeUnit()) || unit.damage().orElse(0) != wear.beforeDamage()
+                    || unit.maxDamage() != wear.maxDamage()) return false;
+            Item current = player.getItemInHand(hand);
+            if (wear.afterCount() == 0) {
+                if (!wear.brokeOne() || !ItemUtils.isEmpty(current)) return false;
+                exhausted = true; count = 0; return true;
+            }
+            Item expected = unit.copyWithCount(1).damage(wear.afterDamage());
+            if (ItemUtils.isEmpty(current) || current.minecraftItem() != wear.nativeIdentity()
+                    || current.count() != wear.afterCount() || !current.isSimilar(expected)) return false;
+            unit = expected; count = wear.afterCount();
+            // A broken stacked tool is unusual and still terminates this originating use.
+            exhausted = wear.brokeOne();
+            return true;
         }
     }
 
     // 收割一根竖列 返回这列收到的数量
     private int harvestColumn(Sweep sweep, int x, int baseY, int z) {
         // A larger sweep must not read another Folia region or synchronously load its chunks.
-        if (!sweep.sourceMatches() || !Bukkit.isOwnedByCurrentRegion(sweep.world, x >> 4, z >> 4)
+        if (sweep.nativeProblem().outcome != null || !sweep.sourceMatches() || !Bukkit.isOwnedByCurrentRegion(sweep.world, x >> 4, z >> 4)
                 || !sweep.world.isChunkLoaded(x >> 4, z >> 4)) {
             return 0;
         }
@@ -155,19 +209,20 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         int lastY = (int) Math.min((long) baseY + this.height, sweep.world.getMaxHeight());
         int harvested = 0;
         for (int y = firstY; y < lastY; y++) {
-            if (!sweep.sourceMatches()) return harvested;
+            if (sweep.nativeProblem().outcome != null || !sweep.sourceMatches()) return harvested;
             Block block = sweep.world.getBlockAt(x, y, z);
             // 空气格先筛掉 领地查询比读方块贵得多 一刀几十格全查会把它变成热点
             if (block.getType().isAir()) {
                 continue;
             }
-            // 逐格校验破坏权限 范围收割不能整片穿透领地保护
-            if (!InteractGuard.canBreak(sweep.player, sweep.level, x, y, z) || !sweep.sourceMatches()) {
-                continue;
-            }
-            if (harvestOne(sweep, block)) {
-                harvested++;
-            }
+            if (!ACTIVE.add(block)) continue;
+            try {
+                BlockData original = vanillaPolicy == VanillaPolicy.SOURCE_CLASSIFIED ? block.getBlockData() : null;
+                // Capture before protection callbacks and reject their replacement native source.
+                if (!InteractGuard.canBreak(sweep.player, sweep.level, x, y, z) || !sweep.sourceMatches()
+                        || (original != null && !original.equals(block.getBlockData()))) continue;
+                if (harvestOne(sweep, block)) harvested++;
+            } finally { ACTIVE.remove(block); }
         }
         return harvested;
     }
@@ -185,6 +240,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
             return harvestCustomCrop(sweep, block, customState);
         }
         Key id = blockKey(block);
+        if (vanillaPolicy == VanillaPolicy.SOURCE_CLASSIFIED) return harvestSourceNative(sweep, block, id);
         if (blacklist.contains(id)) {
             return false;
         }
@@ -209,6 +265,53 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
             return true;
         }
         return false;
+    }
+
+    private boolean harvestSourceNative(Sweep sweep, Block block, Key id) {
+        if (SOURCE_BLACKLIST.contains(id) || blacklist.contains(id)
+                || (nativeAllowlist != null && !nativeAllowlist.contains(id))) return false;
+        NativeSickleAccess.Snapshot snapshot = nativeAccess.inspect(block);
+        if (nativeAccess.blacklisted(snapshot) || net.kaleidoscope.cookery.api.BlockTags.instance().matches(
+                Key.of("kaleidoscopecookery:sickle_harvest_blacklist"), block)
+                || net.kaleidoscope.cookery.api.BlockTags.instance().matches(
+                Key.of("kaleidoscope_cookery:sickle_harvest_blacklist"), block)) return false;
+        Boolean taken = fireHarvestEvent(sweep, block);
+        if (!sweep.sourceMatches() || !nativeAccess.matches(block, snapshot)) return false;
+        if (taken != null) return taken;
+        if (snapshot.kind() == NativeSickleAccess.Kind.IMMATURE_CROP || snapshot.kind() == NativeSickleAccess.Kind.OTHER)
+            return false;
+        if (!nativeReady(sweep, block, snapshot)
+                || !InteractGuard.canBreak(sweep.player(), sweep.level(), block.getX(), block.getY(), block.getZ())
+                || !nativeReady(sweep, block, snapshot)) return false;
+        if (snapshot.kind() == NativeSickleAccess.Kind.MATURE_CROP) {
+            // Match the existing crop logging contract; this is not a second protection system.
+            EventUtils.logBlockBreak(block, sweep.bukkitPlayer());
+            if (!nativeReady(sweep, block, snapshot)) return false;
+        }
+        NativeSickleAccess.Outcome outcome = snapshot.kind() == NativeSickleAccess.Kind.MATURE_CROP
+                ? nativeAccess.harvestCrop(block, sweep.bukkitPlayer(), snapshot, () -> nativeReady(sweep, block, snapshot))
+                : nativeAccess.destroyVegetation(block, sweep.bukkitPlayer(), snapshot, () -> nativeReady(sweep, block, snapshot));
+        if (outcome.wear() != null && !sweep.source().acceptNativeWear(outcome.wear(), sweep.player(), sweep.bukkitPlayer()))
+            outcome = new NativeSickleAccess.Outcome(NativeSickleAccess.Status.PARTIAL,
+                    "native wear receipt cannot update the original complete interaction source; prior outcome: " + outcome.detail(),
+                    outcome.failure());
+        if (outcome.status() == NativeSickleAccess.Status.PARTIAL) {
+            sweep.nativeProblem().outcome = outcome;
+            LOGGER.log(outcome.failure() == null ? java.util.logging.Level.WARNING : java.util.logging.Level.SEVERE,
+                    "SOURCE_SICKLE_PARTIAL world=" + block.getWorld().getName() + " position="
+                            + block.getX() + "," + block.getY() + "," + block.getZ() + ": " + outcome.detail(), outcome.failure());
+        }
+        return outcome.committed();
+    }
+
+    private boolean nativeReady(Sweep sweep, Block block, NativeSickleAccess.Snapshot snapshot) {
+        org.bukkit.entity.Player actor = sweep.bukkitPlayer();
+        return sweep.sourceMatches() && Bukkit.isOwnedByCurrentRegion(actor) && actor.isOnline() && actor.isValid()
+                && !actor.isDead() && actor.getGameMode() != GameMode.ADVENTURE && actor.getGameMode() != GameMode.SPECTATOR
+                && actor.getWorld() == sweep.world() && block.getWorld() == sweep.world()
+                && Bukkit.isOwnedByCurrentRegion(sweep.world(), block.getX() >> 4, block.getZ() >> 4)
+                && sweep.world().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)
+                && nativeAccess.matches(block, snapshot);
     }
 
     // 监听器接管了就返回它给的耐久决定 没接管返回 null 表示继续走默认收割
@@ -314,6 +417,8 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         private static final String[] CROP_KEYS = {"crops", "crop"};
         private static final String[] BUSH_KEYS = {"bushes", "bush"};
         private static final String[] BLACKLIST_KEYS = {"blacklist", "black_list", "black-list"};
+        private static final String[] POLICY_KEYS = {"vanilla-policy", "vanilla_policy"};
+        private static final String[] NATIVE_ALLOW_KEYS = {"vanilla-allowlist", "vanilla_allowlist"};
 
         @Override
         public SickleRangeHarvestBehavior create(Pack pack, Path path, Key key, ConfigSection section) {
@@ -321,6 +426,19 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
             if (durability < 0 || durability > Integer.MAX_VALUE / 8) {
                 throw new IllegalArgumentException(key + ": durability-per-use cannot support sweep III: " + durability);
             }
+            String policyValue = BehaviorConfig.getString(section, "legacy-ageable", POLICY_KEYS);
+            VanillaPolicy policy = switch (policyValue == null ? "legacy-ageable" : policyValue.trim()) {
+                case "legacy-ageable" -> VanillaPolicy.LEGACY_AGEABLE;
+                case "source-classified" -> VanillaPolicy.SOURCE_CLASSIFIED;
+                default -> throw new IllegalArgumentException(key + ": unknown vanilla-policy: " + policyValue);
+            };
+            if (policy == VanillaPolicy.SOURCE_CLASSIFIED && (section.containsKey(CROP_KEYS) || section.containsKey(BUSH_KEYS)))
+                throw new IllegalArgumentException(key + ": source-classified cannot silently reinterpret crops/bushes; "
+                        + "choose vanilla-policy: legacy-ageable or migrate to vanilla-allowlist");
+            if (policy == VanillaPolicy.LEGACY_AGEABLE && section.containsKey(NATIVE_ALLOW_KEYS))
+                throw new IllegalArgumentException(key + ": vanilla-allowlist requires vanilla-policy: source-classified");
+            Set<Key> nativeAllowed = section.containsKey(NATIVE_ALLOW_KEYS)
+                    ? BehaviorConfig.getKeySet(section, List.of(), NATIVE_ALLOW_KEYS) : null;
             return new SickleRangeHarvestBehavior(
                     Math.max(0, Math.min(MAX_HORIZONTAL_RADIUS, BehaviorConfig.getInt(section, DEFAULT_HORIZONTAL_RADIUS, RADIUS_KEYS))),
                     Math.max(1, BehaviorConfig.getInt(section, DEFAULT_HEIGHT, HEIGHT_KEYS)),
@@ -329,7 +447,8 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
                     durability,
                     BehaviorConfig.getKeySet(section, DEFAULT_CROPS, CROP_KEYS),
                     BehaviorConfig.getKeySet(section, DEFAULT_BUSHES, BUSH_KEYS),
-                    BehaviorConfig.getKeySet(section, List.of(), BLACKLIST_KEYS));
+                    BehaviorConfig.getKeySet(section, List.of(), BLACKLIST_KEYS), policy, nativeAllowed,
+                    policy == VanillaPolicy.SOURCE_CLASSIFIED ? Objects.requireNonNull(NativeSickleAccessProvider.access(), "native sickle access") : null);
         }
     }
 }

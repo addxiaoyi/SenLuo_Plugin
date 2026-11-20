@@ -381,6 +381,41 @@ def tools(items: dict, definitions: dict, names: dict) -> None:
             items[key]['material'] = ('golden' if metal == 'gold' else metal) + '_sword'
 
 
+SICKLE_VANILLA_TAG_SNAPSHOT = Path(__file__).resolve().parent / 'data/source-sickle-vanilla-1.20.1.json'
+SICKLE_VANILLA_TAG_SHA256 = '939b6a5602fffb243ccb2de928fe18d60535de569a4b94b99fde157d02bd3f32'
+
+
+def source_sickle_components() -> dict:
+    """Pinned 1.20.1 SickleItem/SwordItem semantics in the 1.21.11 component format."""
+    tag_bytes = SICKLE_VANILLA_TAG_SNAPSHOT.read_bytes()
+    if hashlib.sha256(tag_bytes).hexdigest() != SICKLE_VANILLA_TAG_SHA256:
+        raise AuditError('changed pinned 1.20.1 sword-efficient tag snapshot')
+    efficient = json.loads(tag_bytes, object_pairs_hook=unique_object)['targetMembers']
+    return {
+        'minecraft:max_damage': 2000,
+        'minecraft:enchantable': {'value': 5},
+        'minecraft:repairable': {'items': ['minecraft:flint']},
+        # 1.21.11 ItemAttributeModifiers.CODEC is Entry.CODEC.listOf().xmap(...).
+        'minecraft:attribute_modifiers': [
+                {'type': 'minecraft:attack_damage', 'id': 'minecraft:base_attack_damage',
+                 # SickleItem passes attackDamageModifier=0; ForgeTier bonus is 1.
+                 'amount': 1.0, 'operation': 'add_value', 'slot': 'mainhand'},
+                {'type': 'minecraft:attack_speed', 'id': 'minecraft:base_attack_speed',
+                 # Source float -2.4F is widened to double by SwordItem.
+                 'amount': -2.4000000953674316, 'operation': 'add_value', 'slot': 'mainhand'},
+        ],
+        'minecraft:tool': {
+            'rules': [
+                {'blocks': ['minecraft:cobweb'], 'speed': 15.0, 'correct_for_drops': True},
+                {'blocks': efficient, 'speed': 1.5},
+            ],
+            'default_mining_speed': 1.0,
+            'damage_per_block': 2,
+            # SickleItem overrides SwordItem.canAttackBlock to return true.
+            'can_destroy_blocks_in_creative': True,
+        },
+        'minecraft:weapon': {'item_damage_per_attack': 1},
+    }
 def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
     """Expose source tools and farmer wear so existing server behavior can see their IDs."""
     materials = {
@@ -390,7 +425,7 @@ def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
         'straw_hat': 'leather_helmet',
         'straw_hat_flower': 'leather_helmet',
         'kitchen_shovel': 'iron_shovel',
-        'sickle': 'iron_hoe',
+        'sickle': 'iron_sword',
     }
     for name, material in materials.items():
         item_name = 'kitchen_shovel_no_oil' if name == 'kitchen_shovel' else name
@@ -402,8 +437,13 @@ def auxiliary_items(items: dict, definitions: dict, names: dict) -> None:
         items[key]['material'] = material
         items[key]['data']['max_stack_size'] = 1
         if name == 'sickle':
+            # The pinned source extends SwordItem (not HoeItem). Preserve its
+            # tier, attributes, enchantability, repair item and native sword
+            # tool semantics while replacing the iron sword's default values.
+            items[key]['data']['components'] = source_sickle_components()
             items[key]['behavior'] = {
                 'type': NAMESPACE + ':sickle_range_harvest',
+                'vanilla-policy': 'source-classified',
                 'radius': 2, 'height': 2, 'cooldown': 10,
                 'damage_item': True, 'durability_per_use': 1,
             }
@@ -503,6 +543,8 @@ def build(source: Path) -> tuple[dict[str, bytes], dict]:
                                 assets, items, tea_visual_models[(face, color_index, pattern_index, wave_index)],
                                 facing_index * 90),
                         }
+
+
                         tea_variants[
                             f'face={face},facing={facing},color={color_index},pattern={pattern_index},wave={wave_index}'
                         ] = {'appearance': appearance}

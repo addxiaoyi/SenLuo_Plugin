@@ -100,6 +100,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        net.kaleidoscope.cookery.nms.NativeSickleAccessProvider.registerObserver(this);
         var cookeryCatalog = net.kaleidoscope.cookery.catalog.CookeryCatalog.bundled();
         net.kaleidoscope.cookery.item.CookeryFoodItems.initialize(cookeryCatalog);
         cookeryEffects = new net.kaleidoscope.cookery.effect.CookeryEffects(this);

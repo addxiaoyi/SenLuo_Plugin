@@ -15,7 +15,8 @@ from export_cookery_catalog import COMMIT, export
 from export_cookery_food_pack import source_assets
 from cookery_placed_meals import HAM_SOURCE, ham_parts, meal_states
 from export_cookery_kitchen_pack import (APPLIANCES, ART, NAMESPACE, PACK, build, source_model,
-                                         source_states, write_archive)
+                                         source_states, write_archive, source_sickle_components,
+                                         SICKLE_VANILLA_TAG_SNAPSHOT, SICKLE_VANILLA_TAG_SHA256)
 
 SOURCE = Path(__file__).resolve().parents[2] / '.references' / 'KaleidoscopeCookery'
 
@@ -325,7 +326,7 @@ class KitchenPackTest(unittest.TestCase):
             'farmer_boots': 'leather_boots', 'farmer_leggings': 'leather_leggings',
             'farmer_chest_plate': 'leather_chestplate', 'straw_hat': 'leather_helmet',
             'straw_hat_flower': 'leather_helmet', 'kitchen_shovel_no_oil': 'iron_shovel',
-            'kitchen_shovel_has_oil': 'iron_shovel', 'sickle': 'iron_hoe'}
+            'kitchen_shovel_has_oil': 'iron_shovel', 'sickle': 'iron_sword'}
         for name, material in expected.items():
             with self.subTest(item=name):
                 item = self.config['items'][NAMESPACE + ':' + name]
@@ -341,10 +342,58 @@ class KitchenPackTest(unittest.TestCase):
         self.assertIn(f'{PACK}/resourcepack/assets/{ART}/models/item/kitchen_shovel_has_oil.json', self.bundle)
         self.assertEqual(NAMESPACE + ':sickle_range_harvest',
                          self.config['items'][NAMESPACE + ':sickle']['behavior']['type'])
+        self.assertEqual('source-classified', self.config['items'][NAMESPACE + ':sickle']['behavior']['vanilla-policy'])
+        sickle = self.config['items'][NAMESPACE + ':sickle']
+        self.assertEqual('iron_sword', sickle['material'], 'The pinned implementation extends SwordItem, not HoeItem')
+        components = sickle['data']['components']
+        self.assertEqual(2000, components['minecraft:max_damage'])
+        self.assertEqual({'value': 5}, components['minecraft:enchantable'])
+        self.assertEqual({'items': ['minecraft:flint']}, components['minecraft:repairable'])
+        self.assertEqual([
+            {'type': 'minecraft:attack_damage', 'id': 'minecraft:base_attack_damage',
+             'amount': 1.0, 'operation': 'add_value', 'slot': 'mainhand'},
+            {'type': 'minecraft:attack_speed', 'id': 'minecraft:base_attack_speed',
+             'amount': -2.4000000953674316, 'operation': 'add_value', 'slot': 'mainhand'},
+        ], components['minecraft:attribute_modifiers'])
+        self.assertEqual({'item_damage_per_attack': 1}, components['minecraft:weapon'])
+        self.assertEqual(2, components['minecraft:tool']['damage_per_block'])
+        self.assertTrue(components['minecraft:tool']['can_destroy_blocks_in_creative'])
+        efficient = json.loads(SICKLE_VANILLA_TAG_SNAPSHOT.read_bytes())['targetMembers']
+        self.assertEqual([
+            {'blocks': ['minecraft:cobweb'], 'speed': 15.0, 'correct_for_drops': True},
+            {'blocks': efficient, 'speed': 1.5},
+        ], components['minecraft:tool']['rules'],
+            'Keep source sword rules without newer instant-mining or unrelated tier rules')
         parity = json.loads(self.bundle[f'{PACK}/recipe-parity.json'])
         imported = {row['sourceId'] for row in parity['recipes'] if row['status'] == 'imported'}
         self.assertTrue({'kaleidoscope_cookery:sickle', 'kaleidoscope_cookery:straw_hat',
                          'kaleidoscope_cookery:straw_hat_flower'} <= imported)
+
+    def test_sickle_uses_the_pinned_old_tag_membership_and_rejects_snapshot_drift(self):
+        raw = SICKLE_VANILLA_TAG_SNAPSHOT.read_bytes()
+        self.assertEqual(SICKLE_VANILLA_TAG_SHA256, hashlib.sha256(raw).hexdigest())
+        snapshot = json.loads(raw)
+        def resolve(tag):
+            row = snapshot['tagFiles']['data/' + tag.replace(':', '/tags/blocks/', 1) + '.json']
+            members = set()
+            for value in row['definition']['values']:
+                members.update(resolve(value[1:]) if value.startswith('#') else [value])
+            return members
+        source = resolve('minecraft:sword_efficient')
+        self.assertEqual(87, len(source))
+        self.assertEqual(sorted(source), snapshot['sourceMembers'])
+        mapped = sorted(snapshot['renames'].get(value, value) for value in source)
+        self.assertEqual(mapped, snapshot['targetMembers'])
+        self.assertIn('minecraft:short_grass', mapped)
+        self.assertIn('minecraft:cherry_leaves', mapped)
+        self.assertNotIn('minecraft:pale_oak_leaves', mapped)
+        self.assertNotIn('minecraft:grass', mapped)
+        with tempfile.TemporaryDirectory() as folder:
+            changed = Path(folder) / 'changed.json'
+            changed.write_bytes(raw + b' ')
+            with patch('export_cookery_kitchen_pack.SICKLE_VANILLA_TAG_SNAPSHOT', changed):
+                with self.assertRaisesRegex(AuditError, 'changed pinned'):
+                    source_sickle_components()
 
     def test_tea_banner_has_stateful_block_item_and_no_duplicate_base_drop(self):
         key = NAMESPACE + ':tea_banner'
