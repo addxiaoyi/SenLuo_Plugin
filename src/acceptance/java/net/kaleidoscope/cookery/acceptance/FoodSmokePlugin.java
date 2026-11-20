@@ -12,7 +12,9 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.charset.StandardCharsets;
@@ -168,6 +170,9 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 var built = buildable.buildItem((net.momirealms.craftengine.core.entity.player.Player) null);
                 ItemStack direct = ItemStackUtils.getBukkitStack(built.minecraftItem());
                 check(expected.equals(CookeryFoodItems.read(direct)), entry.id() + ": direct CE build omitted/changed food PDC");
+                check(expected.encode().equals(direct.getItemMeta().getPersistentDataContainer().get(
+                        new NamespacedKey("kaleidoscopecookery", "food_v1"), PersistentDataType.STRING)),
+                        entry.id() + ": direct CE food PDC string differs from the production encoding");
                 check(direct.getItemMeta().getFood().getNutrition() == expected.food().nutrition(), entry.id() + ": wrong food component");
                 ItemStack restored = ItemStack.deserializeBytes(direct.serializeAsBytes());
                 check(expected.equals(CookeryFoodItems.read(restored)), entry.id() + ": serialization lost food snapshot");
@@ -186,6 +191,8 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 long vanilla = expected.food().effects().stream().filter(effect -> effect.id().startsWith("minecraft:")).count();
                 check(actual == vanilla, entry.id() + ": duplicated/missing vanilla effects");
                 var created = InventoryUtils.createOrEmpty(Key.of(entry.id()));
+                check(direct.isSimilar(ItemStackUtils.getBukkitStack(created.minecraftItem())),
+                        entry.id() + ": direct CE build cannot stack with the production BASE item");
                 var quality = CookeryFoodItems.bake(created, QualityProfile.of(DishQuality.STANDARD));
                 var scaled = CookeryFoodItems.read(ItemStackUtils.getBukkitStack(quality.minecraftItem()));
                 check(BakedFood.of(entry, QualityProfile.of(DishQuality.STANDARD)).equals(scaled), entry.id() + ": quality differs");

@@ -39,4 +39,8 @@ connected runner 同时要求：恰好增加一次 epoch、`ceReloading=false`�
 
 ## 保留的未完成项
 
+后续 `sc6/paper-core-1` 已观察到两轮真实重载／工作流、六次官方资源读取及种植／采果组通过，但镰刀掉落的食物 PDC 与生产构造存在编码差异，整轮仍失败。根因为共享食物导出器沿用来源字典的插入序，使 `saturation` 位于末尾，而 Java `FoodDefinition` record 将其写在 `nutrition` 后；部分饱和度和概率还存在整数／浮点文本差异。由于 PDC 中存放的是 JSON **字符串**，值相同并不意味着物品组件相同。
+
+修复导出器按生产 record 字段序和数值文本生成全部 103 项 BASE 消耗品，并加入跨 Python／Java 的精确编码 golden。旧编码仍可解码；没有批量重写玩家已有物品，也没有将接受范围改为仅比较 JSON 语义。新版启动 smoke 还直接验证实际 CE 物品与生产 BASE 物品的 `isSimilar`，以便在玩家场景前发现堆叠差异。新包和新探针仍须独立实服复验。
+
 新构建仍需独立新编号的 Paper／Folia 两轮 core 和 `seed → verify → empty`。C14 保持 `unit_tested`。客户端 GPU／轮廓、真实保护插件、默认速度成熟与分布、非玩家破坏来源以及五种村庄厨房自然生成仍分别开放。
