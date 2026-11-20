@@ -1,0 +1,36 @@
+# 村庄回滚候选输入冻结
+
+2026-11-20。`tools/village_publication_candidate.py` 为后续独立实服候选生成输入清单、复核清单并关联回滚收据。它不会启动 Java／服务器，不接受 EULA，不改服务器堆、watchdog、配置、世界或原输入，也不会创建一个已通过的运行结果。本批只有合成临时目录测试；没有准备或运行真实候选。
+
+## 冻结前提与范围
+
+使用本 checkout 的 `build/acceptance` 下全新隔离实例。实例只允许初始 `acceptance-world/datapacks`，拒绝既有世界内容和已有村庄探针收据；loopback、关闭 RCON、明确 probe 开关／UUID、CE `misc.delay-configuration-load=false` 和 `chunk-system.generation.feature=true` 都必须已经配置。
+
+村庄 ZIP 必须真正位于初始世界 datapacks 目录，`server.properties` 的 `initial-enabled-packs` 明确包含 `vanilla,file/<村庄ZIP文件名>`，`initial-disabled-packs` 不得禁用它。目录中有包不等于已启用。包必须仍是固定来源的空 processor 占位，不能附带自然厨房模板／池；村庄清单原始字节还必须与 defining production JAR 的 `village-loot.json` 一致。
+
+厨房 ZIP 逐文件与实际安装的 `plugins/CraftEngine/resources/cookery_kitchen` 比较字节和完整文件集合，拒绝缺失、改变或额外文件。ZIP 在创建解析器前限制文件和中央目录，解压／CRC 前限制成员数、单文件和总解压量。JSON 拒绝重复键、非有限常量、过深或超量对象；YAML 拒绝重复键、别名及超量 token。路径和根／祖先链接不被静默解引用。
+
+此窄诊断实例只接受声明的 Cookery、probe、CE 三份 source plugin JAR，不给其他活动插件颁发不完整的输入证明。四份 defining JAR 必须分别声明并存在：production、probe、craftEngine、native server。若 Paper 需要 remap，source plugin 路径与 defining 路径可不同，但 remap 产物必须在冻结前已独立准备并固定；不能用旧探针的 remap 或在失败运行后回填摘要。
+
+清单保存上述四份 defining JAR、source plugins、初始全部 datapacks、CE 资源／库／翻译、Cookery 数据目录、相关配置、server launcher、libraries／versions／remap 输入及 Java 的 bin／lib／conf／release 文件。检查重新枚举集合，不能通过删掉清单角色、删空 Java 映射或漏记新增依赖绕过；每个文件散列也检查观察期间的长度、时间与文件身份漂移。
+
+CE `data.db` 和两个状态分配 cache 是会被运行更新的初始输入，另存初始存在性及散列。启动前检查必须仍完全匹配；收据关联阶段不把其合法运行变化冒充不可变输入，只明确保留“初始已冻结、仍需启动前和运行证据”的边界。完整启动命令、进程环境、运行中读取顺序、服务端退出、工作流和托管资源包仍由未来外层运行器独立记录；本工具不认证整轮服务器。
+
+## 命令
+
+先在候选目录之外选择新的冻结目录，以下命令只生成 `candidate.json` 和 `expected.json`，目标已存在即拒绝：
+
+```powershell
+python tools/village_publication_candidate.py freeze --instance build/acceptance/<新实例> --platform Paper --run-id <新UUID> --defining-production plugins/KaleidoscopeCookeryPlugin-1.3.0.jar --defining-probe plugins/.paper-remapped/CookeryAcceptanceProbe.jar --source-probe plugins/CookeryAcceptanceProbe.jar --defining-craft-engine plugins/craftengine-26.9.1.jar --defining-server versions/1.21.11/paper-1.21.11.jar --kitchen-pack frozen-inputs/kitchen.zip --village-pack acceptance-world/datapacks/village.zip --java <已固定JDK的bin/java.exe> --output build/acceptance/<新冻结目录>
+```
+
+实际路径须按已准备候选指定，示例不是已经存在的实例或运行记录。清单及其摘要应在启动前独立保留，不能从探针结果生成。
+
+```powershell
+python tools/village_publication_candidate.py check --candidate build/acceptance/<新冻结目录>/candidate.json
+python tools/village_publication_candidate.py check-receipt --candidate build/acceptance/<新冻结目录>/candidate.json --registration <本次注册收据> --report <本次最终收据>
+```
+
+`check` 是启动前检查，会拒绝新增世界、结果文件、依赖、配置和初始可变 CE 输入漂移。`check-receipt` 允许本次运行产生的世界／结果，仍重新核对全部不可变输入，要求收据在同一实例、时间不早于冻结、四份 defining JAR 的实际路径／长度／SHA 与冻结清单相同，并调用严格回滚收据检查。成功输出仍明确 `wholeServerRun=NOT_CERTIFIED_BY_THIS_CHECK`。
+
+生产激活、完整资源屏障、启动部分失败控制、Paper/Folia 真正冷启动发布／回滚和自然五 biome 生成没有因增加此工具而完成。用户实服窗口仍待安排。

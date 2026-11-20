@@ -1,0 +1,89 @@
+{
+  "scope": "static_source_provenance_only_no_binary_rebuild",
+  "sourceCommit": "2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985",
+  "sourceCommitUrl": "https://github.com/Xiao-MoMi/craft-engine/commit/2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985",
+  "publishedJavaFiles": 2033,
+  "exactNormalizedGitBlobMatches": 2032,
+  "normalization": "CRCRLF and CRLF to LF only",
+  "soleVariant": {
+    "path": "core/src/main/java/net/momirealms/craftengine/core/util/VersionHelper.java",
+    "difference": "PREMIUM = false in Git, true in published source jar; all other normalized bytes identical",
+    "verified": true
+  },
+  "sourceJars": [
+    {
+      "module": "core",
+      "path": "build\\followups\\ce-upstream-resource-barrier-6\\craft-engine-core-26.9.1-sources.jar",
+      "url": "https://repo.momirealms.net/releases/net/momirealms/craft-engine-core/26.9.1/craft-engine-core-26.9.1-sources.jar",
+      "bytes": 1484006,
+      "sha256": "680db25e3c6bde661e02b353e50988afefdbbc6b750ccee534eb84831b712d80"
+    },
+    {
+      "module": "bukkit",
+      "path": "build\\followups\\ce-upstream-resource-barrier-6\\craft-engine-bukkit-26.9.1-sources.jar",
+      "url": "https://repo.momirealms.net/releases/net/momirealms/craft-engine-bukkit/26.9.1/craft-engine-bukkit-26.9.1-sources.jar",
+      "bytes": 878941,
+      "sha256": "f53afe676bb5f14a8cd35380c1b741e69f67416bbb943cffd82d0a32a68076e6"
+    }
+  ],
+  "selectedSources": [
+    {
+      "path": "core/src/main/java/net/momirealms/craftengine/core/plugin/CraftEngine.java",
+      "sha256": "007ee9ec565470dcf114a3255f8daa3cc9210bb7994029e7dec86587b2578248",
+      "normalizedSha256": "1ad513294d42a38e7b739e23a956c85704bff87dec5b5efb73ff7e32b8a0b672",
+      "gitBlob": "db05dc649c1454694f300229679033621de1c275",
+      "tag26_9Matches": true,
+      "commit26_9_1Matches": true
+    },
+    {
+      "path": "core/src/main/java/net/momirealms/craftengine/core/plugin/ResourceOperationCoordinator.java",
+      "sha256": "d7ac5adb441d1ecc158594cadba335fd7bd2f5c806e4a8ad2eadc50ab2386b6b",
+      "normalizedSha256": "fa38c1e027ef717c3b8b30eec907c5b26a2ccbf1841166513064dcaa45aa90e3",
+      "gitBlob": "204c0b5984ff26c8ac2e1aac3dc5f4375b205f27",
+      "tag26_9Matches": true,
+      "commit26_9_1Matches": true
+    },
+    {
+      "path": "core/src/main/java/net/momirealms/craftengine/core/plugin/compatibility/PluginTaskRegistry.java",
+      "sha256": "c0a42f93403d5439ba4e90e116817d955aa4ffaec60e5b7c94e03487954ccedd",
+      "normalizedSha256": "b4b2d63f6c9ad7f6388244956639893c038ac841e6865d6c38c2c943c7ec7fdb",
+      "gitBlob": "0b31cbabc582741e56844ba4d59646d0ff9a53f2",
+      "tag26_9Matches": true,
+      "commit26_9_1Matches": true
+    },
+    {
+      "path": "bukkit/src/main/java/net/momirealms/craftengine/bukkit/item/listener/ItemEventListener.java",
+      "sha256": "2bba37d2e0fd89f526fcadb7e995c8f737459e5160013e95c79707e5d0eb65a7",
+      "normalizedSha256": "d432934fe536876460d6f39230d990315e8917736295e6a38b469d374e530aa3",
+      "gitBlob": "352ac3e7b719e2bd314650be3766697e3c86a2ba",
+      "tag26_9Matches": true,
+      "commit26_9_1Matches": true
+    },
+    {
+      "path": "bukkit/src/main/java/net/momirealms/craftengine/bukkit/plugin/agent/RuntimePatcher.java",
+      "sha256": "5fbd93e438d3ad9a868e06217a47f9399655d7a0dab7d82d5f124001270dc6d8",
+      "normalizedSha256": "e89f90fac08707c8e47381e2b6908e4b622a35d03d93ce61fc399465dbf3bdb2",
+      "gitBlob": "e6bed830cc8370ce4ff0f2dc5fff244c1f47a082",
+      "tag26_9Matches": true,
+      "commit26_9_1Matches": true
+    },
+    {
+      "path": "bukkit/src/main/java/net/momirealms/craftengine/bukkit/plugin/injector/BlockGenerator.java",
+      "sha256": "5d6a00f2d18bf52fc5c78083618aae90b24ee60ce56cba8237db81c25ad209f8",
+      "normalizedSha256": "fb040fb79cbe34b24e1d14e29417a6d2aff3be171a4f2e4a6a28c06a8db62300",
+      "gitBlob": "097da6578c2469aabd6d80cef2fe277f03fbd492",
+      "tag26_9Matches": true,
+      "commit26_9_1Matches": true
+    },
+    {
+      "path": "bukkit/src/main/java/net/momirealms/craftengine/bukkit/world/BukkitWorldManager.java",
+      "sha256": "a7dbd1c79bd5ebda6f65434999e06400e9f13ec4f82f87d04f220dd1b4104ca6",
+      "normalizedSha256": "eef9177b5c7c036110f7756f763cbf6d9e3abd5543176dd5eb18bc004cb9bf71",
+      "gitBlob": "4ab5e5744a4eb6561d7a2fe590ba44062ca73f91",
+      "tag26_9Matches": true,
+      "commit26_9_1Matches": true
+    }
+  ],
+  "missing": "Native InjectedCustomChunkGenerator/FastNMS source absent from this commit tree; NMS helper source JAR routes return404",
+  "patchScope": "No full barrier patch generated against absent native sources; cooperative interface design only"
+}

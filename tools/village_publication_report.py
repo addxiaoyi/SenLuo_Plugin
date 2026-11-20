@@ -52,6 +52,10 @@ def _object(pairs: list[tuple[str, object]]) -> dict:
 def read_json(path: Path) -> dict:
     with path.open('rb') as stream:
         raw = stream.read(MAX_REPORT_BYTES + 1)
+    return decode_json(raw)
+
+
+def decode_json(raw: bytes) -> dict:
     require(0 < len(raw) <= MAX_REPORT_BYTES, 'Report exceeds its byte bound or is empty')
     def invalid_constant(value: str) -> None:
         raise ReportError('Invalid JSON constant: ' + value)
@@ -295,6 +299,17 @@ def validate(registration: dict, report: dict, expected: dict) -> dict:
             'scope': 'NATIVE_COLD_START_PUBLICATION_ROLLBACK_ONLY', 'naturalVillageIntegration': 'NOT_ACTIVATED'}
 
 
+def validate_files(registration_path: Path, report_path: Path, expected: dict) -> dict:
+    _manifest(expected)
+    stem = 'village-publication-smoke-' + expected['runId']
+    require(report_path.name == stem + '.json' and registration_path.name == stem + '-registration.json'
+            and report_path.resolve().parent == registration_path.resolve().parent, 'Receipt filenames do not bind the frozen run')
+    directory = report_path.parent
+    require(not (directory / (stem + '-missing-after-enable.json')).exists()
+            and not any(directory.glob(stem + '-duplicate-callback-*.json')), 'This run has a supplemental failure marker')
+    return validate(read_json(registration_path), read_json(report_path), expected)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--registration', type=Path, required=True)
@@ -303,14 +318,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         expected = read_json(args.expected)
-        _manifest(expected)
-        stem = 'village-publication-smoke-' + expected['runId']
-        require(args.report.name == stem + '.json' and args.registration.name == stem + '-registration.json'
-                and args.report.resolve().parent == args.registration.resolve().parent, 'Receipt filenames do not bind the frozen run')
-        directory = args.report.parent
-        require(not (directory / (stem + '-missing-after-enable.json')).exists()
-                and not any(directory.glob(stem + '-duplicate-callback-*.json')), 'This run has a supplemental failure marker')
-        result = validate(read_json(args.registration), read_json(args.report), expected)
+        result = validate_files(args.registration, args.report, expected)
         print(json.dumps(result, indent=2))
         return 0
     except (OSError, ReportError, RecursionError) as error:

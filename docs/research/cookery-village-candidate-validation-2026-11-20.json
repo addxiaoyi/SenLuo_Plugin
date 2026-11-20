@@ -1,0 +1,115 @@
+{
+  "date": "2026-11-20",
+  "scope": "static_candidate_input_freezing_and_source_provenance_no_live_candidate",
+  "python": {
+    "tests": 292,
+    "exitCode": 0,
+    "log": "build/village-candidate-full-python-8.log",
+    "candidateTests": 18,
+    "reportTests": 15,
+    "processOnlyGitConfigCount": 0,
+    "finalCanonicalPathAliasHardening": {
+      "tests": 18,
+      "result": "OK",
+      "log": "build/village-candidate-python-9.log"
+    },
+    "fixtureScope": "SYNTHETIC_TEMPORARY_INPUTS_NOT_RUNTIME_EVIDENCE"
+  },
+  "java": {
+    "sourceChangedInThisBatch": false,
+    "rerunForThisBatch": false,
+    "previousVerifiedTests": 963,
+    "evidence": "docs/research/cookery-village-publication-smoke-validation-2026-11-20.json"
+  },
+  "realPackCheck": {
+    "scope": "STATIC_REAL_ARCHIVE_INSTALLATION_CHECK_ONLY_NO_SERVER_INSTANCE_OR_RUNTIME",
+    "installedKitchenFiles": 2399,
+    "checkPacks": "PASS",
+    "productionVillageManifestBytes": "MATCHED",
+    "artifacts": [
+      {
+        "path": "build/followups/village-candidate-real-packs-2/frozen-inputs/kitchen.zip",
+        "bytes": 2992042,
+        "sha256": "32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe"
+      },
+      {
+        "path": "build/followups/village-candidate-real-packs-2/acceptance-world/datapacks/village.zip",
+        "bytes": 58924,
+        "sha256": "660e567a894617b318562205b8445058c07ebd055a322014e6da1bc9e7042174"
+      }
+    ],
+    "server": "NOT_STARTED",
+    "naturalVillageIntegration": "NOT_ACTIVATED"
+  },
+  "retainedFailedChecks": [
+    {
+      "log": "build/village-candidate-python-1.log",
+      "cause": "Windows temporary short-path alias compared to resolved path; canonicalization corrected"
+    },
+    {
+      "log": "build/village-candidate-python-4.log",
+      "cause": "missing plugin now rejects at complete source-role set check before file read; regression expectation corrected"
+    },
+    {
+      "log": "build/village-candidate-real-packs-1.log",
+      "cause": "long Windows asset path failed to open; extended native file paths and actual long-path regression added; failed extraction retained"
+    }
+  ],
+  "sourceAudit": {
+    "sourceCommit": "2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985",
+    "publishedJavaFiles": 2033,
+    "exactNormalizedGitBlobMatches": 2032,
+    "soleVariant": {
+      "path": "core/src/main/java/net/momirealms/craftengine/core/util/VersionHelper.java",
+      "difference": "PREMIUM = false in Git, true in published source jar; all other normalized bytes identical",
+      "verified": true
+    },
+    "recheckScript": "build/followups/ce-upstream-resource-barrier-6/verify_source_provenance.py",
+    "reviewSha256": "29ea1e66786575871a2a082a56476033bc12683f3694a2399adeac64f628e2a4",
+    "scope": "SOURCE_TEXT_PROVENANCE_ONLY_NO_BINARY_REBUILD_OR_INSTALLED_BARRIER"
+  },
+  "artifacts": [
+    {
+      "path": "build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar",
+      "bytes": 1940638,
+      "sha256": "258dfd37c65126781493238fda02f71a0b39a2e0f9a5725290d1b16e11ae4f1d"
+    },
+    {
+      "path": "build/acceptance/probe/CookeryAcceptanceProbe.jar",
+      "bytes": 290645,
+      "sha256": "819ae2d0e9f47de7fb939a4154417b4d3e3ef163c68908398e7ec9d8536d2fb3"
+    },
+    {
+      "path": "build/distribution/kitchen-sickle-1.zip",
+      "bytes": 2992042,
+      "sha256": "32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe"
+    },
+    {
+      "path": "build/distribution/village-empty-processor-1.zip",
+      "bytes": 58924,
+      "sha256": "660e567a894617b318562205b8445058c07ebd055a322014e6da1bc9e7042174"
+    }
+  ],
+  "candidate": {
+    "realPreparedInstance": "NONE",
+    "serverStartup": "NOT_RUN_USER_DEFERRED_WINDOW",
+    "inputScope": "immutable known fixture inputs plus separately frozen initial mutable CE input hashes",
+    "expectedArtifacts": "four defining JAR identities bound to input files and actual receipt paths",
+    "pluginFixture": "exactly declared Cookery/probe/CE source JARs; no arbitrary extra plugin certificate",
+    "javaRuntime": "executable plus complete existing bin/lib/conf/release file inventory",
+    "wholeRun": "NOT_CERTIFIED_BY_THIS_TOOL",
+    "commandAndEnvironment": "NOT_CAPTURED_NO_SERVER_LAUNCHED"
+  },
+  "evidenceDirectory": "build/evidence/village-candidate-final-1",
+  "open": [
+    "actual prepared Paper/Folia candidates and offline remapped defining artifact provenance",
+    "launch command/environment and prestart initial CE mutable-state proof",
+    "real cold-start publication rollback and complete server-run acceptance",
+    "native CE helper and exact scheduler source provenance before full cooperative resource barrier patch",
+    "production activation, startup failure response, reload/disable/generation barrier",
+    "five-biome natural generation, persistence, loot, native crops and full player/client acceptance",
+    "historical Folia watchdog root cause"
+  ],
+  "naturalVillageIntegration": "NOT_ACTIVATED",
+  "objective": "ACTIVE_NOT_COMPLETE"
+}
