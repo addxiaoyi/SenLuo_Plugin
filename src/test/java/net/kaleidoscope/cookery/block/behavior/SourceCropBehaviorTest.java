@@ -57,19 +57,65 @@ class SourceCropBehaviorTest {
         assertFalse(SourceCropBehavior.Crop.LETTUCE.canPick());
     }
 
+    @Test void supportReplayUsesOnlyTheCurrentBehaviorForTheRecordedCrop() throws Exception {
+        var tomato = Key.of("kaleidoscopecookery:tomato_crop");
+        var lettuce = Key.of("kaleidoscopecookery:lettuce_crop");
+        var definition = mock(BlockDefinition.class);
+        var oldDefinition = mock(BlockDefinition.class);
+        var age = IntegerProperty.create("age", 0, 7, 0);
+        var oldBehavior = behavior(oldDefinition, age, SourceCropBehavior.Crop.TOMATO);
+        var currentBehavior = behavior(definition, age, SourceCropBehavior.Crop.TOMATO);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        when(state.owner().value()).thenReturn(definition);
+        when(definition.id()).thenReturn(lettuce);
+        assertNull(SourceCropBehavior.supportBehavior(state, tomato));
+        verify(state, never()).behavior();
+
+        when(definition.id()).thenReturn(tomato);
+        when(state.behavior().getFirst(SourceCropBehavior.class)).thenReturn(oldBehavior, currentBehavior);
+        assertNull(SourceCropBehavior.supportBehavior(state, tomato));
+        assertSame(currentBehavior, SourceCropBehavior.supportBehavior(state, tomato));
+    }
+
     @Test void randomTicksAndNativeBonemealStopAtMaturity() throws Exception {
         var age = IntegerProperty.create("age", 0, 7, 0);
-        var behavior = behavior(age, SourceCropBehavior.Crop.TOMATO);
-        var state = mock(ImmutableBlockState.class);
+        var definition = mock(BlockDefinition.class);
+        var behavior = behavior(definition, age, SourceCropBehavior.Crop.TOMATO);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        var gate = new CeResourceReadGate(new ResourceOperationCoordinator(), () -> true);
+        assertTrue(gate.publish(new Object(), () -> true));
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(gate);
+        when(state.owner().value()).thenReturn(definition);
+        when(definition.id()).thenReturn(Key.of("kaleidoscopecookery:tomato_crop"));
+        when(state.behavior().getFirst(SourceCropBehavior.class)).thenReturn(behavior);
         Object raw = new Object();
-        try (var states = mockStatic(BlockStateUtils.class)) {
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS);
+             var states = mockStatic(BlockStateUtils.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
             states.when(() -> BlockStateUtils.getOptionalCustomBlockState(raw)).thenReturn(Optional.of(state));
             for (int value = 0; value < 8; value++) {
-                when(state.get(age)).thenReturn(value);
+                doReturn(value).when(state).get(age);
                 assertEquals(value < 7, behavior.canRandomlyTick(state));
                 assertEquals(value < 7, behavior.isValidBonemealTarget(null, new Object[]{null, null, raw}));
             }
             assertTrue(behavior.isBonemealSuccess(null, new Object[0]));
+        }
+    }
+
+    @Test void bonemealTargetFailsClosedWithoutDecodingAnUnpublishedGeneration() throws Exception {
+        var behavior = behavior(IntegerProperty.create("age", 0, 7, 0), SourceCropBehavior.Crop.TOMATO);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(null);
+        Object raw = new Object();
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS);
+             var states = mockStatic(BlockStateUtils.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+            assertFalse(behavior.isValidBonemealTarget(null, new Object[]{null, null, raw}));
+            assertFalse(behavior.isBonemealSuccess(null, new Object[0]));
+            states.verifyNoInteractions();
         }
     }
 

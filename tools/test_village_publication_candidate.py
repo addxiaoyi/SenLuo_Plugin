@@ -38,7 +38,9 @@ class VillagePublicationCandidateTest(unittest.TestCase):
         self.village = 'acceptance-world/datapacks/village.zip'
         self.metadata = {'sourceCommit': COMMIT, 'naturalVillageIntegration': 'NOT_IMPLEMENTED'}
         self.write('server.jar', b'launcher')
-        self.write('server.properties', b'server-ip=127.0.0.1\nenable-rcon=false\nlevel-name=acceptance-world\ninitial-enabled-packs=vanilla,file/village.zip\n')
+        properties = {**candidate.FIXTURE_PROPERTIES, 'server-port': '25565',
+                      'initial-enabled-packs': 'vanilla,file/village.zip', 'initial-disabled-packs': ''}
+        self.write('server.properties', ''.join(f'{key}={value}\n' for key, value in properties.items()).encode())
         self.write('plugins/CraftEngine/config.yml', b'misc:\n  delay-configuration-load: false\nchunk-system:\n  generation:\n    feature: true\n')
         self.write('plugins/CookeryAcceptanceProbe/config.yml', yaml.safe_dump({
             'village-publication-smoke': {'enabled': True, 'run-id': self.run_id}}).encode())
@@ -134,6 +136,26 @@ class VillagePublicationCandidateTest(unittest.TestCase):
                 self.assertFalse(self.output.exists())
         path.write_bytes(original)
 
+    def test_only_native_ce_font_offsets_allow_canonical_integer_keys(self):
+        path = self.instance / 'plugins/CraftEngine/config.yml'
+        config = path.read_bytes()
+        offsets = b"image:\n  offset-characters:\n    -1: first\n    256: last\n"
+        path.write_bytes(config + offsets)
+        with self.assertRaisesRegex(ReportError, 'non-string YAML key'):
+            candidate.configuration(path)
+        self.assertEqual({'-1': 'first', '256': 'last'}, candidate.configuration(path, engine=True)['image']['offset-characters'])
+        for suffix in (offsets + b'    -1: duplicate\n', offsets + b"    '-1': quoted-duplicate\n",
+                       offsets + b'    257: out-of-range\n', offsets + b'    0x1: non-canonical\n',
+                       b'    1: misplaced\n', b'other:\n  offset-characters:\n    -1: misplaced\n'):
+            with self.subTest(suffix=suffix):
+                path.write_bytes(config + suffix)
+                with self.assertRaises(ReportError):
+                    self.freeze()
+        path.write_bytes(config + offsets)
+        frozen = self.freeze()
+        candidate.verify(frozen)
+        self.assertEqual(config + offsets, path.read_bytes())
+
     def test_installed_kitchen_missing_extra_and_changed_bytes_cannot_be_frozen(self):
         path = self.instance / 'plugins/CraftEngine/resources/cookery_kitchen/pack.yml'
         path.write_bytes(b'wrong')
@@ -143,6 +165,52 @@ class VillagePublicationCandidateTest(unittest.TestCase):
         self.write('plugins/CraftEngine/resources/cookery_kitchen/extra.yml', b'extra')
         with self.assertRaises(ReportError):
             self.freeze()
+
+    def test_postrun_allows_only_the_bounded_generated_icon_file_and_semantic_properties(self):
+        frozen = self.freeze()
+        properties_path = self.instance / 'server.properties'
+        properties = candidate.read_properties(self.instance)
+        properties_path.write_bytes(('# rewritten by the server\r\n' + ''.join(
+            f'{key}={value}\r\n' for key, value in reversed(list(properties.items())))).encode())
+        generated = self.instance / candidate.GENERATED_ITEM_ICONS
+        generated.parent.mkdir(parents=True, exist_ok=True)
+        generated.write_text(
+            'images:\n'
+            '  kaleidoscopecookery:icon_beef:\n'
+            '    font: kaleidoscopecookery:food\n'
+            '    file: "kaleidoscopecookery:item/beef.png"\n'
+            '    height: 16\n'
+            '    ascent: 13\n', encoding='utf-8')
+        with self.assertRaisesRegex(ReportError, 'extra/missing files'):
+            candidate.verify(frozen)
+        candidate.verify(frozen, before_start=False)
+
+        properties_path.write_bytes(properties_path.read_bytes().replace(
+            b'server-ip=127.0.0.1', b'server-ip=0.0.0.0'))
+        with self.assertRaisesRegex(ReportError, 'isolated loopback'):
+            candidate.verify(frozen, before_start=False)
+        properties_path.write_bytes(('# rewritten by the server\r\n' + ''.join(
+            f'{key}={value}\r\n' for key, value in reversed(list(properties.items())))).encode())
+
+        generated.write_text('images: {unexpected: value}\n', encoding='utf-8')
+        with self.assertRaisesRegex(ReportError, 'unexpected shape'):
+            candidate.verify(frozen, before_start=False)
+        generated.write_text(
+            'images:\n'
+            '  kaleidoscopecookery:icon_beef:\n'
+            '    font: kaleidoscopecookery:food\n'
+            '    file: "kaleidoscopecookery:item/beef.png"\n'
+            '    height: 16\n'
+            '    ascent: 13\n', encoding='utf-8')
+        self.write('plugins/CraftEngine/resources/cookery_kitchen/extra.yml', b'unexpected')
+        with self.assertRaisesRegex(ReportError, 'extra/missing files'):
+            candidate.verify(frozen, before_start=False)
+
+    def test_preexisting_generated_icon_file_is_not_frozen_as_an_input(self):
+        self.write(candidate.GENERATED_ITEM_ICONS, b'images: {}\n')
+        with self.assertRaisesRegex(ReportError, 'extra/missing files'):
+            self.freeze()
+        self.assertFalse(self.output.exists())
 
     def test_native_pack_must_be_preinstalled_dormant_and_match_production_provenance(self):
         with ZipFile(self.instance / self.village, 'a') as archive:
@@ -266,7 +334,7 @@ class VillagePublicationCandidateTest(unittest.TestCase):
         properties = self.instance / 'server.properties'
         original = properties.read_bytes()
         for raw in (original.replace(b'vanilla,file/village.zip', b'vanilla'),
-                    original + b'initial-disabled-packs=vanilla\n'):
+                    original.replace(b'initial-disabled-packs=\n', b'initial-disabled-packs=vanilla\n')):
             changed = deepcopy(frozen)
             properties.write_bytes(raw)
             changed['files']['server.properties'] = candidate.fingerprint(properties)

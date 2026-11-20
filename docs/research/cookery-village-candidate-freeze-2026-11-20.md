@@ -8,7 +8,11 @@
 
 村庄 ZIP 必须真正位于初始世界 datapacks 目录，`server.properties` 的 `initial-enabled-packs` 明确包含 `vanilla,file/<村庄ZIP文件名>`，`initial-disabled-packs` 不得禁用它。目录中有包不等于已启用。包必须仍是固定来源的空 processor 占位，不能附带自然厨房模板／池；村庄清单原始字节还必须与 defining production JAR 的 `village-loot.json` 一致。
 
-厨房 ZIP 逐文件与实际安装的 `plugins/CraftEngine/resources/cookery_kitchen` 比较字节和完整文件集合，拒绝缺失、改变或额外文件。ZIP 在创建解析器前限制文件和中央目录，解压／CRC 前限制成员数、单文件和总解压量。JSON 拒绝重复键、非有限常量、过深或超量对象；YAML 拒绝重复键、别名及超量 token。路径和根／祖先链接不被静默解引用。
+启动前，厨房 ZIP 逐文件与实际安装的 `plugins/CraftEngine/resources/cookery_kitchen` 比较字节和完整文件集合，拒绝缺失、改变或额外文件。启动后只额外允许生产插件生成的 `configuration/font/generated_item_icons.yml`；它必须是有界 YAML，且每项符合图标字体配置的固定结构。ZIP 本身不得预置该路径。ZIP 在创建解析器前限制文件和中央目录，解压／CRC 前限制成员数、单文件和总解压量。JSON 拒绝重复键、非有限常量、过深或超量对象；YAML 拒绝重复键、别名及超量 token。路径和根／祖先链接不被静默解引用。
+
+启动前仍按原始字节冻结 `server.properties`。启动后允许服务端重写注释、行序和换行，但仍严格解析且拒绝重复键、歧义转义和续行；所有冻结时的键值必须保留，loopback、online mode、RCON/query/management、端口和 datapack 选择等约束仍逐项核对。收据阶段的不可变文件清单明确排除这项已按语义检查的属性文件，以及唯一可选的生成图标文件。
+
+离线 `prepare` 在同级唯一 staging 目录中装配和检查全部输入，只在校验成功后原子发布实例；目录／收据写入失败会按本次创建的文件身份清理半成品，允许对同一目标路径重试。失败注入回归覆盖检查失败与收据发布失败。这改善候选准备的恢复性，不构成服务器启动或村庄发布验收。
 
 此窄诊断实例只接受声明的 Cookery、probe、CE 三份 source plugin JAR，不给其他活动插件颁发不完整的输入证明。四份 defining JAR 必须分别声明并存在：production、probe、craftEngine、native server。若 Paper 需要 remap，source plugin 路径与 defining 路径可不同，但 remap 产物必须在冻结前已独立准备并固定；不能用旧探针的 remap 或在失败运行后回填摘要。
 
@@ -31,7 +35,7 @@ python tools/village_publication_candidate.py check --candidate build/acceptance
 python tools/village_publication_candidate.py check-receipt --candidate build/acceptance/<新冻结目录>/candidate.json --registration <本次注册收据> --report <本次最终收据>
 ```
 
-`check` 是启动前检查，会拒绝新增世界、结果文件、依赖、配置和初始可变 CE 输入漂移。`check-receipt` 允许本次运行产生的世界／结果，仍重新核对全部不可变输入，要求收据在同一实例、时间不早于冻结、四份 defining JAR 的实际路径／长度／SHA 与冻结清单相同，并调用严格回滚收据检查。成功输出仍明确 `wholeServerRun=NOT_CERTIFIED_BY_THIS_CHECK`。
+`check` 是启动前检查，会拒绝新增世界、结果文件、依赖、配置和初始可变 CE 输入漂移。`check-receipt` 允许本次运行产生的世界／结果，重新核对除上述两项明确 post-run 输出外的冻结不可变输入，并单独报告 `server.properties` 语义匹配；它还要求收据在同一实例、时间不早于冻结、四份 defining JAR 的实际路径／长度／SHA 与冻结清单相同，并调用严格回滚收据检查。成功输出仍明确 `wholeServerRun=NOT_CERTIFIED_BY_THIS_CHECK`。
 
 ## 独立启动记录
 

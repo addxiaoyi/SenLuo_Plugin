@@ -7,6 +7,7 @@ import net.kaleidoscope.cookery.util.InteractGuard;
 import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.kaleidoscope.cookery.util.ItemMatcher;
 import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.block.behavior.AbstractCanSurviveBlockBehavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -36,9 +37,13 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.event.CraftEventFactoryProxy;
+import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.ScheduledTickAccessProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.AABBProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.shapes.ShapesProxy;
 import org.bukkit.Bukkit;
@@ -87,10 +92,8 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
         return state.get(age) < SourceCropGrowth.MAX_AGE;
     }
 
-    // Survival/support checks and native planting/bonemeal callbacks are not
-    // covered by this first-stage gate; their earlier CE/native entry points
-    // still require a complete wrapper before they can be admitted safely.
     @Override protected boolean canSurvive(Object thisBlock, Object state, Object level, Object rawPos) {
+        if (!ServerLevelProxy.CLASS.isInstance(level)) return true;
         org.bukkit.World world = LevelProxy.INSTANCE.getWorld(level);
         BlockPos pos = LocationUtils.fromBlockPos(rawPos);
         // A boundary that this region does not own is unknown, never an invitation to load it.
@@ -100,6 +103,77 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
                 && world.getBlockAt(pos.x(), pos.y() - 1, pos.z()).getType() == Material.FARMLAND
                 && (BlockAndLightGetterProxy.INSTANCE.getRawBrightness(level, rawPos, 0) >= SourceCropGrowth.SURVIVAL_LIGHT
                     || block.getLightFromSky() == 15);
+    }
+
+    @Override public void onPlace(Object thisBlock, Object[] args) {
+        if (!queueSupport(args[1], args[2], 2)) super.onPlace(thisBlock, args);
+    }
+
+    @Override public Object updateShape(Object thisBlock, Object[] args) {
+        Object level = args[updateShape$level];
+        Object pos = args[updateShape$blockPos];
+        if (!queueSupport(level, pos, delay)) {
+            if (VersionHelper.isOrAbove1_21_2) {
+                ScheduledTickAccessProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, delay);
+            } else {
+                LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, delay);
+            }
+        }
+        return args[0];
+    }
+
+    private boolean queueSupport(Object level, Object pos, int ticks) {
+        if (!ServerLevelProxy.CLASS.isInstance(level)) return false;
+        var plugin = KaleidoscopeCookeryPlugin.instance();
+        var checks = plugin != null && plugin.isEnabled() ? plugin.sourceCropSupportChecks() : null;
+        return checks != null && checks.schedule(LevelProxy.INSTANCE.getWorld(level), LocationUtils.fromBlockPos(pos),
+                blockDefinition.id(), ticks);
+    }
+
+    @Override public void tick(Object thisBlock, Object[] args) {
+        // Native fallback for older scheduled ticks and for checks that did not fit in the queue.
+        Object level = args[1], pos = args[2];
+        if (!ServerLevelProxy.CLASS.isInstance(level)) return;
+        org.bukkit.World world = LevelProxy.INSTANCE.getWorld(level);
+        BlockPos blockPos = LocationUtils.fromBlockPos(pos);
+        if (!owned(world, blockPos.x(), blockPos.z())) return;
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            if (guard != null) {
+                recheckSupport(level, pos, blockDefinition.id());
+            } else if (!queueSupport(level, pos, delay)) {
+                var plugin = KaleidoscopeCookeryPlugin.instance();
+                if (plugin != null && plugin.isEnabled()) {
+                    LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, delay);
+                }
+            }
+        }
+    }
+
+    // Invoked by the owner tick with an active resource guard. Re-resolve the block
+    // after a reload; neither the earlier native state nor its behavior can be reused.
+    static void recheckSupport(org.bukkit.World world, BlockPos pos, Key definitionId) {
+        if (!owned(world, pos.x(), pos.z())) return;
+        recheckSupport(BukkitAdaptor.adapt(world).minecraftWorld(), LocationUtils.toBlockPos(pos), definitionId);
+    }
+
+    private static void recheckSupport(Object level, Object pos, Key definitionId) {
+        Object raw = BlockGetterProxy.INSTANCE.getBlockStateIfLoaded(level, pos);
+        if (raw == null) return;
+        ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(raw).orElse(null);
+        SourceCropBehavior crop = supportBehavior(state, definitionId);
+        if (crop != null) crop.nativeSupportTick(level, pos, raw);
+    }
+
+    static SourceCropBehavior supportBehavior(ImmutableBlockState state, Key definitionId) {
+        if (state == null || state.isEmpty()) return null;
+        BlockDefinition definition = state.owner().value();
+        if (definition == null || !definitionId.equals(definition.id())) return null;
+        SourceCropBehavior crop = state.behavior().getFirst(SourceCropBehavior.class);
+        return crop != null && crop.blockDefinition == definition ? crop : null;
+    }
+
+    private void nativeSupportTick(Object level, Object pos, Object raw) {
+        super.tick(BlockStateUtils.getBlockOwner(raw), new Object[]{raw, level, pos});
     }
 
     @Override public void randomTick(Object thisBlock, Object[] args) {
@@ -149,24 +223,36 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     @Override public boolean isValidBonemealTarget(Object thisBlock, Object[] args) {
-        // Bone-meal target lookup is not in this first-stage resource-read contract.
-        return BlockStateUtils.getOptionalCustomBlockState(args[2]).filter(this::canRandomlyTick).isPresent();
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            if (guard == null) return false;
+            ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[2]).orElse(null);
+            return supportBehavior(state, blockDefinition.id()) == this && canRandomlyTick(state);
+        }
     }
 
-    @Override public boolean isBonemealSuccess(Object thisBlock, Object[] args) { return true; }
+    @Override public boolean isBonemealSuccess(Object thisBlock, Object[] args) {
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            return guard != null;
+        }
+    }
 
     @Override public void performBonemeal(Object thisBlock, Object[] args) {
-        // The complete native item-use/fallback transaction is not wrapped here.
-        ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[3]).orElse(null);
-        if (state == null || !canRandomlyTick(state)) return;
-        org.bukkit.World world = LevelProxy.INSTANCE.getWorld(args[0]);
-        BlockPos pos = LocationUtils.fromBlockPos(args[2]);
-        if (!owned(world, pos.x(), pos.z())) return;
-        int nextAge = SourceCropGrowth.bonemealAge(state.get(age), ThreadLocalRandom.current().nextInt(2, 6));
-        if (grow(args[0], args[2], state, nextAge)) {
-            // Tripwire-backed clients do not emit native crop bonemeal particles themselves.
-            Particles.emit(world, Particle.HAPPY_VILLAGER, pos.x() + .5, pos.y() + .5, pos.z() + .5,
-                    15, .25, .25, .25, 0, null);
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            if (guard == null) return;
+            Object level = args[0], rawPos = args[2];
+            if (!ServerLevelProxy.CLASS.isInstance(level)) return;
+            org.bukkit.World world = LevelProxy.INSTANCE.getWorld(level);
+            BlockPos pos = LocationUtils.fromBlockPos(rawPos);
+            if (!owned(world, pos.x(), pos.z())) return;
+            Block block = world.getBlockAt(pos.x(), pos.y(), pos.z());
+            ImmutableBlockState state = CraftEngineBlocks.getCustomBlockState(block);
+            if (supportBehavior(state, blockDefinition.id()) != this || !canRandomlyTick(state)) return;
+            int nextAge = SourceCropGrowth.bonemealAge(state.get(age), ThreadLocalRandom.current().nextInt(2, 6));
+            if (grow(level, rawPos, state, nextAge)) {
+                // Tripwire-backed clients do not emit native crop bonemeal particles themselves.
+                Particles.emit(world, Particle.HAPPY_VILLAGER, pos.x() + .5, pos.y() + .5, pos.z() + .5,
+                        15, .25, .25, .25, 0, null);
+            }
         }
     }
 

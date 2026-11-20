@@ -71,6 +71,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
     private BaoziThrowListener baoziThrows;
     private SteamerTransientBlockListener steamerTransients;
     private volatile CeResourceReadGate sourceCropReadGate;
+    private volatile net.kaleidoscope.cookery.block.behavior.SourceCropSupportChecks sourceCropSupportChecks;
 
     @Override
     public void onLoad() {
@@ -105,6 +106,9 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         sourceCropReadGate = new CeResourceReadGate(craftEngine.resourceOperations(),
                 () -> isEnabled() && !craftEngine.isDisabled() && !craftEngine.isStopping()
                         && !craftEngine.isEnabling() && !craftEngine.isReloading());
+        var supportChecks = new net.kaleidoscope.cookery.block.behavior.SourceCropSupportChecks();
+        getServer().getPluginManager().registerEvents(supportChecks, this);
+        sourceCropSupportChecks = supportChecks;
         net.kaleidoscope.cookery.nms.NativeSickleAccessProvider.registerObserver(this);
         var cookeryCatalog = net.kaleidoscope.cookery.catalog.CookeryCatalog.bundled();
         net.kaleidoscope.cookery.item.CookeryFoodItems.initialize(cookeryCatalog);
@@ -166,6 +170,8 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        var supportChecks = sourceCropSupportChecks;
+        if (supportChecks != null) supportChecks.close();
         CeResourceReadGate readGate = sourceCropReadGate;
         if (readGate != null) readGate.invalidate();
         if (cookeryEffects != null) cookeryEffects.close();
@@ -303,6 +309,10 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
     }
 
     public CeResourceReadGate sourceCropReadGate() { return sourceCropReadGate; }
+
+    public net.kaleidoscope.cookery.block.behavior.SourceCropSupportChecks sourceCropSupportChecks() {
+        return sourceCropSupportChecks;
+    }
 
     public static CeResourceReadGate.Guard tryEnterSourceCropResources() {
         KaleidoscopeCookeryPlugin plugin = instance();

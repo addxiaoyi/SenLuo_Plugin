@@ -34,8 +34,18 @@ BASE_FILES = ('server.jar', 'server.properties', 'plugins/CraftEngine/config.yml
 # Paperclip keeps the vanilla client/runtime JAR at this stable path.  Include
 # only this known dependency when present; the rest of cache/ is mutable state.
 PAPERCLIP_CLIENT = 'cache/mojang_1.21.11.jar'
-FIXTURE_PROPERTIES = {'server-ip': '127.0.0.1', 'enable-rcon': 'false', 'level-name': 'acceptance-world'}
+FIXTURE_PROPERTIES = {
+    'server-ip': '127.0.0.1', 'online-mode': 'true', 'enable-rcon': 'false', 'enable-query': 'false',
+    'management-server-enabled': 'false', 'level-name': 'acceptance-world', 'max-players': '2',
+    'view-distance': '4', 'simulation-distance': '4', 'spawn-protection': '0',
+}
 PACK_PROPERTIES = {'initial-enabled-packs', 'initial-disabled-packs'}
+RUNTIME_PROPERTIES = (*FIXTURE_PROPERTIES, 'server-port', 'initial-enabled-packs', 'initial-disabled-packs')
+GENERATED_ITEM_ICONS = 'plugins/CraftEngine/resources/cookery_kitchen/configuration/font/generated_item_icons.yml'
+POSTRUN_MUTABLE_POLICY = {
+    'server.properties': 'SERVER_REWRITES_ALLOWED_AFTER_STARTUP;SEMANTIC_POLICY_STILL_REQUIRED',
+    GENERATED_ITEM_ICONS: 'OPTIONAL_PRODUCTION_PLUGIN_OUTPUT;BOUNDED_AND_EXCLUDED_FROM_ZIP_TREE',
+}
 
 
 def unlinked_path(path: Path) -> Path:
@@ -143,7 +153,7 @@ def inventory(instance: Path, paths: list[str]) -> dict:
     return result
 
 
-def input_paths(instance: Path, extra: list[str]) -> list[str]:
+def input_paths(instance: Path, extra: list[str], *, before_start: bool = True) -> list[str]:
     instance = instance.resolve()
     paths = list(BASE_FILES) + list(extra)
     paths.extend(name for name in ('eula.txt', 'bukkit.yml', 'spigot.yml') if (instance / name).exists())
@@ -160,8 +170,15 @@ def input_paths(instance: Path, extra: list[str]) -> list[str]:
         if directory.exists():
             require(directory.is_dir(), 'Expected candidate input directory: ' + name)
             for path in walk_files(directory):
-                paths.append(path.relative_to(instance).as_posix())
+                relative = path.relative_to(instance).as_posix()
+                if not before_start and relative in POSTRUN_MUTABLE_POLICY:
+                    continue
+                paths.append(relative)
                 require(len(paths) <= MAX_FILES * 2, 'Too many candidate input paths')
+    if not before_start:
+        properties = contained(instance, 'server.properties')
+        fingerprint(properties)
+        paths.remove('server.properties')
     return sorted(set(paths))
 
 
@@ -226,7 +243,7 @@ def _mapping(loader, node, deep=False):
 StrictYaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _mapping)
 
 
-def configuration(path: Path) -> dict:
+def configuration(path: Path, *, engine: bool = False) -> dict:
     require(path.stat().st_size <= 1_048_576, 'Configuration exceeds its bound')
     with path.open('rb') as stream:
         raw = stream.read(1_048_577)
@@ -237,17 +254,41 @@ def configuration(path: Path) -> dict:
         tokens += 1
         require(tokens <= 100_000 and not isinstance(token, (yaml.AliasToken, yaml.AnchorToken)),
                 'Configuration aliases or excessive tokens are unsupported')
-    value = yaml.load(text, Loader=StrictYaml)
+    loader = StrictYaml(text)
+    try:
+        node = loader.get_single_node()
+        if engine:
+            offsets = node
+            for name in ('image', 'offset-characters'):
+                offsets = next((value for key, value in offsets.value if isinstance(key, yaml.ScalarNode)
+                                and key.tag == 'tag:yaml.org,2002:str' and key.value == name), None) \
+                    if isinstance(offsets, yaml.MappingNode) else None
+            if isinstance(offsets, yaml.MappingNode):
+                # CE 26.9.1's bundled font offsets use unquoted decimal keys here.
+                # Normalize only this reader's nodes; leave the original YAML intact.
+                for key, _ in offsets.value:
+                    if isinstance(key, yaml.ScalarNode) and key.tag == 'tag:yaml.org,2002:int':
+                        require(re.fullmatch(r'-?[1-9][0-9]{0,2}', key.value) and abs(int(key.value)) <= 256,
+                                'Unsupported CraftEngine font offset key')
+                        key.tag = 'tag:yaml.org,2002:str'
+        value = loader.construct_document(node) if node is not None else None
+    finally:
+        loader.dispose()
     require(type(value) is dict, 'Configuration must be a YAML mapping')
     return value
 
 
-def inspect_fresh(instance: Path, run_id: str) -> dict:
-    require(instance.is_dir() and instance.is_relative_to(ACCEPTANCE.resolve()) and instance != ACCEPTANCE.resolve(),
-            'Use a fresh isolated instance under this checkout/build/acceptance')
-    require(str(uuid.UUID(run_id)) == run_id, 'Run UUID must be canonical')
-    with fs_path(contained(instance, 'server.properties')).open('rb') as stream:
+def read_properties(instance: Path) -> dict[str, str]:
+    path = contained(instance, 'server.properties')
+    before = fs_path(path).stat()
+    require(stat.S_ISREG(before.st_mode) and before.st_size <= 1_048_576,
+            'server.properties exceeds its read bound')
+    with fs_path(path).open('rb') as stream:
         raw = stream.read(1_048_577)
+    after = fs_path(path).stat()
+    require((before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) ==
+            (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns) and len(raw) == before.st_size,
+            'server.properties changed during inspection')
     require(len(raw) <= 1_048_576, 'server.properties exceeds its read bound')
     properties = {}
     # Accept only unambiguous keys; Java also interprets key escapes and continuations.
@@ -262,8 +303,27 @@ def inspect_fresh(instance: Path, run_id: str) -> dict:
         require((key not in FIXTURE_PROPERTIES and key not in PACK_PROPERTIES) or '\\' not in value,
                 'Escaped fixture or datapack properties are unsupported')
         properties[key] = value
+
+    return properties
+
+
+def check_fixture_properties(properties: dict[str, str]) -> None:
     for key, value in FIXTURE_PROPERTIES.items():
         require(properties.get(key) == value, 'Candidate is not the isolated loopback fixture: ' + key)
+
+
+def inspect_fresh(instance: Path, run_id: str) -> dict:
+    require(instance.is_dir() and instance.is_relative_to(ACCEPTANCE.resolve()) and instance != ACCEPTANCE.resolve(),
+            'Use a fresh isolated instance under this checkout/build/acceptance')
+    require(str(uuid.UUID(run_id)) == run_id, 'Run UUID must be canonical')
+    properties = read_properties(instance)
+    check_fixture_properties(properties)
+    require(all(key in properties for key in RUNTIME_PROPERTIES),
+            'Candidate must explicitly set every frozen runtime property')
+    require(type(properties['server-port']) is str
+            and re.fullmatch(r'[1-9][0-9]{0,4}', properties['server-port']) is not None
+            and int(properties['server-port']) <= 65_535,
+            'Candidate server-port must be an explicit valid port')
     world = contained(instance, 'acceptance-world')
     if world.exists():
         require(world.is_dir() and all(path.name == 'datapacks' for path in world.iterdir()),
@@ -276,7 +336,7 @@ def inspect_fresh(instance: Path, run_id: str) -> dict:
     probe = configuration(reports / 'config.yml').get('village-publication-smoke')
     require(type(probe) is dict and probe.get('enabled') is True and probe.get('run-id') == run_id,
             'Probe opt-in and run UUID must be prepared explicitly')
-    engine = configuration(contained(instance, 'plugins/CraftEngine/config.yml'))
+    engine = configuration(contained(instance, 'plugins/CraftEngine/config.yml'), engine=True)
     require(type(engine.get('misc')) is dict and engine['misc'].get('delay-configuration-load') is False,
             'Cold-start smoke requires explicit non-delayed CE configuration')
     require(type(engine.get('chunk-system')) is dict and type(engine['chunk-system'].get('generation')) is dict
@@ -285,7 +345,7 @@ def inspect_fresh(instance: Path, run_id: str) -> dict:
     return properties
 
 
-def check_packs(instance: Path, kitchen: str, village: str) -> None:
+def check_packs(instance: Path, kitchen: str, village: str, *, before_start: bool = True) -> None:
     kitchen_path, village_path = contained(instance, kitchen), contained(instance, village)
     require(village_path.parent == instance / 'acceptance-world/datapacks' and village_path.suffix == '.zip',
             'Village pack must be preinstalled in the initial world datapacks directory')
@@ -312,7 +372,30 @@ def check_packs(instance: Path, kitchen: str, village: str) -> None:
             require(fingerprint(target)['sha256'] == hashlib.sha256(archive.read(entry)).hexdigest(),
                     'Installed kitchen bytes differ from frozen ZIP: ' + entry.filename)
             expected.add(target.relative_to(instance).as_posix())
+        require(not any(path.casefold() == GENERATED_ITEM_ICONS.casefold() for path in expected),
+                'Kitchen ZIP must not prepopulate the production-generated item icon file')
         actual = {path.relative_to(instance).as_posix() for path in walk_files(contained(instance, 'plugins/CraftEngine/resources/cookery_kitchen'))}
+        if not before_start and GENERATED_ITEM_ICONS in actual:
+            generated = contained(instance, GENERATED_ITEM_ICONS)
+            before = fingerprint(generated)
+            require(before['bytes'] <= 1_048_576, 'Generated item icon configuration exceeds its read bound')
+            value = configuration(generated)
+            images = value.get('images')
+            require(set(value) == {'images'} and (images is None or type(images) is dict)
+                    and (images is None or len(images) <= 10_000),
+                    'Generated item icon configuration has an unexpected shape')
+            if images is not None:
+                for key, image in images.items():
+                    require(re.fullmatch(r'kaleidoscopecookery:icon_[a-z0-9_.-]+', key) is not None
+                            and type(image) is dict and set(image) == {'font', 'file', 'height', 'ascent'}
+                            and image.get('font') == 'kaleidoscopecookery:food'
+                            and type(image.get('file')) is str
+                            and re.fullmatch(r'[a-z0-9_.-]+:(?:[a-z0-9_.-]+/)*[a-z0-9_.-]+\.png', image['file'])
+                            and image.get('height') == 16 and type(image.get('height')) is int
+                            and image.get('ascent') == 13 and type(image.get('ascent')) is int,
+                            'Generated item icon entry has an unexpected shape')
+            require(fingerprint(generated) == before, 'Generated item icon configuration changed during inspection')
+            actual.remove(GENERATED_ITEM_ICONS)
         require(actual == expected, 'Installed kitchen pack has extra/missing files')
     with bounded_zip(village_path) as archive:
         require(len(archive.infolist()) <= 1_000
@@ -337,6 +420,26 @@ def check_initial_pack_selection(properties: dict, village: str) -> None:
     disabled = {value.strip() for value in properties.get('initial-disabled-packs', '').split(',')}
     require(required.issubset(enabled) and required.isdisjoint(disabled),
             'Explicitly enable vanilla and the chosen village datapack for the initial native registry load')
+
+
+def check_postrun_properties(instance: Path, expected: dict, village: str) -> None:
+    required = set(RUNTIME_PROPERTIES)
+    require(type(expected) is dict and required.issubset(expected)
+            and all(type(key) is str and re.fullmatch(r'[A-Za-z0-9_.-]+', key) is not None
+                    and type(value) is str for key, value in expected.items()),
+            'Frozen runtime property expectations are missing or incomplete')
+    require(re.fullmatch(r'[1-9][0-9]{0,4}', expected['server-port']) is not None
+            and int(expected['server-port']) <= 65_535,
+            'Frozen server-port must be an explicit valid port')
+    check_fixture_properties(expected)
+    check_initial_pack_selection(expected, village)
+    actual = read_properties(instance)
+    check_fixture_properties(actual)
+    check_initial_pack_selection(actual, village)
+    for key in expected:
+        expected_value = expected[key]
+        actual_value = actual.get(key, '')
+        require(actual_value == expected_value, 'Server property changed after startup: ' + key)
 
 
 def check_production_provenance(instance: Path, production_path: str, village: str) -> None:
@@ -368,11 +471,13 @@ def freeze(instance: Path, platform: str, run_id: str, defining: dict[str, str],
     expected = {'schema': 'village-publication-expected-v1', 'runId': run_id, 'platform': platform,
                 'artifacts': {name: before[path] for name, path in defining.items()}}
     _manifest(expected)
+    runtime_properties = dict(properties)
     candidate = {'schema': 'village-publication-candidate-v1', 'runId': run_id, 'platform': platform,
                  'frozenAt': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'), 'instance': str(instance),
                  'definingPaths': defining, 'kitchenPack': kitchen, 'villagePack': village,
                  'files': before, 'javaExecutable': str(java), 'javaRuntime': runtime, 'expected': expected,
-                 'sourcePlugins': sources, 'initialMutableInputs': mutable,
+                 'sourcePlugins': sources, 'runtimeProperties': runtime_properties,
+                 'postRunMutablePolicy': POSTRUN_MUTABLE_POLICY, 'initialMutableInputs': mutable,
                  'mutableInputScope': 'INITIAL_HASHES_ONLY_POSTRUN_CHANGES_REQUIRE_EXTERNAL_RUNTIME_EVIDENCE',
                  'launchCommandAndEnvironment': 'NOT_CAPTURED_NO_SERVER_LAUNCHED',
                  'startup': 'NOT_RUN', 'naturalVillageIntegration': 'NOT_ACTIVATED',
@@ -397,6 +502,8 @@ def verify(candidate: dict, before_start: bool = True) -> None:
     require(candidate.get('schema') == 'village-publication-candidate-v1'
             and candidate.get('startup') == 'NOT_RUN' and candidate.get('naturalVillageIntegration') == 'NOT_ACTIVATED', 'Unknown frozen candidate')
     _manifest(candidate['expected'])
+    require(candidate.get('postRunMutablePolicy') == POSTRUN_MUTABLE_POLICY,
+            'Unknown or detached post-run runtime output policy')
     require(type(candidate.get('definingPaths')) is dict
             and set(candidate['definingPaths']) == {'production', 'probe', 'craftEngine', 'server'}
             and len(set(candidate['definingPaths'].values())) == 4, 'Detached or aliased defining artifact roles')
@@ -407,11 +514,21 @@ def verify(candidate: dict, before_start: bool = True) -> None:
     plugin_sources(instance, candidate['definingPaths'], candidate['sourcePlugins'])
     extra = list(candidate['definingPaths'].values()) + [candidate['kitchenPack'], candidate['villagePack']]
     if before_start:
-        check_initial_pack_selection(inspect_fresh(instance, candidate['runId']), candidate['villagePack'])
+        properties = inspect_fresh(instance, candidate['runId'])
+        check_initial_pack_selection(properties, candidate['villagePack'])
+        require(properties == candidate.get('runtimeProperties'),
+                'Frozen runtime property expectations drifted before startup')
         require(mutable_inputs(instance) == candidate['initialMutableInputs'], 'Initial CE mutable inputs drifted before startup')
-    check_packs(instance, candidate['kitchenPack'], candidate['villagePack'])
+    else:
+        check_postrun_properties(instance, candidate.get('runtimeProperties'), candidate['villagePack'])
+    check_packs(instance, candidate['kitchenPack'], candidate['villagePack'], before_start=before_start)
     check_production_provenance(instance, candidate['definingPaths']['production'], candidate['villagePack'])
-    require(inventory(instance, input_paths(instance, extra)) == candidate['files'], 'Frozen candidate files drifted')
+    observed_inventory = inventory(instance, input_paths(instance, extra, before_start=before_start))
+    expected_inventory = candidate['files'] if before_start else {
+        path: value for path, value in candidate['files'].items() if path not in POSTRUN_MUTABLE_POLICY
+    }
+    require(observed_inventory == expected_inventory,
+            'Frozen candidate files drifted')
     require(type(candidate.get('javaExecutable')) is str and java_inventory(Path(candidate['javaExecutable'])) == candidate['javaRuntime'],
             'Frozen Java runtime drifted or was detached from its complete file inventory')
     require(candidate['runId'] == candidate['expected']['runId'] and candidate['platform'] == candidate['expected']['platform'], 'Candidate identity drifted')
@@ -440,6 +557,9 @@ def verify_receipt_snapshots(candidate: dict, registration: Path, report: Path) 
     verify(candidate, before_start=False)
     check_current_receipt_snapshots(registration_snapshot, report_snapshot)
     return ({**result, 'inputInventory': 'MATCHED',
+             'inputInventoryScope': 'IMMUTABLE_INPUTS_EXCLUDING_DECLARED_POSTRUN_OUTPUTS',
+             'postRunProperties': 'SEMANTICALLY_MATCHED',
+             'excludedPostRunOutputs': sorted(POSTRUN_MUTABLE_POLICY),
              'initialMutableInputs': 'FROZEN_ONLY_REQUIRES_PRESTART_AND_RUNTIME_EVIDENCE',
              'wholeServerRun': 'NOT_CERTIFIED_BY_THIS_CHECK'}, registration_snapshot, report_snapshot)
 
