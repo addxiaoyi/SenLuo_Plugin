@@ -12,6 +12,8 @@
 
 **2026-11-20 后续复验：** 修复 CE `CraftEngineReloadEvent` 早于注册表重建结束时的观察和形状重绑时序。现有探针会在重载期间返回明确的 not-ready 快照；connected runner 要求新 epoch、8 个规范物品、三个作物方块及 24 个龄形状全部就绪，随后才算重载完成。全量复验通过 605 Java、236 根 Python、78 系列 Python 和 272 connected Node 测试；Paper/Folia 核心 Java、NMS、探针、Shadow JAR 均已编译。一次不受限测试 JVM 因 Windows 页面文件分配失败退出；改用串行、384 MiB 测试 fork 后 605 项测试全部通过。最新 JAR 哈希及失败记录见本地 `build/CONTINUE-CROPS-2026-11-20.md`。
 
+重载修复提交 `5fd3f7ef1cc9cc154db5d684b3d97036b726dfb7` 已推送；其 GitHub Actions run [44658803770](https://github.com/addxiaoyi/SenLuo_Plugin/actions/runs/44658803770) 已完成且通过。
+
 独立 Paper bootstrap `sc3/paper-pack-1` 已正常退出 0：food 103/103、enchantment 构造 5/5、CE default workflow 完成、托管包 CRC 与 24 个模型校验通过；托管包 SHA-256 为 `ed7f5ac70f6c9766d1aa00506c7ce01a9a57795869821ba03ff6dd8040224801`。该证据不含作物真实交互。旧 `sc3/paper-core-1/2` 均失败；第二轮确认真实 `ce reload config` 事件早于作物规范物品注册，两个玩家的资源读取不能算重载验收。修复后全新 `sc4` Paper/Folia 实例已准备并锁定 JAR、ZIP、EULA、依赖哈希，Paper 与 Folia 均为空白世界；目前尚未运行新 Paper core。下一步按严格流程在 Paper 完成两次真实 reload→workflow→双客户端下载及官方 reader，再对 Paper、Folia 分别完成 `seed → verify → empty`。不要复用 sc3 失败实例。
 
 ## 三种来源作物推进中
