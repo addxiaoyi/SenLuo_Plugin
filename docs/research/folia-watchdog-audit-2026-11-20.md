@@ -157,3 +157,130 @@ watchdog 的 `ThreadDump` 发生在长握手结束后约 170 ms；控制台中�
 窗口有 13 条 `ThreadCPULoad`，区域线程唯一一条在 **19:55:03.195602323**，`user=0.0018346267`、`system=0.0`，不在上述比较区间；不能用它代替报警期间的线程 CPU 时间线。`machineTotal=1.0` 与较低的 JVM 占比是同时观察，缺少同一时段外部进程和 OS 调度明细，不能给其他进程归因，也不能由此宣布 CPU 竞争已经确立或排除。
 
 此次解码缩小了证据边界：GP2 有一条以报警区域线程为调用方、与报警比较区间重叠的 **9.467 秒阻塞 VM 握手记录**；另有长 OldGC 周期、机器 CPU 样本饱和，以及报警后 CE 加载／注册和短时间 join。规范化 GC 暂停仍仅为几十毫秒，握手记录也尚未给出任务／目标线程及耗时原因。下一步应围绕该握手核对尚未导出的关联记录，或采用固定候选的受控复现与 OS 进程级记录；不能因为事件数量、OldGC 周期长度、CPU 相关性或缺少区域线程采样而宣布根因已修复。
+
+## GP2 长握手触发链的后续复核（analysis-3）
+
+后续将 v2 辅助程序复制为独立的 `build/InspectWatchdogJfrTrigger.java`，只导出 `RetransformClasses`、`ClassRedefinition`、`JavaErrorThrow`、`CompilationFailure`、`Compilation` 五类事件；v2 源文件及 analysis-1／2 均保留。一次与 v2 相同低内存参数的 Java 源码启动退出 0，写入全新 `build/watchdog-gp2-analysis-3/` 和独立 supervisor 日志，执行结束即释放 JVM 窗口；后续仅使用 Python 分析，没有启动服务器或修改产品代码。
+
+此次窗口扩为 `2026-11-19T11:53:09Z`–`11:58:01Z`，覆盖完整录制的事件时间范围，以区分早期启动活动和报警邻近活动。81,596 条记录完整读至末尾，输入前后哈希仍为 `a0b51e055ddbd73542586b502e1dd5626f95a2a725291d07b4d3d13233d2376e`，状态 `SUCCEEDED`。五类事件完整计数如下：
+
+| 事件 | 已导出数量 |
+| --- | --- |
+| `RetransformClasses` | 2 |
+| `ClassRedefinition` | 2 |
+| `JavaErrorThrow` | 498 |
+| `CompilationFailure` | 44 |
+| `Compilation` | 207 |
+
+`fieldExtractionErrors=0`、`intentionallyOmittedFields=0`，但不能写成“全部无截断”：有 **1 次文本截断**，是北京时间 19:53:19.568501380、`ServerMain` 的 JNA `UnsatisfiedLinkError`／`numa` 加载消息，原始 20,446 字符，按输出上限保留 4,096 字符并明确标记；发生在握手前约 102 秒。另有 **68** 条事件的原录制栈标记为 truncated，输出未再裁掉原录制帧（`outputStackTruncated` 全为 false）。下述握手前邻近事件的 35 帧完整，两个重转换事件的 33／17 帧也都未截断。
+
+| 新产物 | SHA-256 |
+| --- | --- |
+| `watchdog-gp2-analysis-3/summary.json`，4,787 字节 | `87703ad2a41d6618c2208815ebcd67a4844d24073a53e19047cad631c13a8daf` |
+| `watchdog-gp2-analysis-3/events.jsonl`，6,031,586 字节 | `f9fc123c61d6190ff59d7a546e881d2547ea4974998ecc6efb05c3b7f5f8d296` |
+| `InspectWatchdogJfrTrigger.java`，18,173 字节 | `a528c028c7958a945e8db57d2b730ce1b5ac9b1b10b573a7ec5181e32515623c` |
+| `watchdog-gp2-analysis-3-supervisor.log`，867 字节 | `b9014c5beb15aa0a4af4583eb76f2cda6332a8be690ddb614ae25d0e097f170a` |
+
+### 类重转换发生在更早的 CE onLoad
+
+两条 `RetransformClasses` 的线程都是 `Server thread`（Java id 52），不是报警区域线程 id 63；每次 `classCount=1`：
+
+| 北京时间起止 | duration | redefinitionId | 明确可见的调用路径 |
+| --- | --- | --- | --- |
+| 19:54:02.973721147–19:54:03.175839523 | 202.118376 ms | 2 | `InstrumentationImpl.retransformClasses0` → CE shaded ByteBuddy install → `MerchantItemMatchAgent.install:53` → `RuntimePatcher.installMerchantItemMatchHook:214` → `BukkitCraftEngine.onPluginLoad:231` |
+| 19:54:03.175914836–19:54:03.254844304 | 78.929468 ms | 3 | `InstrumentationImpl.retransformClasses0` → `MerchantItemMatchAgent.install:55` → 同一 runtime patcher／onLoad 路径 |
+
+两条 `ClassRedefinition` 均指向 **`net.minecraft.world.item.trading.ItemCost`**：19:54:03.127525923 的 modification count 为 1、redefinitionId 为 2；19:54:03.204380571 的 count 为 2、id 为 3。这证实该冻结候选中 CE 商人物品匹配钩子曾修改此类，但第二次重转换结束距长握手开始约 **58.069 秒**；不能把它们作为长握手期间正在发生重转换的证据，也不能仅据时间分离就排除早期重转换的任何后续影响。
+
+44 条 `CompilationFailure` 中，40 条消息为 `retry without subsuming loads`，4 条为 `Jvmti state change invalidated dependencies`。后 4 条位于 **19:54:03.174868716–19:54:03.263478100**，compileId 为 16406、16318、16354、16390，与上述较早的 instrumentation 阶段邻近。未从这些记录建立它们和约 58 秒后长握手的触发关系。
+
+### 握手前 6.3 毫秒的方法句柄查找
+
+长握手开始前 **6.300580 ms**，北京时间 **19:55:01.317907810**，区域线程 #0 记录了一条 `NoSuchMethodError`，目标是 `DirectMethodHandle$Holder.newInvokeSpecial(Object,long,long)`。该事件 35 帧完整，相关调用链为：
+
+`MethodHandleNatives.resolve` → `MemberName$Factory.resolveOrNull:1006` → `InvokerBytecodeGenerator.lookupPregenerated:699`／`generateCustomizedCode:708` → `DirectMethodHandle.makeAllocator:140` → `MethodHandles$Lookup.findConstructor:2838` → `InnerClassLambdaMetafactory.buildCallSite:232` → `LambdaMetafactory.metafactory:341` → `MinecraftServer.tickServer:1700` → world region tick。
+
+该完整栈没有 CE 或 SenLuo 帧，且对应的是 JDK 方法句柄／lambda 链接活动。**不能把 JFR 的 `JavaErrorThrow` 事件名称直接当作未捕获异常或插件崩溃**。固定运行时随附源码给出了这里的容错路径：
+
+- `MemberName.java:942–977` 的解析函数捕获 `ClassNotFoundException`／`LinkageError`，保留为未解析结果；`resolveOrNull:1004–1009` 在未解析时返回 null。
+- `InvokerBytecodeGenerator.java:644–649` 通过 `resolveOrNull` 查找预生成方法；`:707–712` 在未找到预生成方法时回退生成定制字节码，而不是仅因此结束调用。
+- 后续静态路径可到 `InvokerBytecodeGenerator.loadMethod:247–250` 的 hidden-class 定义，再到 `MethodHandles.java:2498–2505` 的 `JavaLangAccess.defineClass`。这解释了该类查找事件可以出现在正常回退流程中；它**尚不能证明**随后那条长原生握手正由这次 hidden-class 定义触发。
+
+本次核对的本地固定运行时为 **Microsoft `21.0.13.0.2+1-LTS`**，release 中的源码标识为 `86770f4f323a`。随附 `lib/src.zip` 为 53,082,420 字节，SHA-256 `98694317a1a410d34ca12eda098ec99e57091554442b35a9b171d6f233c78956`。关键源码条目的 SHA-256 为：
+
+| `src.zip` 条目 | SHA-256 |
+| --- | --- |
+| `java.base/java/lang/invoke/MemberName.java` | `0db2e561732422a59ca0dcecd6f9bacfaea60abd8f1d9ecfb4dd8cc986ee82c0` |
+| `java.base/java/lang/invoke/InvokerBytecodeGenerator.java` | `f8b86811f7d119a5a0a75e804e5e3aee503565e56744c8a2cb0a0fe787c672b6` |
+| `java.base/java/lang/invoke/MethodHandles.java` | `3cd6f1229de979b3da578acc4bc49af394dd930e411862255de977d2252b1a0f` |
+| `java.instrument/sun/instrument/InstrumentationImpl.java` | `c58d5cb2d81423326755c29df3e7b7138d075ab1493504709a2667f1627005db` |
+
+该固定 Java 源码包没有 HotSpot `.cpp` 或 `metadata.xml`，本地检索也未得到能直接对应这次 VM 握手的原生调用点。因此此次静态查证止于 Java／native 桥接边界，不借其他版本原生源码把某条可能路径写成已证实的触发链。
+
+在 **19:55:01.324208390–19:55:10.791462236** 的长握手范围内，这五类已记录事件没有相交条目；这只是已启用事件和记录阈值下的观察，不能用来声称没有编译、类加载、异常处理或 instrumentation 活动。此次新增证据将早期 CE 商人类重转换与握手邻近的 JDK lambda 链接分开，但仍未找到长握手的目标线程、原生任务或耗时原因。根因继续为 **OPEN**；后续应针对固定 JDK 的原生握手调用链和可匹配的完整线程／事件证据继续核对。
+
+## 固定 Microsoft HotSpot 原生源码核查
+
+本轮仅做官方源码和既有产物的只读核查，**没有运行任何 JVM、服务器或 Gradle**。现已取得与运行时所声明源码提交匹配的原生文件，补足上一节“本地源码包不含原生代码”的限制；没有用近似 OpenJDK tag 冒充固定版本。
+
+### 版本匹配与一手来源
+
+官方仓库为 [microsoft/openjdk-jdk21u](https://github.com/microsoft/openjdk-jdk21u)。`git ls-remote` 对 `refs/heads/release/jdk-21.0.13.0.2_1` 返回完整提交 **`86770f4f323a4d711534e07ebef5ce2419f2ecf8`**，与固定运行时 release 文件的 `SOURCE=.:git:86770f4f323a` 前缀一致；这是 release 分支的解析结果，不把它称为已核实的 tag。后续所有文件均从[这一不可变提交](https://github.com/microsoft/openjdk-jdk21u/commit/86770f4f323a4d711534e07ebef5ce2419f2ecf8)获取。
+
+另将该提交中的 `MemberName.java`、`InvokerBytecodeGenerator.java` 与固定 JDK 随附 `src.zip` 内容逐字节比较，两者都完全相同，SHA-256 分别为 `0db2e561732422a59ca0dcecd6f9bacfaea60abd8f1d9ecfb4dd8cc986ee82c0`、`f8b86811f7d119a5a0a75e804e5e3aee503565e56744c8a2cb0a0fe787c672b6`。这将核查绑定到运行时声明的源码版本，但没有声称已重新构建并逐字节复现本地 HotSpot 二进制。
+
+21 个选定的一手源码文件及下载 URL、长度、SHA-256 已保存于忽略目录 `build/watchdog-native-source-audit-1/`。最终清单 `manifest-final.json` 为 8,639 字节，SHA-256 **`8dcc1ece2d7aab0615c337121724dc3576decf834d46cea402bc3e9b3920269e`**。这是有边界的选定文件核查，不是完整原生调用图扫描。
+
+### JFR 字段能证明什么
+
+精确版本的 [`vmThread.cpp:259–283`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/runtime/vmThread.cpp#L259-L283) 与 [`metadata.xml:702–710`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/jfr/metadata/metadata.xml#L702-L710) 给出以下语义：
+
+| 字段／时长 | 同版本实现 | 对本次记录的解释边界 |
+| --- | --- | --- |
+| `caller` | 来自 VM operation 的 `calling_thread` | 是操作请求来源，不是被握手的慢线程或某个锁的 owner；嵌套 VM operation 可继承外层调用方 |
+| `blocking` | 此事件提交路径固定设为 true；元数据定义为请求线程等待操作完成 | 可解释为同步 VM 请求，不能单凭此布尔值断言 Java monitor 争用或死锁 |
+| `safepoint`／`safepointId` | 取 operation 的 `evaluate_at_safepoint()`；false 时 id 设为 0 | 本次 false／0 与非全局 safepoint 握手实现一致，不是 GC 暂停证明 |
+| 事件 duration | 在 VM Thread 上，事件计时包围 `op->evaluate()` | 是执行该 VM 操作所经过的墙钟时间，包含内部处理／等待／调度；不是 CPU 时间，也不包含提交后、开始 evaluate 前的全部排队时间 |
+
+[`VMThread::execute:531–557`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/runtime/vmThread.cpp#L531-L557) 将普通请求的当前线程记为 calling thread，然后同步等待操作处理完成；[`wait_until_executed:353–379`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/runtime/vmThread.cpp#L353-L379) 同时展示提交和完成等待。嵌套时继承外层调用方的逻辑在同文件 `:391–404`。因此，现有 id 63 字段将长操作关联到该区域线程的 VM 请求上下文，但不提供请求入口栈。
+
+### `HandshakeAllThreads` 的实际执行路径
+
+同提交 [`handshake.cpp:236–301`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/runtime/handshake.cpp#L236-L301) 的 `VM_HandshakeAllThreads`：
+
+- `evaluate_at_safepoint()` 明确返回 false。
+- 向当时的 Java 线程列表发布同一个 handshake operation；VM Thread 尝试代替符合条件的线程执行任务，并持续处理／退让，直到操作完成。
+- 事件时间也覆盖发布之后、处理循环之前的 `SystemMemoryBarrier::emit()`（使用该机制时，否则为 fence）。记录没有把发布、内存屏障、closure 工作、循环等待与 OS 调度耗时分开，不能把 9.467 秒全部算成等待某个目标线程。
+- 事件名只表示这类 VM 操作，不唯一标识具体 closure。一个目标迟迟不能完成、closure 工作本身耗时，以及处理线程未获及时调度，均需要进一步运行时证据区分，不能只看总时长选择其中一种。
+
+[`Handshake::execute:352–355`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/runtime/handshake.cpp#L352-L355) 的**单参数、全线程**入口创建这一 VM operation，再提交给 VM Thread。接受具体目标线程的重载走另一条路径，不能把所有针对单线程的 JVMTI stack／monitor 查询都混称为本次 `HandshakeAllThreads`。
+
+### 区域线程可能到达的同版本入口
+
+本轮确认以下静态路径可由正在执行 Java／native 桥接的线程请求全线程去优化握手；它们是精确版本里的**候选入口，不是本次已命中的入口**：
+
+1. **普通或 hidden class 的加载、类层次／链接依赖变化。** [`SystemDictionary::resolve_hidden_class_from_stream:790–829`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/classfile/systemDictionary.cpp#L790-L829) 将 hidden class 加入类层次并链接；普通类定义也调用类层次更新。`InstanceKlass` 中的[链接依赖更新 `:922–933`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/oops/instanceKlass.cpp#L922-L933)及[类层次更新 `:1247–1270`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/oops/instanceKlass.cpp#L1247-L1270)按依赖与当时状态标记代码并提交去优化。因此 lambda／方法句柄生成的 hidden class 是一条代码上可走通的候选链，但先前 `NoSuchMethodError` 的邻近时间不足以证明此次已经沿它发起握手。
+2. **CallSite target 更新后的依赖失效。** [`MHN_setCallSiteTargetNormal`／`Volatile:1205–1233`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/prims/methodHandles.cpp#L1205-L1233)通过 `DeoptimizationScope` 处理依赖方法。这是另一个可由 Java 线程的 native 调用到达的入口，现有 JFR 没有证明本次执行了它。
+
+两类路径可到达 [`DeoptimizationScope::deoptimize_marked:151–215`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/runtime/deoptimization.cpp#L151-L215)。如果所需 generation 已提交，该函数会直接返回；否则可能等待其他去优化提交，或由当前线程提交。最终 [`Deoptimization::deoptimize_all_marked:1033–1053`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/runtime/deoptimization.cpp#L1033-L1053) 在非 safepoint 场景使用名为 **`Deoptimize`** 的 closure，经单参数 `Handshake::execute` 请求全线程握手。**不能把“加载／链接一个类”简化成“必定发生一次握手”**，更不能由此直接给本次长握手定名。
+
+同时，operation 名称确实存在其他来源：[`ObjectSynchronizer::deflate_idle_monitors:1654–1709`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/runtime/synchronizer.cpp#L1654-L1709) 的后台 monitor 清理也发布全线程握手。因此只看 `HandshakeAllThreads` 名字不能区分 closure。另一个需要分开的路径是 [`VM_RedefineClasses::flush_dependent_code:4123–4137`](https://github.com/microsoft/openjdk-jdk21u/blob/86770f4f323a4d711534e07ebef5ce2419f2ecf8/src/hotspot/share/prims/jvmtiRedefineClasses.cpp#L4123-L4137)：它要求已经位于 safepoint；去优化函数在这种状态直接遍历线程，而非进入上面的非 safepoint 全线程握手路径。不能因较早栈中有 ByteBuddy／retransform 就把两条路径合并。
+
+### 当前仍缺少的运行时证据
+
+精确版本的 JFR `ExecuteVMOperation` 元数据只有 operation、safepoint、blocking、caller 和 safepointId，没有记录 handshake closure 名称、各目标线程完成进度或请求栈。因此 analysis-2 中的 9.467 秒记录仍不能确定是 `Deoptimize`、哪条具体加载／CallSite 入口，或哪个目标拖延。
+
+同版本 `VM_HandshakeAllThreads::cause()` 会返回 closure 名称；`vmthread` debug 日志可输出该 cause，`handshake` info 日志可输出 closure、目标总数及完成耗时（`handshake.cpp:224–232`）。这是今后固定候选、资源允许时可补采的区分信息；本轮没有启动进程去补造历史记录，也没有更改现有 JVM 参数。若要确立耗时根因，仍需与该操作匹配的 closure／请求路径、慢目标线程状态以及同一时段 OS 调度／CPU 证据，不能依赖邻近错误、空白采样或静态候选链。历史根因继续 **OPEN**。
+
+
+## 原始录制中的安全布尔标记快照
+
+随后用独立、有界 helper 仅读取原始 JFR 的 `jdk.BooleanFlag` 中 `name=UseSystemMemoryBarrier`；不导出环境、系统进程、JVM 参数或其他标记值。完整读完 **81,596** 条，原始 JFR 前后仍为 `a0b51e055ddbd73542586b502e1dd5626f95a2a725291d07b4d3d13233d2376e`。500 条 BooleanFlag 中命中一条：
+
+- UTC `2026-11-19T11:53:09.273600422Z`，即北京时间 19:53:09.273600422。
+- `UseSystemMemoryBarrier=false`，`origin=Default`。
+- 录制中没有 `jdk.BooleanFlagChanged` 记录；这只描述留存数据，不把未记录的变更事件当作完整观测。
+
+派生报告 `build/watchdog-gp2-flags-1/summary.json` SHA-256 为 `11ed0a29d550c67a879ef6b7330e963a9c686c4b1e950f5315d341ccd673c1e7`，成功日志为 `build/watchdog-gp2-flags-1-supervisor-2.log`。首个 helper 在格式化 origin 字段时失败且未创建输出目录；失败源与原日志保留，修复后从原始录制重新完整读取，没有覆盖原 JFR、analysis-1/2/3 或首个失败日志。
+
+这补充了实际运行值，不能只拿静态默认值代替。现有快照不支持该 JVM 已启用 `UseSystemMemoryBarrier` 的解释，因此不能继续把 Windows `FlushProcessWriteBuffers` 当作本次 9.467 秒操作的已证实阶段或根因。该操作仍缺 closure、目标线程和请求栈；没有因此证明去优化候选或其他握手阶段已被定位。历史 watchdog 根因继续 **OPEN**。

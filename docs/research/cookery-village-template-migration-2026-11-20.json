@@ -1,0 +1,98 @@
+{
+  "schema": "cookery-village-template-migration-prerequisite-v1",
+  "date": "2026-11-20",
+  "codeCommit": "fe5c048",
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "target": {
+    "minecraft": "1.21.11",
+    "dataVersion": 4671,
+    "sourceDataVersion": 3465
+  },
+  "implemented": [
+    "Immutable semantic sidecars for all five byte-pinned source templates; complete palette, position, volume and known block-entity validation.",
+    "Bounded native compressed NBT parsing: 1 MiB compressed and 8 MiB accounted native allocation.",
+    "Unpublished in-memory Paper/Folia 1.21.11 companion uses native MCDataConverter STRUCTURE migration, validates vanilla state/property round trips, restores verified CE native states and builds a fresh native palette in native order.",
+    "Preserves migrated vanilla block/NBT data except the two explicit source-to-plugin loot-table namespace mappings; no template cache/pool/world mutation.",
+    "Existing nine NmsBridge implementations remain unchanged."
+  ],
+  "validation": {
+    "rootJava": {
+      "suites": 86,
+      "tests": 699,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "tasks": [
+      "test",
+      "shadowJar",
+      "acceptanceJar"
+    ],
+    "log": {
+      "path": "build/village-native-integrated-java-1.log",
+      "bytes": 2493,
+      "sha256": "9303950b4d3a0dc96922ff0377cf24669d9d8fb02bcd9ffc36ce38716f83ad4a"
+    },
+    "addedTests": {
+      "VillageTemplatePlanTest": 8,
+      "VillageTemplateNmsArtifactTest": 3
+    },
+    "nativeSourceInspection": {
+      "templates": 5,
+      "passed": true,
+      "scope": "Real Nms NbtIo parsing and sidecar validation without a world or CE registry. Native prepare/migration/restoration is not runtime-proven."
+    },
+    "quotaCase": "The malicious declared byte array is 9 MiB: below the native exclusive 16 MiB format-length cap, above the unchanged 8 MiB accounting quota. Test requires NbtAccounterException before allocation; it does not accept the earlier format-length IllegalArgumentException.",
+    "python": {
+      "root": 256,
+      "scope": "Previously passed unchanged Python suite; follow-up adds Java-only implementation."
+    },
+    "productionJar": {
+      "path": "build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar",
+      "bytes": 1790981,
+      "sha256": "95551f93a1aa02abcb2b7fa25c9bcd2bed6113848c30c35573f4b93a2f9e3a00"
+    },
+    "probeJar": {
+      "path": "build/acceptance/probe/CookeryAcceptanceProbe.jar",
+      "bytes": 260860,
+      "sha256": "ba620d2104427f5aebf261a70814f7025dea0bea603500da567b8fbb57f42a40"
+    }
+  },
+  "isolatedWorktreeValidation": {
+    "commit": "5627e87a2f5b3a15c53725bb0e1549f725c0388a",
+    "tests": 654,
+    "suites": 81,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "../SenLuo_Plugin-worldgen/build/village-native-migration-java-4.log",
+    "notAdditionalDistinctRootTests": true,
+    "earlierAttempts": [
+      {
+        "attempt": 1,
+        "cause": "Missing test-runtime DynamicOps dependency; exact XML/JAR/log preserved."
+      },
+      {
+        "attempt": 2,
+        "cause": "Missing test-runtime LogUtils dependency; exact XML/JAR/log preserved."
+      },
+      {
+        "attempt": 3,
+        "cause": "Quota fixture hit the native 16 MiB format cap before the 8 MiB allocation quota; exact XML/JAR/log preserved."
+      }
+    ]
+  },
+  "runtimeStatus": {
+    "nativePrepare": "NOT_RUN",
+    "naturalVillageIntegration": "NOT_IMPLEMENTED",
+    "poolPublication": "NOT_IMPLEMENTED",
+    "onlineReloadGenerationBarrier": "NOT_IMPLEMENTED",
+    "sourceCropSc8": "Bootstrap passed; core failed on reader heap reservation, not full gameplay acceptance. Separate frozen artifact."
+  },
+  "remaining": [
+    "Actually run prepare against the exact Paper/Folia manager and CE registry, including all vanilla state/rotation/NBT and controller/storage assertions.",
+    "Stable processor/location registry and effective pool append with preserved existing entries/fallback and rollback.",
+    "Enforced CE/native reload and generation admission/drain/publication boundaries.",
+    "Natural village selection in all five biomes, saved partial pieces, unload/restart, true chest RNG and loot-bridge delivery conservation."
+  ]
+}

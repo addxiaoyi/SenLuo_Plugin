@@ -2,13 +2,21 @@
 
 2026-11-20。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
 
+## 2026-11-20 原生模板迁移前置整合
+
+`fe5c048` 整合五类厨房的不可变语义侧车及独立的 1.21.11 NMS 迁移适配器。它核对完整来源 palette、位置、体积、已知方块实体和两条箱子战利品引用，以有界原生 NBT 读取器解析固定源数据；迁移后拒绝原版状态／属性被静默吞掉，并在尚未发布的内存模板中恢复真实 CE 状态、保留迁移后的原版 NBT、重建原生排序的全新 palette。旧九版 NmsBridge 不变。新增 8 项侧车检查与 3 项原生读取／配额／产物 ABI 检查；主工作区 `test shadowJar acceptanceJar` 为 **699 项 Java、86 套件，0 失败／错误／跳过**。
+
+该产物的生产 JAR SHA-256 为 `95551f93a1aa02abcb2b7fa25c9bcd2bed6113848c30c35573f4b93a2f9e3a00`，探针仍为 `ba620d2104427f5aebf261a70814f7025dea0bea603500da567b8fbb57f42a40`。实际 NMS 来源读取覆盖五份固定 NBT；**真实 manager／CE 注册表下的 prepare、发布、原生池接入、自然村庄选择与在线生成／重载屏障仍未验收或实现**。该新 JAR 没有借用下方 sc8 的旧冻结产物运行结果。三次前置测试失败分别为缺测试运行依赖和配额夹具先碰到原生格式长度上限，原 XML／JAR／日志均保留；最终配额测试仍要求不变的 8 MiB 计账上限在分配前拒绝。详情见[迁移前置实现与检查范围](research/cookery-village-template-migration-2026-11-20.json)。
+
+用户已选择先继续代码完善，完整实服内存窗口稍后安排。下一轮必须使用新的冻结候选，不复用 sc8 失败世界；三作物功能台账及完整自然村庄状态继续保持未完成。
+
 ## 2026-11-20 严格堆叠复验与来源档案
 
 全新 `sc7/paper-pack-1` 的严格启动检查确认 103 项食物 PDC 字符串已全部匹配，但恰好 19 项含原版效果的食物仍未通过实际 `ItemStack.isSimilar`，仅 84 项完成检查。该候选在工作流之前停止；CE 资源 worker 停止超时，运行器最终强制结束，服务器退出 1，整轮仍为 **FAIL**。原世界、日志、JFR 和报告完整保留，不复用为修复候选。Bukkit 三参数 `PotionEffect` 实际默认 `ambient=true`；生产构造已显式使用原生食物的非 ambient、显示粒子与图标参数。严格堆叠断言保留，失败时新增完整序列化物品和 consumable JSON 诊断。旧玩家库存不被重写，旧 PDC 文本仍可解码。
 
 镰刀另修复前置领地／接管事件中来源手被替换的问题：在回调前锁定实际交互手的完整单位组件、数量和主手槽位，回调及后续候选之间重检；来源变化不再进入内置收割或按取消接管扣耐久，已提交的收割仍按次扣原工具耐久。新增 18 个主副手、组件／数量／槽位、取消接管和提交后漂移回归。
 
-本批根 `test shadowJar acceptanceJar` 通过 **688 项 Java、84 套件，失败／错误／跳过均为 0**；根 Python **256/256**。新增的五类厨房原始 NBT 与固定来源哈希一致，使用有界不可变读取器，7 项 Java 来源档案测试及 18 项村庄 Python 测试均通过；这只是模板迁移的来源前置，未启用自然生成。生产 JAR SHA-256 为 `1626840542b74285ebd2f4cb9ad1246a6ddd63771d95d352fa9a8a9493e2b8f6`，探针为 `ba620d2104427f5aebf261a70814f7025dea0bea603500da567b8fbb57f42a40`；资源包仍为 `kitchen-crops-3.zip`。新 `sc8` 实例准备中，尚无本批实服通过证据；C14 保持 `unit_tested`。完整失败、哈希和检查范围见[严格堆叠复验记录](research/cookery-food-stackability-2026-11-20.json)。
+本批根 `test shadowJar acceptanceJar` 通过 **688 项 Java、84 套件，失败／错误／跳过均为 0**；根 Python **256/256**。新增的五类厨房原始 NBT 与固定来源哈希一致，使用有界不可变读取器，7 项 Java 来源档案测试及 18 项村庄 Python 测试均通过；这只是模板迁移的来源前置，未启用自然生成。生产 JAR SHA-256 为 `1626840542b74285ebd2f4cb9ad1246a6ddd63771d95d352fa9a8a9493e2b8f6`，探针为 `ba620d2104427f5aebf261a70814f7025dea0bea603500da567b8fbb57f42a40`；资源包仍为 `kitchen-crops-3.zip`。`sc8/paper-pack-1` 已通过严格食物 103/103（含实际堆叠）、附魔构造 5/5、资源工作流和正常停服 0，托管包 SHA-256 为 `6080b9f0f383f7a6fafe3de98bcde9bcabfe748d1aff27f13f1da8ecda5c8487`。随后 `sc8/paper-core-1` 仍 **FAIL**：两名玩家初次均读取 14,419 项资源、一次真实 epoch 1→2／工作流完成后，A 的第二次 reader 在 JVM 初始化时无法预留 384 MiB 堆，B 的对应读取在收尾时取消；服务器正常退出 0。失败世界和报告保留，不补算第二轮或复用该世界，C14 继续 `unit_tested`。完整失败、哈希和检查范围见[严格堆叠复验记录](research/cookery-food-stackability-2026-11-20.json)。
 
 历史 GP2 Folia JFR 的归一化解码发现一条以报警区域线程为调用方、与报警窗口重叠的 **9.467 秒 `HandshakeAllThreads`**；不是等长 GC／全局 safepoint 暂停。最长主级 GC 暂停为 **47.123 ms**，握手没有任务栈和目标线程信息，根因继续 **OPEN**。见[两次不同 watchdog 的证据与边界](research/folia-watchdog-audit-2026-11-20.md)。
 
