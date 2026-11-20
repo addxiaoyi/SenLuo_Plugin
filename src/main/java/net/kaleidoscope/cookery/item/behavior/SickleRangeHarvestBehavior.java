@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
@@ -80,13 +81,23 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         }
         org.bukkit.entity.Player bukkitPlayer = (org.bukkit.entity.Player) player.platformPlayer();
         Item held = context.getItem();
+        InteractionHand hand = context.getHand();
+        if (hand == null || ItemUtils.isEmpty(held) || held.count() <= 0) {
+            return InteractionResult.PASS;
+        }
+        HarvestSource source = new HarvestSource(hand,
+                hand == InteractionHand.MAIN_HAND ? bukkitPlayer.getInventory().getHeldItemSlot() : 40,
+                held.copyWithCount(1), held.count());
+        if (!source.matches(player, bukkitPlayer)) {
+            return InteractionResult.PASS;
+        }
         ItemStack heldStack = held instanceof BukkitItem bukkitItem ? bukkitItem.getBukkitItem() : null;
         if (heldStack != null && bukkitPlayer.hasCooldown(heldStack)) {
             return InteractionResult.PASS;
         }
 
         Sweep sweep = new Sweep(context.getLevel(), (org.bukkit.World) context.getLevel().platformWorld(),
-                player, bukkitPlayer, context.getHand(), heldStack, new LongOpenHashSet());
+                player, bukkitPlayer, hand, heldStack, source, new LongOpenHashSet());
         BlockPos origin = context.getClickedPos();
         int sweepLevel = CookeryEnchantments.sweepLevel(held);
         int radius = Math.min(MAX_HORIZONTAL_RADIUS, CookeryEnchantments.sweepRadius(this.horizontalRadius, sweepLevel));
@@ -118,13 +129,25 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
     // 一次挥砍的上下文 逐格传六个参数会让每个方法签名都糊成一片
     // stalks 记已收过的根部 多段作物一刀会同时命中同一株的两段
     private record Sweep(World level, org.bukkit.World world, Player player,
-                         org.bukkit.entity.Player bukkitPlayer, InteractionHand hand, ItemStack sickle, LongSet stalks) {
+                         org.bukkit.entity.Player bukkitPlayer, InteractionHand hand, ItemStack sickle,
+                         HarvestSource source, LongSet stalks) {
+        boolean sourceMatches() { return source.matches(player, bukkitPlayer); }
+    }
+
+    /** Lock the actual interaction hand before protection or takeover callbacks can replace it. */
+    private record HarvestSource(InteractionHand hand, int slot, Item unit, int count) {
+        boolean matches(Player player, org.bukkit.entity.Player actor) {
+            if (player.platformPlayer() != actor || ItemUtils.isEmpty(unit)
+                    || (hand == InteractionHand.MAIN_HAND && actor.getInventory().getHeldItemSlot() != slot)) return false;
+            Item current = player.getItemInHand(hand);
+            return !ItemUtils.isEmpty(current) && current.count() == count && current.isSimilar(unit);
+        }
     }
 
     // 收割一根竖列 返回这列收到的数量
     private int harvestColumn(Sweep sweep, int x, int baseY, int z) {
         // A larger sweep must not read another Folia region or synchronously load its chunks.
-        if (!Bukkit.isOwnedByCurrentRegion(sweep.world, x >> 4, z >> 4)
+        if (!sweep.sourceMatches() || !Bukkit.isOwnedByCurrentRegion(sweep.world, x >> 4, z >> 4)
                 || !sweep.world.isChunkLoaded(x >> 4, z >> 4)) {
             return 0;
         }
@@ -132,13 +155,14 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         int lastY = (int) Math.min((long) baseY + this.height, sweep.world.getMaxHeight());
         int harvested = 0;
         for (int y = firstY; y < lastY; y++) {
+            if (!sweep.sourceMatches()) return harvested;
             Block block = sweep.world.getBlockAt(x, y, z);
             // 空气格先筛掉 领地查询比读方块贵得多 一刀几十格全查会把它变成热点
             if (block.getType().isAir()) {
                 continue;
             }
             // 逐格校验破坏权限 范围收割不能整片穿透领地保护
-            if (!InteractGuard.canBreak(sweep.player, sweep.level, x, y, z)) {
+            if (!InteractGuard.canBreak(sweep.player, sweep.level, x, y, z) || !sweep.sourceMatches()) {
                 continue;
             }
             if (harvestOne(sweep, block)) {
@@ -154,6 +178,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         ImmutableBlockState customState = CraftEngineBlocks.getCustomBlockState(block);
         if (customState != null && !customState.isEmpty()) {
             Boolean taken = fireHarvestEvent(sweep, block);
+            if (!sweep.sourceMatches()) return false;
             if (taken != null) {
                 return taken;
             }
@@ -165,6 +190,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         }
         // 先给监听器接管的机会 取消后是否仍算耐久由监听器自己定
         Boolean taken = fireHarvestEvent(sweep, block);
+        if (!sweep.sourceMatches()) return false;
         if (taken != null) {
             return taken;
         }
