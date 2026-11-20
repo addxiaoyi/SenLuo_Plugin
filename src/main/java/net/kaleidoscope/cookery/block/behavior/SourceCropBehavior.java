@@ -6,6 +6,8 @@ import net.kaleidoscope.cookery.util.EventUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
 import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.kaleidoscope.cookery.util.ItemMatcher;
+import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
+import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.block.behavior.AbstractCanSurviveBlockBehavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -86,6 +88,9 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
         return state.get(age) < SourceCropGrowth.MAX_AGE;
     }
 
+    // Survival/support checks and native planting/bonemeal callbacks are not
+    // covered by this first-stage gate; their earlier CE/native entry points
+    // still require a complete wrapper before they can be admitted safely.
     @Override protected boolean canSurvive(Object thisBlock, Object state, Object level, Object rawPos) {
         org.bukkit.World world = LevelProxy.INSTANCE.getWorld(level);
         BlockPos pos = LocationUtils.fromBlockPos(rawPos);
@@ -99,8 +104,15 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     @Override public void randomTick(Object thisBlock, Object[] args) {
-        ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
-        if (state == null || !canRandomlyTick(state)) return;
+        try (var guard = enterResourceReadGate()) {
+            if (guard == null) return;
+            ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
+            if (state == null || state.owner().value() != blockDefinition || !canRandomlyTick(state)) return;
+            randomTickInReadEpoch(state, args);
+        }
+    }
+
+    private void randomTickInReadEpoch(ImmutableBlockState state, Object[] args) {
         Object level = args[1], rawPos = args[2];
         org.bukkit.World world = LevelProxy.INSTANCE.getWorld(level);
         BlockPos pos = LocationUtils.fromBlockPos(rawPos);
@@ -109,6 +121,7 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
         Float speed = growthSpeed(world, pos);
         // Revisit on a later random tick if a neighbouring Folia region is unavailable.
         if (speed == null || ThreadLocalRandom.current().nextInt(SourceCropGrowth.randomTickBound(speed)) != 0) return;
+        if (!current(world.getBlockAt(pos.x(), pos.y(), pos.z()), state)) return;
         grow(level, rawPos, state, state.get(age) + 1);
     }
 
@@ -137,12 +150,14 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     @Override public boolean isValidBonemealTarget(Object thisBlock, Object[] args) {
+        // Bone-meal target lookup is not in this first-stage resource-read contract.
         return BlockStateUtils.getOptionalCustomBlockState(args[2]).filter(this::canRandomlyTick).isPresent();
     }
 
     @Override public boolean isBonemealSuccess(Object thisBlock, Object[] args) { return true; }
 
     @Override public void performBonemeal(Object thisBlock, Object[] args) {
+        // The complete native item-use/fallback transaction is not wrapped here.
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[3]).orElse(null);
         if (state == null || !canRandomlyTick(state)) return;
         org.bukkit.World world = LevelProxy.INSTANCE.getWorld(args[0]);
@@ -183,6 +198,14 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     private boolean harvest(World world, BlockPos pos, ImmutableBlockState state, Player player, boolean picking, InteractionHand hand) {
+        // The caller supplies state; any lookup performed before this callback remains outside the gate.
+        try (var guard = enterResourceReadGate()) {
+            if (guard == null) return false;
+            return harvestInReadEpoch(world, pos, state, player, picking, hand);
+        }
+    }
+
+    private boolean harvestInReadEpoch(World world, BlockPos pos, ImmutableBlockState state, Player player, boolean picking, InteractionHand hand) {
         if (state == null || state.owner().value() != blockDefinition || state.get(age) != SourceCropGrowth.MAX_AGE
                 || !(world.platformWorld() instanceof org.bukkit.World bukkit) || !owned(bukkit, pos.x(), pos.z())) return false;
         Block block = bukkit.getBlockAt(pos.x(), pos.y(), pos.z());
@@ -215,6 +238,13 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
             if (picking) world.playBlockSound(position, CROP_BREAK, 1f, 1f);
             return true;
         } finally { ACTIVE.remove(block); }
+    }
+
+    private static CeResourceReadGate.Guard enterResourceReadGate() {
+        KaleidoscopeCookeryPlugin plugin = KaleidoscopeCookeryPlugin.instance();
+        if (plugin == null || !plugin.isEnabled()) return null;
+        CeResourceReadGate gate = plugin.sourceCropReadGate();
+        return gate == null ? null : gate.tryEnter().guard();
     }
 
     static ContextHolder sickleLootContext(WorldPosition position, ImmutableBlockState state, Player player) {

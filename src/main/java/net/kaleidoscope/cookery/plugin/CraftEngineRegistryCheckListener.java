@@ -7,7 +7,8 @@ import net.kaleidoscope.cookery.util.ConsoleMessages;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
+import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class CraftEngineRegistryCheckListener implements Listener {
     private static final List<ExpectedBlock> EXPECTED_BLOCKS = List.of(
@@ -38,23 +39,35 @@ public final class CraftEngineRegistryCheckListener implements Listener {
     );
 
     private final KaleidoscopeCookeryPlugin plugin;
+    private final CeResourceReadGate sourceCropReadGate;
     private final BooleanSupplier ceReloading;
-    private final Supplier<ResourceOperationCoordinator> resourceOperations;
     private final AtomicLong reloadGeneration = new AtomicLong();
 
+    private static final List<Key> SOURCE_CROP_KEYS = List.of(
+            Key.of("kaleidoscopecookery:tomato_crop"), Key.of("kaleidoscopecookery:chili_crop"),
+            Key.of("kaleidoscopecookery:lettuce_crop"));
+
+    private record CropDefinition(BlockDefinition definition, List<ImmutableBlockState> states) {}
+    private record CropGeneration(long reloadGeneration, Map<Key, CropDefinition> definitions) {}
+
     public CraftEngineRegistryCheckListener(KaleidoscopeCookeryPlugin plugin) {
-        this(plugin, () -> CraftEngine.instance().isReloading(), () -> CraftEngine.instance().resourceOperations());
+        this(plugin, plugin.sourceCropReadGate(), () -> CraftEngine.instance().isReloading());
     }
 
-    CraftEngineRegistryCheckListener(KaleidoscopeCookeryPlugin plugin, BooleanSupplier ceReloading,
-                                     Supplier<ResourceOperationCoordinator> resourceOperations) {
+    CraftEngineRegistryCheckListener(KaleidoscopeCookeryPlugin plugin, CeResourceReadGate sourceCropReadGate) {
+        this(plugin, sourceCropReadGate, () -> CraftEngine.instance().isReloading());
+    }
+
+    CraftEngineRegistryCheckListener(KaleidoscopeCookeryPlugin plugin, CeResourceReadGate sourceCropReadGate,
+                                     BooleanSupplier ceReloading) {
         this.plugin = plugin;
+        this.sourceCropReadGate = sourceCropReadGate;
         this.ceReloading = ceReloading;
-        this.resourceOperations = resourceOperations;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onCraftEngineReload(CraftEngineReloadEvent event) {
+        if (sourceCropReadGate != null) sourceCropReadGate.invalidate();
         boolean firstReload = event.isFirstReload();
         ConsoleMessages.reloadFromDisk(plugin);
         // 物品显示名跟着配置走 重载后必须重算
@@ -67,61 +80,85 @@ public final class CraftEngineRegistryCheckListener implements Listener {
     }
 
     void scheduleSourceCropRebind(boolean firstReload) {
-        // CE fires this event after manager delayed-load tasks, but its completion
-        // flag clears after event dispatch. Its resource lease also excludes a new
-        // reload between checking that flag and reading/binding the registry.
+        // Rebinding is a generation publication; no crop callback may join the
+        // old generation while CE replaces definitions and their shape delegates.
+        if (sourceCropReadGate != null) sourceCropReadGate.invalidate();
         long generation = reloadGeneration.incrementAndGet();
         long startedAt = System.nanoTime();
         java.util.concurrent.atomic.AtomicReference<RuntimeException> lastShapeFailure =
                 new java.util.concurrent.atomic.AtomicReference<>();
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, retry -> {
             if (!plugin.isEnabled() || reloadGeneration.get() != generation) { retry.cancel(); return; }
-            boolean registryReady = false;
-            int installed = 0;
-            Map<Key, ?> registrySnapshot = null;
+            AtomicReference<Boolean> registryReady = new AtomicReference<>(false);
+            AtomicReference<Map<Key, ?>> registrySnapshot = new AtomicReference<>();
+            AtomicReference<Integer> installed = new AtomicReference<>(0);
+            boolean published = false;
             try {
                 if (!ceReloading.getAsBoolean()) {
-                    ResourceOperationCoordinator.Lease lease = null;
-                    try {
-                        lease = resourceOperations.get().acquire();
-                    } catch (ResourceOperationCoordinator.BusyException busy) {
-                        // Resource operations share the same exclusion as CE reloads.
-                    }
-                    if (lease != null) {
-                        try {
-                            if (!ceReloading.getAsBoolean()) {
-                                Map<Key, ?> loadedBlocks = CraftEngineBlocks.loadedBlocks();
-                                registrySnapshot = Map.copyOf(loadedBlocks);
-                                registryReady = List.of("tomato_crop", "chili_crop", "lettuce_crop").stream()
-                                        .allMatch(name -> loadedBlocks.containsKey(Key.of("kaleidoscopecookery:" + name)));
-                                if (registryReady) {
-                                    installed = net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
-                                    lastShapeFailure.set(null);
-                                }
-                            }
-                        } finally {
-                            lease.close();
-                        }
-                    }
+                    published = sourceCropReadGate.publishWithLease(() -> {
+                        if (ceReloading.getAsBoolean() || !plugin.isEnabled()
+                                || reloadGeneration.get() != generation) return null;
+                        Map<Key, ?> loadedBlocks = CraftEngineBlocks.loadedBlocks();
+                        Map<Key, ?> snapshot = Map.copyOf(loadedBlocks);
+                        registrySnapshot.set(snapshot);
+                        Map<Key, CropDefinition> cropDefinitions = sourceCropDefinitions(loadedBlocks);
+                        if (cropDefinitions == null) return null;
+                        registryReady.set(true);
+                        CropGeneration cropGeneration = new CropGeneration(generation, cropDefinitions);
+                        return new CeResourceReadGate.Publication(cropGeneration,
+                                () -> reloadGeneration.get() == generation && !ceReloading.getAsBoolean()
+                                        && plugin.isEnabled() && sameSourceCropDefinitions(cropDefinitions),
+                                () -> {
+                                    int count = net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
+                                    installed.set(count);
+                                    if (count != SOURCE_CROP_KEYS.size())
+                                        throw new IllegalStateException("Expected 3 source-crop definitions, rebound " + count);
+                                });
+                    });
+                    if (published) lastShapeFailure.set(null);
                 }
             } catch (RuntimeException partialReload) {
-                // A failed or partial registry remains retryable within the deadline.
+                // A failed shape publication leaves the gate poisoned and closed.
                 lastShapeFailure.set(partialReload);
             }
-            if (registryReady && installed == 3) {
-                checkLoadedBlocks(firstReload, registrySnapshot);
-                plugin.getLogger().info("Source crop native shapes rebound after CraftEngine reload: " + installed + "/3");
+            if (published && registryReady.get() && installed.get() == SOURCE_CROP_KEYS.size()) {
+                checkLoadedBlocks(firstReload, registrySnapshot.get());
+                plugin.getLogger().info("Source crop native shapes rebound after CraftEngine reload: " + installed.get() + "/3");
                 retry.cancel();
             } else if (System.nanoTime() - startedAt > TimeUnit.SECONDS.toNanos(30)) {
-                if (registrySnapshot != null) checkLoadedBlocks(firstReload, registrySnapshot);
+                if (registrySnapshot.get() != null) checkLoadedBlocks(firstReload, registrySnapshot.get());
                 RuntimeException failure = lastShapeFailure.get();
                 plugin.getLogger().severe("Source crop shapes were not rebound after CraftEngine reload: "
-                        + installed + "/3; registryReady=" + registryReady
+                        + installed.get() + "/3; registryReady=" + registryReady.get()
                         + (failure == null ? "" : "; last error=" + failure.getClass().getSimpleName()
                         + ": " + failure.getMessage()));
                 retry.cancel();
             }
         }, 1L, 1L);
+    }
+
+    private static Map<Key, CropDefinition> sourceCropDefinitions(Map<Key, ?> loadedBlocks) {
+        Map<Key, CropDefinition> definitions = new java.util.LinkedHashMap<>();
+        for (Key key : SOURCE_CROP_KEYS) {
+            Object value = loadedBlocks.get(key);
+            if (!(value instanceof BlockDefinition definition)) return null;
+            definitions.put(key, new CropDefinition(definition,
+                    List.copyOf(definition.variantProvider().states())));
+        }
+        return Map.copyOf(definitions);
+    }
+
+    private static boolean sameSourceCropDefinitions(Map<Key, CropDefinition> expected) {
+        Map<Key, ?> current = CraftEngineBlocks.loadedBlocks();
+        for (Key key : SOURCE_CROP_KEYS) {
+            CropDefinition expectedDefinition = expected.get(key);
+            if (current.get(key) != expectedDefinition.definition()) return false;
+            List<ImmutableBlockState> states = List.copyOf(expectedDefinition.definition().variantProvider().states());
+            if (states.size() != expectedDefinition.states().size()) return false;
+            for (int i = 0; i < states.size(); i++)
+                if (states.get(i) != expectedDefinition.states().get(i)) return false;
+        }
+        return true;
     }
 
     private void checkLoadedBlocks(boolean firstReload, Map<Key, ?> loadedBlocks) {

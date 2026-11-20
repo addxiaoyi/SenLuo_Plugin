@@ -1,6 +1,6 @@
 # CE 资源共享读取门与原生入口边界
 
-2026-11-20。`CeResourceReadGate` 是尚未接入生产作物回调的独立原语，不代表重载、作物或自然村庄已经完成。
+2026-11-21。`CeResourceReadGate` 已接入生产源作物的随机生长和完整作物采收回调。它不代表重载、作物全部原生入口或自然村庄已经完成。
 
 读取门初始关闭。发布时在真实 `ResourceOperationCoordinator.Lease` 内验证捕获的资源身份；首位读者重新申请真实 lease，后续同步／嵌套读者共享该 lease。新加入者必须先增加受保护的读者计数，再执行注册表身份检查，否则上一位最后读者可能在检查尚未结束时释放 lease。最后读者先 CAS 到关闭过渡态再释放；失效停止新准入，但已有读者持有 lease 直至退出。验证异常污染后续准入，已有读者仍正常排空。
 
@@ -22,4 +22,4 @@ Paper/Folia 1.21.11 在完整交互事件返回后才调用原生物品 fallback
 | Paper 1.21.11 build 132 | `3a73f0cc4020a5eb45629a67629b14263331c68de45552f8505df8060fa8ed43` |
 | Folia 1.21.11 build 14 | `6bfd94ffd8649cf416d247e849214667ac91759699a4c3536eef2307277c4e33` |
 
-本地原始导出及审计保留在 `build/followups/source-crop-resource-gate/`，包括 `BONE-MEAL-ENTRY-AUDIT.md`、逐指令 JSON 与 class 文件读取器。此核查没有运行服务器。现有共享门只排斥使用同一 CE coordinator 的写入者，不提供生成 worker、原生数据包重载、CE disable 或绕过 coordinator 写入的屏障，也不保证写入公平性。全量骨粉、原生破坏、支撑丢失及生成的入口覆盖与一致 epoch 发布继续 OPEN。
+本地原始导出及审计保留在 `build/followups/source-crop-resource-gate/`，包括 `BONE-MEAL-ENTRY-AUDIT.md`、逐指令 JSON 与 class 文件读取器。此核查没有运行服务器。当前生产接线在首轮／重载完成时以同一 CE lease 发布三种源作物的 `BlockDefinition` 和全部龄状态对象身份；随机生长先取得读者 guard，再读取状态、邻株、光照并提交成长；采收 guard 覆盖 CE 掉落读取、方块提交和掉落完成。共享门只排斥使用同一 CE coordinator 的写入者，不提供生成 worker、原生数据包重载、CE disable 或绕过 coordinator 写入的屏障，也不保证写入公平性。骨粉完整原生物品事务、原生破坏／范围镰刀在进入自定义回调前的读取、支撑丢失、种植入口及生成的入口覆盖与一致 epoch 发布继续 OPEN。

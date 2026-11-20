@@ -2,6 +2,7 @@ package net.kaleidoscope.cookery.block.behavior;
 
 import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import net.kaleidoscope.cookery.util.InteractGuard;
+import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -10,6 +11,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -71,6 +73,42 @@ class SourceCropBehaviorTest {
         }
     }
 
+    @Test void productionRandomTickFailsClosedBeforeReadingStateWithoutAPublishedGate() throws Exception {
+        var behavior = behavior(IntegerProperty.create("age", 0, 7, 0), SourceCropBehavior.Crop.TOMATO);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(new CeResourceReadGate(new ResourceOperationCoordinator(), () -> true));
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+            assertDoesNotThrow(() -> behavior.randomTick(null, new Object[0]));
+            when(plugin.isEnabled()).thenReturn(false);
+            when(plugin.sourceCropReadGate()).thenReturn(null);
+            assertDoesNotThrow(() -> behavior.randomTick(null, new Object[0]));
+        }
+    }
+
+    @Test void randomTickReadsCeStateOnlyAfterAcquiringThePublishedLease() throws Exception {
+        var behavior = behavior(IntegerProperty.create("age", 0, 7, 0), SourceCropBehavior.Crop.TOMATO);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        var operations = new ResourceOperationCoordinator();
+        var gate = new CeResourceReadGate(operations, () -> true);
+        assertTrue(gate.publish(new Object(), () -> true));
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(gate);
+        Object state = new Object();
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class);
+             var states = mockStatic(BlockStateUtils.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+            states.when(() -> BlockStateUtils.getOptionalCustomBlockState(state)).thenAnswer(call -> {
+                assertThrows(ResourceOperationCoordinator.BusyException.class, operations::acquire);
+                return Optional.empty();
+            });
+            behavior.randomTick(null, new Object[]{state});
+            states.verify(() -> BlockStateUtils.getOptionalCustomBlockState(state));
+        }
+        try (var writer = operations.acquire()) { assertTrue(operations.isBusy()); }
+    }
+
     @Test void sickleLootCarriesBlockAndPlayerButNoHeldFortuneTool() {
         var position = mock(WorldPosition.class);
         var state = mock(ImmutableBlockState.class);
@@ -107,6 +145,9 @@ class SourceCropBehaviorTest {
         var player = mock(Player.class);
         var actor = mock(org.bukkit.entity.Player.class);
         var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        var resourceOperations = new ResourceOperationCoordinator();
+        var readGate = new CeResourceReadGate(resourceOperations, () -> true);
+        assertTrue(readGate.publish(new Object(), () -> true));
         var context = mock(UseOnContext.class);
         var sickle = mock(Item.class);
         when(sickle.id()).thenReturn(Key.of("kaleidoscopecookery:sickle"));
@@ -117,6 +158,7 @@ class SourceCropBehaviorTest {
         when(actor.getWorld()).thenReturn(bukkitWorld);
         when(actor.getGameMode()).thenReturn(GameMode.SURVIVAL);
         when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(readGate);
         when(context.getPlayer()).thenReturn(player);
         when(context.getLevel()).thenReturn(world);
         when(context.getClickedPos()).thenReturn(pos);
@@ -141,6 +183,7 @@ class SourceCropBehaviorTest {
             verify(player, never()).swingHand(any());
 
             protection.when(() -> InteractGuard.canBreak(player, world, pos.x(), pos.y(), pos.z())).thenAnswer(call -> {
+                assertThrows(ResourceOperationCoordinator.BusyException.class, resourceOperations::acquire);
                 when(player.getItemInHand(InteractionHand.OFF_HAND)).thenReturn(sickle);
                 return true;
             });

@@ -35,6 +35,18 @@ class CeResourceReadGateTest {
         writerAvailable();
     }
 
+    @Test void publicationCallbackRunsUnderTheSameExclusiveLeaseAsGenerationValidation() {
+        AtomicBoolean callbackRan = new AtomicBoolean();
+        assertTrue(gate.publishWithLease(() -> new CeResourceReadGate.Publication(
+                generation, current::get, () -> {
+                    writerExcluded();
+                    callbackRan.set(true);
+                })));
+        assertTrue(callbackRan.get());
+        try (var reader = enter()) { writerExcluded(); }
+        writerAvailable();
+    }
+
     @Test void nestedAndConcurrentReadersShareExactlyOneLeaseAndDuplicateCloseIsHarmless() {
         publish(); var outer = enter(); var nested = enter();
         writerExcluded(); outer.close(); outer.close(); writerExcluded();
@@ -158,7 +170,7 @@ class CeResourceReadGateTest {
     @Test void aJoiningReaderProtectsItsRegistryValidatorBeforeThePreviousLastReaderCanClose() throws Exception {
         var calls = new AtomicInteger(); var validating = new CountDownLatch(1); var proceed = new CountDownLatch(1);
         assertTrue(gate.publish(generation, () -> {
-            if (calls.incrementAndGet() == 3) {
+            if (calls.incrementAndGet() == 4) {
                 validating.countDown();
                 try { if (!proceed.await(5, TimeUnit.SECONDS)) throw new IllegalStateException("fixture wait expired"); }
                 catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(interrupted); }

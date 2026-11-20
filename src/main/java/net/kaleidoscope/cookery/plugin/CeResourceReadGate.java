@@ -9,12 +9,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 /**
  * Shares one real CE lease among bounded synchronous readers. This primitive is
- * deliberately not installed in crop callbacks until their complete native
- * entry/exit and generation publication can participate in the same contract.
- * It does not exclude lifecycle writers which bypass CE's coordinator.
+ * used only by the source-crop random-growth and harvest callbacks. It does not
+ * exclude lifecycle writers which bypass CE's coordinator; other crop/native
+ * entry points remain outside this first-stage contract.
  */
 public final class CeResourceReadGate {
     public enum Rejection { CLOSED, BUSY, TRANSITION, STALE, POISONED }
@@ -29,6 +30,13 @@ public final class CeResourceReadGate {
     private sealed interface State {}
     private record Closed() implements State {}
     private record Binding(Object generation, BooleanSupplier stillCurrent) {}
+    record Publication(Object generation, BooleanSupplier stillCurrent, Runnable publish) {
+        Publication {
+            Objects.requireNonNull(generation);
+            Objects.requireNonNull(stillCurrent);
+            Objects.requireNonNull(publish);
+        }
+    }
     private record Idle(Binding binding) implements State {}
     private static final class Publishing implements State {}
     private record Acquiring(Binding binding) implements State {}
@@ -55,7 +63,12 @@ public final class CeResourceReadGate {
      * Busy publication leaves the gate closed. Never waits for CE or a region.
      */
     public boolean publish(Object generation, BooleanSupplier stillCurrent) {
-        Objects.requireNonNull(generation); Objects.requireNonNull(stillCurrent);
+        return publishWithLease(() -> new Publication(generation, stillCurrent, () -> {}));
+    }
+
+    /** Prepare, bind, and validate a generation while holding the one lease that excludes readers. */
+    boolean publishWithLease(Supplier<Publication> prepare) {
+        Objects.requireNonNull(prepare);
         if (failure.get() != null) return false;
         State previous = state.get();
         if (!(previous instanceof Closed || previous instanceof Idle)) return false;
@@ -64,10 +77,12 @@ public final class CeResourceReadGate {
         ResourceOperationCoordinator.Lease lease = null;
         try {
             lease = coordinator.acquire();
-            Binding binding = new Binding(generation, stillCurrent);
+            Publication publication = prepare.get();
+            if (publication == null) return false;
+            Binding binding = new Binding(publication.generation(), publication.stillCurrent());
             if (failure.get() != null || !current(binding)) return false;
-            // Entering a published generation still requires acquiring the real
-            // coordinator; no reader can slip through our publication lease.
+            publication.publish().run();
+            if (failure.get() != null || !current(binding)) return false;
             return state.compareAndSet(publishing, new Idle(binding));
         } catch (ResourceOperationCoordinator.BusyException busy) {
             rejections.get(Rejection.BUSY).increment();

@@ -1,10 +1,12 @@
 package net.kaleidoscope.cookery.plugin;
 
+import com.google.common.collect.ImmutableList;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kaleidoscope.cookery.block.behavior.SourceCropBehavior;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.core.block.BlockDefinition;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Bukkit;
@@ -34,7 +36,6 @@ class CraftEngineRegistryCheckListenerTest {
             f.ticks.getFirst().accept(task);
             f.blocks.verifyNoInteractions();
             f.shapes.verifyNoInteractions();
-            assertEquals(0, f.coordinatorRequests.get());
             verify(task, never()).cancel();
 
             f.reloading.set(false);
@@ -66,23 +67,21 @@ class CraftEngineRegistryCheckListenerTest {
         }
     }
 
-    @Test void shapeFailureReleasesLeaseAndRetriesOnTheNextScheduledTick() {
+    @Test void shapeFailureReleasesLeaseAndKeepsTheGenerationPermanentlyClosed() {
         try (Fixture f = new Fixture()) {
-            f.shapes.when(SourceCropBehavior::installShapes).thenThrow(new IllegalStateException("partial state"))
-                    .thenAnswer(call -> {
-                        f.assertLeaseHeld();
-                        return 3;
-                    });
+            f.shapes.when(SourceCropBehavior::installShapes).thenThrow(new IllegalStateException("partial state"));
             f.listener.scheduleSourceCropRebind(false);
             ScheduledTask task = mock(ScheduledTask.class);
 
             f.ticks.getFirst().accept(task);
             assertFalse(f.operations.isBusy(), "Failed shape binding must release the CE lease");
             verify(task, never()).cancel();
+            assertNotNull(f.gate.failure());
+            assertEquals(CeResourceReadGate.Rejection.POISONED, f.gate.tryEnter().rejection());
 
             f.ticks.getFirst().accept(task);
-            f.shapes.verify(SourceCropBehavior::installShapes, times(2));
-            verify(task).cancel();
+            f.shapes.verify(SourceCropBehavior::installShapes);
+            verify(task, never()).cancel();
             assertFalse(f.operations.isBusy());
         }
     }
@@ -103,7 +102,7 @@ class CraftEngineRegistryCheckListenerTest {
             verify(task, never()).cancel();
             assertFalse(f.operations.isBusy());
 
-            partial.put(Key.of("kaleidoscopecookery:lettuce_crop"), mock(BlockDefinition.class));
+            partial.put(Key.of("kaleidoscopecookery:lettuce_crop"), Fixture.cropDefinition());
             f.ticks.getFirst().accept(task);
             f.shapes.verify(SourceCropBehavior::installShapes);
             verify(task).cancel();
@@ -126,6 +125,25 @@ class CraftEngineRegistryCheckListenerTest {
         }
     }
 
+    @Test void replacingAnAgeStateUnderAnUnchangedDefinitionClosesAdmission() {
+        try (Fixture f = new Fixture()) {
+            f.listener.scheduleSourceCropRebind(false);
+            f.ticks.getFirst().accept(mock(ScheduledTask.class));
+
+            var admission = f.gate.tryEnter();
+            assertTrue(admission.admitted());
+            admission.guard().close();
+
+            var tomato = f.readyBlocks.get(Key.of("kaleidoscopecookery:tomato_crop"));
+            var replacement = mock(ImmutableBlockState.class);
+            when(tomato.variantProvider().states()).thenReturn(ImmutableList.of(replacement));
+
+            assertEquals(CeResourceReadGate.Rejection.STALE, f.gate.tryEnter().rejection());
+            assertEquals(CeResourceReadGate.Rejection.CLOSED, f.gate.tryEnter().rejection());
+            assertFalse(f.operations.isBusy());
+        }
+    }
+
     @Test void supersededOrDisabledTasksCancelWithoutAccessingTheRegistry() {
         try (Fixture f = new Fixture()) {
             f.listener.scheduleSourceCropRebind(false);
@@ -141,7 +159,6 @@ class CraftEngineRegistryCheckListenerTest {
             f.blocks.verifyNoInteractions();
             f.shapes.verifyNoInteractions();
             assertEquals(0, f.reloadChecks.get());
-            assertEquals(0, f.coordinatorRequests.get());
             assertFalse(f.operations.isBusy());
         }
     }
@@ -150,17 +167,17 @@ class CraftEngineRegistryCheckListenerTest {
         final KaleidoscopeCookeryPlugin plugin = mock(KaleidoscopeCookeryPlugin.class);
         final AtomicBoolean reloading = new AtomicBoolean();
         final AtomicInteger reloadChecks = new AtomicInteger();
-        final AtomicInteger coordinatorRequests = new AtomicInteger();
         final ResourceOperationCoordinator operations = new ResourceOperationCoordinator();
+        final CeResourceReadGate gate = new CeResourceReadGate(operations,
+                () -> plugin.isEnabled() && !reloading.get());
         final GlobalRegionScheduler scheduler = mock(GlobalRegionScheduler.class);
         final List<Consumer<ScheduledTask>> ticks = new ArrayList<>();
         final Map<Key, BlockDefinition> readyBlocks = readyBlocks();
         final MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class);
         final MockedStatic<CraftEngineBlocks> blocks = mockStatic(CraftEngineBlocks.class);
         final MockedStatic<SourceCropBehavior> shapes = mockStatic(SourceCropBehavior.class);
-        final CraftEngineRegistryCheckListener listener = new CraftEngineRegistryCheckListener(plugin,
-                () -> { reloadChecks.incrementAndGet(); return reloading.get(); },
-                () -> { coordinatorRequests.incrementAndGet(); return operations; });
+        final CraftEngineRegistryCheckListener listener = new CraftEngineRegistryCheckListener(plugin, gate,
+                () -> { reloadChecks.incrementAndGet(); return reloading.get(); });
 
         Fixture() {
             when(plugin.isEnabled()).thenReturn(true);
@@ -188,12 +205,18 @@ class CraftEngineRegistryCheckListenerTest {
 
         private static Map<Key, BlockDefinition> readyBlocks() {
             Map<Key, BlockDefinition> result = new HashMap<>();
-            BlockDefinition definition = mock(BlockDefinition.class);
+            BlockDefinition definition = cropDefinition();
             for (String name : List.of("chopping_board", "enamel_basin", "kitchenware_racks", "pot",
                     "shawarma_spit", "steamer", "stockpot", "stove", "fruit_basket", "teapot", "teacup_coaster",
                     "tomato_crop", "chili_crop", "lettuce_crop"))
                 result.put(Key.of("kaleidoscopecookery:" + name), definition);
             return result;
+        }
+
+        private static BlockDefinition cropDefinition() {
+            BlockDefinition definition = mock(BlockDefinition.class, RETURNS_DEEP_STUBS);
+            when(definition.variantProvider().states()).thenReturn(ImmutableList.of(mock(ImmutableBlockState.class)));
+            return definition;
         }
 
         @Override public void close() {
