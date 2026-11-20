@@ -21,7 +21,7 @@ CE `data.db` 和两个状态分配 cache 是会被运行更新的初始输入，
 先在候选目录之外选择新的冻结目录，以下命令只生成 `candidate.json` 和 `expected.json`，目标已存在即拒绝：
 
 ```powershell
-python tools/village_publication_candidate.py freeze --instance build/acceptance/<新实例> --platform Paper --run-id <新UUID> --defining-production plugins/KaleidoscopeCookeryPlugin-1.3.0.jar --defining-probe plugins/.paper-remapped/CookeryAcceptanceProbe.jar --source-probe plugins/CookeryAcceptanceProbe.jar --defining-craft-engine plugins/craftengine-26.9.1.jar --defining-server versions/1.21.11/paper-1.21.11.jar --kitchen-pack frozen-inputs/kitchen.zip --village-pack acceptance-world/datapacks/village.zip --java <已固定JDK的bin/java.exe> --output build/acceptance/<新冻结目录>
+python tools/village_publication_candidate.py freeze --instance build/acceptance/<新实例> --platform Paper --run-id <新UUID> --defining-production plugins/KaleidoscopeCookeryPlugin-1.3.0.jar --defining-probe plugins/CookeryAcceptanceProbe.jar --source-probe plugins/CookeryAcceptanceProbe.jar --defining-craft-engine plugins/craftengine-26.9.1.jar --defining-server versions/1.21.11/paper-1.21.11.jar --kitchen-pack frozen-inputs/kitchen.zip --village-pack acceptance-world/datapacks/village.zip --java <已固定JDK的bin/java.exe> --output build/acceptance/<新冻结目录>
 ```
 
 实际路径须按已准备候选指定，示例不是已经存在的实例或运行记录。清单及其摘要应在启动前独立保留，不能从探针结果生成。
@@ -32,5 +32,18 @@ python tools/village_publication_candidate.py check-receipt --candidate build/ac
 ```
 
 `check` 是启动前检查，会拒绝新增世界、结果文件、依赖、配置和初始可变 CE 输入漂移。`check-receipt` 允许本次运行产生的世界／结果，仍重新核对全部不可变输入，要求收据在同一实例、时间不早于冻结、四份 defining JAR 的实际路径／长度／SHA 与冻结清单相同，并调用严格回滚收据检查。成功输出仍明确 `wholeServerRun=NOT_CERTIFIED_BY_THIS_CHECK`。
+
+## 独立启动记录
+
+`tools/village_publication_launch.py` 在候选冻结后准备独立记录，并在未来启动前复核它；两条命令都不启动进程：
+
+```powershell
+python tools/village_publication_launch.py prepare --candidate build/acceptance/<新冻结目录>/candidate.json --output build/acceptance/<新冻结目录>/launch.json
+python tools/village_publication_launch.py check --candidate build/acceptance/<新冻结目录>/candidate.json --record build/acceptance/<新冻结目录>/launch.json
+```
+
+记录绑定完整候选规范 JSON 的 SHA-256，固定实际 Java 绝对路径、argv、cwd 和允许的子进程环境。沿用现有验收 `-Xms512M -Xmx2200M`、UTF-8 和 `server.jar nogui` 参数，不接受追加选项或 argfile。`JAVA_TOOL_OPTIONS`、`JDK_JAVA_OPTIONS`、`_JAVA_OPTIONS`、`CLASSPATH`、未知 Java／原生加载器覆盖变量即使为空也拒绝，诊断不输出其值。其他继承秘密值既不读取也不记录；HOME、用户及临时目录仅在已存在、绝对且无链接时保留原目录含义，JAVA_HOME／PATH 从已固定 JDK 与系统目录生成。
+
+候选保持不可变，不能把启动摘要回写候选形成循环绑定。候选中的 `launchCommandAndEnvironment=NOT_CAPTURED_NO_SERVER_LAUNCHED` 是其冻结时的覆盖边界，后来的独立启动记录补充这一层，不改变历史记录。记录仍为 `startup=NOT_RUN`；OS、系统原生库、网络、用户注册表和整轮运行没有因此被冻结或通过。后续运行器仍须按记录实际启动，并保存进程、日志、工作流和退出证据。当前只跑合成目录合同测试，未创建真实候选或启动记录。
 
 生产激活、完整资源屏障、启动部分失败控制、Paper/Folia 真正冷启动发布／回滚和自然五 biome 生成没有因增加此工具而完成。用户实服窗口仍待安排。

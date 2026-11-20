@@ -2,6 +2,7 @@ import contextlib
 from copy import deepcopy
 import io
 import hashlib
+from functools import lru_cache
 import json
 from pathlib import Path
 import tempfile
@@ -9,7 +10,42 @@ import unittest
 from unittest.mock import patch
 
 from cookery_village import BIOMES, COMMIT, STRUCTURES
-from village_publication_report import MAX_REPORT_BYTES, ReportError, SLOTS, main, read_json, validate, POOL_CLASS, RULE_CLASS, TEMPLATE_CLASS
+from village_publication_report import (CODEC_SCOPE, MIRRORS, ROTATIONS, MAX_REPORT_BYTES, ReportError, SLOTS,
+    main, read_json, validate, POOL_CLASS, RULE_CLASS, TEMPLATE_CLASS, _pinned_structures)
+
+
+@lru_cache(maxsize=1)
+def codec_fixture():
+    """Synthetic receipt contract only; these hashes and rows are not native execution evidence."""
+    pieces, states = [], []
+    vectors = {'north': (0, -1), 'east': (1, 0), 'south': (0, 1), 'west': (-1, 0)}
+    def turn(x, z, rotation):
+        return {'none': (x, z), 'clockwise_90': (-z, x), '180': (-x, -z), 'counterclockwise_90': (z, -x)}[rotation]
+    for biome, size, entries in _pinned_structures():
+        for rotation in ROTATIONS:
+            corners = [turn(x, z, rotation) for x in (0, size[0] - 1) for z in (0, size[2] - 1)]
+            pieces.append({'biome': biome, 'template': 'kaleidoscopecookery:village/houses/' + biome + '_kitchen',
+                'processor': 'kaleidoscopecookery:crop_replace', 'sourceCommit': COMMIT, 'sourceSha256': STRUCTURES[biome],
+                'rotation': rotation, 'elementBytes': 160, 'pieceBytes': 320,
+                'elementSha256': hashlib.sha256(('SYNTHETIC_ELEMENT_CONTRACT_ONLY:' + biome).encode()).hexdigest(),
+                'pieceSha256': hashlib.sha256(('SYNTHETIC_PIECE_CONTRACT_ONLY:' + biome + ':' + rotation).encode()).hexdigest(),
+                'boundingBox': [32 + min(x for x, _ in corners), 64, 48 + min(z for _, z in corners),
+                                32 + max(x for x, _ in corners), 64 + size[1] - 1, 48 + max(z for _, z in corners)]})
+        for position, block, properties in entries:
+            before = dict(properties)
+            for mirror in MIRRORS:
+                for rotation in ROTATIONS:
+                    after = dict(before)
+                    if 'facing' in before:
+                        x, z = vectors[before['facing']]
+                        if mirror == 'left_right': z = -z
+                        elif mirror == 'front_back': x = -x
+                        actual = turn(x, z, rotation)
+                        after['facing'] = next(direction for direction, vector in vectors.items() if vector == actual)
+                    states.append({'biome': biome, 'position': list(position), 'block': block, 'mirror': mirror,
+                                   'rotation': rotation, 'before': before, 'after': after})
+    return {'scope': CODEC_SCOPE, 'templates': 5, 'elementRoundTrips': 20, 'pieceRoundTrips': 20,
+            'transforms': 492, 'pieces': pieces, 'states': states}
 
 
 def fixture():
@@ -72,6 +108,7 @@ def fixture():
                   {'biome': biome, 'location': 'kaleidoscopecookery:village/houses/' + biome + '_kitchen',
                    'sourceCommit': COMMIT, 'sourceSha256': STRUCTURES[biome], 'targetDataVersion': 4671}
                   for biome in BIOMES], 'slots': rows, 'expectedChangedSlots': 16, 'expectedNoOpSlots': 5}
+    report['structureCodec'] = deepcopy(codec_fixture())
     return registration, report, expected
 
 
@@ -82,6 +119,73 @@ class VillagePublicationReportTest(unittest.TestCase):
         self.assertEqual(16, result['changedSlots'])
         self.assertEqual(5, result['noOpSlots'])
         self.assertEqual('NOT_ACTIVATED', result['naturalVillageIntegration'])
+        self.assertEqual({'templates': 5, 'elementRoundTrips': 20, 'pieceRoundTrips': 20,
+                          'transforms': 492, 'scope': CODEC_SCOPE}, result['structureCodec'])
+
+    def test_codec_receipt_requires_the_complete_narrow_scope_and_real_integer_counts(self):
+        for key, value in (('scope', 'NATURAL_GENERATION_ACCEPTED'), ('templates', True), ('templates', 4),
+                           ('elementRoundTrips', False), ('elementRoundTrips', 19), ('pieceRoundTrips', '20'),
+                           ('pieceRoundTrips', 21), ('transforms', 491), ('transforms', True), ('unknown', 'expanded proof')):
+            with self.subTest(key=key, value=value):
+                registration, report, expected = fixture(); report['structureCodec'][key] = value
+                with self.assertRaises(ReportError): validate(registration, report, expected)
+        registration, report, expected = fixture(); del report['structureCodec']
+        with self.assertRaises(ReportError): validate(registration, report, expected)
+
+    def test_every_piece_and_transform_must_have_exactly_one_complete_case(self):
+        for collection in ('pieces', 'states'):
+            for mutation in ('missing', 'duplicate', 'extra', 'wrong-biome', 'wrong-rotation', 'untyped'):
+                with self.subTest(collection=collection, mutation=mutation):
+                    registration, report, expected = fixture(); values = report['structureCodec'][collection]
+                    if mutation == 'missing': values.pop()
+                    elif mutation == 'duplicate': values[-1] = deepcopy(values[0])
+                    elif mutation == 'extra': values.append(deepcopy(values[0]))
+                    elif mutation == 'wrong-biome': values[0]['biome'] = 'jungle'
+                    elif mutation == 'wrong-rotation': values[0]['rotation'] = 'clockwise_360'
+                    else: values[0] = []
+                    with self.assertRaises(ReportError): validate(registration, report, expected)
+
+    def test_native_piece_names_provenance_bounds_and_bounded_digests_are_required(self):
+        for key, value in (('template', 'other:inline'), ('processor', 'minecraft:empty'), ('sourceCommit', 'f' * 40),
+                           ('sourceSha256', '0' * 64), ('elementBytes', True), ('elementBytes', 0), ('elementBytes', 65_537),
+                           ('pieceBytes', False), ('pieceBytes', 0), ('pieceBytes', 65_537), ('elementSha256', 'A' * 64),
+                           ('pieceSha256', None), ('boundingBox', [0, 0, 0, 1, 1, 1]), ('extra', 'claimed restart')):
+            with self.subTest(key=key, value=value):
+                registration, report, expected = fixture(); report['structureCodec']['pieces'][0][key] = value
+                with self.assertRaises(ReportError): validate(registration, report, expected)
+        registration, report, expected = fixture()
+        report['structureCodec']['pieces'][1]['pieceSha256'] = report['structureCodec']['pieces'][0]['pieceSha256']
+        with self.assertRaises(ReportError): validate(registration, report, expected)
+        for index in range(6):
+            registration, report, expected = fixture(); report['structureCodec']['pieces'][0]['boundingBox'][index] = True
+            with self.assertRaises(ReportError): validate(registration, report, expected)
+
+    def test_transform_positions_blocks_and_all_original_properties_are_bound_to_pinned_nbt(self):
+        for mutation in ('position', 'boolean-position', 'block', 'before', 'after', 'mirror', 'additional-direction', 'wrong-point'):
+            with self.subTest(mutation=mutation):
+                registration, report, expected = fixture(); row = report['structureCodec']['states'][0]
+                if mutation == 'position': row['position'] = [47, 47, 47]
+                elif mutation == 'boolean-position': row['position'][0] = True
+                elif mutation == 'block': row['block'] = 'kaleidoscopecookery:chili_crop'
+                elif mutation == 'before': row['before'] = {'age': '7'}
+                elif mutation == 'after': row['after'] = {'age': '7'}
+                elif mutation == 'mirror': row['mirror'] = 'vertical'
+                elif mutation == 'additional-direction': row['before']['axis'] = row['after']['axis'] = 'y'
+                else: row['position'] = deepcopy(report['structureCodec']['states'][-1]['position'])
+                with self.assertRaises(ReportError): validate(registration, report, expected)
+
+    def test_stove_facing_mirrors_before_rotation_and_non_directional_values_never_change(self):
+        registration, report, expected = fixture()
+        east = next(row for row in report['structureCodec']['states'] if row['before'].get('facing') == 'east'
+                    and row['mirror'] == 'front_back' and row['rotation'] == 'clockwise_90')
+        self.assertEqual('north', east['after']['facing'])
+        east['after']['facing'] = 'south'  # Would result from applying rotation before mirror.
+        with self.assertRaises(ReportError): validate(registration, report, expected)
+        for property_name in ('lit', 'age', 'is_head', 'sheared'):
+            registration, report, expected = fixture()
+            row = next(row for row in report['structureCodec']['states'] if property_name in row['before'])
+            row['after'][property_name] = 'false' if row['before'][property_name] == 'true' else 'true'
+            with self.subTest(property=property_name), self.assertRaises(ReportError): validate(registration, report, expected)
 
     def test_genuinely_changed_native_size_caches_are_accounted_without_requiring_probe_mutation(self):
         registration, report, expected = fixture()

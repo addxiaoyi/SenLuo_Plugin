@@ -2,13 +2,23 @@
 
 2026-11-20。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
 
+## 2026-11-20 原生结构 codec 与精确启动记录
+
+新增休眠的 `VillageStructureCodec`，仅由独立验收探针在真实冷启动窗口、完整原生预检通过且五模板临时发布时调用。未来运行必须完成 5 biome × 4 rotation 的 20 组实际具名元素／结构片保存恢复，以及 41 个来源 CE 方块位置 × 3 mirror × 4 rotation 的 492 组完整属性检查，随后仍由本次独有 sentinel 触发生产事务完整回滚。固定位置、ground delta 0、空 junctions；不放置世界，不预热查询 cache，不把原生 processor 输出、邻区生成或服务器重启算入这些数字。当前只通过编译与真实 ABI／调用边界检查，**真实 20／492 仍 NOT_RUN**。严格离线报告检查器从仓库内固定 NBT 独立导出完整位置／属性及旋转边界，拒绝缺失、重复、错位、摘要复用和伪整数；合成 fixture 不是原生运行证据。见[探针及覆盖边界](research/cookery-village-publication-smoke-2026-11-20.md)。
+
+新增只准备／复核的独立启动记录，绑定完整候选 SHA、直接 Java、固定 argv／cwd／允许环境；沿用原验收 `Xms512M/Xmx2200M`，不启动进程。审查补齐准备时间不得早于候选、PATH 组件分隔符与 System32 链接验证，以及 POSIX profile 大小写边界；未知秘密值不读取或输出。探针 manifest 显式声明 Mojang namespace，固定两平台 remapper 静态分支核查支持跳过 Spigot remap；实际 defining JAR 仍须未来收据匹配。见[冻结与启动记录命令](research/cookery-village-candidate-freeze-2026-11-20.md)。
+
+最终根 `test shadowJar acceptanceJar` 通过 **966 项 Java、103 套件，0 失败／错误／跳过**；根 Python 全量 **310/310**，最后三处启动工具补强另复跑 **13/13**。结构报告与候选专项 **38/38**。完整 XML、两轮成功 Java 日志、Python 日志、来源和产物冻结在 `build/evidence/village-codec-launch-final-1/`。生产 JAR SHA-256 为 `7123b95728c67129fdc0a2d121060f8e94c4f0deb1d5b17264545762baab3249`，探针为 `24710eb57c5e91e4537dfeac7b28790d628d6c9ba323e28f8821cda18ced20c2`；厨房及村庄包仍分别为 `32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe`／`660e567a894617b318562205b8445058c07ebd055a322014e6da1bc9e7042174`。完整身份见[本批验证](research/cookery-village-codec-launch-validation-2026-11-20.json)。
+
+精确 Paper／Folia 提交与 49 个去重 feature patch 核查补齐调度来源：生成和加载都到共同 `join322`，而 `createTask/setGenerationTask` 已在 `schedule/run` 前取得任务及邻区使用权。完整屏障需要更早的非等待准入、取消／卸载／恢复协议和服务器首次 `loadLevel` 前的失败响应，尚未实现。实服窗口按用户安排延后，本批未启动服务器、未准备真实候选；生产自然接线、完整 reader／writer 屏障、五 biome 持久化、全部玩家／客户端验收与 watchdog 根因仍 OPEN。C14 保持 `unit_tested`，全系列 `accepted=[]`，总目标继续进行。
+
 ## 2026-11-20 村庄候选输入冻结与 CE 准确源码核查
 
 新增只读候选冻结／启动前检查／收据关联工具，拒绝既有世界、已有结果、未显式启用的初始村庄数据包，以及未声明的活动插件。它逐文件比较厨房 ZIP 与真实安装目录，检查村庄空 processor／生产 JAR 清单一致，冻结四份 defining JAR、三份 source plugin、全部初始 datapacks、已知配置／资源／依赖及 Java bin／lib／conf／release 文件；重新枚举集合以拒绝删空角色、缺失运行时清单、新增依赖和路径别名。初始可变 CE 数据与状态分配 cache 另存散列，启动前须匹配，运行后不冒充不可变输入证明。工具不启动进程、接受 EULA、改配置／堆／watchdog，当前没有真实已准备候选。
 
 本批全量根 Python **292/292** 通过，最后规范路径别名补强另复跑 **18 项**候选测试通过；报告检查原 15 项也通过。Java／生产资源未改，本地不重复 JVM，沿用上一批 963 项证据；生产／probe／两包哈希仍为下批身份。使用真实当前 ZIP 的静态安装复核检查了 **2,399 个厨房文件**及生产／村庄清单原始字节，全部通过；首份长 Windows 路径提取失败保留，加入扩展路径读写和真实长路径回归后在新目录复核成功。合成临时目录、真实静态包检查均不算服务器运行。工具及边界见[候选冻结说明](research/cookery-village-candidate-freeze-2026-11-20.md)，身份与失败记录见[本批验证](research/cookery-village-candidate-validation-2026-11-20.json)。
 
-官方 Maven CE 26.9.1 源码与公开提交 `2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985` 核对 2,033 个 Java 文件，2,032 个 Git blob 在仅规范化换行后精确匹配；唯一 PREMIUM 标志发布变体单独验证保留。相近 26.9 tag 不够准确。固定 Paper/Folia 的 Moonrise 加载分支会在 `ChunkStep.apply` future 未完成时执行 join，不能把返回 future 当作安全异步闸门；完整补丁还缺准确原生 helper／调度实现源码及协作入口。没有升级依赖或生成冒充完整屏障的局部补丁，见[源码身份和具体边界](research/craftengine-resource-barrier-source-2026-11-20.md)。
+官方 Maven CE 26.9.1 源码与公开提交 `2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985` 核对 2,033 个 Java 文件，2,032 个 Git blob 在仅规范化换行后精确匹配；唯一 PREMIUM 标志发布变体单独验证保留。相近 26.9 tag 不够准确。当时固定字节码已证明 Moonrise 加载分支会在 `ChunkStep.apply` future 未完成时执行 join；后续精确源码／分支核查补足生成也到共同 join，并补齐服务器调度来源，详见上批新记录及[源码身份和具体边界](research/craftengine-resource-barrier-source-2026-11-20.md)。CE 原生 helper 来源及完整协作实现仍缺，没有升级依赖或生成冒充完整屏障的局部补丁。
 
 实服窗口仍按用户安排延后；下一候选还须独立准备并固定 remap defining 产物、启动命令／环境、初始 CE 可变状态及整轮退出／工作流证据。生产激活、启动失败响应、完整 reader／writer 屏障、自然五 biome／持久化、全部玩家／客户端验收和 watchdog 根因继续 OPEN，总目标未完成。
 

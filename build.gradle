@@ -221,4 +221,7 @@ tasks.register('acceptanceJar', Jar) {
     from(sourceSets.acceptance.output)
     archiveFileName.set('CookeryAcceptanceProbe.jar')
     destinationDirectory.set(layout.buildDirectory.dir('acceptance/probe'))
+    // The probe's native reflection names already use Mojang mappings. Keep its
+    // defining JAR stable instead of sending it through the Spigot remapper.
+    manifest.attributes('paperweight-mappings-namespace': 'mojang')
 }

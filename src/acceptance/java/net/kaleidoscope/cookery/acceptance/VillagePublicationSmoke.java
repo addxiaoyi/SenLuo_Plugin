@@ -7,6 +7,7 @@ import net.kaleidoscope.cookery.worldgen.VillagePoolPreparer;
 import net.kaleidoscope.cookery.worldgen.VillagePublicationTransaction;
 import net.kaleidoscope.cookery.worldgen.VillagePublisher;
 import net.kaleidoscope.cookery.worldgen.VillageStructureSources;
+import net.kaleidoscope.cookery.worldgen.VillageStructureCodec;
 import net.kaleidoscope.cookery.worldgen.VillageTemplateMigrator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
@@ -145,6 +146,8 @@ final class VillagePublicationSmoke {
                 owned.check();
                 for (Snapshot snapshot : captured) snapshot.witness(true);
                 wholeCache.checkUnrelated(migrated, manager);
+                report.put("structureCodec", VillageStructureCodec.forMinecraft(Bukkit.getMinecraftVersion())
+                        .inspect(registry, manager, migrated, pools, owned));
                 check(Bukkit.getWorlds().isEmpty(), "A world appeared during native publication");
                 report.put("publishedWitnessObserved", true);
                 throw sentinel;

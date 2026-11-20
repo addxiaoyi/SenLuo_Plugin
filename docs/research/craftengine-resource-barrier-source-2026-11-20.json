@@ -1,5 +1,5 @@
 {
-  "scope": "static_source_provenance_only_no_binary_rebuild",
+  "scope": "static_ce_and_native_source_provenance_and_control_flow_only_no_binary_rebuild",
   "sourceCommit": "2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985",
   "sourceCommitUrl": "https://github.com/Xiao-MoMi/craft-engine/commit/2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985",
   "publishedJavaFiles": 2033,
@@ -85,5 +85,189 @@
     }
   ],
   "missing": "Native InjectedCustomChunkGenerator/FastNMS source absent from this commit tree; NMS helper source JAR routes return404",
-  "patchScope": "No full barrier patch generated against absent native sources; cooperative interface design only"
+  "patchScope": "No complete barrier patch generated: native CE helper source and full admission/resume/read-write/startup-abort protocol remain missing; fixed server scheduler source identity is now verified",
+  "nativeSchedulerSourceAudit": {
+    "status": "source_identity_and_control_flow_verified_complete_barrier_open",
+    "paper": {
+      "version": "1.21.11-132-c5eb079",
+      "commit": "c5eb0790f199da6c38d0a650e1e5cd5415b28185",
+      "tree": "8b6a788a482958121fe6494719fcfeed0441f420",
+      "jarSha256": "3a73f0cc4020a5eb45629a67629b14263331c68de45552f8505df8060fa8ed43"
+    },
+    "folia": {
+      "version": "1.21.11-14-529aabc",
+      "commit": "529aabc13852021f6081f8a6069959a449c33785",
+      "tree": "cb21b11538d8c7f406e6c088177939173819a6eb",
+      "paperBaseCommit": "79c77f5d7d409b692b67f75e03e5c138a9283fad",
+      "paperBaseTree": "bc437d3e808526bfd56a5189b0ffb3e28f301080",
+      "jarSha256": "6bfd94ffd8649cf416d247e849214667ac91759699a4c3536eef2307277c4e33"
+    },
+    "moonrise": {
+      "includedPatchBlob": "d1782ae71933a48dac3ec9bce54f3b4087220c23",
+      "upstreamCommit": null,
+      "upstreamCommitStatus": "Not declared in included patch; no Tuinity commit inferred from repository link",
+      "effectiveClassSourceBlobs": [
+        {
+          "class": "ChunkTaskScheduler",
+          "paper_git_blob": "640548d78b87653871dd1f7b0f84574c5e205fe8",
+          "folia_git_blob": "5068de75f6f38c0459b77eb7354ce9db2d251d2c",
+          "folia_applied_patches": [
+            {
+              "path": "folia-server/minecraft-patches/features/0001-Region-Threading-Base.patch",
+              "blob": "3ec96b0cecd771273ba11e44c4808a04411a7615"
+            }
+          ]
+        },
+        {
+          "class": "NewChunkHolder",
+          "paper_git_blob": "9a9a599ef178f851ee5c783631a724013a693586",
+          "folia_git_blob": "24c8581b2fa9c3ef6f6aad64bd4454d64fe233ae",
+          "folia_applied_patches": [
+            {
+              "path": "folia-server/minecraft-patches/features/0001-Region-Threading-Base.patch",
+              "blob": "3ec96b0cecd771273ba11e44c4808a04411a7615"
+            },
+            {
+              "path": "folia-server/minecraft-patches/features/0007-Region-profiler.patch",
+              "blob": "2b2b5aaed986df516c7aa62154ef98433864dd24"
+            }
+          ]
+        },
+        {
+          "class": "ChunkProgressionTask",
+          "paper_git_blob": "002ee365aa70d8e6a6e6bd5c95988bd17db4395a",
+          "folia_git_blob": "002ee365aa70d8e6a6e6bd5c95988bd17db4395a",
+          "folia_applied_patches": []
+        },
+        {
+          "class": "ChunkUpgradeGenericStatusTask",
+          "paper_git_blob": "78fd90e0aa4d84ab13de8c101c5d31596e9ba1f7",
+          "folia_git_blob": "78fd90e0aa4d84ab13de8c101c5d31596e9ba1f7",
+          "folia_applied_patches": []
+        }
+      ]
+    },
+    "featurePatchInventory": {
+      "uniqueGitBlobs": 49,
+      "totalBytes": 5994005,
+      "gitBlobHashesVerified": true,
+      "laterChangesToGenericStatusTask": false,
+      "paperSourcePatchPathsForFourTargetClasses": []
+    },
+    "runControlFlow": {
+      "historicalFinding": {
+        "evidenceDirectory": "build/followups/ce-upstream-resource-barrier-6",
+        "proved": "Loading path reaches join322",
+        "notProvedThen": "Generation path is nonblocking; prior limited finding is preserved, not relabeled as a pass"
+      },
+      "strongerFinding": "Both nonempty normal generation and loading branches reach the common join322 in both retained runtime JARs",
+      "generation": [
+        "apply113",
+        "whenComplete122",
+        "goto177",
+        "goto274",
+        "isDone276",
+        "join322"
+      ],
+      "loading": [
+        "apply172",
+        "177",
+        "goto274",
+        "isDone276",
+        "join322"
+      ],
+      "warningOnlyBranchTargets": {
+        "279": 320,
+        "295": 320
+      },
+      "exactSourceFile": "ChunkUpgradeGenericStatusTask.java",
+      "sourceLines": {
+        "generationApply": 97,
+        "loadingApply": 110,
+        "commonJoin": 140
+      },
+      "incompleteFutureIsNonblockingGate": false
+    },
+    "ownership": {
+      "paperSource": {
+        "schedulePrivateOverloadLine": 689,
+        "createTaskLine": 777,
+        "setGenerationTaskLine": 783,
+        "emptyTaskOwnershipLine": 719,
+        "outerLockReleaseLines": [
+          644,
+          647
+        ],
+        "dispatchLine": 651
+      },
+      "holderSource": {
+        "setGenerationTaskLine": 1559,
+        "taskRecordedLines": [
+          1567,
+          1568
+        ],
+        "neighbourUsageAcquiredLine": 1571,
+        "completionSchedulingLockLine": 1613,
+        "neighbourUsageReleasedLine": 1616,
+        "completionProgressionLine": 1618,
+        "completionUnlockLine": 1620,
+        "successorDispatchLine": 1627
+      },
+      "scheduleOrRunGateBeforeOwnership": false,
+      "existingSupportedResumableResourceGate": false,
+      "implementationBoundary": "A nonblocking admission decision before task construction/setGenerationTask, integrated with requested targets/dependencies, cancellation/unload/shutdown and resume in the owning world/region scheduling context; never wait while holding area locks"
+    },
+    "startup": {
+      "dedicatedServerSourcePatchBlob": "c8cd84714454c505dac5fb349b16ea376b39d9c6",
+      "bothRuntimeBytecodes": {
+        "loadPlugins": 940,
+        "startupEnablePlugins": 950,
+        "firstLoadLevel": 1201
+      },
+      "resourceFailureCheckBetweenStartupAndLoadLevel": false,
+      "foliaStartupSegmentUnchanged": true,
+      "nativeAbortImplemented": false
+    },
+    "localEvidence": [
+      {
+        "path": "build/followups/native-scheduler-source-7/READY.md",
+        "bytes": 8451,
+        "sha256": "37822bb8974d1fd6387cd42a1e19658cfd5b6bac162d528b5dca542ebb0623ee"
+      },
+      {
+        "path": "build/followups/native-scheduler-source-7/binary-identities.json",
+        "bytes": 2966,
+        "sha256": "82e67915c41e968f692675f911dc3d2f91a8787c5ade01e6c43844759eb9ef48"
+      },
+      {
+        "path": "build/followups/native-scheduler-source-7/feature-patch-inventory.json",
+        "bytes": 126003,
+        "sha256": "84962892b832af3ab884861276eae662806d3632a890c7e9e03d9ac3b95d6a85"
+      },
+      {
+        "path": "build/followups/native-scheduler-source-7/run-bytecode-branch-map.json",
+        "bytes": 53668,
+        "sha256": "2d6c1a063faa8b66561c99ac14ed1604a969b101e3751247ff26712f59d95734"
+      },
+      {
+        "path": "build/followups/native-scheduler-source-7/source-and-bytecode-proof.json",
+        "bytes": 445882,
+        "sha256": "470d283040d6ae8f4e5a213f76d4aba895a44543550def62b3402e2aab7a74b7"
+      },
+      {
+        "path": "build/followups/native-scheduler-source-7/verify_native_source.py",
+        "bytes": 6291,
+        "sha256": "f8a488783216d3d270a5f222c10dd3410b79e2a75783052bb0d324ce22060629"
+      },
+      {
+        "path": "build/followups/native-scheduler-source-7/scan_feature_patches.py",
+        "bytes": 3467,
+        "sha256": "4d0ad1b7fc1b14cc49366b540aef24d5320328076b5df649fd0bce5e5eb1386b"
+      }
+    ],
+    "offlineReproduction": ".\\.venv\\Scripts\\python.exe build/followups/native-scheduler-source-7/verify_native_source.py",
+    "jvmOrServerStarted": false,
+    "runtimeAcceptanceClaimed": false,
+    "fullBarrierImplemented": false
+  }
 }

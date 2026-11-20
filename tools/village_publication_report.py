@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
@@ -14,7 +15,8 @@ import re
 import sys
 import uuid
 
-from cookery_village import BIOMES, COMMIT, STRUCTURES
+from audit_upstream import AuditError
+from cookery_village import BIOMES, COMMIT, STRUCTURES, structure_manifest
 
 MAX_REPORT_BYTES = 4_194_304
 ARTIFACTS = frozenset(('production', 'probe', 'craftEngine', 'server'))
@@ -25,6 +27,10 @@ PAIR = 'com.mojang.datafixers.util.Pair'
 POOL_CLASS = 'net.minecraft.world.level.levelgen.structure.pools.'
 TEMPLATE_CLASS = 'net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate'
 RULE_CLASS = 'net.minecraft.world.level.levelgen.structure.templatesystem.RuleProcessor'
+CODEC_SCOPE = 'REAL_NATIVE_NAMED_ELEMENT_AND_SAVED_PIECE_CODECS; NO_WORLD_PLACEMENT_OR_RESTART'
+ROTATIONS = ('none', 'clockwise_90', '180', 'counterclockwise_90')
+MIRRORS = ('none', 'left_right', 'front_back')
+PROCESSOR = 'kaleidoscopecookery:crop_replace'
 SLOTS = {**{'template:kaleidoscopecookery:village/houses/' + biome + '_kitchen': 'CACHE_ENTRY'
             for biome in BIOMES}, 'processor:list': 'REFERENCE',
          **{'pool:minecraft:village/' + biome + '/houses:' + field: kind
@@ -176,6 +182,103 @@ def _time(value: object) -> datetime:
     return parsed
 
 
+@lru_cache(maxsize=1)
+def _pinned_structures() -> tuple:
+    """Immutable source authority; no upstream checkout or received report is trusted for positions."""
+    directory = Path(__file__).resolve().parents[1] / 'src/main/resources/village/source'
+    result = []
+    for biome in BIOMES:
+        with (directory / (biome + '_kitchen.nbt')).open('rb') as stream:
+            raw = stream.read(1_048_577)
+        require(0 < len(raw) <= 1_048_576, 'Pinned village source exceeds its byte bound')
+        try:
+            metadata = structure_manifest(raw, biome)
+        except AuditError as error:
+            raise ReportError('Pinned village source differs from its independently fixed digest: ' + biome) from error
+        states = tuple((tuple(row['position']), row['Name'].replace('kaleidoscope_cookery:', 'kaleidoscopecookery:', 1),
+                        tuple(sorted(row['Properties'].items()))) for row in metadata['customBlocks'])
+        result.append((biome, tuple(metadata['size']), states))
+    require(sum(len(states) for _, _, states in result) == 41, 'Pinned custom-state inspection scope changed')
+    return tuple(result)
+
+
+def _rotated_bounds(size: tuple[int, int, int], rotation: str) -> list[int]:
+    x, y, z = (value - 1 for value in size)
+    far = {'none': (x, z), 'clockwise_90': (-z, x), '180': (-x, -z),
+           'counterclockwise_90': (z, -x)}[rotation]
+    return [32 + min(0, far[0]), 64, 48 + min(0, far[1]),
+            32 + max(0, far[0]), 64 + y, 48 + max(0, far[1])]
+
+
+def _transformed_properties(before: dict[str, str], mirror: str, rotation: str) -> dict[str, str]:
+    after = dict(before)
+    if 'facing' in after:
+        facing = after['facing']
+        if mirror == 'left_right':
+            facing = {'north': 'south', 'south': 'north'}.get(facing, facing)
+        elif mirror == 'front_back':
+            facing = {'east': 'west', 'west': 'east'}.get(facing, facing)
+        directions = ('north', 'east', 'south', 'west')
+        after['facing'] = directions[(directions.index(facing) + ROTATIONS.index(rotation)) % 4]
+    return after
+
+
+def _structure_codec(value: object, templates: list[dict]) -> dict:
+    """Validate reported native coverage; hashes alone do not replace raw native execution evidence."""
+    require(type(value) is dict and value.keys() == {
+        'scope', 'templates', 'elementRoundTrips', 'pieceRoundTrips', 'transforms', 'pieces', 'states'},
+        'Missing or expanded native structure codec scope')
+    require(value.get('scope') == CODEC_SCOPE, 'Native structure codec receipt expands or changes its verified scope')
+    for key, expected in (('templates', 5), ('elementRoundTrips', 20), ('pieceRoundTrips', 20), ('transforms', 492)):
+        require(type(value.get(key)) is int and value[key] == expected, 'Incomplete actual native codec coverage: ' + key)
+    pieces, states = value.get('pieces'), value.get('states')
+    require(type(pieces) is list and len(pieces) == 20 and type(states) is list and len(states) == 492,
+            'Native codec counts differ from complete per-case evidence')
+    source = {row['biome']: row for row in templates}
+    dimensions = {biome: size for biome, size, _ in _pinned_structures()}
+    expected_states = {(biome, position): (block, dict(properties))
+                       for biome, _, entries in _pinned_structures() for position, block, properties in entries}
+    seen_pieces, piece_hashes = set(), set()
+    for row in pieces:
+        require(type(row) is dict and row.keys() == {'biome', 'template', 'processor', 'sourceCommit', 'sourceSha256',
+            'rotation', 'elementBytes', 'elementSha256', 'pieceBytes', 'pieceSha256', 'boundingBox'}, 'Invalid native piece codec receipt')
+        biome, rotation = row.get('biome'), row.get('rotation')
+        require(type(biome) is str and biome in BIOMES and type(rotation) is str and rotation in ROTATIONS
+                and (biome, rotation) not in seen_pieces, 'Unknown, duplicate or missing native piece rotation')
+        seen_pieces.add((biome, rotation))
+        require(row.get('template') == source[biome]['location'] and row.get('processor') == PROCESSOR
+                and row.get('sourceCommit') == source[biome]['sourceCommit']
+                and row.get('sourceSha256') == source[biome]['sourceSha256'], 'Native piece lost its pinned named template/processor provenance')
+        for key in ('elementBytes', 'pieceBytes'):
+            require(type(row.get(key)) is int and 0 < row[key] <= 65_536, 'Native encoded NBT violates its byte bound')
+        for key in ('elementSha256', 'pieceSha256'):
+            require(type(row.get(key)) is str and SHA.fullmatch(row[key]), 'Missing native encoded NBT digest')
+        require(row['pieceSha256'] not in piece_hashes, 'Different native piece/rotation cases reused an encoded piece digest')
+        piece_hashes.add(row['pieceSha256'])
+        bounds = row.get('boundingBox')
+        require(type(bounds) is list and len(bounds) == 6 and all(type(item) is int for item in bounds)
+                and bounds == _rotated_bounds(dimensions[biome], rotation), 'Native saved piece bounds differ from source size and rotation')
+    require(seen_pieces == {(biome, rotation) for biome in BIOMES for rotation in ROTATIONS}, 'Missing native saved-piece combination')
+    seen_states = set()
+    for row in states:
+        require(type(row) is dict and row.keys() == {'biome', 'position', 'block', 'mirror', 'rotation', 'before', 'after'},
+                'Invalid native state transform receipt')
+        biome, position, mirror, rotation = (row.get(key) for key in ('biome', 'position', 'mirror', 'rotation'))
+        require(type(biome) is str and biome in BIOMES and type(position) is list and len(position) == 3
+                and all(type(item) is int for item in position) and type(mirror) is str and mirror in MIRRORS
+                and type(rotation) is str and rotation in ROTATIONS, 'Invalid native source transform coordinates or enums')
+        key = (biome, tuple(position))
+        require(key in expected_states and (key, mirror, rotation) not in seen_states, 'Unknown or duplicate native source transform point')
+        seen_states.add((key, mirror, rotation))
+        block, before = expected_states[key]
+        require(row.get('block') == block and type(row.get('before')) is dict and _same(row['before'], before),
+                'Native transform did not start at the exact pinned source state')
+        require(type(row.get('after')) is dict and _same(row['after'], _transformed_properties(before, mirror, rotation)),
+                'Native transform lost facing semantics or changed another source property')
+    require(len(seen_states) == len(expected_states) * len(MIRRORS) * len(ROTATIONS), 'Native transform combinations are incomplete')
+    return {'templates': 5, 'elementRoundTrips': 20, 'pieceRoundTrips': 20, 'transforms': 492, 'scope': CODEC_SCOPE}
+
+
 def validate(registration: dict, report: dict, expected: dict) -> dict:
     _manifest(expected)
     require(registration.get('schema') == 'village-publication-smoke-v1', 'Unknown registration schema')
@@ -229,6 +332,7 @@ def validate(registration: dict, report: dict, expected: dict) -> dict:
                 and row.get('sourceCommit') == COMMIT and row.get('sourceSha256') == STRUCTURES[biome]
                 and type(row.get('targetDataVersion')) is int and row['targetDataVersion'] == 4671,
                 'Source template provenance differs: ' + biome)
+    codec = _structure_codec(report.get('structureCodec'), templates)
     rows = report.get('slots')
     require(type(rows) is list and len(rows) == len(SLOTS), 'Incomplete native publication write set')
     seen = set()
@@ -296,7 +400,8 @@ def validate(registration: dict, report: dict, expected: dict) -> dict:
             and changed >= 16, 'Native slot counts disagree')
     return {'runId': expected['runId'], 'platform': expected['platform'], 'changedSlots': changed,
             'noOpSlots': len(SLOTS) - changed, 'result': 'PASS',
-            'scope': 'NATIVE_COLD_START_PUBLICATION_ROLLBACK_ONLY', 'naturalVillageIntegration': 'NOT_ACTIVATED'}
+            'scope': 'NATIVE_COLD_START_PUBLICATION_ROLLBACK_ONLY', 'naturalVillageIntegration': 'NOT_ACTIVATED',
+            'structureCodec': codec}
 
 
 def validate_files(registration_path: Path, report_path: Path, expected: dict) -> dict:

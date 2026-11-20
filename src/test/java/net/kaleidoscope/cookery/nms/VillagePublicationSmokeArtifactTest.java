@@ -88,14 +88,19 @@ class VillagePublicationSmokeArtifactTest {
             assertTrue(run.calls().stream().anyMatch(call -> call.name().equals("checkRestored")));
             assertTrue(methods.entrySet().stream().filter(entry -> entry.getKey().startsWith("lambda$run$"))
                     .anyMatch(entry -> entry.getValue().opcodes().contains(Opcodes.ATHROW)
-                            && entry.getValue().calls().stream().anyMatch(call -> call.name().equals("witness"))),
-                    "The read-only witness callback must reject before any commit receipt");
+                            && entry.getValue().calls().stream().anyMatch(call -> call.name().equals("witness"))
+                            && entry.getValue().calls().stream().anyMatch(call -> call.owner().equals(WORLDGEN + "VillageStructureCodec")
+                                    && call.name().equals("inspect"))
+                            && entry.getValue().strings().contains("structureCodec")),
+                    "The published-state callback must run real codec checks and reject before any commit receipt");
             assertTrue(run.strings().containsAll(Set.of("scopeClosed", "writerAvailableAfterClose", "fullOriginalsRestored")));
         }
     }
 
     @Test void reportPublicationIsNewAndAtomicAndCannotBeConfusedWithProductionActivation() throws Exception {
         try (var jar = probe(); var production = new JarFile(Path.of(System.getProperty("cookery.pluginJar")).toFile())) {
+            assertEquals("mojang", jar.getManifest().getMainAttributes().getValue("paperweight-mappings-namespace"),
+                    "The probe must declare its actual native namespace before defining-JAR identities are frozen");
             assertNull(production.getJarEntry(SMOKE + ".class"), "Acceptance code must not be distributed as a production activation hook");
             var methods = read(jar, SMOKE); Body write = named(methods, "write");
             assertTrue(write.calls().stream().anyMatch(call -> call.owner().equals("com/google/gson/GsonBuilder") && call.name().equals("serializeNulls")),

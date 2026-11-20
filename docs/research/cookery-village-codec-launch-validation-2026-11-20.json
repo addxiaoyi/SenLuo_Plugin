@@ -1,0 +1,221 @@
+{
+  "date": "2026-11-20",
+  "scope": "NATIVE_CODEC_ABI_AND_OFFLINE_LAUNCH_RECEIPT_CONTRACTS_NO_SERVER_RUN",
+  "java": {
+    "tests": 966,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": 103,
+    "tasks": [
+      "test",
+      "shadowJar",
+      "acceptanceJar"
+    ],
+    "finalLog": "build/village-codec-launch-java-2.log",
+    "exitCode": 0,
+    "validationAttempts": [
+      {
+        "log": "build/village-codec-launch-java-1.log",
+        "result": "PASS_BEFORE_ADDITIONAL_DIMENSION_PRECONDITION"
+      },
+      {
+        "log": "build/village-codec-launch-java-2.log",
+        "result": "PASS_FINAL_JAVA_SOURCE"
+      }
+    ]
+  },
+  "python": {
+    "fullSuite": {
+      "tests": 310,
+      "log": "build/village-codec-launch-full-python-1.log",
+      "exitCode": 0
+    },
+    "finalLaunchHardening": {
+      "tests": 13,
+      "log": "build/village-publication-launch-review-10-python-2.log",
+      "exitCode": 0
+    },
+    "codecReportAndCandidate": {
+      "tests": 38,
+      "log": "build/village-structure-codec-report-python-1.log",
+      "exitCode": 0
+    },
+    "processOnlyGitConfigCount": 0,
+    "fixtureScope": "SYNTHETIC_TEMPORARY_CONTRACTS_NOT_NATIVE_CODEC_EXECUTION",
+    "finalLaunchChangesAfterFullSuite": [
+      "prepare timestamp ordering",
+      "controlled PATH separators and System32 link validation",
+      "POSIX case-sensitive profile allowlist"
+    ]
+  },
+  "requiredFutureRuntimeCoverage": {
+    "templates": 5,
+    "elementRoundTrips": 20,
+    "savedPieceRoundTrips": 20,
+    "originalCustomPositions": 41,
+    "mirrors": 3,
+    "rotations": 4,
+    "transforms": 492,
+    "scope": "REAL_NATIVE_NAMED_ELEMENT_AND_SAVED_PIECE_CODECS; NO_WORLD_PLACEMENT_OR_RESTART",
+    "actualRuntime": "NOT_RUN",
+    "processorOutputsSeparatelyTransformed": false,
+    "groundLevelDelta": 0,
+    "junctions": 0,
+    "precondition": "Complete native publisher preflight has authenticated all source vanilla/NBT/processor content"
+  },
+  "mappingNamespace": {
+    "value": "mojang",
+    "actualBuiltProbeManifestVerified": true,
+    "nativeRemapperClassSha256": "6a02f31fa4544f2916e91ad3066be097219b6060f70db70e93b9375e903fcf50",
+    "scope": "STATIC_PINNED_PAPER_FOLIA_REMAP_BRANCH_ONLY_NO_RUNTIME_REMAP"
+  },
+  "artifacts": [
+    {
+      "path": "build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar",
+      "bytes": 1962831,
+      "sha256": "7123b95728c67129fdc0a2d121060f8e94c4f0deb1d5b17264545762baab3249"
+    },
+    {
+      "path": "build/acceptance/probe/CookeryAcceptanceProbe.jar",
+      "bytes": 290809,
+      "sha256": "24710eb57c5e91e4537dfeac7b28790d628d6c9ba323e28f8821cda18ced20c2"
+    },
+    {
+      "path": "build/distribution/kitchen-sickle-1.zip",
+      "bytes": 2992042,
+      "sha256": "32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe"
+    },
+    {
+      "path": "build/distribution/village-empty-processor-1.zip",
+      "bytes": 58924,
+      "sha256": "660e567a894617b318562205b8445058c07ebd055a322014e6da1bc9e7042174"
+    }
+  ],
+  "evidenceDirectory": "build/evidence/village-codec-launch-final-1",
+  "logs": [
+    {
+      "path": "build/village-codec-launch-java-1.log",
+      "bytes": 2731,
+      "sha256": "86394c9b50e43ee91cc2787b184321e3b933c9bc9c8e75a43be7f333022dc2ff"
+    },
+    {
+      "path": "build/village-codec-launch-java-2.log",
+      "bytes": 2789,
+      "sha256": "5e018da1d0bed99f9fdcb2a2abc39b259ead0001a7a007ff52e2a4e054ce5d00"
+    },
+    {
+      "path": "build/village-codec-launch-full-python-1.log",
+      "bytes": 56881,
+      "sha256": "1a2ff4c6d1eed040c2aa146b437cca00becb7170064ce6922aca49b2439e0314"
+    },
+    {
+      "path": "build/village-launch-python-3.log",
+      "bytes": 3199,
+      "sha256": "8772a01126a6709663f5327d1cc22f53ac4b8b280824048df8988cd1f7d9dcfc"
+    },
+    {
+      "path": "build/village-structure-codec-report-python-1.log",
+      "bytes": 8521,
+      "sha256": "3e03b8c7464e7a9c8b9495e27e4e97b06b3f2e9ed0de19c281a2ea07a1340b08"
+    },
+    {
+      "path": "build/village-publication-launch-review-10-python.log",
+      "bytes": 3200,
+      "sha256": "4c8aaa9bd38c289f6b62eea46c8c38372950cca72c0b3e1a6b83eb2cf927a5ed"
+    },
+    {
+      "path": "build/village-publication-launch-review-10-python-2.log",
+      "bytes": 3200,
+      "sha256": "078f9729e5145fbb64e316cfc9bffc83dd668abbcaf15b7445a59bc9b06c090f"
+    }
+  ],
+  "sources": [
+    {
+      "path": "tools/village_publication_launch.py",
+      "bytes": 11368,
+      "sha256": "a855344da6ac595c480ebe7c9f1a947a4b83d64fd16e778ace62056956f3e1d4"
+    },
+    {
+      "path": "tools/test_village_publication_launch.py",
+      "bytes": 15296,
+      "sha256": "32e36d5fe7e707a615959f3a181ae876977edb84aa6940a85e1e46d5ded392c9"
+    },
+    {
+      "path": "tools/village_publication_report.py",
+      "bytes": 25658,
+      "sha256": "cc75dfb54b9504acdd717800fb8ab472dc8abc34e4bafb050b3b4aae83489e00"
+    },
+    {
+      "path": "tools/test_village_publication_report.py",
+      "bytes": 26057,
+      "sha256": "41459ffc86365b863c63f4b1b561251ea6ba362d025c9d3fce8aff002fcbb73c"
+    },
+    {
+      "path": "src/main/java/net/kaleidoscope/cookery/worldgen/VillageStructureCodec.java",
+      "bytes": 2314,
+      "sha256": "4eeb4ec3ee03f7dda214f8596348ba987b8adb9f095846240078cd725b9e1abb"
+    },
+    {
+      "path": "src/nms/v1_21_R7/java/net/kaleidoscope/cookery/nms/v1_21_R7/VillageStructureCodecNative.java",
+      "bytes": 22034,
+      "sha256": "3b897f607d3602f0380483a12fc2a078ae6443f64a4cb7c6a20fdf26018be550"
+    },
+    {
+      "path": "src/acceptance/java/net/kaleidoscope/cookery/acceptance/VillagePublicationSmoke.java",
+      "bytes": 31112,
+      "sha256": "44205bd5cb1929a1056559724ca2c8b60e934292dfb1a56ceda4db7cb53c6215"
+    },
+    {
+      "path": "src/test/java/net/kaleidoscope/cookery/nms/VillageStructureCodecArtifactTest.java",
+      "bytes": 10249,
+      "sha256": "c02f020a2a4c2994f315f5c5cce1119591072d2476734fcfbbb3390d7f91941f"
+    },
+    {
+      "path": "src/test/java/net/kaleidoscope/cookery/nms/VillagePublicationSmokeArtifactTest.java",
+      "bytes": 8784,
+      "sha256": "0edfcace6511e42716ae2c9ac1894d78e537edf803c9c327d85a675f5d4acb54"
+    },
+    {
+      "path": "build.gradle",
+      "bytes": 9544,
+      "sha256": "733469ea24c606f7d7e99d0545617154ca9ed573220dded7bced87c5abc37841"
+    }
+  ],
+  "staticAudits": [
+    {
+      "path": "build/followups/probe-mapping-audit-8/summary.json",
+      "bytes": 105379,
+      "sha256": "82fb6b04ee4eb6983ac92dd127da01594fe621870cb545538a9b9fa98d5d0b00"
+    },
+    {
+      "path": "build/followups/native-scheduler-source-7/READY.md",
+      "bytes": 8451,
+      "sha256": "37822bb8974d1fd6387cd42a1e19658cfd5b6bac162d528b5dca542ebb0623ee"
+    },
+    {
+      "path": "build/followups/native-scheduler-source-7/source-and-bytecode-proof.json",
+      "bytes": 445882,
+      "sha256": "470d283040d6ae8f4e5a213f76d4aba895a44543550def62b3402e2aab7a74b7"
+    },
+    {
+      "path": "build/followups/village-codec-review-9.md",
+      "bytes": 7336,
+      "sha256": "75935c61dfb258129f260f8a77d836008a31a30028b8946566b4dfadec9d98a0"
+    },
+    {
+      "path": "build/followups/village-launch-review-10.md",
+      "bytes": 5828,
+      "sha256": "415498d48597b828ae415c900e1749a9340063ac2812266a953595717becdb66"
+    }
+  ],
+  "server": "NOT_STARTED_USER_DEFERRED_WINDOW",
+  "realCandidatePrepared": false,
+  "launchRecordPreparedForRealCandidate": false,
+  "naturalVillageIntegration": "NOT_ACTIVATED",
+  "fullResourceBarrier": "OPEN",
+  "startupIndeterminateAbort": "UNPROVEN",
+  "watchdogRootCause": "OPEN",
+  "playerClientAcceptance": "OPEN",
+  "goalComplete": false
+}
