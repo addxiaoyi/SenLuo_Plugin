@@ -54,6 +54,7 @@ public final class RecipeFileStore {
     private static final String[] TEAPOT_SECTIONS = {"teapot_result", "teapot-result"};
     private static final String[] BAMBOO_TRAY_SECTIONS = {"bamboo_tray_recipes", "bamboo-tray-recipes"};
     private static final String[] STOCK_RAW_SECTIONS = {"stock_food_raw", "stock-food-raw"};
+    private static final String[] STOCKPOT_SECTIONS = {"stockpot_recipes", "stockpot-recipes"};
     private static final String LIQUID_KEY = "liquid";
 
     private static final String ACCURATE_FILE = "accurate.yml";
@@ -201,6 +202,9 @@ public final class RecipeFileStore {
     public static Path defaultFlexFile(ApplianceType cook) {
         return recipeFolder().resolve(cook == ApplianceType.STOCKPOT ? STOCKPOT_FILE : POT_FILE);
     }
+
+    public static String[] stockpotSections() { return STOCKPOT_SECTIONS; }
+    public static Path defaultStockpotFile() { return recipeFolder().resolve(STOCKPOT_FILE); }
 
     public static Path defaultFoodGroupFile() {
         return pack().configurationFolder().resolve(TAG_FOLDER).resolve(FOOD_GROUP_FILE);
@@ -841,6 +845,9 @@ public final class RecipeFileStore {
         }
         if (matchesAlias(section, BAMBOO_TRAY_SECTIONS)) {
             return RecipeSourceIndex.Kind.BAMBOO_TRAY;
+        }
+        if (matchesAlias(section, STOCKPOT_SECTIONS)) {
+            return RecipeSourceIndex.Kind.STOCKPOT;
         }
         return null;
     }

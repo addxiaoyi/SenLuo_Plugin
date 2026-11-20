@@ -10,6 +10,12 @@
 
 当前配方权威状态以 `docs/research/series-runtime-2026-11-18.json` 为准：**612/612 已导入，pending=0**；导出段为 teapot 11、accurate foods 94、chopping 16、bamboo tray 28、stockpot 105、pot 225、普通 recipes 142。交接中出现的 `550/612`、`62 pending`、`558/612` 和 `54 pending` 都是保留的历史检查点，不能作为当前缺口。当前剩余是逐条玩家合成／原料链、菜单／外部依赖和客户端／实服验收，不应通过重跑旧 importer 覆盖现有交付。
 
+## 2026-11-21 高汤锅编辑与葡萄随机刻
+
+高汤锅配方编辑现支持独立的新建、编辑和删除入口，并保留旧精准与余弦配方的新建选项。导入配方按完整严格 schema 写回原来源文件，文件外部变化时拒绝覆盖；成功后更新来源索引和运行注册表。颜色、物品 ID、原料槽、数量、时间与汤底输入均有校验反馈。根工程全量 Java **972/972**、0 失败／错误／跳过；新增高汤锅相关定向回归 18/18。根 Python `tools` 329/329（本地进程以 `GIT_CONFIG_COUNT=0` 清除损坏的继承 Git 配置），`series/tools` 78/78。根工程 `compileJava`、全部 NMS 变体编译和 `shadowJar` 通过。
+
+Tavern 葡萄从 68 tick 脉冲改为每个服务端 tick 按 `randomTickSpeed` 独立抽样，继续只在每次尝试时最多推进一级。规则回归 4/4 通过，系列 Python 78/78 通过。Paper/Folia 实服和客户端窗口按用户安排延后；本条单元与构建证据不升级自然葡萄藤架、村庄生成或客户端验收状态。
+
 本轮只读审计确认，`VillageLootBridge` 已由生产插件 `onEnable` 注册，但源村庄 loot table 和自然结构生成仍未接入，因而不能据 listener 注册认定村庄战利品已在实服工作。修正的失败恢复爆炸监听现在只检查当前线程拥有且已加载的方块；非本区方块不读取，也不从原生爆炸列表移除。回归覆盖该边界，但真实 Folia 跨区爆炸事件仍待验证。源作物重载后的龄形状会在 CE reload 完成并取得资源 lease 后重绑；作物生长、骨粉和采收回调本身尚未接入统一 CE 资源读门，reload 并发仍待实服验证。
 
 真实服务器窗口按用户安排延后。本批没有真实候选、Paper／Folia 冷启动或客户端验收。生产激活、所有 native reader／writer 的统一资源屏障、首次 `loadLevel` 前拒绝失败、自然五 biome 生成、完整玩家／客户端流程，以及 Folia watchdog 根因仍 OPEN；本运行器不能替代这些验收。C14 仍为 `unit_tested`，全系列 `accepted=[]`，总目标继续进行。

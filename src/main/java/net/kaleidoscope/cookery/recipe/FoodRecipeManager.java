@@ -178,7 +178,7 @@ public final class FoodRecipeManager {
         protected abstract int parseAndCount(Pack pack, Path path, ConfigSection section);
     }
 
-    private abstract static class CookeryIdParser extends IdSectionConfigParser {
+    abstract static class CookeryIdParser extends IdSectionConfigParser {
         private record ClaimedTarget(Path file, RecipeFileStore.SourceTarget target) {
             private ClaimedTarget {
                 file = file.toAbsolutePath().normalize();
@@ -369,6 +369,24 @@ public final class FoodRecipeManager {
         if (items.getBuildableItem(recipe.result()).isEmpty()) {
             throw new IllegalArgumentException(source + ".result refers to an unavailable item: " + recipe.result());
         }
+    }
+
+    /** Validate imported stockpot recipes before they enter the atomic registry. */
+    public static void validateStockpotRecipe(StockpotRecipe recipe, String source) {
+        var items = net.momirealms.craftengine.bukkit.item.BukkitItemManager.instance();
+        var required = new LinkedHashSet<Key>();
+        required.add(recipe.result());
+        required.add(recipe.soupBase());
+        required.add(recipe.visuals().cookingModel());
+        required.add(recipe.visuals().finishedModel());
+        recipe.ingredients().forEach(required::addAll);
+        if (recipe.carrier() != null) required.add(recipe.carrier());
+        for (Key item : required) {
+            if (item.equals(AIR) || items.getBuildableItem(item).isEmpty())
+                throw new IllegalArgumentException(source + " references an unavailable item: " + item);
+        }
+        if (!SoupBaseRegistry.instance().isSoupBase(recipe.soupBase()))
+            throw new IllegalArgumentException(source + " references an unregistered soup base: " + recipe.soupBase());
     }
 
     static final class PotFoodRawParser extends CookerySectionParser {

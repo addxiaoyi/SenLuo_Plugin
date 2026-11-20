@@ -13,12 +13,20 @@ class GrapeGrowthTest {
         assertEquals(3, growth.harvested().vine());
     }
     @Test void coldAndWarmVarietiesHaveSourceProbabilities() {
-        double fastPulse = 1 - Math.pow(1 - 0.8 / 4096, 3 * 68);
-        double normalPulse = 1 - Math.pow(1 - 0.25 / 4096, 3 * 68);
-        assertEquals(fastPulse, new GrapeGrowth("ice_grape", 0, -1, false).probability(0.1, 3), 0.00001);
-        assertEquals(fastPulse, new GrapeGrowth("gold_grape", 0, -1, false).probability(1.1, 3), 0.00001);
-        assertEquals(normalPulse, new GrapeGrowth("gold_grape", 0, -1, false).probability(1, 3), 0.00001);
+        double fastTick = 1 - Math.pow(1 - 0.8 / 4096, 3);
+        double normalTick = 1 - Math.pow(1 - 0.25 / 4096, 3);
+        assertEquals(fastTick, new GrapeGrowth("ice_grape", 0, -1, false).probability(0.1, 3), 0.00001);
+        assertEquals(fastTick, new GrapeGrowth("gold_grape", 0, -1, false).probability(1.1, 3), 0.00001);
+        assertEquals(normalTick, new GrapeGrowth("gold_grape", 0, -1, false).probability(1, 3), 0.00001);
         assertEquals(0, new GrapeGrowth("grape", 0, -1, false).probability(1, 0));
+    }
+    @Test void probabilityIsPerServerTickAndMonotonic() {
+        GrapeGrowth growth = new GrapeGrowth("grape", 0, -1, false);
+        double one = growth.probability(1, 1);
+        double three = growth.probability(1, 3);
+        assertEquals(1 - Math.pow(1 - 0.25 / 4096, 1), one, 0.000000001);
+        assertTrue(three > one);
+        assertEquals(0, growth.probability(1, -1));
     }
     @Test void corruptOrImpossibleSavedStatesAreRejected() {
         assertThrows(IllegalArgumentException.class, () -> new GrapeGrowth("grape", 2, 4, false));

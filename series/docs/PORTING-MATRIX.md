@@ -1,6 +1,6 @@
 # 全系列移植状态
 
-日期：2026-11-19。总目标仍是官方全系列插件化；本表为接续开发清单，不是完成声明。五插件在 Paper 132 和 Folia 14 已完成整合加载和部分双人协议流程，托管资源通过原版 1.21.11 客户端代码离线解码；账号认证、画面、声音和完整玩法仍待验收。完整计划与换设备步骤见 [根 README](../../README.md#继续开发)。
+日期：2026-11-21。总目标仍是官方全系列插件化；本表为接续开发清单，不是完成声明。五插件在 Paper 132 和 Folia 14 已完成整合加载和部分双人协议流程，托管资源通过原版 1.21.11 客户端代码离线解码；账号认证、画面、声音和完整玩法仍待验收。完整计划与换设备步骤见 [根 README](../../README.md#继续开发)。
 
 本轮补入燃烧瓶、14 款酒馆文字展板、12 木种椅子及 12 木种静态厨娘凳，广义范围按 T05／T06／F04 的 `unit_tested` 登记。前序候选的原生 API 结果保留在[历史玩法回归证据](../../docs/research/series-gameplay-regression-2026-11-19.json)，不能接受后续新 JAR 的未测流程。当前橡木红垫椅、罂粟文字板与空地面燃烧瓶三个代表样例，已由同组五插件／探针／场景在 Paper 132 `gp2/paper-run-6` 和 Folia 14 `gp2/folia-run-5` 各通过三阶段正常重启；六阶段 server/client 均退出 0、`errors=[]`，每阶段两名玩家各读取 14,419 项资源，详见[本轮有界协议证据](../../docs/research/series-gameplay-connected-acceptance-2026-11-19.json)与[协议检查点](ACCEPTANCE.md#木椅文字展板与地面燃烧瓶协议检查点2026-11-19)。全部木种／颜色／花纹、投掷及满载储物、原版显示、跨区及历史 watchdog 根因仍 OPEN。
 
@@ -23,7 +23,7 @@
 | 范围 | 当前证据 | 仍需实现或存在差异 |
 | --- | --- | --- |
 | 官方组织 | 8 个固定提交 checkout，导入前校验 HEAD 与 tracked clean | 更新上游时须重新对照，不自动改变基线 |
-| Cookery | 612/612 条来源配方均已导入，无待导入配方；厨房包 1,432 物品定义、81 方块、25 家具，两端均登记 5,599/5,599 个厨房状态，见 [整合加载与导入证据](../../docs/research/series-runtime-2026-11-18.json)。品质/PDC、12 类效果基础生命周期、便当袋、竹筛、快刀/清扫、38 种直接食用大菜、11 种取物盘已有代码和分层验证。双人普通/Shift 锻造、蒸笼四槽往返和稻草人连续击打通过，见 [协议验证](../../docs/research/series-connected-2026-11-19.json)；[大菜](../../docs/research/cookery-placed-meals-acceptance-2026-11-15.json)、[取物盘](../../docs/research/cookery-plate-acceptance-2026-11-15.json) 与 [竹筛](../../docs/research/cookery-bamboo-acceptance.json) 的历史证据保留 | 配方导入不代表逐条玩家合成和完整原料链验收。大菜碰撞暂用细绊线、服务器粒子近似，真人营养/效果、主副手、FOOD 桥、第三方保护及客户端表现待验。原料获取、菜单编辑、旧档导入、雨天、上侧漏斗/满目标/锁定/矿车、完整组件恢复、跨区/独立卸载/热重载/爆炸仍有缺口。配方来源 YAML 重复解析已修复；历史 Folia CE 启动 watchdog（含 Folia2 的 ByteBuddy／延迟配方加载样本）根因仍 OPEN，最终干净启动不关闭该项。农夫四件装备的解码 ID、水中药效参数与玩家实体调度已有单元回归，真实 CE 装备识别和游泳待验；石磨/厨具碰撞与茶旗继续对齐。独立 Chef 职业受[原版客户端注册表硬边界](../../docs/research/cookery-chef-vanilla-boundary-2026-11-19.md)限制；替换既有职业或静态 NPC 不算完整 Chef，五类村庄厨房结构／processor／loot／生成池仍未实现，须独立推进 |
+| Cookery | 612/612 条来源配方均已导入，无待导入配方；厨房包 1,432 物品定义、81 方块、25 家具，两端均登记 5,599/5,599 个厨房状态，见 [整合加载与导入证据](../../docs/research/series-runtime-2026-11-18.json)。品质/PDC、12 类效果基础生命周期、便当袋、竹筛、快刀/清扫、38 种直接食用大菜、11 种取物盘已有代码和分层验证。双人普通/Shift 锻造、蒸笼四槽往返和稻草人连续击打通过，见 [协议验证](../../docs/research/series-connected-2026-11-19.json)；[大菜](../../docs/research/cookery-placed-meals-acceptance-2026-11-15.json)、[取物盘](../../docs/research/cookery-plate-acceptance-2026-11-15.json) 与 [竹筛](../../docs/research/cookery-bamboo-acceptance.json) 的历史证据保留 | 配方导入不代表逐条玩家合成和完整原料链验收。大菜碰撞暂用细绊线、服务器粒子近似，真人营养/效果、主副手、FOOD 桥、第三方保护及客户端表现待验。原料获取、旧档导入、雨天、上侧漏斗/满目标/锁定/矿车、完整组件恢复、跨区/独立卸载/热重载/爆炸仍有缺口。配方来源 YAML 重复解析已修复；菜单已支持导入高汤锅配方的新建、编辑、删除与严格写回。历史 Folia CE 启动 watchdog（含 Folia2 的 ByteBuddy／延迟配方加载样本）根因仍 OPEN，最终干净启动不关闭该项。农夫四件装备的解码 ID、水中药效参数与玩家实体调度已有单元回归，真实 CE 装备识别和游泳待验；石磨/厨具碰撞与茶旗继续对齐。独立 Chef 职业受[原版客户端注册表硬边界](../../docs/research/cookery-chef-vanilla-boundary-2026-11-19.md)限制；替换既有职业或静态 NPC 不算完整 Chef，五类村庄厨房结构／processor／loot／生成池仍未实现，须独立推进 |
 | RiceBowl | 5 条 source rice_bowl native recipe；额外格/最高品质/熟米饭返碗/原版余料/连续合成 Paper/Folia 三轮通过 | Shift 合成、自动合成器、玩家 UI、外部可选米饭依赖未验收，见 [盖饭摘要](../../docs/research/cookery-rice-bowls-acceptance-2026-11-16.json) |
 | Doll 抽奖 | 三档洗牌不放回、60 tick、付款前验证奖品、掉落取消重试、礼盒记录类型校验、事件物品与实际主手核对及交易提交前槽位／完整手持／启用状态复核，错误类型记录原样保留。缺少自身存档键的新机不冻结；坏键保留原始数据并阻断操作，已有单元回归 | 多方块动画、音效和投币展示需对照原版画面；强制移除仅留人工恢复快照 |
 | Doll 电脑与收藏 | 643 个玩家玩偶兑换；羊毛交易、收藏 PDC、分页图鉴 | 客户端原电脑界面改为原版背包菜单 |
@@ -33,7 +33,7 @@
 | Tavern 酒桶/龙头 | 酒桶原有配方和熟成；30 tick龙头装瓶、红石上升沿、放置瓶子保存完整成品；西瓜/龙头方块/蜂巢/含水方块/炼药锅来源 | 多方块桶模型、管道未实现。红石需记录的操作者在线且同区域、保护校验通过；卸载中断提取；瓶子以同类空容器交换取酒 |
 | Tavern 调酒 | 12 配方和原版时间分段；放置/手持转装、持续右键和松手结算、111 tick超时、倒入放置空酒杯、物品PDC保存。晚读物品状态后同步源物品，编码失败或坏 PDC 先拒绝再保留原状态，已有单元回归 | 原版饮用动作替代模组手部动画；混色渲染未实现；CE放置事件与松手时序尚需实服验证 |
 | Tavern 饮用 | 37 效果表、按熟成档位、概率、原版药水效果、牛奶/死亡清除、自定义计时 | 没有新客户端状态图标/着色器；下方各服务端效果待逐项验收 |
-| Tavern 葡萄 | 普通/冰/金葡萄、藤龄0–3/果龄0–5、土壤/温度、骨粉、剪刀、封蜡/除蜡、同所有者藤架扩散、存档 | 68 tick错峰概率模拟，受randomTickSpeed影响；优先果实成长，不是上游藤和果的独立随机刻。架体连接、精确碰撞、野葡萄世界生成未实现 |
+| Tavern 葡萄 | 普通/冰/金葡萄、藤龄0–3/果龄0–5、土壤/温度、骨粉、剪刀、封蜡/除蜡、同所有者藤架扩散、存档 | 每 tick 独立抽样一次，概率按 randomTickSpeed 换算；优先果实成长。藤架与果实仍未作为独立随机刻对象实现；架体连接、精确碰撞、野葡萄世界生成未实现 |
 | Tavern 燃烧瓶（T05） | 永久 consumable 组件、原生雪球蓄力投掷、主副手与同区域火焰／保护；瓶架、斜酒架、圆酒架、地窖柜仅接入燃烧瓶链，含取放与红石入口；[实现](../tavern/src/main/java/net/kaleidoscope/tavern/Molotov.java)、[投掷测试](../tavern/src/test/java/net/kaleidoscope/tavern/MolotovTest.java)与[储物测试](../tavern/src/test/java/net/kaleidoscope/tavern/MolotovControllerTest.java)为单元层 | 飞行实体不跨卸载或重启保存；四种家具的其他瓶装物交互未随之完成。仅空地面燃烧瓶正常回收的代表协议场景单列于上；投掷扣料、实体生命周期、满载储物、异常交付、真实保护与原版画面仍 OPEN |
 | Tavern 文字展板（T06） | 14 款花纹、原生 Dialog 编辑、染色／发光／墨囊／蜡、对齐；原文最多 320 UTF-16 单元、最多 8 个 CE 文字行。普通拆下掉当前花纹空白展板，不携带文字；[控制器回归](../tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardControllerTest.java)、[状态回归](../tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardStateTest.java)及[渲染算术研究](../../docs/research/board-render-research.md)为单元／合同层 | 指定中文／右对齐／罂粟图案的协议方法单列于上；全部 Dialog 边界、实际字体宽度、GPU 倾角与排版、其他花纹、保护及跨区仍 OPEN；不能把 Deco 郁金香展板的历史协议验收用于该文字展板 |
 | Tavern 其他家具/道具 | 导入物品、部分 CE 椅子/沙发 | 吊灯/吧台连接、剩余家具交互尚未完成。冰桶为旧清单名称，固定来源未识别对应注册／类，待确认来源，不虚构实现 |

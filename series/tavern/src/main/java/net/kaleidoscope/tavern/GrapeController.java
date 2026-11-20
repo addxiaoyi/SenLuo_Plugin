@@ -32,7 +32,6 @@ final class GrapeController extends InteractiveFurniture {
     private GrapeGrowth growth = GrapeGrowth.empty();
     private UUID owner;
     private boolean failed;
-    private int elapsed = ThreadLocalRandom.current().nextInt(GrapeGrowth.PULSE_TICKS);
 
     GrapeController(Furniture furniture, TavernPlugin plugin) { super(furniture, plugin); tavern = plugin; }
     @Override public boolean hasContents() { return growth.planted(); }
@@ -175,8 +174,7 @@ final class GrapeController extends InteractiveFurniture {
     }
 
     private void tick() {
-        if (!operational() || isInteracting() || failed || !growth.planted() || ++elapsed < GrapeGrowth.PULSE_TICKS) return;
-        elapsed = 0;
+        if (!operational() || isInteracting() || failed || !growth.planted()) return;
         try { grow(); }
         catch (RuntimeException exception) {
             failed = true;
