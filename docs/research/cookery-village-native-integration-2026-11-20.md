@@ -77,7 +77,29 @@ CE `ResourceOperationCoordinator.acquire(): Lease` 用 AtomicReference.compareAn
 
 尚须设计并证明：在旧 CE state/registry/cache 失效前阻止新生成进入、排空现有生成 reader，完整重建后再发布一个一致 epoch；原生数据包 reload 和 CE reload 都要覆盖。仅完成事件后延时轮询/重绑不消除失效窗口。未有该保证前，不得声明支持在线热更新自然生成；“要求停机更新”也须有真实可执行的边界，不能只加一行文档后仍允许不安全更新。
 
-## 7. 剩余证明与当前状态
+## 7. CE reload 后的引用稳定性：有条件复用，不是安全屏障
+
+补充核查仍使用第 1 节同一组本地字节码，没有运行并发故障复现。必须区分三个不同对象：
+
+| 对象 | 已核实的 reload 行为 |
+| --- | --- |
+| 原生 `DelegatingBlockState`／BlockRegistryMirror wrapper | 启动时按内部 server slot 创建并注册；reload 重新绑定其语义指针，同一个原生引用可能重新代表当前状态。 |
+| `ImmutableBlockState` | BlockParser 的 `lambda$parseCustomBlock$1` 每轮构造新对象；旧对象的 behavior、propertyMap、variantProvider 不会因 owner holder 重绑而自动变成新对象。 |
+| CE block ID 的 `Holder.Reference` | `getOrRegisterForHolder` 先返回已有 holder；解析开始时将其绑定到 InactiveBlockDefinition，完成后绑定新 BlockDefinition。原生 delegate 并不通过这个 holder 实时解析语义。 |
+
+`BlockStateGenerator.init()` 用 ByteBuddy 生成原生 BlockState 子类，定义 `public ImmutableBlockState immutableBlockState` 和 `public Object blockOwner`，提供的 field modifier 只有 PUBLIC，没有 VOLATILE。`DelegatingBlockState.blockState/setBlockState/blockOwner/setBlockOwner` 是直接 FieldAccessor。`ImmutableBlockState.customBlockState()` 只是返回字段；其 wrapper 的 `minecraftState()` 也只是返回原生对象字段。
+
+内部 slot 的回绑路径为：BlockParser 的 `lambda$parseCustomBlock$3` 将 `BlockRegistryMirror.byId(vanillaBlockStateCount + allocatedInternalId)` 设为新 ImmutableBlockState 的 customBlockState；完成配置时 `BukkitBlockManager.applyPlatformSettings(BlockDefinition, ImmutableBlockState)` 对这个原生 delegate 调用 `setBlockState(newImmutable)` 和 `setBlockOwner(...)`，并重绑 shape/behavior delegate。因此，若每个语义状态重新得到同一个内部 slot，模板 palette 中已经保存的**原生** BlockState 引用在完成回绑后可以继续代表正确新语义；不能一概断言它们 reload 后永久过期。保存旧 ImmutableBlockState 则不是同一保证。
+
+`IdAllocator` 的实际键是 `ImmutableBlockState.toString()`。BlockParser.preProcess 重置本轮占用信息并加载内部 ID cache；processPendingAllocations 先尝试仍可用的缓存 ID，再为其余请求分配新 ID。相同语义和可用 cache 有保持 slot 的机制，但固定 ID 冲突、cache 变化、删除/修改语义等仍可改变分配。当前作物导出器中的 `auto_state: {type: lower_tripwire, id: cookery_crop_<name>_<age>}` 是 **visual allocator 的身份**，不能当作内部 server slot 固定证据；内部固定 ID 是状态配置另一个 `id` 分支，未配置时使用 requestAutoId。
+
+存在的空窗不是推测出来的永久引用失效：`AbstractBlockManager.unload()` 清 byId，将 immutableBlockStates 数组填为 EmptyBlockDefinition.STATE，重置 mappings；`BukkitBlockManager.unload()` 还逐个将原生 delegate 的语义指针和 blockOwner 设为 null、shape 绑为 STONE、behavior 绑为 EmptyBlockBehavior。后续解析异步完成回调再逐项回绑。在此期间，`WorldStorageInjector.compareAndUpdateBlockState` 读到 DelegatingBlockState.blockState()==null 会直接 return（Code offset 31–36），不会建立相应 CESection 状态或 controller。它发生在原生 section 的 super.setBlockState 已执行之后。因此存在可与并发生成交错、产生原生/CE 存储不一致的实际代码窗口；本次没有将它报告为已在运行中重现的故障。
+
+没有在检查的方法中发现自动排空该窗口的机制：正常 `BukkitWorldManager.unload()` 只清 configuredFeatures/placedFeatures；只有 disable() 设置 disabled。`handleChunkGenerate` 只检查 stage.enabled 和 manager.disabled，不检查 CraftEngine.isReloading，也不获取 resourceOperations lease。完整插件中 resourceOperations 的常量池引用类只有 CraftEngine、AbstractPackManager、ReloadCommand、PackWorkflowCommand，未见生成/存储类接入。section 数组 monitor 只包围注入；CE PalettedContainer.getAndSet 的 per-container lock 只包围 palette/storage 修改，未与 registry 的 null/rebind 共用锁。这些局部同步不能作为全局 epoch 或 Java 内存可见性屏障的证明。
+
+结论应保持条件化：稳定内部分配可以减少每次 CE reload 后重建模板的必要性，但不能代替前置生成屏障、完整映射验证与发布保证；原生数据包 reload 的模板 cache 清空问题也依然独立存在。
+
+## 8. 剩余证明与当前状态
 
 下一实现应先分开验证：窄 accessor/失败回滚；完整迁移和所有状态/旋转；命名 location/processor 的原生 piece codec 往返；第三方池条目及权重不变；启动无 reader 次序；CE FEATURE 注入及真实 controller/存档链；再进入五 biome 的 Paper/Folia 自然新村庄、跨 chunk/region、旧区块不重刷、卸载/重启和两箱 loot 验收。手放 template/jigsaw 仅是夹具，不能替代自然选择证据。GPU/音频与 Chef 职业边界另验。
 
