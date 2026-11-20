@@ -2,6 +2,16 @@
 
 2026-11-20。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
 
+## 2026-11-20 来源镰刀原生分类与工具属性
+
+`c1e07c1` 将新导出的来源镰刀显式设为 `source-classified`：按真实原生 CropBlock 成熟状态用 EMPTY 掉落并复位，VegetationBlock 交原生普通破坏，可可等其他类型不再因 Bukkit Ageable 被误收。旧手写白名单缺省 `legacy-ageable` 保留；新策略与旧列表混用会拒绝而非静默忽略。四类瓜茎及附加原生／Cookery tag 黑名单保留。原生统计／饥饿和完整 loot 的提交边界、回调后的部分副作用均明确记录；异常不会被未认证耐久回执覆盖。
+
+普通原生植被破坏的主手损耗通过真实 PlayerItemDamageEvent／PlayerItemBreakEvent、原 NMS 对象、槽位、数量及完整非 Damage 组件核对；每挥来源只按已经证实的损耗更新期望，支持主副手正常多株和断裂，未知替换或回调重入停止并报告。来源物品同时从铁锄改为铁剑材料并显式导出 2000 耐久、附魔值 5、燧石修复、来源攻击属性及磨损；效率规则使用锁定 1.20.1 的 87 项成员，不混入目标新版 instant-mining 规则，创造模式破坏按来源覆盖允许。旧库存不被自动重写。
+
+最终根 `test shadowJar acceptanceJar` 通过 **813 项 Java、92 套件，0 失败／错误／跳过**；根 Python **257/257**，功能台账校验通过。新增未来启动 smoke 核对 CE 实际解码后的镰刀组件，它目前仅已编译。生产 JAR SHA-256 为 `5ff78072243d06e8cf28df59a7f03cd9c02757b2a5535171fabc0c8fa56fb364`，探针为 `1edd0d2dae7fa867beb9285ac32bf0c0b22f9508054f09b2f349cd8dd88f0f35`；新 `kitchen-sickle-1.zip` 为 `32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe`。ZIP CRC、103 项精确 food PDC 和新组件清单已复核，仍为 1,432 物品、84 方块、1,515 模型、612/612 配方。
+
+用户选择先继续代码完善、完整实服窗口稍后安排，因此新材料／组件、原生 companion、observer 和玩家收割仍 **NOT_RUN**；旧 sc8 不能替代本批运行证据。C14 保持 `unit_tested`，没有把全部镰刀策略、原生事件、并发重载或保护宣布完成。来源与兼容边界见[实现记录](research/cookery-source-sickle-2026-11-20.md)，本批产物和检查见[验证记录](research/cookery-source-sickle-validation-2026-11-20.json)。
+
 ## 2026-11-20 原生模板迁移前置整合
 
 `fe5c048` 整合五类厨房的不可变语义侧车及独立的 1.21.11 NMS 迁移适配器。它核对完整来源 palette、位置、体积、已知方块实体和两条箱子战利品引用，以有界原生 NBT 读取器解析固定源数据；迁移后拒绝原版状态／属性被静默吞掉，并在尚未发布的内存模板中恢复真实 CE 状态、保留迁移后的原版 NBT、重建原生排序的全新 palette。旧九版 NmsBridge 不变。新增 8 项侧车检查与 3 项原生读取／配额／产物 ABI 检查；主工作区 `test shadowJar acceptanceJar` 为 **699 项 Java、86 套件，0 失败／错误／跳过**。

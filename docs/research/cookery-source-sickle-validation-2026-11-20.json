@@ -1,0 +1,131 @@
+{
+  "schema": "cookery-source-sickle-validation-v1",
+  "date": "2026-11-20",
+  "codeCommit": "c1e07c1c514a71903744fa0ecaff323305baab57",
+  "target": {
+    "minecraft": "1.21.11",
+    "paper": 132,
+    "folia": 14,
+    "craftEngine": "26.9.1"
+  },
+  "sourceCommit": "2f4e386ce23f49a385ddf003c67fc6415c55417a",
+  "behavior": [
+    "Explicit source-classified policy uses native CropBlock maturity/reset and VegetationBlock ordinary destruction. Cocoa/other classes are not incorrectly treated as mature crops; the four source stem exclusions plus configured/tag blacklists are respected.",
+    "Existing handwritten crop/bush lists retain legacy-ageable policy. Ambiguous new-policy configurations reject; the new companion is limited to verified 1.21.11.",
+    "Native statistics/exhaustion begin the crop commit before EMPTY loot in the original world. Output is copied and published after reset, with explicit partial side effects and native exceptions retained.",
+    "Actual PlayerItemDamageEvent/PlayerItemBreakEvent references, raw native stack identity, actor, slot, count and complete non-Damage components certify ordinary vegetation tool wear. Multi-plant sweeps permit certified damage, not arbitrary rebasing.",
+    "Future startup smoke verifies CE-decoded real native source-sickle material/components, including the 87-member source list hash; it is compiled but not yet run."
+  ],
+  "export": {
+    "material": "iron_sword",
+    "durability": 2000,
+    "enchantability": 5,
+    "repairItems": [
+      "minecraft:flint"
+    ],
+    "attackDamageModifier": 1.0,
+    "attackSpeedModifier": -2.4000000953674316,
+    "weaponWear": 1,
+    "nonZeroHardnessMiningWear": 2,
+    "creativeMining": true,
+    "sourceVanillaSnapshot": {
+      "path": "tools/data/source-sickle-vanilla-1.20.1.json",
+      "bytes": 10420,
+      "sha256": "939b6a5602fffb243ccb2de928fe18d60535de569a4b94b99fde157d02bd3f32"
+    },
+    "nativeAttributeCodec": "Plain list of entries; 1.21.11 CODEC is Entry.CODEC.listOf().xmap(...)",
+    "items": 1432,
+    "blocks": 84,
+    "models": 1515,
+    "recipeSources": 612,
+    "recipeImported": 612,
+    "canonicalFoodPayloadsVerified": 103
+  },
+  "validation": {
+    "rootJava": {
+      "suites": 92,
+      "tests": 813,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "tasks": [
+      "test",
+      "shadowJar",
+      "acceptanceJar"
+    ],
+    "log": {
+      "path": "build/source-sickle-native-java-2.log",
+      "bytes": 2742,
+      "sha256": "d3bc558d065ae126c681758089a851cefeb8623cae3f970118664eeceeb481be"
+    },
+    "firstCoherentJavaRun": {
+      "tests": 812,
+      "suites": 92,
+      "status": "PASS",
+      "log": {
+        "path": "build/source-sickle-native-java-1.log",
+        "bytes": 4021,
+        "sha256": "6d1c5c927502286571582226969ba35b94f654acac430ab2e69e15840ce244b1"
+      },
+      "scope": "Before the final retained-error regression and actual native-component startup smoke; not the final build."
+    },
+    "newJavaCases": {
+      "SourceClassifiedSickleTest": 48,
+      "NativeMiningDamageTrackerTest": 21,
+      "NativeSickleAccessProviderTest": 10,
+      "NativeSickleCropTransactionTest": 16,
+      "NativeSickleObserverInitializationTest": 15,
+      "NativeToolWearTest": 4
+    },
+    "rootPython": {
+      "tests": 257,
+      "failures": 0,
+      "log": {
+        "path": "build/source-sickle-final-python-2.log",
+        "bytes": 363,
+        "sha256": "44ebb456fa7221d2f9c4b21008a7ebed7d5d66df901a29959302ce24807e93ec"
+      }
+    },
+    "unchangedPriorSuites": {
+      "seriesPython": 78,
+      "connectedNode": 279,
+      "scope": "Not rerun or newly claimed by this code-only follow-up."
+    },
+    "productionJar": {
+      "path": "build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar",
+      "bytes": 1829262,
+      "sha256": "5ff78072243d06e8cf28df59a7f03cd9c02757b2a5535171fabc0c8fa56fb364"
+    },
+    "probeJar": {
+      "path": "build/acceptance/probe/CookeryAcceptanceProbe.jar",
+      "bytes": 265380,
+      "sha256": "1edd0d2dae7fa867beb9285ac32bf0c0b22f9508054f09b2f349cd8dd88f0f35"
+    },
+    "kitchenPack": {
+      "path": "build/distribution/kitchen-sickle-1.zip",
+      "bytes": 2992042,
+      "sha256": "32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe"
+    },
+    "packChecks": [
+      "ZIP CRC",
+      "native list attribute shape",
+      "source-classified behavior",
+      "87 exact source efficiency members",
+      "all103 canonical food PDC payloads"
+    ]
+  },
+  "runtime": {
+    "status": "DEFERRED_BY_USER",
+    "nativeComponentsSmoke": "COMPILED_NOT_RUN",
+    "sourceClassifiedInteraction": "NOT_RUN",
+    "lastFrozenSc8": "Old iron_hoe/old pack; bootstrap PASS, core FAIL on reader JVM heap reservation. Cannot prove the new material/companion/observer."
+  },
+  "remaining": [
+    "Actual native source-sickle construction and serialization on both target servers.",
+    "Two-player ordinary/Fortune/main/offhand, cancellation/protection, item damage/break events, full component and item pickup conservation.",
+    "Legacy and new-policy config acceptance with loaded source pack.",
+    "Default target no-candidate/canceled PASS/no additional wear differs from source always-charge; not full Sickle parity.",
+    "Native/CE concurrent reload, ordinary source crop bone-meal full useOn/dig/support-loss/disable gates, controller/storage and full village publication remain open."
+  ]
+}
