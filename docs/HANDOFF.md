@@ -10,6 +10,8 @@
 
 当前配方权威状态以 `docs/research/series-runtime-2026-11-18.json` 为准：**612/612 已导入，pending=0**；导出段为 teapot 11、accurate foods 94、chopping 16、bamboo tray 28、stockpot 105、pot 225、普通 recipes 142。交接中出现的 `550/612`、`62 pending`、`558/612` 和 `54 pending` 都是保留的历史检查点，不能作为当前缺口。当前剩余是逐条玩家合成／原料链、菜单／外部依赖和客户端／实服验收，不应通过重跑旧 importer 覆盖现有交付。
 
+本轮只读审计确认，`VillageLootBridge` 已由生产插件 `onEnable` 注册，但源村庄 loot table 和自然结构生成仍未接入，因而不能据 listener 注册认定村庄战利品已在实服工作。修正的失败恢复爆炸监听现在只检查当前线程拥有且已加载的方块；非本区方块不读取，也不从原生爆炸列表移除。回归覆盖该边界，但真实 Folia 跨区爆炸事件仍待验证。源作物重载后的龄形状会在 CE reload 完成并取得资源 lease 后重绑；作物生长、骨粉和采收回调本身尚未接入统一 CE 资源读门，reload 并发仍待实服验证。
+
 真实服务器窗口按用户安排延后。本批没有真实候选、Paper／Folia 冷启动或客户端验收。生产激活、所有 native reader／writer 的统一资源屏障、首次 `loadLevel` 前拒绝失败、自然五 biome 生成、完整玩家／客户端流程，以及 Folia watchdog 根因仍 OPEN；本运行器不能替代这些验收。C14 仍为 `unit_tested`，全系列 `accepted=[]`，总目标继续进行。
 
 ## 2026-11-20 原生结构 codec 与精确启动记录

@@ -11,8 +11,10 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.block.Chest;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.world.LootGenerateEvent;
@@ -266,6 +268,48 @@ class VillageLootPendingTest {
             assertFalse(fixture.pending.recover(fixture.container));
             verify(fixture.container, never()).update(anyBoolean(), anyBoolean());
         }
+    }
+
+    @Test void explosionsLeaveForeignRegionBlocksAloneWithoutReadingThem() {
+        var fixture = fixture();
+        Block foreign = mock(Block.class);
+        when(foreign.getWorld()).thenReturn(fixture.world);
+        when(foreign.getX()).thenReturn(16);
+        when(foreign.getZ()).thenReturn(32);
+        List<Block> affected = new java.util.ArrayList<>(List.of(foreign));
+        BlockExplodeEvent event = mock(BlockExplodeEvent.class);
+        when(event.blockList()).thenReturn(affected);
+
+        try (var bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(fixture.world, 1, 2)).thenReturn(false);
+            fixture.pending.onBlockExplosion(event);
+        }
+
+        assertEquals(List.of(foreign), affected);
+        verify(foreign, never()).getState();
+    }
+
+    @Test void entityExplosionProtectsOnlyOwnedPendingContainers() {
+        var fixture = fixture();
+        Block foreign = mock(Block.class);
+        when(foreign.getWorld()).thenReturn(fixture.world);
+        when(foreign.getX()).thenReturn(16);
+        when(foreign.getZ()).thenReturn(32);
+        Block localContainer = fixture.container.getBlock();
+        List<Block> affected = new java.util.ArrayList<>(List.of(foreign, localContainer));
+        EntityExplodeEvent event = mock(EntityExplodeEvent.class);
+        when(event.blockList()).thenReturn(affected);
+        fixture.data.put(VillageLootPending.PENDING, "{broken json");
+
+        try (var bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(fixture.world, 1, 2)).thenReturn(false);
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(fixture.world, -1, 2)).thenReturn(true);
+            bukkit.when(() -> fixture.world.isChunkLoaded(-1, 2)).thenReturn(true);
+            fixture.pending.onEntityExplosion(event);
+        }
+
+        assertEquals(List.of(foreign), affected);
+        verify(foreign, never()).getState();
     }
 
     @Test void savingAnotherDrawNeverOverwritesAnExistingWrongTypeAnchor() {

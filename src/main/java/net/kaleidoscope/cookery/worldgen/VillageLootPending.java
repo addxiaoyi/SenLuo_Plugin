@@ -170,12 +170,17 @@ final class VillageLootPending implements Listener, CommandExecutor {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplosion(BlockExplodeEvent event) {
-        event.blockList().removeIf(block -> !ownedLoaded(block) || block.getState() instanceof Container container && !allowDestruction(container));
+        event.blockList().removeIf(this::blocksExplosion);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplosion(EntityExplodeEvent event) {
-        event.blockList().removeIf(block -> !ownedLoaded(block) || block.getState() instanceof Container container && !allowDestruction(container));
+        event.blockList().removeIf(this::blocksExplosion);
+    }
+
+    private boolean blocksExplosion(Block block) {
+        if (!ownedLoaded(block)) return false;
+        return block.getState() instanceof Container container && !allowDestruction(container);
     }
 
     private boolean allowDestruction(Container container) {
