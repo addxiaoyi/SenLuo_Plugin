@@ -8,6 +8,8 @@
 
 本批完整专项 Python 为 **70/70**（候选、收据报告、启动记录、共享运行器），伪进程测试不启动 Java 或 Minecraft；两套全量 discovery 也通过，`tools` **329/329**、`series/tools` **78/78**，共 **407/407**。准确的 CraftEngine helper 1.0.234 第一方仓库／提交／tree、408 个 mojmap class 与固定 CE JAR 的逐字节比对，以及 InjectedCustomChunkGenerator 直接读取特征的调用链已登记到[来源审查](research/craftengine-resource-barrier-source-2026-11-20.md)和 JSON 证据；这是静态来源对应，不是可复现构建证明。
 
+当前配方权威状态以 `docs/research/series-runtime-2026-11-18.json` 为准：**612/612 已导入，pending=0**；导出段为 teapot 11、accurate foods 94、chopping 16、bamboo tray 28、stockpot 105、pot 225、普通 recipes 142。交接中出现的 `550/612`、`62 pending`、`558/612` 和 `54 pending` 都是保留的历史检查点，不能作为当前缺口。当前剩余是逐条玩家合成／原料链、菜单／外部依赖和客户端／实服验收，不应通过重跑旧 importer 覆盖现有交付。
+
 真实服务器窗口按用户安排延后。本批没有真实候选、Paper／Folia 冷启动或客户端验收。生产激活、所有 native reader／writer 的统一资源屏障、首次 `loadLevel` 前拒绝失败、自然五 biome 生成、完整玩家／客户端流程，以及 Folia watchdog 根因仍 OPEN；本运行器不能替代这些验收。C14 仍为 `unit_tested`，全系列 `accepted=[]`，总目标继续进行。
 
 ## 2026-11-20 原生结构 codec 与精确启动记录
