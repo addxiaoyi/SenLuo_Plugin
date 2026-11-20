@@ -1,6 +1,14 @@
 # 森罗全系列开发交接
 
-2026-11-19。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
+2026-11-20。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
+
+## 2026-11-20 村庄战利品组合检查
+
+固定来源导出器、两张原生箱子表、37 个等权菜谱选项、CE token 转换与失败恢复代码已整合。整次 token 转换持有 CE 资源操作 lease 和同一配方快照；PDC 仅保存小型 schema 3 UUID／SHA-256 指针，完整有界日志保留原生抽签，避免超过 NBT 字符串大小限制。错误类型、缺失／篡改日志、容器变化、重入或仍待抽签的表与 PENDING 并存时均保持拒绝交付；不声称跨文件／区块崩溃原子性。详情见[战利品实现与限制](research/cookery-village-loot-2026-11-20.md)。
+
+当前组合根工程 **660 项 Java、81 套件，0 失败／错误／跳过**；根 Python **250/250**、系列 Python **78/78**、connected Node **279/279** 通过。根 `test shadowJar acceptanceJar` 均完成；日志分别为本地 `build/village-crops-integrated-1.log`、`build/village-crops-python-1.log`、`build/crop-reader-node-1.log`。生产 JAR SHA-256 为 `26a37d7187766b4990a53ca7c01622e098fd6606d1c763eb479586051f952457`，探针仍为 `763851896c0ff526a76f40ee76ab46a26be5a0516529de54a2f3f22cdc0de3dc`。组合 JAR 尚未实服验证；下方 sc5 属于更早的 `4bcc9c5` 冻结候选，不可混用为本批证据。
+
+五个厨房仍未加入自然生成池，导出清单继续 `naturalVillageIntegration=NOT_IMPLEMENTED`；原生模板迁移、有效池增量接入、CE 世界生成存储与 controller、在线重载屏障及实服证据仍须完成。精确调用链和限制见[原生结构接入研究](research/cookery-village-native-integration-2026-11-20.md)。
 
 ## 2026-11-20 三作物推进
 

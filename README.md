@@ -20,7 +20,7 @@ Cookery 厨房 · Doll 玩偶 · Tavern 酒馆 · Deco 装饰 · MusicPlus 音�
 
 | 插件 | JAR | CE 内容包 | 当前证据 | 主要缺口 |
 | --- | --- | --- | --- | --- |
-| Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 612/612 条来源配方，1,432 个物品，81 个方块和 25 件家具。[验收记录](docs/VALIDATION.md) | 原版客户端显示、玩家合成与容器守恒 |
+| Cookery | `KaleidoscopeCookeryPlugin-1.3.0.jar` | `cookery_kitchen` | 612/612 条来源配方，1,432 个物品，84 个方块和 25 件家具。[验收记录](docs/VALIDATION.md) | 原版客户端显示、玩家合成与容器守恒 |
 | Doll | `KaleidoscopeDoll-0.1.0-dev.jar` | `doll-ce-pack-*.zip` | Paper/Folia 启动及 `doll_0` 九轴菜单、拆装重放和该九轴样例正常重启协议验证通过 | 精确物理、Bedrock 模型、其余玩家流程 |
 | Tavern | `KaleidoscopeTavern-0.1.0-dev.jar` | `tavern-ce-pack-*.zip` | Paper/Folia 启动加载，果盆单份标记发光浆果正常重启通过 | 葡萄世界生成、复杂家具、饮用和多人 |
 | Deco | `KaleidoscopeDeco-0.1.0-dev.jar` | `deco-ce-pack-*.zip` | Paper/Folia 启动加载、郁金香展板双人协议和沙发红色左段正常重启通过 | 414 条聚合差异、剩余脚本事件、座位/碰撞 |
@@ -46,6 +46,10 @@ SenLuo_Plugin/
 └── docs/                       # 证据、安装、升级和配置参考
 ```
 
+## 作物与村庄战利品检查点（2026-11-20）
+
+番茄、辣椒和生菜新增 24 个真实 CE 龄状态、种子种植与主副手采果规则；重载等待使用 CE 资源操作 lease，规范物品观察保留生产 food-baking 组件。村庄战利品已实现固定来源导出、原生抽签 token 转换及带摘要日志指针的失败恢复；五类村庄厨房自然生成仍未接入。当前组合检查及 Paper/Folia 实服边界见[交接清单](docs/HANDOFF.md)，失败运行和未验证项继续保留。
+
 ## 五插件开发检查点（2026-11-19）
 
 [换设备开发交接与完整缺口](docs/HANDOFF.md)
@@ -58,7 +62,7 @@ SenLuo_Plugin/
 - **Deco** 导入器解析上游自定义物品标签，四种郁金香已有展板装饰与剪取规则。展板流程已在 Paper 132/Folia 14 通过双人生存协议验证，覆盖满背包、交互/掉落取消和两人连续剪取，见[展板验收证据](docs/research/deco-tulip-acceptance-2026-11-19.json)。
 - **MusicPlus** 手持乐器对空气右键打开演奏菜单，旧 MIDI 播放回调按曲目会话清理。
 
-隔离服准备脚本识别当前四个系列 Shadow JAR 文件名，CI 从五个固定上游提交构建导入检查。前轮可靠性修复覆盖家具交易取消、热栏切换及同步重入，抽奖产出、玩偶回收、MIDI 精确计时和任务清理，以及验收运行器的失败判定与进程收尾，详见[该轮修复记录](docs/research/series-polish-acceptance-2026-11-19.json)。当前冻结构建累计 **923 项 Java、282 项 Python、207 项 Node 测试通过**，分项见[当前交接](docs/HANDOFF.md#2026-11-19-燃烧瓶酒馆展板与木椅)；这些测试不替代各候选的服务器运行验收。
+隔离服准备脚本识别当前四个系列 Shadow JAR 文件名，CI 从五个固定上游提交构建导入检查。前轮可靠性修复覆盖家具交易取消、热栏切换及同步重入，抽奖产出、玩偶回收、MIDI 精确计时和任务清理，以及验收运行器的失败判定与进程收尾，详见[该轮修复记录](docs/research/series-polish-acceptance-2026-11-19.json)。该检查点冻结构建累计 **923 项 Java、282 项 Python、207 项 Node 测试通过**，分项见[历史交接](docs/HANDOFF.md#2026-11-19-燃烧瓶酒馆展板与木椅)；这些测试不替代各候选的服务器运行验收。
 
 本轮新增燃烧瓶及四种储物家具的燃烧瓶链、14 款原生 Dialog 文字展板、12 木种椅子的空垫和 16 色椅垫、12 木种静态厨娘凳与 24 条石切配方。前序五插件候选在 Paper/Folia 各通过 43 个定义、431 个变体、235 个物品检查，以及 9 件家具 API 放置／进程内二进制 NBT 往返／移除和 19 个储物显示的生成／清理；该次托管包各经官方 1.21.11 代码离线读取 14,419 项资源。该候选与当前构建分别保留产物身份，不能合并为同组 JAR 的验收。
 
