@@ -107,6 +107,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         cookeryConsumption = new net.kaleidoscope.cookery.item.listener.CookeryConsumeListener(this, cookeryEffects);
         getServer().getPluginManager().registerEvents(cookeryEffects, this);
         getServer().getPluginManager().registerEvents(cookeryConsumption, this);
+        net.kaleidoscope.cookery.worldgen.VillageLootBridge.register(this);
         getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.effect.KitchenEffectEvents(this, cookeryEffects), this);
         warmUpShutdownClasses();
         saveDefaultConfig();
