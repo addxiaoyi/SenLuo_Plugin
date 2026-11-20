@@ -97,17 +97,60 @@ async function adjustDollAxes (bot, poseOf, read = inspect) {
       () => bot.currentWindow?.inventoryStart === 36 && bot.currentWindow.id !== previousWindow)
   }
 }
-async function runReader (command, args) {
-  const reading = execFile(command, args, {
-    windowsHide: true, timeout: 65000, signal: shutdown.signal, killSignal: 'SIGKILL'
-  })
-  // Abort rejects execFile before the child necessarily emits close.
-  const closed = new Promise(resolve => reading.child.once('close', () => {
-    pendingReaders.delete(closed)
-    resolve()
-  }))
-  pendingReaders.add(closed)
-  await reading
+async function runReader (command, args, evidencePrefix) {
+  const startedAtMillis = Date.now(), outputLimitBytes = 65536
+  const streams = Object.fromEntries(['stdout', 'stderr'].map(name => [name,
+    { observed: false, capturedBytes: 0, retainedBytes: 0, chunks: [] }]))
+  let reading, output = {}, failure = null, terminal = { exitCode: null, signal: null }
+  try {
+    reading = execFile(command, args, {
+      windowsHide: true, timeout: 65000, signal: shutdown.signal, killSignal: 'SIGKILL',
+      encoding: 'buffer', maxBuffer: 1024 * 1024
+    })
+    for (const name of ['stdout', 'stderr']) {
+      if (!reading.child[name]) continue
+      const capture = streams[name]; capture.observed = true
+      reading.child[name].on('data', chunk => {
+        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+        capture.capturedBytes += bytes.length
+        const retained = bytes.subarray(0, Math.max(0, outputLimitBytes - capture.retainedBytes))
+        if (retained.length) { capture.chunks.push(retained); capture.retainedBytes += retained.length }
+      })
+    }
+    // Abort rejects execFile before close. Keep the serial queue and shutdown
+    // fence waiting for the actual process exit before persisting its receipt.
+    const closed = new Promise(resolve => reading.child.once('close', (exitCode, signal) => {
+      pendingReaders.delete(closed)
+      resolve({ exitCode, signal })
+    }))
+    pendingReaders.add(closed)
+    try { output = await reading } catch (error) { failure = error; output = error }
+    terminal = await closed
+  } catch (error) { failure ??= error }
+  const metadata = { schema: 'native-resource-reader-process-v1', command, args: [...args],
+    startedAtMillis, completedAtMillis: Date.now(), timeoutMillis: 65000, outputLimitBytes,
+    pid: reading?.child?.pid ?? null, ...terminal, aborted: shutdown.signal.aborted,
+    status: failure ? 'FAILED' : 'SUCCEEDED', killed: Boolean(failure?.killed || reading?.child?.killed),
+    error: failure ? { name: failure.name, message: String(failure.message).slice(0, 8192),
+      code: failure.code ?? null, signal: failure.signal ?? null } : null }
+  try {
+    for (const stream of ['stdout', 'stderr']) {
+      const capture = streams[stream]
+      const captured = capture.observed ? Buffer.concat(capture.chunks, capture.retainedBytes)
+        : Buffer.isBuffer(output[stream]) ? output[stream] : Buffer.from(output[stream] || '')
+      const retained = captured.subarray(0, outputLimitBytes), file = `${evidencePrefix}-${stream}.log`
+      fs.writeFileSync(file, retained, { flag: 'wx' })
+      const capturedBytes = capture.observed ? capture.capturedBytes : captured.length
+      metadata[stream] = { file: path.basename(file), capturedBytes,
+        retainedBytes: retained.length, truncated: retained.length !== capturedBytes }
+    }
+    fs.writeFileSync(`${evidencePrefix}-process.json`, JSON.stringify(metadata, null, 2) + '\n', { flag: 'wx' })
+  } catch (error) {
+    // Diagnostics must not replace the JVM/timeout/abort error that failed acceptance.
+    if (!failure) throw error
+    failure.readerEvidenceError = String(error)
+  }
+  if (failure) throw failure
 }
 async function receivePack (bot, username, offer) {
   const number = scenario === 'sourcecrops' ? (cropOffers[username] = (cropOffers[username] || 0) + 1) : null
@@ -140,17 +183,21 @@ async function receivePack (bot, username, offer) {
   fs.writeFileSync(archive, bytes, number === null ? undefined : { flag: 'wx' })
   status(4)
   const readerReport = path.join(out, `${artifactName}-resources.json`)
+  const readerEvidence = path.join(out, `${artifactName}-reader`)
   const javaArgs = path.join(out, `${artifactName}-java.args`)
-  const inputs = ['-Xmx900M', '-Djava.awt.headless=true', '-Dfile.encoding=UTF-8', '-cp', process.env.SENLUO_CLIENT_CLASSPATH,
+  const classpath = process.env.SENLUO_CLIENT_CLASSPATH
+  assert.ok(classpath, 'Set SENLUO_CLIENT_CLASSPATH to the 1.21.11 client and libraries')
+  const inputs = ['-Xmx384M', '-XX:+UseSerialGC', '-XX:ActiveProcessorCount=1', '-XX:TieredStopAtLevel=1',
+    `-XX:ErrorFile=${path.join(out, `${artifactName}-hs_err_pid%p.log`)}`,
+    '-Djava.awt.headless=true', '-Dfile.encoding=UTF-8', '-cp', classpath,
     path.resolve(__dirname, '../VanillaPack12111.java'), readerReport, archive]
-  assert.ok(inputs[4], 'Set SENLUO_CLIENT_CLASSPATH to the 1.21.11 client and libraries')
   fs.writeFileSync(javaArgs, inputs.map(s => '"'+s.replaceAll('\\','/').replaceAll('"','\\"')+'"').join('\n'))
   shutdown.signal.throwIfAborted()
   if (scenario === 'sourcecrops') {
-    const reading = cropResourceReader.then(() => runReader(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs]))
+    const reading = cropResourceReader.then(() => runReader(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs], readerEvidence))
     cropResourceReader = reading.catch(() => {})
     await reading
-  } else await runReader(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs])
+  } else await runReader(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs], readerEvidence)
   const [decoded] = JSON.parse(fs.readFileSync(readerReport)); assert.equal(decoded.packSha256, receivedSha256)
   assert.equal(decoded.client,'1.21.11'); assert.ok(decoded.assetsRead > 0)
   status(0) // Pack contents loaded by the official headless reader; no GPU rendering.

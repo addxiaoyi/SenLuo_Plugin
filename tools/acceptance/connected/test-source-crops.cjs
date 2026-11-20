@@ -6,6 +6,8 @@ const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 const vm = require('node:vm')
+const { EventEmitter } = require('node:events')
+const { promisify } = require('node:util')
 const scenario = require('./source-crops.cjs')
 const c = scenario.contract
 const sha = value => createHash('sha256').update(value).digest('hex')
@@ -499,11 +501,21 @@ test('actual pack receiver saves each downloaded offer and waits for its matchin
     process: { env: { SENLUO_CLIENT_CLASSPATH: 'official-client-fixture' } },
     fetch: async () => ({ status: 200, arrayBuffer: async () => data }),
     until: async (description, fn) => { const value = await fn(); assert.ok(value, description); return value },
-    runReader: async (_java, args) => {
+    runReader: async (_java, args, evidencePrefix) => {
       const inputs = fs.readFileSync(args[0].slice(1), 'utf8').split('\n').map(line => JSON.parse(line))
-      const archive = fs.readFileSync(inputs[7])
-      readers.push(path.basename(inputs[7]))
-      fs.writeFileSync(inputs[6], JSON.stringify([{ packSha256: sha(archive), client: '1.21.11', assetsRead: 4 }]))
+      assert.deepEqual(inputs.slice(0, 4), ['-Xmx384M', '-XX:+UseSerialGC', '-XX:ActiveProcessorCount=1', '-XX:TieredStopAtLevel=1'])
+      assert.equal(inputs[inputs.indexOf('-cp') + 1], 'official-client-fixture')
+      assert.ok(inputs.includes('-Djava.awt.headless=true')); assert.ok(inputs.includes('-Dfile.encoding=UTF-8'))
+      assert.equal(path.resolve(inputs.at(-3)), path.resolve(__dirname, '../VanillaPack12111.java'))
+      const archivePath = inputs.at(-1), readerPath = inputs.at(-2)
+      const artifactName = path.basename(archivePath, '.zip')
+      assert.equal(path.resolve(readerPath), path.join(folder, artifactName + '-resources.json'))
+      assert.equal(path.resolve(inputs.find(value => value.startsWith('-XX:ErrorFile=')).slice('-XX:ErrorFile='.length)),
+        path.join(folder, artifactName + '-hs_err_pid%p.log'))
+      const archive = fs.readFileSync(archivePath)
+      assert.equal(evidencePrefix, path.join(folder, artifactName + '-reader'))
+      readers.push(path.basename(archivePath))
+      fs.writeFileSync(readerPath, JSON.stringify([{ packSha256: sha(archive), client: '1.21.11', assetsRead: 4 }]))
     }
   }
   vm.createContext(context); vm.runInContext(receiveSource + ';this.receive = receivePack', context)
@@ -519,6 +531,128 @@ test('actual pack receiver saves each downloaded offer and waits for its matchin
   await assert.rejects(context.receive(bot, c.PLAYERS[0], { uuid: 'extra', url: 'http://127.0.0.1/pack.zip', hash: createHash('sha1').update(data).digest('hex') }), /beyond two/)
   context.phase = 'seed'
   await assert.rejects(context.receive(bot, c.PLAYERS[1], { uuid: 'drift', url: 'http://127.0.0.1/pack.zip', hash: createHash('sha1').update(data).digest('hex') }))
+})
+
+test('a failed native reader never acknowledges loaded resources or records a passing pack', async t => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'crop-reader-failed-offer-'))
+  t.after(() => fs.rmSync(folder, { recursive: true, force: true }))
+  const source = fs.readFileSync(path.join(__dirname, 'players.cjs'), 'utf8')
+  const receiveSource = source.slice(source.indexOf('async function receivePack ('), source.indexOf('async function connect ('))
+  const data = Buffer.from('retained failed native reader archive'), statuses = [], report = { packs: {} }
+  const failure = new Error('native JVM reader exited 1')
+  const context = { assert, fs, path, createHash, Buffer, URL, AbortSignal, Date, require, __dirname,
+    scenario: 'sourcecrops', phase: 'seed', out: folder, packSha256: sha(data), cropOffers: {}, report,
+    shutdown: new AbortController(), cropResourceReader: Promise.resolve(),
+    process: { env: { SENLUO_CLIENT_CLASSPATH: 'official-client-fixture' } },
+    fetch: async () => ({ status: 200, arrayBuffer: async () => data }),
+    runReader: async () => { throw failure } }
+  vm.createContext(context); vm.runInContext(receiveSource + ';this.receive = receivePack', context)
+  const bot = { _client: { uuid: 'test-player', write: (_type, value) => statuses.push(value.result) } }
+  await assert.rejects(context.receive(bot, c.PLAYERS[0], { uuid: 'failed-offer', url: 'http://127.0.0.1/pack.zip',
+    hash: createHash('sha1').update(data).digest('hex') }), error => error === failure)
+  assert.deepEqual(statuses, [3, 4]); assert.deepEqual(report.packs, {}); assert.equal(report.packHistory, undefined)
+  assert.deepEqual(fs.readFileSync(path.join(folder, c.PLAYERS[0] + '-offer-1.zip')), data)
+})
+
+function readerHarness (t, execFile = promisify(require('node:child_process').execFile)) {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'crop-reader-evidence-'))
+  t.after(() => fs.rmSync(folder, { recursive: true, force: true }))
+  const source = fs.readFileSync(path.join(__dirname, 'players.cjs'), 'utf8')
+  const body = source.slice(source.indexOf('async function runReader ('), source.indexOf('async function receivePack ('))
+  const context = { fs, path, Buffer, Date, execFile, shutdown: new AbortController(), pendingReaders: new Set() }
+  vm.createContext(context); vm.runInContext(body + ';this.run = runReader', context)
+  const prefix = path.join(folder, 'SenLuoProbeA-offer-3-reader')
+  return { context, prefix, metadata: () => JSON.parse(fs.readFileSync(prefix + '-process.json')) }
+}
+
+test('actual reader process preserves bounded stdout/stderr and successful exit evidence', async t => {
+  const value = readerHarness(t)
+  const args = ['-e', "process.stdout.write('汉'.repeat(30000)); process.stderr.write('reader diagnostic\\n')"]
+  await value.context.run(process.execPath, args, value.prefix)
+  const metadata = value.metadata()
+  assert.equal(metadata.status, 'SUCCEEDED'); assert.equal(metadata.exitCode, 0); assert.equal(metadata.signal, null)
+  assert.equal(metadata.error, null); assert.equal(metadata.aborted, false)
+  assert.equal(metadata.timeoutMillis, 65000); assert.equal(metadata.outputLimitBytes, 65536)
+  assert.equal(metadata.command, process.execPath); assert.deepEqual(metadata.args, args)
+  assert.equal(metadata.stdout.capturedBytes, 90000); assert.equal(metadata.stdout.retainedBytes, 65536)
+  assert.equal(metadata.stdout.truncated, true)
+  assert.deepEqual(fs.readFileSync(value.prefix + '-stdout.log'), Buffer.from('汉'.repeat(30000)).subarray(0, 65536))
+  assert.equal(fs.readFileSync(value.prefix + '-stderr.log', 'utf8'), 'reader diagnostic\n')
+  assert.equal(metadata.stderr.truncated, false); assert.equal(value.context.pendingReaders.size, 0)
+  assert.ok(metadata.completedAtMillis >= metadata.startedAtMillis)
+})
+
+test('actual nonzero reader exit remains terminal and retains both diagnostic streams', async t => {
+  const value = readerHarness(t)
+  await assert.rejects(value.context.run(process.execPath,
+    ['-e', "process.stdout.write('reader starting\\n'); process.stderr.write('fatal native error\\n'); process.exit(23)"], value.prefix),
+  error => error.code === 23)
+  const metadata = value.metadata()
+  assert.equal(metadata.status, 'FAILED'); assert.equal(metadata.exitCode, 23); assert.equal(metadata.error.code, 23)
+  assert.equal(fs.readFileSync(value.prefix + '-stdout.log', 'utf8'), 'reader starting\n')
+  assert.equal(fs.readFileSync(value.prefix + '-stderr.log', 'utf8'), 'fatal native error\n')
+  assert.equal(value.context.pendingReaders.size, 0)
+})
+
+test('reader output overflow remains a terminal failure while its saved output stays bounded', async t => {
+  const value = readerHarness(t)
+  await assert.rejects(value.context.run(process.execPath,
+    ['-e', "process.stdout.write('x'.repeat(2 * 1024 * 1024))"], value.prefix),
+  error => error.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER')
+  const metadata = value.metadata()
+  assert.equal(metadata.status, 'FAILED'); assert.equal(metadata.error.code, 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER')
+  assert.equal(metadata.stdout.retainedBytes, 65536); assert.equal(metadata.stdout.truncated, true)
+  assert.equal(fs.statSync(value.prefix + '-stdout.log').size, 65536)
+  assert.equal(value.context.pendingReaders.size, 0)
+})
+
+for (const kind of ['timeout', 'abort']) test('reader ' + kind + ' waits for close and preserves the original failure', async t => {
+  let rejectReading, child, options
+  const value = readerHarness(t, (_command, _args, supplied) => {
+    options = supplied
+    const reading = new Promise((_resolve, reject) => { rejectReading = reject })
+    child = reading.child = new EventEmitter(); child.pid = 14104; child.killed = true
+    child.stdout = new EventEmitter(); child.stderr = new EventEmitter()
+    return reading
+  })
+  const failure = Object.assign(new Error(kind + ' native reader failure'), { name: kind === 'abort' ? 'AbortError' : 'Error',
+    code: kind === 'abort' ? 'ABORT_ERR' : null, signal: 'SIGKILL', killed: true,
+    stdout: Buffer.from('last stdout'), stderr: Buffer.from('last stderr') })
+  const running = value.context.run('java', ['@offer.args'], value.prefix)
+  const rejection = assert.rejects(running, error => error === failure)
+  assert.equal(options.timeout, 65000); assert.equal(options.killSignal, 'SIGKILL')
+  assert.equal(options.windowsHide, true); assert.equal(options.signal, value.context.shutdown.signal)
+  assert.equal(options.maxBuffer, 1024 * 1024)
+  if (kind === 'abort') value.context.shutdown.abort()
+  child.stdout.emit('data', Buffer.from('last stdout'))
+  child.stderr.emit('data', Buffer.from('last stderr'))
+  rejectReading(failure)
+  await Promise.resolve(); await Promise.resolve()
+  assert.equal(value.context.pendingReaders.size, 1, 'Process close remains in the shutdown fence')
+  assert.equal(fs.existsSync(value.prefix + '-process.json'), false, 'No terminal receipt before actual process close')
+  child.stderr.emit('data', Buffer.from(' after rejection'))
+  child.emit('close', null, 'SIGKILL')
+  await rejection
+  const metadata = value.metadata()
+  assert.equal(metadata.status, 'FAILED'); assert.equal(metadata.exitCode, null); assert.equal(metadata.signal, 'SIGKILL')
+  assert.equal(metadata.error.code, failure.code); assert.equal(metadata.aborted, kind === 'abort')
+  assert.equal(metadata.killed, true); assert.equal(metadata.pid, 14104)
+  assert.equal(fs.readFileSync(value.prefix + '-stderr.log', 'utf8'), 'last stderr after rejection')
+  assert.equal(value.context.pendingReaders.size, 0)
+})
+
+test('diagnostic write failure cannot replace the original reader process failure', async t => {
+  let rejectReading, child
+  const value = readerHarness(t, () => {
+    const reading = new Promise((_resolve, reject) => { rejectReading = reject })
+    child = reading.child = new EventEmitter(); return reading
+  })
+  value.context.fs = { ...fs, writeFileSync: () => { throw new Error('evidence disk failure') } }
+  const failure = Object.assign(new Error('actual JVM failure'), { code: 1, stderr: 'native failure' })
+  const rejection = assert.rejects(value.context.run('java', ['@offer.args'], value.prefix), error => error === failure)
+  rejectReading(failure); child.emit('close', 1, null)
+  await rejection
+  assert.match(failure.readerEvidenceError, /evidence disk failure/)
 })
 
 test('natural cohorts require measured dry/wet soil, native light and the real dense diagonal', () => {
