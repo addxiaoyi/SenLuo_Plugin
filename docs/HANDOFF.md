@@ -10,11 +10,15 @@
 
 完整检查：605 Java（76套JUnit）0失败/错误/跳过；314 Python（根236＋系列78）；271 Node（source-crops64）。资源包 kitchen-crops-2.zip SHA-256 0385c35b62dd7a6869b8466ddf85ef6d7b9732e826860c61550309d5e9dd03e0。Paper/Folia真实 source-crops runtime 仍 NOT_RUN；两个旧 bootstrap 不完整，日志/退出状态分开留存，见 build/CONTINUE-CROPS-2026-11-20.md。
 
-**2026-11-20 后续复验：** 修复 CE `CraftEngineReloadEvent` 早于注册表重建结束时的观察和形状重绑时序。现有探针会在重载期间返回明确的 not-ready 快照；connected runner 要求新 epoch、8 个规范物品、三个作物方块及 24 个龄形状全部就绪，随后才算重载完成。全量复验通过 605 Java、236 根 Python、78 系列 Python 和 272 connected Node 测试；Paper/Folia 核心 Java、NMS、探针、Shadow JAR 均已编译。一次不受限测试 JVM 因 Windows 页面文件分配失败退出；改用串行、384 MiB 测试 fork 后 605 项测试全部通过。最新 JAR 哈希及失败记录见本地 `build/CONTINUE-CROPS-2026-11-20.md`。
+**2026-11-20 后续复验：** 修复重载期间读取暂不可用注册表时的探针轮询；connected runner 要求新 epoch、8 个规范物品、三个作物方块及 24 个龄形状全部就绪，随后才算重载完成。`5fd3f7e` 本地全量复验通过 605 Java、236 根 Python、78 系列 Python 和 272 connected Node 测试；核心 Java、NMS、探针、Shadow JAR 均已编译。一次不受限测试 JVM 因 Windows 页面文件分配失败退出；改用串行、384 MiB 测试 fork 后 605 项测试全部通过。最新 JAR 哈希及失败记录见本地 `build/CONTINUE-CROPS-2026-11-20.md`。
 
 重载修复提交 `5fd3f7ef1cc9cc154db5d684b3d97036b726dfb7` 已推送；其 GitHub Actions run [44658803770](https://github.com/addxiaoyi/SenLuo_Plugin/actions/runs/44658803770) 已完成且通过。
 
-独立 Paper bootstrap `sc3/paper-pack-1` 已正常退出 0：food 103/103、enchantment 构造 5/5、CE default workflow 完成、托管包 CRC 与 24 个模型校验通过；托管包 SHA-256 为 `ed7f5ac70f6c9766d1aa00506c7ce01a9a57795869821ba03ff6dd8040224801`。该证据不含作物真实交互。旧 `sc3/paper-core-1/2` 均失败；第二轮确认真实 `ce reload config` 事件早于作物规范物品注册，两个玩家的资源读取不能算重载验收。修复后全新 `sc4` Paper/Folia 实例已准备并锁定 JAR、ZIP、EULA、依赖哈希，Paper 与 Folia 均为空白世界；目前尚未运行新 Paper core。下一步按严格流程在 Paper 完成两次真实 reload→workflow→双客户端下载及官方 reader，再对 Paper、Folia 分别完成 `seed → verify → empty`。不要复用 sc3 失败实例。
+独立 Paper bootstrap `sc3/paper-pack-1` 已正常退出 0：food 103/103、enchantment 构造 5/5、CE default workflow 完成、托管包 CRC 与 24 个模型校验通过；托管包 SHA-256 为 `ed7f5ac70f6c9766d1aa00506c7ce01a9a57795869821ba03ff6dd8040224801`。该证据不含作物真实交互。旧 `sc3/paper-core-1/2` 均失败；第二轮在真实 `ce reload config` 完成之前就因轮询读取暂缺的种子定义退出，两个玩家的资源读取不能算重载验收。全新 `sc4` Paper/Folia 实例已准备并锁定 JAR、ZIP、EULA、依赖哈希，均为空白世界且未启动；其 JAR 后来已有新修订，不再作为最终候选。下一步用新编号和当前构建重新锁定实例，在 Paper 完成两次真实 reload→workflow→双客户端下载及官方 reader，再对 Paper、Folia 分别完成 `seed → verify → empty`。不要复用 sc3 失败实例。
+
+**归因更正：** 对固定运行 JAR `CraftEngine 26.9.1` 的调用顺序复核确认，`ce reload config` 在 items/blocks 与延迟任务结束后才派发 `CraftEngineReloadEvent`；原先“完成事件提前发送”的推断不成立。失败发生在事件前的轮询窗口。探针及形状重绑现在显式等待 `CraftEngine.instance().isReloading()` 为 false；该门槛也阻止新一轮重载期间把暂缺注册表当作可用状态。
+
+最新本地复验为 **619 项 Java（78 个套件，0 失败／错误／跳过）**、根 Python 236、系列 Python 78、connected Node 272 全通过。新增 6 项调度回归使用 CE 真实资源操作 lease 验证互斥与释放；8 项参数化回归直接调用 CE `CropDrops`，确认成熟种子范围为无时运 1–4、时运 III 1–7。验收器此前的 `1+3×时运` 上限已纠正；规范物品观察也恢复生产 food-baking 路径。调用顺序、失败边界及仍未完成项见[作物重载与掉落复核](research/cookery-crop-reload-2026-11-20.md)。当前生产 JAR SHA-256：`07018c648f2eb1980d5bcba86669d9228cc96d8c26674ec88734e7b075acf1f4`；探针 SHA-256：`763851896c0ff526a76f40ee76ab46a26be5a0516529de54a2f3f22cdc0de3dc`。这些新产物尚未完成实服验收。
 
 ## 三种来源作物推进中
 

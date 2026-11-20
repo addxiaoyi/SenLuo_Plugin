@@ -123,7 +123,7 @@ function assertAir (block) {
   assert.equal(block.id, null); assert.equal(block.material, 'AIR'); assert.equal(block.age, null)
 }
 function nativeReloadReady (snapshot, expectedEpoch) {
-  if (!snapshot || snapshot.epoch !== expectedEpoch + 1 || snapshot.canonicalReady !== true
+  if (!snapshot || snapshot.epoch !== expectedEpoch + 1 || snapshot.ceReloading !== false || snapshot.canonicalReady !== true
       || snapshot.sourceCropBlocksReady !== true
       || !snapshot.canonicalItems || !Array.isArray(snapshot.fixture?.ages) || snapshot.fixture.ages.length !== 24) return false
   try {
@@ -149,7 +149,9 @@ function persistentState (snapshot) {
 }
 function lootRanges (crop, age, fortune = 0) {
   assert.ok(Number.isSafeInteger(fortune) && fortune >= 0, 'Invalid Fortune level')
-  const ranges = { [NS + crop + '_seed']: [1, age === 7 ? 1 + (3 * fortune) : 1] }
+  // CE 26.9.1 CropDrops performs fortune + extra(3) Bernoulli trials,
+  // each adding one seed to the initial count of one.
+  const ranges = { [NS + crop + '_seed']: [1, age === 7 ? 4 + fortune : 1] }
   if (age === 7) {
     ranges[NS + (crop === 'chili' ? 'red_chili' : crop)] = [1, 1]
     if (crop === 'chili') ranges[NS + 'green_chili'] = [0, 1]
@@ -505,8 +507,8 @@ async function scenario (h) {
     value = await until('real CraftEngine reload, registry readiness and native crop cache', async () => {
       let snapshot
       try { snapshot = await read(a, 'reloadstate') } catch (failure) {
-        // Early CraftEngineReloadEvent precedes the end of registry reload on this build.
-        // The console still returns an explicit read-only not-ready report during that window.
+        // Console polling may overlap the reload before its completion event.
+        // New probes return a read-only not-ready report during that window.
         if (/Missing fixture item (?:tomato_seed|chili_seed|lettuce_seed|tomato|red_chili|green_chili|lettuce|caterpillar)/.test(String(failure))) return false
         throw failure
       }

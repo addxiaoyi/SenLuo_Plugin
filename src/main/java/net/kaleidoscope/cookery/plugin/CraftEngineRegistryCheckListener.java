@@ -6,6 +6,8 @@ import net.kaleidoscope.cookery.ui.RecipeMenuConfig;
 import net.kaleidoscope.cookery.util.ConsoleMessages;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 public final class CraftEngineRegistryCheckListener implements Listener {
     private static final List<ExpectedBlock> EXPECTED_BLOCKS = List.of(
@@ -34,10 +38,19 @@ public final class CraftEngineRegistryCheckListener implements Listener {
     );
 
     private final KaleidoscopeCookeryPlugin plugin;
+    private final BooleanSupplier ceReloading;
+    private final Supplier<ResourceOperationCoordinator> resourceOperations;
     private final AtomicLong reloadGeneration = new AtomicLong();
 
     public CraftEngineRegistryCheckListener(KaleidoscopeCookeryPlugin plugin) {
+        this(plugin, () -> CraftEngine.instance().isReloading(), () -> CraftEngine.instance().resourceOperations());
+    }
+
+    CraftEngineRegistryCheckListener(KaleidoscopeCookeryPlugin plugin, BooleanSupplier ceReloading,
+                                     Supplier<ResourceOperationCoordinator> resourceOperations) {
         this.plugin = plugin;
+        this.ceReloading = ceReloading;
+        this.resourceOperations = resourceOperations;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -50,9 +63,13 @@ public final class CraftEngineRegistryCheckListener implements Listener {
         plugin.reloadConfig();
         RecipeMenuConfig.load();
         plugin.reloadAdvancements();
-        // CraftEngine fires this event before its asynchronous resource reload has
-        // rebuilt block definitions/states. Retry on the global scheduler until the
-        // three crop definitions exist, rather than binding an empty registry.
+        scheduleSourceCropRebind(firstReload);
+    }
+
+    void scheduleSourceCropRebind(boolean firstReload) {
+        // CE fires this event after manager delayed-load tasks, but its completion
+        // flag clears after event dispatch. Its resource lease also excludes a new
+        // reload between checking that flag and reading/binding the registry.
         long generation = reloadGeneration.incrementAndGet();
         long startedAt = System.nanoTime();
         java.util.concurrent.atomic.AtomicReference<RuntimeException> lastShapeFailure =
@@ -61,26 +78,42 @@ public final class CraftEngineRegistryCheckListener implements Listener {
             if (!plugin.isEnabled() || reloadGeneration.get() != generation) { retry.cancel(); return; }
             boolean registryReady = false;
             int installed = 0;
+            Map<Key, ?> registrySnapshot = null;
             try {
-                Map<Key, ?> loadedBlocks = CraftEngineBlocks.loadedBlocks();
-                registryReady = EXPECTED_BLOCKS.stream().allMatch(expected -> loadedBlocks.containsKey(expected.key()))
-                        && List.of("tomato_crop", "chili_crop", "lettuce_crop").stream()
-                        .allMatch(name -> loadedBlocks.containsKey(Key.of("kaleidoscopecookery:" + name)));
-                if (registryReady) {
-                    installed = net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
-                    lastShapeFailure.set(null);
+                if (!ceReloading.getAsBoolean()) {
+                    ResourceOperationCoordinator.Lease lease = null;
+                    try {
+                        lease = resourceOperations.get().acquire();
+                    } catch (ResourceOperationCoordinator.BusyException busy) {
+                        // Resource operations share the same exclusion as CE reloads.
+                    }
+                    if (lease != null) {
+                        try {
+                            if (!ceReloading.getAsBoolean()) {
+                                Map<Key, ?> loadedBlocks = CraftEngineBlocks.loadedBlocks();
+                                registrySnapshot = Map.copyOf(loadedBlocks);
+                                registryReady = List.of("tomato_crop", "chili_crop", "lettuce_crop").stream()
+                                        .allMatch(name -> loadedBlocks.containsKey(Key.of("kaleidoscopecookery:" + name)));
+                                if (registryReady) {
+                                    installed = net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
+                                    lastShapeFailure.set(null);
+                                }
+                            }
+                        } finally {
+                            lease.close();
+                        }
+                    }
                 }
             } catch (RuntimeException partialReload) {
-                // The event precedes CE's asynchronous registry rebuild. A transient
-                // partial state must be retried, not allowed to cancel this task.
+                // A failed or partial registry remains retryable within the deadline.
                 lastShapeFailure.set(partialReload);
             }
             if (registryReady && installed == 3) {
-                checkLoadedBlocks(firstReload);
+                checkLoadedBlocks(firstReload, registrySnapshot);
                 plugin.getLogger().info("Source crop native shapes rebound after CraftEngine reload: " + installed + "/3");
                 retry.cancel();
             } else if (System.nanoTime() - startedAt > TimeUnit.SECONDS.toNanos(30)) {
-                checkLoadedBlocks(firstReload);
+                if (registrySnapshot != null) checkLoadedBlocks(firstReload, registrySnapshot);
                 RuntimeException failure = lastShapeFailure.get();
                 plugin.getLogger().severe("Source crop shapes were not rebound after CraftEngine reload: "
                         + installed + "/3; registryReady=" + registryReady
@@ -91,8 +124,7 @@ public final class CraftEngineRegistryCheckListener implements Listener {
         }, 1L, 1L);
     }
 
-    private void checkLoadedBlocks(boolean firstReload) {
-        Map<Key, ?> loadedBlocks = CraftEngineBlocks.loadedBlocks();
+    private void checkLoadedBlocks(boolean firstReload, Map<Key, ?> loadedBlocks) {
         List<ExpectedBlock> missing = new ArrayList<>();
         for (ExpectedBlock expected : EXPECTED_BLOCKS) {
             if (!loadedBlocks.containsKey(expected.key())) {

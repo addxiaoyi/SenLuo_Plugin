@@ -32,19 +32,20 @@ function crop (name = 'tomato', age = 0) {
 test('source crop loot bounds retain empty-tool sickle semantics and ordinary Fortune growth', () => {
   for (const name of c.CROPS) {
     assert.deepEqual(c.lootRanges(name, 0), { [c.NS + name + '_seed']: [1, 1] })
-    assert.equal(c.lootRanges(name, 7)[c.NS + name + '_seed'][1], 1)
-    assert.equal(c.lootRanges(name, 7, 3)[c.NS + name + '_seed'][1], 10)
+    assert.equal(c.lootRanges(name, 7)[c.NS + name + '_seed'][1], 4)
+    assert.equal(c.lootRanges(name, 7, 3)[c.NS + name + '_seed'][1], 7)
+    assert.deepEqual(c.lootRanges(name, 6, 3), { [c.NS + name + '_seed']: [1, 1] })
   }
   assert.deepEqual(c.lootRanges('chili', 7)[c.NS + 'green_chili'], [0, 1])
   assert.deepEqual(c.lootRanges('lettuce', 7)[c.NS + 'caterpillar'], [0, 1])
 })
-test('mature seed observations 8..10 require Fortune III and no Fortune level permits 11', () => {
-  for (const count of [8, 9, 10]) {
-    assert.equal(c.assertFortune('tomato', 3, count), count)
-    for (const fortune of [0, 1, 2]) assert.throws(() => c.assertFortune('tomato', fortune, count))
+test('mature seed bounds follow the actual CE extra-plus-Fortune trial count', () => {
+  for (const name of c.CROPS) for (const fortune of [0, 1, 2, 3]) {
+    for (let count = 1; count <= 4 + fortune; count++) assert.equal(c.assertFortune(name, fortune, count), count)
+    assert.throws(() => c.assertFortune(name, fortune, 0))
+    assert.throws(() => c.assertFortune(name, fortune, 5 + fortune))
+    for (const count of [8, 9, 10, 11]) assert.throws(() => c.assertFortune(name, fortune, count))
   }
-  assert.throws(() => c.assertFortune('tomato', 3, 11))
-  for (const fortune of [0, 1, 2, 3]) assert.throws(() => c.assertFortune('tomato', fortune, 11))
 })
 test('all 24 final native age shapes have the source dimensions and no collision', () => {
   for (const name of c.CROPS) for (let age = 0; age <= 7; age++) c.assertCrop(crop(name, age), name, age)
@@ -54,11 +55,14 @@ test('the native farmland tag is required even when optional shape comparisons a
   assert.throws(() => c.assertCrop(value, 'tomato', 7, false), /maintain farmland/)
 })
 test('CE reload readiness waits for all canonical items, crop blocks and native cached shapes', () => {
-  const value = snapshot(); value.epoch = 2; value.canonicalReady = true; value.sourceCropBlocksReady = true
+  const value = snapshot(); value.epoch = 2; value.ceReloading = false; value.canonicalReady = true; value.sourceCropBlocksReady = true
   value.fixture.ages = c.CROPS.flatMap(name => Array.from({ length: 8 }, (_, age) => crop(name, age)))
   assert.equal(c.nativeReloadReady(value, 1), true)
+  value.ceReloading = true
+  assert.equal(c.nativeReloadReady(value, 1), false, 'The CE reload must have completed before accepting its registry')
+  value.ceReloading = false
   value.canonicalReady = false
-  assert.equal(c.nativeReloadReady(value, 1), false, 'Early reload event before CE item registration is not complete')
+  assert.equal(c.nativeReloadReady(value, 1), false, 'A snapshot before CE item registration is not complete')
   value.canonicalReady = true; value.sourceCropBlocksReady = false
   assert.equal(c.nativeReloadReady(value, 1), false, 'Reload before all three blocks register is not complete')
   value.sourceCropBlocksReady = true; value.fixture.ages[7].shape = [[0, 0, 0, 1, 1, 1]]
@@ -454,6 +458,7 @@ for (const fault of [null, 'shape', 'epoch', 'missing-reoffer']) test('actual co
     state.canonicalItems = Object.fromEntries(['tomato_seed', 'chili_seed', 'lettuce_seed', 'tomato', 'red_chili', 'green_chili', 'lettuce', 'caterpillar']
       .map(name => [c.NS + name, item(c.NS + name)]))
     state.canonicalReady = true
+    state.ceReloading = false
     state.sourceCropBlocksReady = true
     if (fault === 'shape' && action === 'shapes') state.fixture.ages[0].shape = []
     return { ...structuredClone(state), schema: 'source-crops-v1', phase: 'core', runId: path.basename(folder),
