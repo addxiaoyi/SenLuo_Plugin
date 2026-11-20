@@ -15,6 +15,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
+import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
@@ -445,11 +446,30 @@ final class SourceCropProbe implements Listener {
             }
             result.put("events", eventValues);
             var canonical = new LinkedHashMap<String, Object>();
-            for (String name : List.of("tomato_seed", "chili_seed", "lettuce_seed", "tomato", "red_chili", "green_chili", "lettuce", "caterpillar"))
-                canonical.put(PREFIX + name, item(custom(name, 1)));
+            var canonicalErrors = new ArrayList<String>();
+            for (String name : List.of("tomato_seed", "chili_seed", "lettuce_seed", "tomato", "red_chili", "green_chili", "lettuce", "caterpillar")) {
+                try {
+                    var buildable = BukkitItemManager.instance().getBuildableItem(Key.of(PREFIX + name)).orElse(null);
+                    if (buildable == null) throw new IllegalStateException("CE item is not currently registered");
+                    var nativeItem = buildable.buildItem((net.momirealms.craftengine.core.entity.player.Player) null);
+                    if (ItemUtils.isEmpty(nativeItem)) throw new IllegalStateException("CE item is not currently buildable");
+                    canonical.put(PREFIX + name, item(ItemStackUtils.getBukkitStack(nativeItem.minecraftItem())));
+                }
+                catch (RuntimeException notRegisteredDuringReload) {
+                    // CE can fire its reload event before item definitions finish loading.
+                    // Keep read-only polling alive and mark canonical fixtures unavailable;
+                    // the runner must wait for a later complete registry snapshot.
+                    canonicalErrors.add(PREFIX + name + ": " + notRegisteredDuringReload.getMessage());
+                }
+            }
             for (Material material : List.of(Material.BONE_MEAL, Material.WHEAT, Material.WHEAT_SEEDS))
                 canonical.put(material.getKey().toString(), item(new ItemStack(material)));
             result.put("canonicalItems", canonical);
+            result.put("canonicalReady", canonicalErrors.isEmpty());
+            result.put("canonicalErrors", List.copyOf(canonicalErrors));
+            Map<Key, ?> currentlyLoadedBlocks = CraftEngineBlocks.loadedBlocks();
+            result.put("sourceCropBlocksReady", List.of("tomato_crop", "chili_crop", "lettuce_crop").stream()
+                    .allMatch(name -> currentlyLoadedBlocks.containsKey(Key.of(PREFIX + name))));
             Arm arm = armed;
             // Observation never consumes even expired fault state; only an explicit disarm,
             // a declared fixture stage, or the matching one-shot event may change it.

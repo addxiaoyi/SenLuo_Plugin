@@ -2,6 +2,18 @@
 
 2026-11-19。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
 
+## 2026-11-20 三作物推进
+
+主分支本轮提交 c3642ae22fc5252bf6da22ae745cd39be994b054 已推送。该 SHA 的 GitHub Actions 44645778952 三个 job 全成功：Java tests and Shadow JARs、CE and plugin independence checks、Importers and feature ledger。
+
+番茄、辣椒、生菜有 24 个真实 CE 龄状态与可种子种植；主副手均能成熟采果；持骨粉先采果且不扣粉；成熟镰刀操作使用空工具来源掉落、按实际交互手做完整来源快照。源配置加 minecraft:maintains_farmland，服务端选择形状为空碰撞、随龄2–9/16；客户端原版轮廓仍为 tripwire 替代。功能台账 C14 保持 unit_tested，客户端、保护、CE reload 与真实生长仍须实服验收。
+
+完整检查：605 Java（76套JUnit）0失败/错误/跳过；314 Python（根236＋系列78）；271 Node（source-crops64）。资源包 kitchen-crops-2.zip SHA-256 0385c35b62dd7a6869b8466ddf85ef6d7b9732e826860c61550309d5e9dd03e0。Paper/Folia真实 source-crops runtime 仍 NOT_RUN；两个旧 bootstrap 不完整，日志/退出状态分开留存，见 build/CONTINUE-CROPS-2026-11-20.md。
+
+**2026-11-20 后续复验：** 修复 CE `CraftEngineReloadEvent` 早于注册表重建结束时的观察和形状重绑时序。现有探针会在重载期间返回明确的 not-ready 快照；connected runner 要求新 epoch、8 个规范物品、三个作物方块及 24 个龄形状全部就绪，随后才算重载完成。全量复验通过 605 Java、236 根 Python、78 系列 Python 和 272 connected Node 测试；Paper/Folia 核心 Java、NMS、探针、Shadow JAR 均已编译。一次不受限测试 JVM 因 Windows 页面文件分配失败退出；改用串行、384 MiB 测试 fork 后 605 项测试全部通过。最新 JAR 哈希及失败记录见本地 `build/CONTINUE-CROPS-2026-11-20.md`。
+
+独立 Paper bootstrap `sc3/paper-pack-1` 已正常退出 0：food 103/103、enchantment 构造 5/5、CE default workflow 完成、托管包 CRC 与 24 个模型校验通过；托管包 SHA-256 为 `ed7f5ac70f6c9766d1aa00506c7ce01a9a57795869821ba03ff6dd8040224801`。该证据不含作物真实交互。旧 `sc3/paper-core-1/2` 均失败；第二轮确认真实 `ce reload config` 事件早于作物规范物品注册，两个玩家的资源读取不能算重载验收。修复后全新 `sc4` Paper/Folia 实例已准备并锁定 JAR、ZIP、EULA、依赖哈希，Paper 与 Folia 均为空白世界；目前尚未运行新 Paper core。下一步按严格流程在 Paper 完成两次真实 reload→workflow→双客户端下载及官方 reader，再对 Paper、Folia 分别完成 `seed → verify → empty`。不要复用 sc3 失败实例。
+
 ## 三种来源作物推进中
 
 番茄、辣椒和生菜已导出为 3 个真实 CE 方块、24 个龄状态及可种植种子，使用农田、光照、邻株密度、骨粉和固定来源掉落规则。番茄与辣椒成熟时主副手右键均各取一果并回到龄 5，持骨粉也按来源先采果且不扣骨粉；生菜右键保持 PASS，镰刀携带实际交互手，按来源空工具掉落并回到龄 0。三作物配置原生 `minecraft:maintains_farmland` 标签，使 1.21.11 干农田能识别上方作物；实际原生标签仍由实服探针核对。服务端选择框为 2–9/16 高、碰撞为空；原版客户端的选择轮廓仍为分配的绊线外观。

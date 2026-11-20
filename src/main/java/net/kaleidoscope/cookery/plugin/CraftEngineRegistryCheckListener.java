@@ -7,6 +7,7 @@ import net.kaleidoscope.cookery.util.ConsoleMessages;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
 import net.momirealms.craftengine.core.util.Key;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -14,6 +15,8 @@ import org.bukkit.event.Listener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class CraftEngineRegistryCheckListener implements Listener {
     private static final List<ExpectedBlock> EXPECTED_BLOCKS = List.of(
@@ -31,6 +34,7 @@ public final class CraftEngineRegistryCheckListener implements Listener {
     );
 
     private final KaleidoscopeCookeryPlugin plugin;
+    private final AtomicLong reloadGeneration = new AtomicLong();
 
     public CraftEngineRegistryCheckListener(KaleidoscopeCookeryPlugin plugin) {
         this.plugin = plugin;
@@ -38,6 +42,7 @@ public final class CraftEngineRegistryCheckListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onCraftEngineReload(CraftEngineReloadEvent event) {
+        boolean firstReload = event.isFirstReload();
         ConsoleMessages.reloadFromDisk(plugin);
         // 物品显示名跟着配置走 重载后必须重算
         ItemNames.clearCache();
@@ -45,8 +50,45 @@ public final class CraftEngineRegistryCheckListener implements Listener {
         plugin.reloadConfig();
         RecipeMenuConfig.load();
         plugin.reloadAdvancements();
-        net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
-        checkLoadedBlocks(event.isFirstReload());
+        // CraftEngine fires this event before its asynchronous resource reload has
+        // rebuilt block definitions/states. Retry on the global scheduler until the
+        // three crop definitions exist, rather than binding an empty registry.
+        long generation = reloadGeneration.incrementAndGet();
+        long startedAt = System.nanoTime();
+        java.util.concurrent.atomic.AtomicReference<RuntimeException> lastShapeFailure =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, retry -> {
+            if (!plugin.isEnabled() || reloadGeneration.get() != generation) { retry.cancel(); return; }
+            boolean registryReady = false;
+            int installed = 0;
+            try {
+                Map<Key, ?> loadedBlocks = CraftEngineBlocks.loadedBlocks();
+                registryReady = EXPECTED_BLOCKS.stream().allMatch(expected -> loadedBlocks.containsKey(expected.key()))
+                        && List.of("tomato_crop", "chili_crop", "lettuce_crop").stream()
+                        .allMatch(name -> loadedBlocks.containsKey(Key.of("kaleidoscopecookery:" + name)));
+                if (registryReady) {
+                    installed = net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
+                    lastShapeFailure.set(null);
+                }
+            } catch (RuntimeException partialReload) {
+                // The event precedes CE's asynchronous registry rebuild. A transient
+                // partial state must be retried, not allowed to cancel this task.
+                lastShapeFailure.set(partialReload);
+            }
+            if (registryReady && installed == 3) {
+                checkLoadedBlocks(firstReload);
+                plugin.getLogger().info("Source crop native shapes rebound after CraftEngine reload: " + installed + "/3");
+                retry.cancel();
+            } else if (System.nanoTime() - startedAt > TimeUnit.SECONDS.toNanos(30)) {
+                checkLoadedBlocks(firstReload);
+                RuntimeException failure = lastShapeFailure.get();
+                plugin.getLogger().severe("Source crop shapes were not rebound after CraftEngine reload: "
+                        + installed + "/3; registryReady=" + registryReady
+                        + (failure == null ? "" : "; last error=" + failure.getClass().getSimpleName()
+                        + ": " + failure.getMessage()));
+                retry.cancel();
+            }
+        }, 1L, 1L);
     }
 
     private void checkLoadedBlocks(boolean firstReload) {

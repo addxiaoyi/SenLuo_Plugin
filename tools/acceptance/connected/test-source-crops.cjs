@@ -53,6 +53,19 @@ test('the native farmland tag is required even when optional shape comparisons a
   const value = crop('tomato', 7); value.maintainsFarmland = false
   assert.throws(() => c.assertCrop(value, 'tomato', 7, false), /maintain farmland/)
 })
+test('CE reload readiness waits for all canonical items, crop blocks and native cached shapes', () => {
+  const value = snapshot(); value.epoch = 2; value.canonicalReady = true; value.sourceCropBlocksReady = true
+  value.fixture.ages = c.CROPS.flatMap(name => Array.from({ length: 8 }, (_, age) => crop(name, age)))
+  assert.equal(c.nativeReloadReady(value, 1), true)
+  value.canonicalReady = false
+  assert.equal(c.nativeReloadReady(value, 1), false, 'Early reload event before CE item registration is not complete')
+  value.canonicalReady = true; value.sourceCropBlocksReady = false
+  assert.equal(c.nativeReloadReady(value, 1), false, 'Reload before all three blocks register is not complete')
+  value.sourceCropBlocksReady = true; value.fixture.ages[7].shape = [[0, 0, 0, 1, 1, 1]]
+  assert.equal(c.nativeReloadReady(value, 1), false, 'Native cache must have the source age shape after reload')
+  value.fixture.ages[7] = crop('tomato', 7); value.epoch = 3
+  assert.equal(c.nativeReloadReady(value, 1), false, 'A second or unpermitted epoch is not the requested reload')
+})
 for (const [name, mutate] of Object.entries({
   'visual placeholder identity': b => { b.id = 'minecraft:tripwire' },
   'stale native cache': b => { b.shape = [[0, 0, 0, 1, 1, 1]] },
@@ -438,6 +451,10 @@ for (const fault of [null, 'shape', 'epoch', 'missing-reoffer']) test('actual co
   const inspect = async (actor, action) => {
     if (action === 'stageplant') throw sentinel
     state.fixture.ages = c.CROPS.flatMap(name => Array.from({ length: 8 }, (_, age) => crop(name, age)))
+    state.canonicalItems = Object.fromEntries(['tomato_seed', 'chili_seed', 'lettuce_seed', 'tomato', 'red_chili', 'green_chili', 'lettuce', 'caterpillar']
+      .map(name => [c.NS + name, item(c.NS + name)]))
+    state.canonicalReady = true
+    state.sourceCropBlocksReady = true
     if (fault === 'shape' && action === 'shapes') state.fixture.ages[0].shape = []
     return { ...structuredClone(state), schema: 'source-crops-v1', phase: 'core', runId: path.basename(folder),
       actor: actor.username, action, errors: [], epoch, world: { ...state.world, owned: true, loaded: true } }

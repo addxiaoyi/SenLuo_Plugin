@@ -122,6 +122,23 @@ function assertAir (block) {
   assert.equal(block.loaded, true); assert.equal(block.owned, true)
   assert.equal(block.id, null); assert.equal(block.material, 'AIR'); assert.equal(block.age, null)
 }
+function nativeReloadReady (snapshot, expectedEpoch) {
+  if (!snapshot || snapshot.epoch !== expectedEpoch + 1 || snapshot.canonicalReady !== true
+      || snapshot.sourceCropBlocksReady !== true
+      || !snapshot.canonicalItems || !Array.isArray(snapshot.fixture?.ages) || snapshot.fixture.ages.length !== 24) return false
+  try {
+    for (const id of ['tomato_seed', 'chili_seed', 'lettuce_seed', 'tomato', 'red_chili', 'green_chili', 'lettuce', 'caterpillar']) {
+      if (!snapshot.canonicalItems[NS + id]) return false
+    }
+    for (let index = 0; index < 24; index++) {
+      const state = snapshot.fixture.ages[index]
+      assertCrop(state, CROPS[Math.floor(index / 8)], index % 8)
+    }
+    return true
+  } catch {
+    return false
+  }
+}
 function playerState (snapshot) {
   return Object.fromEntries(PLAYERS.map(name => [name, Object.fromEntries(
     ['uuid', 'world', 'inventory', 'armor', 'offHand', 'cursor', 'heldSlot', 'gameMode', 'op'].map(k => [k, snapshot.players[name][k]]))]))
@@ -485,9 +502,15 @@ async function scenario (h) {
     const before = await read(a, 'reloadstate'), epoch = before.epoch
     assert.equal(typeof consoleCommand, 'function')
     consoleCommand('ce reload config')
-    value = await until('real CraftEngine reload epoch', async () => {
-      const snapshot = await read(a, 'reloadstate')
-      return snapshot.epoch === epoch + 1 ? snapshot : false
+    value = await until('real CraftEngine reload, registry readiness and native crop cache', async () => {
+      let snapshot
+      try { snapshot = await read(a, 'reloadstate') } catch (failure) {
+        // Early CraftEngineReloadEvent precedes the end of registry reload on this build.
+        // The console still returns an explicit read-only not-ready report during that window.
+        if (/Missing fixture item (?:tomato_seed|chili_seed|lettuce_seed|tomato|red_chili|green_chili|lettuce|caterpillar)/.test(String(failure))) return false
+        throw failure
+      }
+      return nativeReloadReady(snapshot, epoch) ? snapshot : false
     }, 90000)
     // A reload command is lifecycle evidence only after a genuine server event.
     const lockFile = path.join(out, 'resource-pack-lock.json')
@@ -813,4 +836,4 @@ async function scenario (h) {
 module.exports = scenario
 module.exports.contract = { NS, PLAYERS, CROPS, POSITIONS, PERSISTED, itemKey, holdings, difference, expectDelta,
   assertCrop, assertAir, lootRanges, assertFortune, auditHistory, validateCheckpoint, playerState, persistentState,
-  matchCorePack, completedCoreWorkflow, boneResult, cancellationReceipt, assertNaturalEnvironment }
+  matchCorePack, completedCoreWorkflow, boneResult, cancellationReceipt, nativeReloadReady, assertNaturalEnvironment }
