@@ -167,25 +167,29 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
         if (!crop.canPick()) return InteractionResult.PASS;
         Player player = context.getPlayer();
         if (player == null || player.isAdventureMode()
-                || context.getHand() != InteractionHand.MAIN_HAND || SICKLES.matches(context.getItem())) return InteractionResult.PASS;
-        if (!harvest(context.getLevel(), context.getClickedPos(), state, player, true)) return InteractionResult.PASS;
-        player.swingHand(InteractionHand.MAIN_HAND);
+                || SICKLES.matches(context.getItem())) return InteractionResult.PASS;
+        if (!harvest(context.getLevel(), context.getClickedPos(), state, player, true, context.getHand())) return InteractionResult.PASS;
+        player.swingHand(context.getHand());
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
 
     /** Sickle path: source block loot with an empty tool, reset to age zero. */
     @Override public boolean harvest(World world, BlockPos pos, ImmutableBlockState state, Player player) {
-        return harvest(world, pos, state, player, false);
+        return harvest(world, pos, state, player, InteractionHand.MAIN_HAND);
     }
 
-    private boolean harvest(World world, BlockPos pos, ImmutableBlockState state, Player player, boolean picking) {
+    @Override public boolean harvest(World world, BlockPos pos, ImmutableBlockState state, Player player, InteractionHand hand) {
+        return harvest(world, pos, state, player, false, hand);
+    }
+
+    private boolean harvest(World world, BlockPos pos, ImmutableBlockState state, Player player, boolean picking, InteractionHand hand) {
         if (state == null || state.owner().value() != blockDefinition || state.get(age) != SourceCropGrowth.MAX_AGE
                 || !(world.platformWorld() instanceof org.bukkit.World bukkit) || !owned(bukkit, pos.x(), pos.z())) return false;
         Block block = bukkit.getBlockAt(pos.x(), pos.y(), pos.z());
         if (!ACTIVE.add(block)) return false;
         try {
-            if (!ready(pos, block, state, player, picking)) return false;
-            SourceCropHarvestSource source = SourceCropHarvestSource.capture(player);
+            if (!ready(pos, block, state, player, picking, hand)) return false;
+            SourceCropHarvestSource source = SourceCropHarvestSource.capture(player, hand);
             if (source == null || !eligible(world, pos, block, state, player, picking, source)) return false;
             WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(pos));
             boolean drops = !Boolean.FALSE.equals(bukkit.getGameRuleValue(GameRule.DO_TILE_DROPS));
@@ -200,7 +204,7 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
             }
             if (!eligible(world, pos, block, state, player, picking, source)) return false;
             if (player.platformPlayer() instanceof org.bukkit.entity.Player bukkitPlayer) EventUtils.logBlockBreak(block, bukkitPlayer);
-            if (!ready(pos, block, state, player, picking) || !source.matches(player)) return false;
+            if (!ready(pos, block, state, player, picking, hand) || !source.matches(player)) return false;
             ImmutableBlockState next = state.with(age, picking ? SourceCropGrowth.PICK_RESET_AGE : 0);
             if (!LevelWriterProxy.INSTANCE.setBlock(world.minecraftWorld(), LocationUtils.toBlockPos(pos),
                     next.customBlockState().minecraftState(), picking ? UpdateFlags.UPDATE_CLIENTS : UpdateFlags.UPDATE_ALL)
@@ -222,17 +226,17 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
 
     private boolean eligible(World world, BlockPos pos, Block block, ImmutableBlockState state, Player player,
                              boolean picking, SourceCropHarvestSource source) {
-        return ready(pos, block, state, player, picking) && source.matches(player)
+        return ready(pos, block, state, player, picking, source.hand()) && source.matches(player)
                 && InteractGuard.canBreak(player, world, pos.x(), pos.y(), pos.z())
-                && ready(pos, block, state, player, picking) && source.matches(player);
+                && ready(pos, block, state, player, picking, source.hand()) && source.matches(player);
     }
 
-    private boolean ready(BlockPos pos, Block block, ImmutableBlockState state, Player player, boolean picking) {
-        if (player == null || player.isAdventureMode() || !(player.platformPlayer() instanceof org.bukkit.entity.Player bukkit)
+    private boolean ready(BlockPos pos, Block block, ImmutableBlockState state, Player player, boolean picking, InteractionHand hand) {
+        if (hand == null || player == null || player.isAdventureMode() || !(player.platformPlayer() instanceof org.bukkit.entity.Player bukkit)
                 || !bukkit.isOnline() || !bukkit.isValid() || bukkit.isDead()
                 || bukkit.getGameMode() == GameMode.SPECTATOR || bukkit.getWorld() != block.getWorld()
                 || !Bukkit.isOwnedByCurrentRegion(bukkit) || !owned(block.getWorld(), pos.x(), pos.z())
-                || (picking && SICKLES.matches(player.getItemInHand(InteractionHand.MAIN_HAND))) || !current(block, state)) return false;
+                || (picking && SICKLES.matches(player.getItemInHand(hand))) || !current(block, state)) return false;
         return true;
     }
 

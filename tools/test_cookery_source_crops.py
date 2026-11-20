@@ -51,6 +51,8 @@ class SourceCropsTest(unittest.TestCase):
                 allocations.add(app['auto_state']['id'])
         self.assertEqual(24, len(allocations))
         self.assertEqual('PASS', manifest['harvest']['lettuce']['rightClick'])
+        self.assertEqual(['MAIN_HAND', 'OFF_HAND'], manifest['harvest']['hands'])
+        self.assertIn('without consuming bonemeal', manifest['harvest']['matureBonemeal'])
         self.assertEqual(5, manifest['harvest']['tomato']['rightClick']['resetAge'])
         self.assertEqual({'kaleidoscopecookery:green_chili': .2, 'kaleidoscopecookery:red_chili': .8},
                          manifest['harvest']['chili']['rightClick']['results'])
@@ -78,6 +80,18 @@ class SourceCropsTest(unittest.TestCase):
                 self.assertEqual(2, len(loot['pools']))
             path = 'src/generated/resources/data/' + ART + '/loot_tables/blocks/' + name + '_crop.json'
             self.assertEqual(json.loads(self.sources[path]), source_loot(name))
+
+    def test_native_farmland_tag_preserves_dry_soil_under_all_source_crop_states(self):
+        # In 1.21.11 FarmBlock only retains dry farmland when the block above is
+        # in this native tag; a CE behavior class alone does not satisfy it.
+        blocks, manifest = self.export()
+        for name in CROPS:
+            block = blocks[PLUGIN + ':' + name + '_crop']
+            self.assertEqual(['minecraft:maintains_farmland'], block['settings']['tags'])
+            self.assertEqual(8, len(block['states']['variants']))
+            for variant in block['states']['variants'].values():
+                self.assertNotIn('tags', variant.get('settings', {}))
+        self.assertEqual('minecraft:maintains_farmland', manifest['growth']['nativeFarmlandTag'])
 
     def test_unknown_java_rules_cannot_silently_change_harvest_semantics(self):
         validate_sources(self.sources)

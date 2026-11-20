@@ -34,7 +34,8 @@ def main() -> None:
         run([sys.executable, "series/tools/check_independence.py"], env=env)
     if not args.skip_node:
         run(["node", "--test", "tools/acceptance/connected/test-persistence.cjs",
-             "tools/acceptance/connected/test-gameplay-persistence.cjs"])
+             "tools/acceptance/connected/test-gameplay-persistence.cjs",
+             "tools/acceptance/connected/test-source-crops.cjs"])
 
 
 if __name__ == "__main__":

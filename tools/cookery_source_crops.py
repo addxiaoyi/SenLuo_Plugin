@@ -105,6 +105,7 @@ def source_crops(source, assets, items, definitions, names):
             for age in range(8)}
         blocks[key] = {
             'settings': {'item': seed, 'hardness': 0, 'resistance': 0, 'map_color': 'plant',
+                         'tags': ['minecraft:maintains_farmland'],
                          'push_reaction': 'destroy', 'can_occlude': False, 'is_suffocating': False,
                          'is_view_blocking': False, 'is_redstone_conductor': False, 'block_light': 0,
                          'sounds': {'break': 'minecraft:block.crop.break', 'place': 'minecraft:item.crop.plant',
@@ -118,8 +119,11 @@ def source_crops(source, assets, items, definitions, names):
         'sourceFiles': {p: hashlib.sha256(v).hexdigest() for p, v in files.items()},
         'runtime': 'NOT_TESTED', 'vanillaClient': 'NOT_TESTED',
         'growth': {'source': 'Minecraft 1.20.1 CropBlock', 'farmlandOnly': True, 'growLight': 9,
-                   'survivalLight': 8, 'skyLightSurvival': True, 'soilAndCrowding': True, 'boneMealBonus': [2, 5]},
-        'harvest': {'tomato': {'rightClick': {'result': PLUGIN + ':tomato', 'count': 1, 'resetAge': 5}},
+                   'survivalLight': 8, 'skyLightSurvival': True, 'soilAndCrowding': True, 'boneMealBonus': [2, 5],
+                   'nativeFarmlandTag': 'minecraft:maintains_farmland'},
+        'harvest': {'hands': ['MAIN_HAND', 'OFF_HAND'],
+                    'matureBonemeal': 'tomato/chili pick one fruit and reset to age 5 without consuming bonemeal; lettuce PASS',
+                    'tomato': {'rightClick': {'result': PLUGIN + ':tomato', 'count': 1, 'resetAge': 5}},
                     'chili': {'rightClick': {'results': {PLUGIN + ':green_chili': .2, PLUGIN + ':red_chili': .8},
                                              'count': 1, 'resetAge': 5}},
                     'lettuce': {'rightClick': 'PASS'},

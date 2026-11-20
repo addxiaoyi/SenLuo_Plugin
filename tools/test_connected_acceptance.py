@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
+from zipfile import ZipFile, BadZipFile
 
 SPEC = importlib.util.spec_from_file_location(
     "connected_acceptance_runner", Path(__file__).parent / "acceptance/connected/run.py")
@@ -22,6 +23,243 @@ STARTUP = (
     "[08:00:01 INFO]: COOKERY_FOOD_SMOKE checked=103 failures=0\n"
     "[08:00:01 INFO]: COOKERY_ENCHANTMENT_SMOKE checked=5 reloaded=5 failures=0\n"
 )
+
+
+class CoreResourceTests(unittest.TestCase):
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.root = Path(folder.name)
+        self.instance, self.output = self.root / 'instance', self.root / 'output'
+        self.output.mkdir()
+        self.pack = self.instance / 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+        self.pack.parent.mkdir(parents=True)
+        self.write_pack('initial')
+        self.tracker = RUNNER.CoreResources(self.instance, self.output)
+        self.tracker.sample(required=True)
+        self.tracker.observe_reply({'schema': 'source-crops-v1', 'phase': 'core', 'epoch': 0})
+
+    def write_pack(self, value):
+        with ZipFile(self.pack, 'w') as archive:
+            archive.writestr('pack.mcmeta', value)
+
+    def reload(self, epoch):
+        self.tracker.command('ce reload config')
+        self.tracker.observe_reply({'schema': 'source-crops-v1', 'phase': 'core', 'epoch': epoch})
+
+    def complete(self, epoch, value=None):
+        self.reload(epoch)
+        self.tracker.command('ce workflow default')
+        if value is not None:
+            self.write_pack(value)
+            self.tracker.sample()
+        self.tracker.observe_log('[00:01:00 INFO]: Resource pack workflow default completed\n')
+
+    def test_two_real_epochs_and_finite_workflows_are_recorded_even_when_zip_bytes_stay_identical(self):
+        self.complete(1, 'next')
+        self.complete(2)
+        self.tracker.verify()
+        report = json.loads((self.output / 'resource-pack-lock.json').read_text('utf8'))
+        self.assertEqual([1, 2], [entry['afterEpoch'] for entry in report['reloads']])
+        self.assertEqual(2, len(report['workflows']))
+        self.assertTrue(all(entry['completedAtMillis'] is not None for entry in report['workflows']))
+        self.assertEqual(2, len(report['observations']))
+        self.assertEqual(report['workflows'][1]['beforeSha256'], report['workflows'][1]['afterSha256'])
+
+    def test_rebuild_bytes_are_only_authorized_inside_their_own_workflow(self):
+        self.complete(1, 'next')
+        self.write_pack('unauthorized later replacement')
+        with self.assertRaisesRegex(ValueError, 'outside an authorized workflow'):
+            self.tracker.sample(force=True)
+
+    def test_initial_and_pre_workflow_drift_is_not_authorized_by_an_issued_config_reload(self):
+        self.reload(1)
+        self.write_pack('config may not silently regenerate the pack')
+        with self.assertRaisesRegex(ValueError, 'outside an authorized workflow'):
+            self.tracker.sample(force=True)
+
+    def test_incomplete_zip_is_never_published_and_cannot_satisfy_the_completion_log(self):
+        self.reload(1)
+        self.tracker.command('ce workflow default')
+        previous = list(self.tracker.observations)
+        self.pack.write_bytes(b'partial ZIP write')
+        self.tracker.sample()
+        self.assertEqual(previous, self.tracker.observations)
+        with self.assertRaises(BadZipFile):
+            self.tracker.observe_log('资源包工作流 default 执行完成')
+
+    def test_duplicate_completion_and_overlapping_workflows_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'Unrequested'):
+            self.tracker.observe_log('Resource pack workflow default completed')
+        self.reload(1)
+        self.tracker.command('ce workflow default')
+        for command in ('ce reload config', 'ce workflow default'):
+            with self.assertRaises(ValueError):
+                self.tracker.command(command)
+        self.tracker.observe_log('Resource pack workflow default finished')
+        with self.assertRaisesRegex(ValueError, 'Unrequested'):
+            self.tracker.observe_log('Resource pack workflow default completed')
+
+    def test_a_native_epoch_cannot_advance_without_exactly_one_authorized_reload(self):
+        for epoch in (True, -1, 1):
+            with self.subTest(epoch=epoch), self.assertRaises(ValueError):
+                self.tracker.observe_reply({'schema': 'source-crops-v1', 'phase': 'core', 'epoch': epoch})
+        self.tracker.command('ce reload config')
+        with self.assertRaises(ValueError):
+            self.tracker.observe_reply({'schema': 'source-crops-v1', 'phase': 'core', 'epoch': 2})
+        with self.assertRaises(ValueError):
+            self.tracker.command('ce workflow default')
+
+    def test_missing_or_extra_round_and_existing_lock_fail_closed(self):
+        with self.assertRaisesRegex(ValueError, 'exactly two'):
+            self.tracker.verify()
+        self.complete(1)
+        with self.assertRaisesRegex(ValueError, 'exactly two'):
+            self.tracker.verify()
+        self.complete(2)
+        with self.assertRaises(ValueError):
+            self.tracker.command('ce reload config')
+        with self.assertRaises(FileExistsError):
+            RUNNER.CoreResources(self.instance, self.output)
+
+    def test_final_forced_hash_detects_same_stat_content_tampering(self):
+        self.complete(1)
+        self.complete(2)
+        stat = self.pack.stat()
+        self.write_pack('changed')
+        os.utime(self.pack, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+        with self.assertRaises(ValueError):
+            self.tracker.verify()
+
+    def test_reload_and_workflow_authorization_expire_even_when_pack_stat_never_changes(self):
+        self.tracker.command('ce reload config')
+        deadline = self.tracker.pending_reload['expiresAtMillis']
+        with patch.object(RUNNER.time, 'time_ns', return_value=(deadline + 1) * 1000000):
+            with self.assertRaisesRegex(ValueError, 'bounded authorization window'):
+                self.tracker.sample()
+            with self.assertRaises(ValueError):
+                self.tracker.observe_reply({'schema': 'source-crops-v1', 'phase': 'core', 'epoch': 1})
+        self.tracker.observe_reply({'schema': 'source-crops-v1', 'phase': 'core', 'epoch': 1})
+        self.tracker.command('ce workflow default')
+        deadline = self.tracker.pending_workflow['expiresAtMillis']
+        with patch.object(RUNNER.time, 'time_ns', return_value=(deadline + 1) * 1000000):
+            with self.assertRaisesRegex(ValueError, 'bounded authorization window'):
+                self.tracker.observe_log('Resource pack workflow default completed')
+
+    def downloaded_history(self):
+        archives = [self.pack.read_bytes()]
+        self.complete(1, 'workflow-one')
+        archives.append(self.pack.read_bytes())
+        self.complete(2, 'workflow-two')
+        archives.append(self.pack.read_bytes())
+        report = {'packHistory': {}}
+        for player in ('SenLuoProbeA', 'SenLuoProbeB'):
+            offers = report['packHistory'][player] = []
+            for index, data in enumerate(archives):
+                archive, reader = f'{player}-offer-{index + 1}.zip', f'{player}-offer-{index + 1}-resources.json'
+                checksum = hashlib.sha256(data).hexdigest()
+                native = {'client': '1.21.11', 'packSha256': checksum, 'assetsRead': 3,
+                          'decoded': {'png': 1, 'json': 2}, 'resourceFormat': '75.0'}
+                (self.output / archive).write_bytes(data)
+                (self.output / reader).write_text(json.dumps([native]), 'utf8')
+                issued = (self.tracker.observations[0]['observedAtMillis'] if index == 0
+                          else self.tracker.workflows[index - 1]['issuedAtMillis'])
+                offers.append({'sequence': index + 1, 'workflow': index, 'observation': index + 1,
+                               'archive': archive, 'reader': reader, 'bytes': len(data),
+                               'sha1': hashlib.sha1(data).hexdigest(), 'downloadedAtMillis': issued,
+                               'readerCompletedAtMillis': issued, **native})
+        return report
+
+    def test_actual_downloads_and_six_native_reader_artifacts_are_revalidated(self):
+        report = self.downloaded_history()
+        RUNNER.validate_core_client_resources(self.output, report, self.tracker)
+        self.assertEqual(6, len(list(self.output.glob('*.zip'))))
+        self.assertEqual(6, len(list(self.output.glob('*-resources.json'))))
+
+    def test_a_report_cannot_hide_tampered_downloaded_archive_bytes(self):
+        report = self.downloaded_history()
+        archive = self.output / report['packHistory']['SenLuoProbeA'][1]['archive']
+        archive.write_bytes(self.pack.read_bytes())
+        with self.assertRaisesRegex(ValueError, 'downloaded resource bytes'):
+            RUNNER.validate_core_client_resources(self.output, report, self.tracker)
+
+    def test_native_reader_artifacts_cannot_be_missing_empty_or_rewritten(self):
+        report = self.downloaded_history()
+        reader = self.output / report['packHistory']['SenLuoProbeB'][2]['reader']
+        original = reader.read_text('utf8')
+        for contents in ('[]', '{}', json.dumps([{'client': '1.21.11', 'packSha256': '0' * 64, 'assetsRead': 3}]),
+                         original.replace('"assetsRead": 3', '"assetsRead": 0')):
+            with self.subTest(contents=contents):
+                reader.write_text(contents, 'utf8')
+                with self.assertRaises(ValueError):
+                    RUNNER.validate_core_client_resources(self.output, report, self.tracker)
+        reader.unlink()
+        with self.assertRaises(FileNotFoundError):
+            RUNNER.validate_core_client_resources(self.output, report, self.tracker)
+
+    def test_missing_extra_misattributed_or_late_resource_offers_fail_closed(self):
+        report = self.downloaded_history()
+        import copy
+        def late(value):
+            value['packHistory']['SenLuoProbeA'][1]['readerCompletedAtMillis'] = self.tracker.workflows[0]['expiresAtMillis'] + 1
+        changes = (
+            lambda value: value['packHistory'].pop('SenLuoProbeB'),
+            lambda value: value['packHistory']['SenLuoProbeA'].pop(),
+            lambda value: value['packHistory']['SenLuoProbeA'].append(value['packHistory']['SenLuoProbeA'][0]),
+            lambda value: value['packHistory']['SenLuoProbeA'][1].update(workflow=0),
+            lambda value: value['packHistory']['SenLuoProbeA'][0].update(sequence=True),
+            lambda value: value['packHistory']['SenLuoProbeA'][1].update(observation=3),
+            lambda value: value['packHistory']['SenLuoProbeA'][1].update(archive='../forged.zip'),
+            late,
+        )
+        for change in changes:
+            value = copy.deepcopy(report); change(value)
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                RUNNER.validate_core_client_resources(self.output, value, self.tracker)
+
+
+class CoreSuiteTests(unittest.TestCase):
+    def run_core(self, mutation=None, source_changed=False):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        root = Path(folder.name)
+        instance, output = root / 'instance', root / 'output'
+        output.mkdir(); (instance / 'plugins').mkdir(parents=True)
+        (instance / 'server.jar').write_bytes(b'original server')
+        (instance / 'plugins/Cookery.jar').write_bytes(b'original plugin')
+        pack = instance / 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+        pack.parent.mkdir(parents=True)
+        with ZipFile(pack, 'w') as archive:
+            archive.writestr('pack.mcmeta', 'original')
+        def session(server, out, java, node, **options):
+            self.assertEqual({'phase': 'core', 'state_file': output / 'core-state.json', 'scenario': 'sourcecrops'}, options)
+            self.assertEqual({'port': 25591}, json.loads((out / 'fixture.json').read_text('utf8')))
+            if mutation == 'pack':
+                with ZipFile(pack, 'w') as archive:
+                    archive.writestr('pack.mcmeta', 'workflow rebuilt')
+            elif mutation == 'jar':
+                (instance / 'plugins/Cookery.jar').write_bytes(b'tampered')
+            return {'passed': True, 'errors': []}
+        sources = [{'run.py': 'original'}, {'run.py': 'tampered' if source_changed else 'original'}]
+        with patch.object(RUNNER, 'run_session', side_effect=session) as launch, \
+                patch.object(RUNNER, 'scenario_hashes', side_effect=sources) as hashes:
+            result = RUNNER.run_source_crops_core(instance, output, 'java', 'node', {'port': 25591})
+        self.assertEqual([(('sourcecrops',),), (('sourcecrops',),)], [(call.args,) for call in hashes.call_args_list])
+        self.assertEqual(1, launch.call_count)
+        return result
+
+    def test_core_is_one_separate_start_and_its_workflow_may_change_only_pack_bytes(self):
+        result = self.run_core('pack')
+        self.assertTrue(result['passed'])
+        pack = 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+        self.assertNotEqual(result['runtimeHashesBefore'][pack], result['runtimeHashes'][pack])
+
+    def test_core_keeps_strict_source_and_plugin_jar_locks(self):
+        for options in ({'mutation': 'jar'}, {'source_changed': True}):
+            with self.subTest(options=options):
+                result = self.run_core(**options)
+                self.assertFalse(result['passed'])
+                self.assertTrue(result['errors'])
 
 
 class StartupTests(unittest.TestCase):
@@ -89,6 +327,11 @@ class RunnerTests(unittest.TestCase):
         output = root / "output"
         instance.mkdir()
         output.mkdir()
+        if scenario == 'sourcecrops' and phase == 'core':
+            pack = instance / 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+            pack.parent.mkdir(parents=True)
+            with ZipFile(pack, 'w') as archive:
+                archive.writestr('pack.mcmeta', 'initial')
         if manual:
             report = ({'passed': True, 'phase': phase or 'single', 'scenario': scenario}
                       if client_report is None else client_report)
@@ -287,6 +530,68 @@ class RunnerTests(unittest.TestCase):
         for action in ('gameinject', 'op', 'gameseed extra', 'gameinspect\nstop'):
             self.assertIsNone(RUNNER.PROBE.fullmatch(f'senluoprobe 123 {action} SenLuoProbeA'))
 
+    def test_sourcecrops_console_allowlist_is_separate_and_exact(self):
+        for action in RUNNER.CROP_ACTIONS:
+            self.assertTrue(RUNNER.allowed_probe(f'senluocrop 123 {action} SenLuoProbeA', 'sourcecrops'))
+            self.assertFalse(RUNNER.allowed_probe(f'senluocrop 123 {action} SenLuoProbeA', 'legacy'))
+            self.assertFalse(RUNNER.allowed_probe(f'senluocrop 123 {action} SenLuoProbeA', 'gameplay'))
+        for command in ('op SenLuoProbeA', 'senluoprobe 123 arrive SenLuoProbeA',
+                        'senluocrop 123 unknown SenLuoProbeA', 'senluocrop 123 stageplant OtherPlayer',
+                        'senluocrop 123 stageplant SenLuoProbeA extra', 'senluocrop 123 stageplant;stop SenLuoProbeA'):
+            self.assertFalse(RUNNER.allowed_probe(command, 'sourcecrops'))
+
+    def test_sourcecrops_has_explicit_separate_budgets_without_changing_existing_defaults(self):
+        for scenario in ('legacy', 'gameplay'):
+            for phase in (None, 'seed', 'verify', 'empty'):
+                self.assertEqual(400, RUNNER.session_budget(scenario, phase, False, None))
+        self.assertEqual({'core': 1800, 'seed': 600, 'verify': 600, 'empty': 400}, RUNNER.SOURCECROPS_TIMEOUTS)
+        self.assertEqual(1800, RUNNER.session_budget('sourcecrops', 'core', False, None))
+        self.assertEqual(600, RUNNER.session_budget('sourcecrops', 'seed', False, None))
+        self.assertEqual(15, RUNNER.session_budget('sourcecrops', 'seed', False, 15))
+
+    def test_native_crop_workflows_cannot_run_in_a_restart_phase_or_legacy_scenario(self):
+        for command in RUNNER.CROP_NATIVE_COMMANDS:
+            self.assertTrue(RUNNER.allowed_probe(command, 'sourcecrops', 'core'))
+            for scenario, phase in (('sourcecrops', 'seed'), ('sourcecrops', 'verify'), ('sourcecrops', 'empty'),
+                                    ('legacy', 'core'), ('gameplay', 'core')):
+                self.assertFalse(RUNNER.allowed_probe(command, scenario, phase))
+        for command in ('ce reload', 'ce reload all', 'ce workflow other', 'ce workflow default;stop'):
+            self.assertFalse(RUNNER.allowed_probe(command, 'sourcecrops', 'core'))
+
+    def test_sourcecrops_restart_relay_rejects_fixture_and_fault_commands(self):
+        for phase in ('verify', 'empty'):
+            for action in ('stagearena', 'stageplant', 'stock', 'armgrow', 'naturalstart', 'tiledropsoff'):
+                self.assertFalse(RUNNER.allowed_probe(f'senluocrop 42 {action} SenLuoProbeA', 'sourcecrops', phase))
+            self.assertTrue(RUNNER.allowed_probe('senluocrop 42 observe SenLuoProbeB', 'sourcecrops', phase))
+
+    def test_sourcecrops_phase_forwards_isolated_identity_and_system_properties(self):
+        result, launch, _, _, _ = self.run_fixture(phase='seed', scenario='sourcecrops')
+        self.assertTrue(result['passed'])
+        command = launch.call_args_list[0].args[0]
+        self.assertIn('-Dsenluo.sourcecrops.phase=seed', command)
+        self.assertTrue(any(arg.startswith('-Dsenluo.sourcecrops.run_id=') for arg in command))
+        self.assertEqual('sourcecrops', launch.call_args.kwargs['env']['SENLUO_SCENARIO_KIND'])
+
+    def test_a_passed_core_client_cannot_bypass_native_rounds_or_download_artifacts(self):
+        result, launch, _, _, _ = self.run_fixture(phase='core', scenario='sourcecrops')
+        self.assertFalse(result['passed'])
+        self.assertEqual(2, launch.call_count)
+        self.assertTrue(any('exactly two genuine' in error for error in result['errors']))
+        self.assertTrue(any('Core downloaded resource evidence' in error for error in result['errors']))
+        self.assertEqual([], result['authorizedWorkflows'])
+
+    def test_sourcecrops_commands_reach_the_server_but_legacy_fixture_commands_do_not(self):
+        sink = Mock(wraps=io.BytesIO())
+        allowed = ['senluocrop 42 stagearena SenLuoProbeA', 'senluocrop 43 observe SenLuoProbeB']
+        def commands(instance):
+            (instance.parent / 'output/commands.txt').write_text('\n'.join(allowed + [
+                'senluoprobe 44 arrive SenLuoProbeA', 'senluocrop 45 op SenLuoProbeA']) + '\n', 'utf8')
+        result, _, _, _, _ = self.run_fixture(phase='seed', scenario='sourcecrops',
+            client_start_hook=commands, server_stdin=sink)
+        self.assertTrue(result['passed'])
+        self.assertEqual([((line + '\n').encode('ascii'),) for line in allowed] + [(b'stop\n',)],
+                         [call.args for call in sink.write.call_args_list])
+
     def test_combat_observation_reaches_server_without_forwarding_unapproved_commands(self):
         sink = Mock(wraps=io.BytesIO())
         allowed = ['senluoprobe 42 gamecombat SenLuoProbeA',
@@ -379,7 +684,7 @@ class RestartSuiteTests(unittest.TestCase):
             self.assertEqual(self.out / 'persistence-state.json', state_file)
             self.assertEqual(phase, out.name)
             self.assertEqual({'port': 25591}, json.loads((out / 'fixture.json').read_text('utf8')))
-            expected_options = {'scenario': 'gameplay'} if scenario == 'gameplay' else {}
+            expected_options = {'scenario': scenario} if scenario != 'legacy' else {}
             if phase != 'seed':
                 expected_options['expected_dependency_hashes'] = RUNNER.runtime_dependency_hashes(instance)
             self.assertEqual(expected_options, options)
@@ -387,7 +692,7 @@ class RestartSuiteTests(unittest.TestCase):
                 callback(phase, state_file)
             elif phase == 'seed':
                 state_file.write_text(json.dumps({'uuid': 'original-furniture', 'scenario': scenario}), 'utf8')
-            elif phase == 'verify' and scenario == 'gameplay':
+            elif phase == 'verify' and scenario in ('gameplay', 'sourcecrops'):
                 state_file.with_name(state_file.name + '.verified.json').write_text(json.dumps({
                     'schemaVersion': 1, 'phase': 'verify', 'scenario': scenario,
                     'seedStateSha256': hashlib.sha256(state_file.read_bytes()).hexdigest(),
@@ -415,6 +720,27 @@ class RestartSuiteTests(unittest.TestCase):
         self.assertTrue(result['passed'])
         self.assertEqual('gameplay', result['scenario'])
         self.assertEqual(3, launch.call_count)
+
+    def test_sourcecrops_runs_three_starts_with_its_own_actual_source_lock(self):
+        result, launch = self.run_suite(scenario='sourcecrops')
+        self.assertTrue(result['passed'])
+        self.assertEqual(3, launch.call_count)
+        self.assertEqual('sourcecrops', result['scenario'])
+        self.assertEqual({'run.py', 'players.cjs', 'source-crops.cjs', '../VanillaPack12111.java'}, set(result['scenarioHashes']))
+
+    def test_sourcecrops_does_not_accept_a_foreign_checkpoint_family(self):
+        def foreign(phase, state_file):
+            state_file.write_text('{"scenario":"gameplay"}', 'utf8')
+        result, launch = self.run_suite(foreign, scenario='sourcecrops')
+        self.assertFalse(result['passed'])
+        self.assertEqual(1, launch.call_count)
+
+    def test_sourcecrops_cannot_rewrite_its_immutable_seed_during_recovery(self):
+        def mutate(phase, state_file):
+            state_file.write_text(json.dumps({'scenario': 'sourcecrops', 'phase': phase}), 'utf8')
+        result, launch = self.run_suite(mutate, scenario='sourcecrops')
+        self.assertFalse(result['passed'])
+        self.assertEqual(2, launch.call_count)
 
     def test_gameplay_rejects_a_checkpoint_from_the_legacy_family(self):
         def legacy_seed(phase, state_file):

@@ -18,6 +18,8 @@ const sessions = []
 const shutdown = new AbortController()
 const pendingPacks = new Set()
 const pendingReaders = new Set()
+let cropResourceReader = Promise.resolve()
+const cropOffers = {}
 let token = Math.floor(Math.random() * 80000000)
 let networkError
 
@@ -38,6 +40,23 @@ async function inspect (bot, action = 'inspect') {
   await until('console ' + action, () => fs.existsSync(file))
   const response = JSON.parse(fs.readFileSync(file))
   assert.ok(!response.error, response.error)
+  return response
+}
+async function inspectCrop (bot, action = 'observe') {
+  const id = ++token
+  fs.appendFileSync(path.join(out, 'commands.txt'), `senluocrop ${id} ${action} ${bot.username}\n`)
+  const file = path.join(out, `reply-${id}.json`)
+  await until('crop console ' + action, () => fs.existsSync(file), action === 'arrive' || action === 'stagearena' ? 60000 : 30000)
+  const response = JSON.parse(fs.readFileSync(file))
+  assert.ok(!response.error, response.error)
+  assert.equal(response.schema, 'source-crops-v1')
+  assert.equal(response.action, action)
+  assert.equal(response.actor, bot.username)
+  assert.equal(response.phase, phase)
+  assert.equal(response.runId, path.basename(path.dirname(out)))
+  assert.deepEqual(response.errors, [])
+  ;(report.cropReplies ??= []).push({ token: id, action, actor: bot.username, file: path.basename(file),
+    sha256: createHash('sha256').update(fs.readFileSync(file)).digest('hex') })
   return response
 }
 async function observeSnapshot (bot, description, ready, read = inspect, invariant = () => {}, confirmations = 1) {
@@ -91,6 +110,7 @@ async function runReader (command, args) {
   await reading
 }
 async function receivePack (bot, username, offer) {
+  const number = scenario === 'sourcecrops' ? (cropOffers[username] = (cropOffers[username] || 0) + 1) : null
   const url = new URL(offer.url)
   assert.equal(url.hostname, '127.0.0.1'); assert.equal(url.protocol, 'http:')
   const status = result => bot._client.write('resource_pack_receive', { uuid: offer.uuid, result })
@@ -104,22 +124,44 @@ async function receivePack (bot, username, offer) {
   assert.equal(response.status, 200, 'CE pack HTTP response')
   const bytes = Buffer.from(await response.arrayBuffer())
   assert.equal(createHash('sha1').update(bytes).digest('hex'), offer.hash)
-  assert.equal(createHash('sha256').update(bytes).digest('hex'), packSha256)
-  const archive = path.join(out, `${username}.zip`)
-  fs.writeFileSync(archive, bytes)
+  const receivedSha256 = createHash('sha256').update(bytes).digest('hex')
+  const downloadedAtMillis = Date.now()
+  let coreLock = null
+  if (scenario === 'sourcecrops' && phase === 'core') {
+    if (number === 1) assert.equal(receivedSha256, packSha256, 'Initial core offer changed from its frozen fixture')
+    coreLock = await until('download matches the current actual hosted pack and workflow window', () => {
+      const lock = path.join(out, 'resource-pack-lock.json')
+      return fs.existsSync(lock) && require('./source-crops.cjs').contract.matchCorePack(
+        JSON.parse(fs.readFileSync(lock)), receivedSha256, bytes.length, number - 1)
+    }, 30000)
+  } else assert.equal(receivedSha256, packSha256)
+  const artifactName = number === null ? username : `${username}-offer-${number}`
+  const archive = path.join(out, `${artifactName}.zip`)
+  fs.writeFileSync(archive, bytes, number === null ? undefined : { flag: 'wx' })
   status(4)
-  const readerReport = path.join(out, `${username}-resources.json`)
-  const javaArgs = path.join(out, `${username}-java.args`)
+  const readerReport = path.join(out, `${artifactName}-resources.json`)
+  const javaArgs = path.join(out, `${artifactName}-java.args`)
   const inputs = ['-Xmx900M', '-Djava.awt.headless=true', '-Dfile.encoding=UTF-8', '-cp', process.env.SENLUO_CLIENT_CLASSPATH,
     path.resolve(__dirname, '../VanillaPack12111.java'), readerReport, archive]
   assert.ok(inputs[4], 'Set SENLUO_CLIENT_CLASSPATH to the 1.21.11 client and libraries')
   fs.writeFileSync(javaArgs, inputs.map(s => '"'+s.replaceAll('\\','/').replaceAll('"','\\"')+'"').join('\n'))
   shutdown.signal.throwIfAborted()
-  await runReader(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs])
-  const [decoded] = JSON.parse(fs.readFileSync(readerReport)); assert.equal(decoded.packSha256, packSha256)
+  if (scenario === 'sourcecrops') {
+    const reading = cropResourceReader.then(() => runReader(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs]))
+    cropResourceReader = reading.catch(() => {})
+    await reading
+  } else await runReader(process.env.SENLUO_JAVA || 'java', ['@'+javaArgs])
+  const [decoded] = JSON.parse(fs.readFileSync(readerReport)); assert.equal(decoded.packSha256, receivedSha256)
   assert.equal(decoded.client,'1.21.11'); assert.ok(decoded.assetsRead > 0)
   status(0) // Pack contents loaded by the official headless reader; no GPU rendering.
   report.packs[username] = { bytes: bytes.length, sha1: offer.hash, ...decoded }
+  if (scenario === 'sourcecrops') {
+    report.packHistory ??= {}
+    assert.equal((report.packHistory[username]?.length || 0) + 1, number, 'Resource offers completed out of order')
+    ;(report.packHistory[username] ??= []).push({ sequence: number, offer: offer.uuid, receivedAt: Date.now(),
+      downloadedAtMillis, readerCompletedAtMillis: Date.now(),
+      archive: path.basename(archive), reader: path.basename(readerReport), ...report.packs[username], ...coreLock })
+  }
 }
 async function connect (username) {
   const customPackets = scenario === 'gameplay' ? require('./gameplay-persistence.cjs').contract.CUSTOM_PACKETS_12111 : undefined
@@ -136,6 +178,12 @@ async function connect (username) {
     pendingPacks.add(pending)
   })
   await until(username + ' spawn and pack', () => bot.entity && bot.entity.position.y !== 0 && report.packs[username], 90000)
+  if (scenario === 'sourcecrops') {
+    if (['core', 'seed'].includes(phase) && username === 'SenLuoProbeA') await inspectCrop(bot, 'stagearena')
+    assert.equal((await inspectCrop(bot, 'arrive')).arrived, true)
+    await until('source crop arrival chunks', () => bot.entity.position.y > 198 && bot.blockAt(new Vec3(728, 199, 13)))
+    return bot
+  }
   assert.equal((await inspect(bot, 'arrive')).arrived, true)
   await until('fixture chunks', () => bot.blockAt(new Vec3(679, 200, 7))?.name === 'smithing_table' && bot.entity.position.y > 198)
   return bot
@@ -595,10 +643,18 @@ async function dollPose (a) {
   report.checks.dollPose = { axesAdjusted: 9, droppedDolls: 1, restoredPose: restored.dollPose }
 }
 async function main () {
-  assert.ok(['single', 'seed', 'verify', 'empty'].includes(phase), 'Unknown scenario phase: ' + phase)
-  assert.ok(['legacy', 'gameplay'].includes(scenario), 'Unknown scenario kind: ' + scenario)
-  assert.ok(scenario !== 'gameplay' || phase !== 'single', 'Gameplay requires three explicit restart phases')
+  assert.ok(['single', 'core', 'seed', 'verify', 'empty'].includes(phase), 'Unknown scenario phase: ' + phase)
+  assert.ok(phase !== 'core' || scenario === 'sourcecrops', 'Core belongs only to sourcecrops')
+  assert.ok(['legacy', 'gameplay', 'sourcecrops'].includes(scenario), 'Unknown scenario kind: ' + scenario)
+  assert.ok(scenario === 'legacy' || phase !== 'single', 'Gameplay and sourcecrops require three explicit restart phases')
   const a = await connect('SenLuoProbeA'); const b = await connect('SenLuoProbeB')
+  if (scenario === 'sourcecrops') {
+    await require('./source-crops.cjs')({ a, b, inspect: inspectCrop, until, delay, Vec3, walkTo,
+      report, out, phase, stateFile: process.env.SENLUO_SCENARIO_STATE,
+      consoleCommand: command => fs.appendFileSync(path.join(out, 'commands.txt'), command + '\n') })
+    report.passed = true
+    return
+  }
   if (scenario === 'gameplay') {
     await require('./gameplay-persistence.cjs')({
       a, b, inspect, until, delay, click, count, Vec3, pickUpFurniture, observeSnapshot, useAndObserve,

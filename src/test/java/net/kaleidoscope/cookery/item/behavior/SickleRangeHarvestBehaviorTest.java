@@ -1,7 +1,12 @@
 package net.kaleidoscope.cookery.item.behavior;
 
+import net.kaleidoscope.cookery.block.behavior.HarvestableCrop;
 import net.kaleidoscope.cookery.util.InteractGuard;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
+import net.momirealms.craftengine.bukkit.world.BukkitWorld;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
@@ -18,6 +23,7 @@ import org.bukkit.block.Block;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.List;
 import java.util.Optional;
@@ -106,6 +112,39 @@ class SickleRangeHarvestBehaviorTest {
             verify(player, never()).breakBlock(anyInt(), anyInt(), anyInt());
             verify(tool, never()).hurtAndBreak(anyInt(), any(), any());
             protection.verify(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt()), times(242));
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(InteractionHand.class)
+    void customCropReceivesTheTriggeringHandAndTheSameHandSwings(InteractionHand hand) {
+        var behavior = harvest(0);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        var harvestable = mock(HarvestableCrop.class);
+        var adaptedWorld = mock(BukkitWorld.class);
+        var root = new BlockPos(8, 64, 8);
+        when(context.getHand()).thenReturn(hand);
+        when(crop.getWorld()).thenReturn(world);
+        when(crop.getX()).thenReturn(root.x());
+        when(crop.getY()).thenReturn(root.y());
+        when(crop.getZ()).thenReturn(root.z());
+        when(state.behavior().getFirst(HarvestableCrop.class)).thenReturn(harvestable);
+        when(harvestable.rootPos(eq(adaptedWorld), any(BlockPos.class), same(state))).thenReturn(root);
+        when(harvestable.harvest(eq(adaptedWorld), any(BlockPos.class), same(state), same(player), eq(hand))).thenReturn(true);
+        try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
+             var adaptor = mockStatic(BukkitAdaptor.class); var protection = mockStatic(InteractGuard.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(world, 0, 0)).thenReturn(true);
+            blocks.when(() -> CraftEngineBlocks.getCustomBlockState(crop)).thenReturn(state);
+            adaptor.when(() -> BukkitAdaptor.adapt(world)).thenReturn(adaptedWorld);
+            protection.when(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt())).thenReturn(true);
+
+            assertEquals(InteractionResult.SUCCESS_AND_CANCEL, behavior.useOnBlock(context));
+
+            verify(harvestable).harvest(eq(adaptedWorld), any(BlockPos.class), same(state), same(player), eq(hand));
+            verify(harvestable, never()).harvest(any(), any(), any(), any());
+            verify(player).swingHand(hand);
+            verify(bukkitPlayer, never()).swingMainHand();
+            verify(tool).hurtAndBreak(1, player, null);
         }
     }
 }

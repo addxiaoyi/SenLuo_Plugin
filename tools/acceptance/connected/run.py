@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -11,9 +12,224 @@ import signal
 import subprocess
 import sys
 import time
+from zipfile import BadZipFile, ZipFile
 
 ROOT = Path(__file__).resolve().parents[3]
 PROBE = re.compile(r'senluoprobe ([0-9]{1,8}) (arrive|supply|scarecrow|tulip|clearboard|sofa|clearsofa|inspectsofa|doll|cleardoll|inspectdoll|persistclear|persistseed|persiststock|persistinspect|gameclear|gameseed|gamestock|gameinspect|gamecombat|gamecancel|inspect) SenLuoProbe[AB]$')
+CROP_ACTIONS = (
+    'arrive', 'stagearena', 'stageages', 'stageplant', 'stagepick', 'stagesickle', 'stagebreak',
+    'stageimmature', 'stagebone', 'stagemature', 'stagenatural', 'stagewet', 'stagedry', 'stagedense', 'stageinvalid', 'stagelight8', 'stagelight7',
+    'stageboundary', 'stageboundarygrowth', 'stagelight9', 'stagesky', 'supportstone', 'stock', 'stockfortune', 'stockempty', 'armgrow', 'armfertilize',
+    'arminteract', 'armsickle', 'armslot', 'armcount', 'armitem', 'armempty', 'armcrop', 'disarm',
+    'observe', 'shapes', 'naturalstart', 'naturalstop', 'reloadstate', 'creative', 'survival', 'tiledropsoff', 'tiledropson',
+    'checkpoint', 'verifycheckpoint', 'sealverify', 'emptycheckpoint',
+) + tuple('arm' + kind + crop for kind in ('grow', 'fertilize') for crop in ('tomato', 'chili', 'lettuce', 'wheat')) + (
+    'armoffcount', 'armoffitem', 'armoffempty',
+)
+CROP_PROBE = re.compile(r'senluocrop ([0-9]{1,8}) (' + '|'.join(CROP_ACTIONS) + r') SenLuoProbe[AB]$')
+SOURCECROPS_TIMEOUTS = {'core': 1800, 'seed': 600, 'verify': 600, 'empty': 400}
+CROP_NATIVE_COMMANDS = ('ce reload config', 'ce workflow default')
+CORE_WINDOW_MILLIS = {'reload': 90000, 'workflow': 240000}
+WORKFLOW_COMPLETED = re.compile(r'资源包工作流 default 执行完成|Resource pack workflow default (?:completed|finished)', re.IGNORECASE)
+
+
+class CoreResources:
+    """Authorize two finite native reload/workflow windows, not arbitrary pack drift."""
+    def __init__(self, instance: Path, output: Path):
+        self.pack = instance / 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+        self.lock = output / 'resource-pack-lock.json'
+        if self.lock.exists():
+            raise FileExistsError('Refusing to overwrite a core resource lock')
+        self.observations: list[dict] = []
+        self.reloads: list[dict] = []
+        self.workflows: list[dict] = []
+        self.epoch: int | None = None
+        self.signature = None
+
+    @property
+    def pending_workflow(self):
+        return self.workflows[-1] if self.workflows and self.workflows[-1]['completedAtMillis'] is None else None
+
+    @property
+    def pending_reload(self):
+        return self.reloads[-1] if self.reloads and self.reloads[-1]['completedAtMillis'] is None else None
+
+    def save(self):
+        temporary = self.lock.with_suffix('.tmp')
+        with temporary.open('x', encoding='utf8') as target:
+            json.dump({'schema': 'source-crops-core-packs-v1', 'observations': self.observations,
+                       'reloads': self.reloads, 'workflows': self.workflows}, target)
+        temporary.replace(self.lock)
+
+    def check_deadlines(self):
+        now = time.time_ns() // 1000000
+        for kind, value in (('reload', self.pending_reload), ('workflow', self.pending_workflow)):
+            if value is not None and now > value['expiresAtMillis']:
+                raise ValueError(f'Core native {kind} exceeded its bounded authorization window')
+
+    def sample(self, *, force: bool = False, required: bool = False):
+        self.check_deadlines()
+        try:
+            stat = self.pack.stat()
+            signature = (stat.st_mtime_ns, stat.st_size)
+            if not force and signature == self.signature:
+                return
+            contents = self.pack.read_bytes()
+            current = self.pack.stat()
+            if (current.st_mtime_ns, current.st_size) != signature:
+                raise BadZipFile('Hosted pack changed while being sampled')
+            checksum = hashlib.sha256(contents).hexdigest()
+            with ZipFile(io.BytesIO(contents)) as archive:
+                if not archive.namelist() or archive.testzip() is not None:
+                    raise BadZipFile('Empty or corrupt hosted pack')
+        except (OSError, BadZipFile):
+            # CE can replace a ZIP while rebuilding. Never publish partial bytes.
+            if self.pending_workflow is not None and not required:
+                return
+            raise
+        if self.observations and checksum != self.observations[-1]['sha256'] and self.pending_workflow is None:
+            raise ValueError('Core hosted resource bytes changed outside an authorized workflow window')
+        self.signature = signature
+        if not self.observations or checksum != self.observations[-1]['sha256']:
+            self.observations.append({'sequence': len(self.observations) + 1, 'sha256': checksum,
+                                      'bytes': len(contents), 'observedAtMillis': time.time_ns() // 1000000,
+                                      'workflow': len(self.workflows)})
+            self.save()
+
+    def observe_reply(self, value: dict):
+        self.check_deadlines()
+        if value.get('schema') != 'source-crops-v1' or value.get('phase') != 'core' or 'epoch' not in value:
+            return
+        epoch = value['epoch']
+        if type(epoch) is not int or epoch < 0:
+            raise ValueError('Core reply contains an invalid native reload epoch')
+        if self.epoch is None:
+            self.epoch = epoch
+        elif epoch != self.epoch:
+            pending = self.pending_reload
+            if pending is None or epoch != pending['beforeEpoch'] + 1:
+                raise ValueError('Core native reload epoch changed outside the single authorized reload')
+            pending.update(afterEpoch=epoch, completedAtMillis=time.time_ns() // 1000000)
+            self.epoch = epoch
+            self.save()
+
+    def command(self, command: str):
+        self.sample(force=True, required=True)
+        issued = time.time_ns() // 1000000
+        if command == 'ce reload config':
+            if self.epoch is None or self.pending_reload is not None or self.pending_workflow is not None:
+                raise ValueError('Core reload requires an observed epoch and no unfinished lifecycle operation')
+            if len(self.reloads) != len(self.workflows) or len(self.reloads) >= 2:
+                raise ValueError('Core requires exactly two alternating native reload/workflow rounds')
+            self.reloads.append({'sequence': len(self.reloads) + 1, 'command': command, 'beforeEpoch': self.epoch,
+                                 'afterEpoch': None, 'issuedAtMillis': issued, 'expiresAtMillis': issued + CORE_WINDOW_MILLIS['reload'],
+                                 'completedAtMillis': None})
+        elif command == 'ce workflow default':
+            if self.pending_workflow is not None or self.pending_reload is not None:
+                raise ValueError('Core workflow cannot overlap an unfinished lifecycle operation')
+            if len(self.reloads) != len(self.workflows) + 1 or len(self.workflows) >= 2:
+                raise ValueError('Core workflow requires its own completed native reload')
+            self.workflows.append({'sequence': len(self.workflows) + 1, 'command': command,
+                                   'beforeSha256': self.observations[-1]['sha256'],
+                                   'afterSha256': None, 'issuedAtMillis': issued, 'expiresAtMillis': issued + CORE_WINDOW_MILLIS['workflow'],
+                                   'completedAtMillis': None, 'completionLog': None})
+        else:
+            raise ValueError('Unknown core lifecycle command')
+        self.save()
+
+    def observe_log(self, line: str):
+        self.check_deadlines()
+        if not WORKFLOW_COMPLETED.search(line):
+            return
+        pending = self.pending_workflow
+        if pending is None:
+            raise ValueError('Unrequested native resource workflow completion during core')
+        self.sample(force=True, required=True)
+        pending.update(afterSha256=self.observations[-1]['sha256'], completedAtMillis=time.time_ns() // 1000000,
+                       completionLog=line.rstrip('\r\n'))
+        self.save()
+
+    def verify(self):
+        self.sample(force=True, required=True)
+        if (len(self.reloads) != 2 or len(self.workflows) != 2
+                or self.pending_reload is not None or self.pending_workflow is not None):
+            raise ValueError('Core did not complete exactly two genuine reload/workflow rounds')
+
+
+def validate_core_client_resources(output: Path, report: dict, resources: CoreResources):
+    """Re-read every downloaded ZIP and native-reader result; report claims alone are insufficient."""
+    history = report.get('packHistory')
+    players = ('SenLuoProbeA', 'SenLuoProbeB')
+    if (len(resources.reloads) != 2 or len(resources.workflows) != 2
+            or resources.pending_reload is not None or resources.pending_workflow is not None):
+        raise ValueError('Core native resource rounds are incomplete')
+    if not isinstance(history, dict) or set(history) != set(players):
+        raise ValueError('Core must retain native resource offer histories for both players')
+    for player in players:
+        offers = history[player]
+        if not isinstance(offers, list) or len(offers) != 3:
+            raise ValueError('Core must retain exactly the initial offer and two workflow offers per player')
+        for index, offer in enumerate(offers):
+            if (not isinstance(offer, dict) or type(offer.get('sequence')) is not int or type(offer.get('workflow')) is not int
+                    or offer['sequence'] != index + 1 or offer['workflow'] != index):
+                raise ValueError('Core offer sequence/workflow attribution differs')
+            archive_name, reader_name = f'{player}-offer-{index + 1}.zip', f'{player}-offer-{index + 1}-resources.json'
+            if offer.get('archive') != archive_name or offer.get('reader') != reader_name:
+                raise ValueError('Core resource artifacts do not have their unique immutable names')
+            data = (output / archive_name).read_bytes()
+            checksum = hashlib.sha256(data).hexdigest()
+            if offer.get('packSha256') != checksum or offer.get('bytes') != len(data) or offer.get('sha1') != hashlib.sha1(data).hexdigest():
+                raise ValueError('Core downloaded resource bytes differ from the player receipt')
+            with ZipFile(io.BytesIO(data)) as archive:
+                if not archive.namelist() or archive.testzip() is not None:
+                    raise ValueError('Core downloaded resource ZIP is corrupt or empty')
+            observation = offer.get('observation')
+            if type(observation) is not int or not 1 <= observation <= len(resources.observations):
+                raise ValueError('Core downloaded resource lacks an actual hosted-pack observation')
+            observed = resources.observations[observation - 1]
+            if observed['sha256'] != checksum or observed['bytes'] != len(data) or observed['workflow'] > index:
+                raise ValueError('Core downloaded resource does not match its authorized hosted bytes')
+            expected = resources.observations[0]['sha256'] if index == 0 else resources.workflows[index - 1]['afterSha256']
+            if checksum != expected:
+                raise ValueError('Core workflow reoffer did not deliver its final actual hosted resource bytes')
+            decoded = json.loads((output / reader_name).read_text('utf8'))
+            if not isinstance(decoded, list) or len(decoded) != 1 or not isinstance(decoded[0], dict):
+                raise ValueError('Core native reader did not report exactly one downloaded archive')
+            native = decoded[0]
+            if (native.get('packSha256') != checksum or native.get('client') != '1.21.11'
+                    or type(native.get('assetsRead')) is not int or native['assetsRead'] <= 0
+                    or any(offer.get(key) != value for key, value in native.items())):
+                raise ValueError('Core official native reader result differs from its downloaded archive/receipt')
+            downloaded, completed = offer.get('downloadedAtMillis'), offer.get('readerCompletedAtMillis')
+            if type(downloaded) is not int or type(completed) is not int or downloaded > completed:
+                raise ValueError('Core resource download/reader timestamps are invalid')
+            if index:
+                window = resources.workflows[index - 1]
+                if not window['issuedAtMillis'] <= downloaded <= completed <= window['expiresAtMillis']:
+                    raise ValueError('Core resource reoffer/reader escaped its bounded workflow window')
+
+
+def allowed_probe(line: str, scenario: str, phase: str | None = None) -> bool:
+    if scenario == 'sourcecrops':
+        if line in CROP_NATIVE_COMMANDS:
+            return phase == 'core'
+        match = CROP_PROBE.fullmatch(line)
+        if not match:
+            return False
+        if phase in ('verify', 'empty'):
+            return match[2] in ('arrive', 'observe', 'shapes', 'reloadstate', 'verifycheckpoint', 'sealverify', 'emptycheckpoint')
+        return True
+    return bool(PROBE.fullmatch(line))
+
+
+def session_budget(scenario: str, phase: str | None, manual: bool, timeout: float | None) -> float:
+    if timeout is not None:
+        return timeout
+    if scenario == 'sourcecrops':
+        return SOURCECROPS_TIMEOUTS[phase]
+    return 1200 if manual else 400
+
+
 SMOKE = re.compile(r'\b(COOKERY_(?:FOOD|ENCHANTMENT)_SMOKE)\b(.*)')
 LOG_ERROR = re.compile(
     r'\[[^\]\r\n]*(?:ERROR|SEVERE|FATAL)\]|has not responded in|server has stopped responding'
@@ -77,10 +293,12 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
                 timeout: float | None = None, *, phase: str | None = None,
                 state_file: Path | None = None, scenario: str = 'legacy',
                 expected_dependency_hashes: dict[str, str] | None = None) -> dict:
-    if phase not in (None, 'seed', 'verify', 'empty') or (phase is None) != (state_file is None):
+    if phase not in (None, 'core', 'seed', 'verify', 'empty') or (phase is None) != (state_file is None):
         raise ValueError('Restart phases require an explicit shared state file')
-    if scenario not in ('legacy', 'gameplay') or (scenario == 'gameplay' and phase is None):
-        raise ValueError('Gameplay requires an explicit restart phase')
+    if scenario not in ('legacy', 'gameplay', 'sourcecrops') or (scenario != 'legacy' and phase is None):
+        raise ValueError('Gameplay and sourcecrops require an explicit restart phase')
+    if phase == 'core' and scenario != 'sourcecrops':
+        raise ValueError('The core phase belongs only to sourcecrops')
     inbox = out / 'commands.txt'
     inbox.touch()
     log = out / 'console.log'
@@ -90,6 +308,9 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
     command = [java, '-Xms512M', '-Xmx2200M', '-Dfile.encoding=UTF-8', '-Dstdout.encoding=UTF-8',
                '-Dstderr.encoding=UTF-8', '-Dterminal.jline=false', '-Dterminal.ansi=false',
                f'-XX:StartFlightRecording=filename={jfr},settings=profile,dumponexit=true', '-jar', 'server.jar', 'nogui']
+    if scenario == 'sourcecrops':
+        offset = command.index('-jar')
+        command[offset:offset] = [f'-Dsenluo.sourcecrops.run_id={out.parent.name}', f'-Dsenluo.sourcecrops.phase={phase}']
     server = client = None
     startup = Startup()
     announced = False
@@ -97,12 +318,18 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
     errors = []
     forced_stop = False
     dependency_hashes = None
+    resources = CoreResources(instance, out) if scenario == 'sourcecrops' and phase == 'core' else None
+
     with log.open('wb') as stdout, log.open('rb') as tail, inbox.open(encoding='utf8') as commands:
         try:
+            if resources is not None:
+                resources.sample(required=True)
             server = subprocess.Popen(command, cwd=instance, stdin=subprocess.PIPE, stdout=stdout,
                                       stderr=subprocess.STDOUT, **process_options)
-            end = time.monotonic() + (timeout if timeout is not None else 1200 if manual_client else 400)
+            end = time.monotonic() + session_budget(scenario, phase, manual_client, timeout)
             while True:
+                if resources is not None:
+                    resources.sample()
                 if server.poll() is not None:
                     completion = 'server-exited'
                     break
@@ -124,6 +351,10 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
                                 tmp = dest.with_suffix('.tmp')
                                 tmp.write_text(match[2], 'utf8')
                                 tmp.replace(dest)
+                                if resources is not None:
+                                    resources.observe_reply(json.loads(match[2]))
+                            if resources is not None:
+                                resources.observe_log(line)
                             startup.feed(line)
                             if startup.ready and not announced:
                                 # Paper may create remapped/version/library JARs during startup. Capture
@@ -144,7 +375,9 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
                                         client_env['SENLUO_SCENARIO_KIND'] = scenario
                                     client = subprocess.Popen([node, str(Path(__file__).with_name('players.cjs')), str(out)],
                                                               env=client_env, **process_options)
-                        elif PROBE.fullmatch(line.strip()):
+                        elif allowed_probe(line.strip(), scenario, phase):
+                            if line.strip() in CROP_NATIVE_COMMANDS:
+                                resources.command(line.strip())
                             server.stdin.write(line.encode('ascii'))
                             server.stdin.flush()
                 if startup.errors:
@@ -159,7 +392,7 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
                 time.sleep(.05)
         except KeyboardInterrupt:
             completion = 'cancelled'
-        except (OSError, ValueError, subprocess.SubprocessError) as error:
+        except (OSError, ValueError, BadZipFile, subprocess.SubprocessError) as error:
             errors.append(f'Acceptance runner: {type(error).__name__}: {error}')
         finally:
             if client is not None and client.poll() is None:
@@ -193,6 +426,11 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
                 errors.append('Runtime dependency JARs changed after server readiness')
         except OSError as error:
             errors.append(f'Cannot verify runtime dependency JARs after shutdown: {error}')
+    if resources is not None:
+        try:
+            resources.verify()
+        except (OSError, ValueError, BadZipFile) as error:
+            errors.append(f'Core resource lifecycle: {error}')
     reports = out / 'players.json'
     client_report = None
     if reports.exists():
@@ -200,6 +438,11 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
             client_report = json.loads(reports.read_text('utf8'))
         except (OSError, ValueError) as error:
             errors.append(f'Cannot read player report: {error}')
+    if resources is not None and isinstance(client_report, dict):
+        try:
+            validate_core_client_resources(out, client_report, resources)
+        except (OSError, ValueError, BadZipFile, KeyError, TypeError) as error:
+            errors.append(f'Core downloaded resource evidence: {error}')
     expected_phase = phase or 'single'
     if not isinstance(client_report, dict) or client_report.get('phase') != expected_phase:
         label = 'restart phase' if phase is not None else 'phase'
@@ -213,6 +456,10 @@ def run_session(instance: Path, out: Path, java: str, node: str, manual_client: 
     if phase is not None:
         result['phase'] = phase
         result['scenario'] = scenario
+    if scenario == 'sourcecrops' and phase == 'core':
+        result['resourcePackHistory'] = resources.observations
+        result['authorizedReloads'] = resources.reloads
+        result['authorizedWorkflows'] = resources.workflows
     result['passed'] = bool(passed(result))
     (out / 'result.json').write_text(json.dumps(result, indent=2, ensure_ascii=False), 'utf8')
     return result
@@ -237,8 +484,13 @@ def runtime_dependency_hashes(instance: Path) -> dict[str, str]:
             for path in sorted(instance.rglob('*.jar')) if path.is_file()}
 
 
-def scenario_hashes() -> dict[str, str]:
+def scenario_hashes(scenario: str = 'legacy') -> dict[str, str]:
     folder = Path(__file__).resolve().parent
+    if scenario == 'sourcecrops':
+        return {name: file_sha256(folder / name) for name in
+                ('run.py', 'players.cjs', 'source-crops.cjs', '../VanillaPack12111.java')}
+    if scenario not in ('legacy', 'gameplay'):
+        raise ValueError('Unknown scenario source lock')
     return {name: file_sha256(folder / name)
             for name in ('run.py', 'players.cjs', 'persistence-players.cjs', 'gameplay-persistence.cjs',
                          '../VanillaPack12111.java')}
@@ -246,16 +498,16 @@ def scenario_hashes() -> dict[str, str]:
 
 def run_restart_suite(instance: Path, out: Path, java: str, node: str, fixture: dict, *, scenario: str = 'legacy') -> dict:
     """Reuse one world for three normal server starts, stopping on the first failure."""
-    if scenario not in ('legacy', 'gameplay'):
+    if scenario not in ('legacy', 'gameplay', 'sourcecrops'):
         raise ValueError('Unknown restart scenario')
     state_file = out / 'persistence-state.json'
     verified_file = state_file.with_name(state_file.name + '.verified.json')
     if state_file.exists():
         raise FileExistsError('A restart suite must start without a previous state file')
-    if scenario == 'gameplay' and verified_file.exists():
+    if scenario in ('gameplay', 'sourcecrops') and verified_file.exists():
         raise FileExistsError('A gameplay suite must start without a previous verification snapshot')
     result = {'passed': False, 'scenario': scenario, 'phases': [], 'errors': [], 'runtimeHashes': runtime_hashes(instance),
-              'scenarioHashes': scenario_hashes()}
+              'scenarioHashes': scenario_hashes(scenario) if scenario == 'sourcecrops' else scenario_hashes()}
     state_hash = None
     verified_hash = None
     dependency_hashes = None
@@ -263,7 +515,7 @@ def run_restart_suite(instance: Path, out: Path, java: str, node: str, fixture: 
         try:
             if runtime_hashes(instance) != result['runtimeHashes']:
                 raise ValueError('Server binaries or hosted resources changed between restart phases')
-            if scenario_hashes() != result['scenarioHashes']:
+            if (scenario_hashes(scenario) if scenario == 'sourcecrops' else scenario_hashes()) != result['scenarioHashes']:
                 raise ValueError('Acceptance scenario code changed between restart phases')
             if dependency_hashes is not None and runtime_dependency_hashes(instance) != dependency_hashes:
                 raise ValueError('Runtime dependency JARs changed between restart phases')
@@ -271,7 +523,7 @@ def run_restart_suite(instance: Path, out: Path, java: str, node: str, fixture: 
                 raise ValueError('The seed snapshot changed between restart phases')
             if verified_hash is not None and hashlib.sha256(verified_file.read_bytes()).hexdigest() != verified_hash:
                 raise ValueError('The verified inventory snapshot changed between restart phases')
-            if scenario == 'gameplay' and phase == 'verify' and verified_file.exists():
+            if scenario in ('gameplay', 'sourcecrops') and phase == 'verify' and verified_file.exists():
                 raise ValueError('The verification snapshot already exists before recovery')
             folder = out / phase
             folder.mkdir(exist_ok=False)
@@ -300,15 +552,15 @@ def run_restart_suite(instance: Path, out: Path, java: str, node: str, fixture: 
                 state = json.loads(state_file.read_text('utf8'))
                 if not isinstance(state, dict) or not state:
                     raise ValueError('The seed phase did not write a nonempty persistence snapshot')
-                if scenario == 'gameplay' and state.get('scenario') != scenario:
+                if scenario in ('gameplay', 'sourcecrops') and state.get('scenario') != scenario:
                     raise ValueError('The seed snapshot belongs to a different gameplay scenario')
-                if scenario == 'gameplay' and verified_file.exists():
+                if scenario in ('gameplay', 'sourcecrops') and verified_file.exists():
                     raise ValueError('The seed phase wrote a premature verification snapshot')
                 state_hash = hashlib.sha256(state_file.read_bytes()).hexdigest()
                 result['seedStateSha256'] = state_hash
             elif hashlib.sha256(state_file.read_bytes()).hexdigest() != state_hash:
                 raise ValueError(f'The {phase} phase changed the original seed snapshot')
-            if scenario == 'gameplay' and phase == 'verify':
+            if scenario in ('gameplay', 'sourcecrops') and phase == 'verify':
                 verified = json.loads(verified_file.read_text('utf8'))
                 if (not isinstance(verified, dict) or verified.get('schemaVersion') != 1
                         or verified.get('scenario') != scenario or verified.get('phase') != phase
@@ -320,12 +572,32 @@ def run_restart_suite(instance: Path, out: Path, java: str, node: str, fixture: 
                 raise ValueError('The empty phase changed the verified inventory snapshot')
             if runtime_hashes(instance) != result['runtimeHashes']:
                 raise ValueError('Server binaries or hosted resources changed during a restart phase')
-            if scenario_hashes() != result['scenarioHashes']:
+            if (scenario_hashes(scenario) if scenario == 'sourcecrops' else scenario_hashes()) != result['scenarioHashes']:
                 raise ValueError('Acceptance scenario code changed during a restart phase')
         except (OSError, ValueError) as error:
             result['errors'].append(str(error))
             break
     result['passed'] = len(result['phases']) == 3 and not result['errors']
+    (out / 'result.json').write_text(json.dumps(result, indent=2, ensure_ascii=False), 'utf8')
+    return result
+
+
+def run_source_crops_core(instance: Path, out: Path, java: str, node: str, fixture: dict) -> dict:
+    """Keep mutable resource workflows separate from the immutable restart baseline."""
+    initial_runtime, sources = runtime_hashes(instance), scenario_hashes('sourcecrops')
+    folder = out / 'core'
+    folder.mkdir(exist_ok=False)
+    (folder / 'fixture.json').write_text(json.dumps(fixture), 'utf8')
+    result = run_session(instance, folder, java, node, phase='core', state_file=out / 'core-state.json', scenario='sourcecrops')
+    final_runtime = runtime_hashes(instance)
+    pack = 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+    if ({key: value for key, value in initial_runtime.items() if key != pack}
+            != {key: value for key, value in final_runtime.items() if key != pack}):
+        result['errors'].append('Core changed server or plugin binaries')
+    if scenario_hashes('sourcecrops') != sources:
+        result['errors'].append('Core acceptance scenario source changed')
+    result.update(runtimeHashesBefore=initial_runtime, runtimeHashes=final_runtime, scenarioHashes=sources)
+    result['passed'] = bool(result['passed'] and not result['errors'])
     (out / 'result.json').write_text(json.dumps(result, indent=2, ensure_ascii=False), 'utf8')
     return result
 
@@ -339,13 +611,17 @@ def main() -> int:
     parser.add_argument('--manual-client', action='store_true', help='Run the JS scenario separately for diagnosis')
     parser.add_argument('--restart-suite', action='store_true',
                         help='Seed, restart and recover, then restart again to check for duplicate furniture or contents')
-    parser.add_argument('--scenario', choices=('legacy', 'gameplay'), default='legacy',
+    parser.add_argument('--source-crops-core', action='store_true',
+                        help='Run the separate crop core and genuine CE workflows before freezing the three-start baseline')
+    parser.add_argument('--scenario', choices=('legacy', 'gameplay', 'sourcecrops'), default='legacy',
                         help='Select the verified fixture family for the restart suite')
     args = parser.parse_args()
     if args.restart_suite and args.manual_client:
         parser.error('--restart-suite requires the automatic protocol clients')
-    if args.scenario != 'legacy' and not args.restart_suite:
-        parser.error('--scenario gameplay requires --restart-suite')
+    if args.source_crops_core and (args.scenario != 'sourcecrops' or args.restart_suite or args.manual_client):
+        parser.error('--source-crops-core requires --scenario sourcecrops and cannot be combined with --restart-suite/--manual-client')
+    if args.scenario != 'legacy' and not (args.restart_suite or args.source_crops_core):
+        parser.error('--scenario gameplay/sourcecrops requires --restart-suite')
     instance = args.instance.resolve()
     if not instance.is_relative_to(ROOT / 'build/acceptance'):
         raise ValueError('Expected a disposable copy under build/acceptance')
@@ -363,7 +639,8 @@ def main() -> int:
     info = {'port': int(props['server-port']), 'packSha256': pack_hash}
     out.mkdir(parents=True, exist_ok=False)
     (out / 'fixture.json').write_text(json.dumps(info), 'utf8')
-    result = (run_restart_suite(instance, out, args.java, args.node, info, scenario=args.scenario) if args.restart_suite
+    result = (run_source_crops_core(instance, out, args.java, args.node, info) if args.source_crops_core else
+              run_restart_suite(instance, out, args.java, args.node, info, scenario=args.scenario) if args.restart_suite
               else run_session(instance, out, args.java, args.node, args.manual_client))
     print(f"{instance.name}: {'PASS' if result['passed'] else 'FAIL'}; {out / 'result.json'}")
     return 0 if result['passed'] else 1

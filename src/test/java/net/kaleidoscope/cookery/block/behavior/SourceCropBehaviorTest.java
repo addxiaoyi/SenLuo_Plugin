@@ -1,16 +1,25 @@
 package net.kaleidoscope.cookery.block.behavior;
 
+import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
+import net.kaleidoscope.cookery.util.InteractGuard;
+import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.world.BlockPos;
+import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.block.Block;
 import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
@@ -19,9 +28,13 @@ import static org.mockito.Mockito.*;
 
 class SourceCropBehaviorTest {
     private SourceCropBehavior behavior(IntegerProperty age, SourceCropBehavior.Crop crop) throws Exception {
+        return behavior(mock(BlockDefinition.class), age, crop);
+    }
+
+    private SourceCropBehavior behavior(BlockDefinition block, IntegerProperty age, SourceCropBehavior.Crop crop) throws Exception {
         var constructor = SourceCropBehavior.class.getDeclaredConstructor(BlockDefinition.class, IntegerProperty.class, SourceCropBehavior.Crop.class);
         constructor.setAccessible(true);
-        return constructor.newInstance(mock(BlockDefinition.class), age, crop);
+        return constructor.newInstance(block, age, crop);
     }
 
     @Test void chiliHasExactlyOneGreenRollAndFourRedRolls() {
@@ -79,6 +92,63 @@ class SourceCropBehaviorTest {
             assertFalse(SourceCropBehavior.owned(world, 16, 0));
             verify(world).isChunkLoaded(1, 0);
             verifyNoMoreInteractions(world);
+        }
+    }
+
+    @Test void offhandPickingCapturesItsOwnSourceDespiteASickleInTheMainHand() throws Exception {
+        var definition = mock(BlockDefinition.class);
+        var age = IntegerProperty.create("age", 0, 7, 0);
+        var behavior = behavior(definition, age, SourceCropBehavior.Crop.TOMATO);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        var world = mock(World.class);
+        var bukkitWorld = mock(org.bukkit.World.class);
+        var block = mock(Block.class);
+        var pos = new BlockPos(8, 64, 8);
+        var player = mock(Player.class);
+        var actor = mock(org.bukkit.entity.Player.class);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        var context = mock(UseOnContext.class);
+        var sickle = mock(Item.class);
+        when(sickle.id()).thenReturn(Key.of("kaleidoscopecookery:sickle"));
+        when(player.getItemInHand(InteractionHand.MAIN_HAND)).thenReturn(sickle);
+        when(player.platformPlayer()).thenReturn(actor);
+        when(actor.isOnline()).thenReturn(true);
+        when(actor.isValid()).thenReturn(true);
+        when(actor.getWorld()).thenReturn(bukkitWorld);
+        when(actor.getGameMode()).thenReturn(GameMode.SURVIVAL);
+        when(plugin.isEnabled()).thenReturn(true);
+        when(context.getPlayer()).thenReturn(player);
+        when(context.getLevel()).thenReturn(world);
+        when(context.getClickedPos()).thenReturn(pos);
+        when(context.getHand()).thenReturn(InteractionHand.OFF_HAND);
+        when(world.platformWorld()).thenReturn(bukkitWorld);
+        when(bukkitWorld.getBlockAt(pos.x(), pos.y(), pos.z())).thenReturn(block);
+        when(bukkitWorld.isChunkLoaded(0, 0)).thenReturn(true);
+        when(block.getWorld()).thenReturn(bukkitWorld);
+        when(state.owner().value()).thenReturn(definition);
+        doReturn(SourceCropGrowth.MAX_AGE).when(state).get(age);
+        try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
+             var plugins = mockStatic(KaleidoscopeCookeryPlugin.class); var protection = mockStatic(InteractGuard.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(bukkitWorld, 0, 0)).thenReturn(true);
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(actor)).thenReturn(true);
+            blocks.when(() -> CraftEngineBlocks.getCustomBlockState(block)).thenReturn(state);
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+
+            assertEquals(InteractionResult.PASS, behavior.useOnBlock(context, state));
+            protection.verify(() -> InteractGuard.canBreak(player, world, pos.x(), pos.y(), pos.z()));
+            verify(player, atLeastOnce()).getItemInHand(InteractionHand.OFF_HAND);
+            verify(player, never()).getItemInHand(InteractionHand.MAIN_HAND);
+            verify(player, never()).swingHand(any());
+
+            protection.when(() -> InteractGuard.canBreak(player, world, pos.x(), pos.y(), pos.z())).thenAnswer(call -> {
+                when(player.getItemInHand(InteractionHand.OFF_HAND)).thenReturn(sickle);
+                return true;
+            });
+            assertEquals(InteractionResult.PASS, behavior.useOnBlock(context, state));
+            protection.verify(() -> InteractGuard.canBreak(player, world, pos.x(), pos.y(), pos.z()), times(2));
+            verify(state, never()).with(eq(age), anyInt());
+            verify(world, never()).minecraftWorld();
+            verify(player, never()).swingHand(any());
         }
     }
 }

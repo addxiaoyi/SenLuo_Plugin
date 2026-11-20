@@ -24,7 +24,26 @@
 
 玩偶场景用 `doll_0` 和微调工具打开真实四行菜单，逐项增加九轴数值，再拆下、拾取并重新放置，核对恢复的姿态、物品消耗和唯一掉落。沙发和玩偶拾取均按服务端快照的 CE 物品 ID 选择槽位，避免把同为 paper 材质的工具当成家具。此流程验证拆装物品状态，不包括重启恢复及图形渲染。
 
-## 三次启动持久化验收
+## 三种来源作物验收
+
+三作物使用独立 `senluocrop` 探针，启用 `CookeryAcceptanceProbe/config.yml` 中的 `source-crops-smoke.enabled: true`；该场景无需启用旧 `connected-smoke`。厨房包须由当前代码导出，包含 84 个方块及三作物的原生 `minecraft:maintains_farmland` 标签。探针只在 loopback 的 `acceptance-world` 内工作，命令只允许两个固定普通生存玩家和精确动作枚举。测试服务器／JAR／资源包及先前失败候选须分别保留。
+
+先生成并托管初始资源包、正常停服，然后对同一隔离实例依次运行独立 core 和三阶段持久化。两种输出目录均须全新；Paper 与 Folia 串行执行：
+
+```powershell
+.\.venv\Scripts\python.exe tools/acceptance/connected/run.py build/acceptance/crops/paper build/acceptance/crops/paper-core-1 --java $java --scenario sourcecrops --source-crops-core
+.\.venv\Scripts\python.exe tools/acceptance/connected/run.py build/acceptance/crops/paper build/acceptance/crops/paper-restart-1 --java $java --scenario sourcecrops --restart-suite
+```
+
+core 以真实协议包驱动种植、主副手采果、骨粉、普通破坏、镰刀、拾取、来源手漂移、自然随机成长和支撑变化。干土、湿土、邻株、光照及 24 个龄状态的实际原生选择框／碰撞／支撑框均单列；每个详细状态强制核对原生农田标签。原版小麦提供骨粉取消对照，自定义作物的自然取消绑定具体株位及一次 arm 序号，不能由小麦事件代领。没有实际触发的 fertilize 回调必须保留为 SKIP／PARTIAL，不计为实服通过；真实保护提供者、客户端 GPU 与 Forge 专属回调仍另行验收。
+
+core 严格执行两轮 `ce reload config` → `ce workflow default`，分别记录真实 reload epoch、工作流完成和每位玩家三次资源包下载。只允许两组有界资源变更窗口；窗口外变更失败。每次下载均核对 HTTP、SHA-1／SHA-256、字节数，并通过官方 headless reader，输出保留实际 ZIP 和 reader JSON。服务器、插件及运行依赖 JAR 和场景源码仍锁定。core 默认总预算 1,800 秒，reload／workflow 窗口分别为 90／240 秒。
+
+core 正常停止后，以最终托管包哈希建立 `seed → verify → empty` 冻结基线。seed 由两位真实玩家种植六株并骨粉到成熟龄 7，水源维持土壤状态；随后生成仅创建一次的 checkpoint。verify／empty 不允许布置世界、补物、改龄或暂停成长；arrive 只加载和传送，observe 不加载块。恢复比较实际龄、原生框／标签、土壤、世界与玩家 UUID，以及两人 36 个存储槽、4 个盔甲槽、副手和光标的完整组件，实际拆下／拾取后再正常重启检查不复活、不增产。三阶段预算为 600／600／400 秒，旧 legacy／gameplay 的默认 400 秒不变。
+
+无需 Minecraft 的合同测试共 **266 项**（legacy 96＋gameplay 111＋source-crops 59），包含实际导出场景的 fake protocol 执行与篡改负测；其中 native reader 由测试夹具模拟。合同通过不证明实服、GPU 或账号认证通过。运行 `node --test tools/acceptance/connected/test-persistence.cjs tools/acceptance/connected/test-gameplay-persistence.cjs tools/acceptance/connected/test-source-crops.cjs`。Python 运行器的完整合同另由 `tools/test_connected_acceptance.py` 检查。
+
+## 家具三次启动持久化验收
 
 在相同准备条件下添加 `--restart-suite`，运行器会对同一测试世界依次正常启动和停止三次。每个平台单独运行，每次使用新的输出目录：
 

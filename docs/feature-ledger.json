@@ -110,6 +110,15 @@
       "evidence": ["src/main/java/net/kaleidoscope/cookery/effect/KitchenEffectHandlers.java", "src/test/java/net/kaleidoscope/cookery/effect/FarmerOutfitTest.java", "docs/research/series-effects-gift-regression-2026-11-19.json"]
     },
     {
+      "feature_id": "C14",
+      "module": "cookery",
+      "title": "番茄、辣椒、生菜三作物24龄状态、maintains_farmland原生标签、农田光照生长和骨粉；主副手成熟采果回龄5，生菜PASS，成熟持骨粉先采果不耗粉；镰刀实际手快照及空工具来源掉落回龄0；服务端选框空碰撞，客户端仍绊线轮廓",
+      "parity_level": "B",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeCookery:BaseCropBlock", "KaleidoscopeCookery:ChiliCropBlock", "KaleidoscopeCookery:LettuceCropBlock", "KaleidoscopeCookery:SickleItem"],
+      "evidence": ["tools/cookery_source_crops.py", "tools/test_cookery_source_crops.py", "src/main/java/net/kaleidoscope/cookery/block/behavior/SourceCropBehavior.java", "src/main/java/net/kaleidoscope/cookery/block/behavior/SourceCropGrowth.java", "src/main/java/net/kaleidoscope/cookery/block/behavior/SourceCropHarvestSource.java", "src/main/java/net/kaleidoscope/cookery/block/behavior/HarvestableCrop.java", "src/main/java/net/kaleidoscope/cookery/item/behavior/SickleRangeHarvestBehavior.java", "src/test/java/net/kaleidoscope/cookery/block/behavior/SourceCropBehaviorTest.java", "src/test/java/net/kaleidoscope/cookery/block/behavior/SourceCropGrowthTest.java", "src/test/java/net/kaleidoscope/cookery/block/behavior/SourceCropHarvestSourceTest.java", "src/test/java/net/kaleidoscope/cookery/block/behavior/HarvestableCropHandTest.java", "src/test/java/net/kaleidoscope/cookery/item/behavior/SickleRangeHarvestBehaviorTest.java", "docs/COOKERY-PARITY.md"]
+    },
+    {
       "feature_id": "C10",
       "module": "cookery",
       "title": "11种整份取物盘的服务端存取与掉落",

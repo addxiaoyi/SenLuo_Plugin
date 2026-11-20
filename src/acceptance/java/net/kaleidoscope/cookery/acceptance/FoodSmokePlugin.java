@@ -30,6 +30,7 @@ public final class FoodSmokePlugin extends JavaPlugin {
 
     @Override public void onEnable() {
         if (getConfig().getBoolean("connected-smoke.enabled", false)) ConnectedKitchenProbe.enable(this);
+        if (getConfig().getBoolean("source-crops-smoke.enabled", false)) SourceCropProbe.enable(this);
         long bootStarted = System.currentTimeMillis();
         Bukkit.getGlobalRegionScheduler().runDelayed(this, task -> {
             verify();
@@ -103,6 +104,10 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 awaitMillstoneStart(List.copyOf(precedingReports), bootStarted, 0);
             }
         }, 100);
+    }
+
+    @Override public void onDisable() {
+        SourceCropProbe.disable(this);
     }
 
     private void awaitMillstoneStart(List<String> reports, long bootStarted, long waitedTicks) {

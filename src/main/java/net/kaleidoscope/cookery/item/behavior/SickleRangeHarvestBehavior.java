@@ -14,6 +14,7 @@ import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
@@ -85,7 +86,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         }
 
         Sweep sweep = new Sweep(context.getLevel(), (org.bukkit.World) context.getLevel().platformWorld(),
-                player, bukkitPlayer, heldStack, new LongOpenHashSet());
+                player, bukkitPlayer, context.getHand(), heldStack, new LongOpenHashSet());
         BlockPos origin = context.getClickedPos();
         int sweepLevel = CookeryEnchantments.sweepLevel(held);
         int radius = Math.min(MAX_HORIZONTAL_RADIUS, CookeryEnchantments.sweepRadius(this.horizontalRadius, sweepLevel));
@@ -103,7 +104,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
 
         sweep.world.playSound(bukkitPlayer.getLocation(), SWEEP_SOUND,
                 SoundCategory.PLAYERS, SWEEP_VOLUME, SWEEP_PITCH);
-        bukkitPlayer.swingMainHand();
+        player.swingHand(context.getHand());
         // 按次扣不按格扣 照格扣一挥就是几十点耐久
         if (this.damageItem && held != null && !player.canInstabuild()) {
             held.hurtAndBreak(durabilityCost, player, null);
@@ -117,7 +118,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
     // 一次挥砍的上下文 逐格传六个参数会让每个方法签名都糊成一片
     // stalks 记已收过的根部 多段作物一刀会同时命中同一株的两段
     private record Sweep(World level, org.bukkit.World world, Player player,
-                         org.bukkit.entity.Player bukkitPlayer, ItemStack sickle, LongSet stalks) {
+                         org.bukkit.entity.Player bukkitPlayer, InteractionHand hand, ItemStack sickle, LongSet stalks) {
     }
 
     // 收割一根竖列 返回这列收到的数量
@@ -228,7 +229,7 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
         if (!sweep.stalks().add(packed(root.x(), root.y(), root.z()))) {
             return false;
         }
-        if (!crop.harvest(world, pos, state, sweep.player())) {
+        if (!crop.harvest(world, pos, state, sweep.player(), sweep.hand())) {
             return false;
         }
         block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
