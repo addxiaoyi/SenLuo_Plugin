@@ -2,6 +2,16 @@
 
 2026-11-20。目标平台为 Minecraft 1.21.11、Paper 132／Folia 14、CraftEngine 26.9.1。运行服用 Java 21，构建根工程同时准备 JDK 21 和 JDK 25。
 
+## 2026-11-20 村庄一致发布与冷启动窗口前置
+
+新增有界一次性发布事务及窄 R7 适配器，统一处理五模板 cache、原 processor list 与五个原 pool 的 raw／expanded／maxSize 共 21 个槽位。保留 registered 对象、holder、fallback 和第三方条目身份，不重新绑定 registry。候选重新与完整固定来源迁移及当前有效池比较，包含全部状态／NBT、实体／PDC、作者、合法查询 cache、厨房语义和 CE 世代。事务覆盖每个槽位写入前／后的失败切点，逆序恢复包含抛错槽位；未知外部值不覆盖，恢复异常及失去排他窗口明确报告 `INDETERMINATE`，不计成功。
+
+独立静态核查确认固定 Paper/Folia 初始 STARTUP 在世界载入前同步运行 CE 后置任务，原生 registry／StructureTemplateManager 已存在。新冷启动窗口使用实际服务器线程、全局根身份、空原生／Bukkit 世界、CE 初始化／配置／FEATURE 条件、真实私有 lease、固定类资源摘要与精确调用点。拒绝把 `isSameThread`、global scheduler 或布尔就绪当作屏障；只允许原线程关闭自己的 lease。该实现尚无生产调用者，目标服务器实际窗口及 private-final 写入仍 **NOT_RUN**。另核实 CE 任务会吞掉 Throwable，未来入口必须有真实启动失败响应，不能仅靠回调抛错后继续载入世界。
+
+根 `test shadowJar acceptanceJar` 首轮通过 **953 项 Java、101 套件，0 失败／错误／跳过**；其中新增发布事务 63 项、冷启动 ownership 6 项、原生产物／实际 StackWalker 检查 7 项。Python 源码本批没有改变，沿用上一批 259/259 的结果，不虚记重跑。生产 JAR SHA-256 为 `11c68822b302b4871eae4729b7b8397f6fb5bba93528f5a55f9ace5a54f163f5`，探针与两个包仍为下批记录的原哈希。冻结证据位于本地 `build/evidence/village-publication-final-1/`，见[发布实现与边界](research/cookery-village-publication-2026-11-20.md)及[本批验证身份](research/cookery-village-publication-validation-2026-11-20.json)。
+
+本批没有注册启动任务、发布自然池或启动实服。前置数据包发现／安装、启动失败响应、实际激活、CE／原生 reload 和 disable 的完整 reader／writer 屏障、五 biome 自然选择、结构片与 CE/controller 持久化，以及全部玩家／客户端验收仍须继续完成。实服窗口按用户安排延后，总目标保持进行中。
+
 ## 2026-11-20 镰刀取消、共享读取门与有效村庄池前置
 
 修正普通植被破坏的剪刀损耗归属：实际 `ShearsItem.mineBlock` 不调用 `Item.mineBlock`，且零硬度非 FIRE 植物仍可磨损。现在按实际声明类及完整签名捕获两种已核实实现，保留原工具完整组件、数量、槽位、真实损耗／断裂事件认证。原生破坏被取消且完整观察无归属损耗时，外部监听器切槽不再误记为本操作已提交并扣镰刀耐久；观察失效、归属判断异常、真实损耗／断裂及原生异常仍保留 PARTIAL／失败。见[镰刀实现与边界](research/cookery-source-sickle-2026-11-20.md)。
