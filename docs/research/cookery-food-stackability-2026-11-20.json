@@ -1,0 +1,175 @@
+{
+  "schema": "cookery-food-stackability-followup-v1",
+  "date": "2026-11-20",
+  "platform": "Paper 1.21.11-132 / CraftEngine 26.9.1",
+  "scope": "Strict bootstrap failure, native effect flag correction, hand-source regression and source archive prerequisite. No source-crop core/lifecycle or natural-village completion is claimed.",
+  "failedCandidate": {
+    "id": "sc7/paper-pack-1",
+    "passed": false,
+    "serverExit": 1,
+    "forcedServerStop": true,
+    "errors": [
+      "Failed or malformed first-boot construction smoke: [14:07:21 ERROR]: [CookeryAcceptanceProbe] COOKERY_FOOD_SMOKE checked=84 failures=19",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] COOKERY_FOOD_SMOKE checked=84 failures=19",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:seafood_miso_soup: java.lang.IllegalStateException: kaleidoscopecookery:seafood_miso_soup: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:wild_mushroom_rabbit_soup: java.lang.IllegalStateException: kaleidoscopecookery:wild_mushroom_rabbit_soup: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:baozi: java.lang.IllegalStateException: kaleidoscopecookery:baozi: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:oolong: java.lang.IllegalStateException: kaleidoscopecookery:oolong: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:samsa: java.lang.IllegalStateException: kaleidoscopecookery:samsa: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:spicy_blood_stew: java.lang.IllegalStateException: kaleidoscopecookery:spicy_blood_stew: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:stargazy_pie: java.lang.IllegalStateException: kaleidoscopecookery:stargazy_pie: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:golden_salad: java.lang.IllegalStateException: kaleidoscopecookery:golden_salad: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:dark_cuisine: java.lang.IllegalStateException: kaleidoscopecookery:dark_cuisine: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:crimson_fungus_pot_soup: java.lang.IllegalStateException: kaleidoscopecookery:crimson_fungus_pot_soup: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:blaze_lamb_chop: java.lang.IllegalStateException: kaleidoscopecookery:blaze_lamb_chop: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:suspicious_stir_fry: java.lang.IllegalStateException: kaleidoscopecookery:suspicious_stir_fry: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:warped_fungus_pot_soup: java.lang.IllegalStateException: kaleidoscopecookery:warped_fungus_pot_soup: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:mystery_tea: java.lang.IllegalStateException: kaleidoscopecookery:mystery_tea: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:zongzi: java.lang.IllegalStateException: kaleidoscopecookery:zongzi: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:flower_tea: java.lang.IllegalStateException: kaleidoscopecookery:flower_tea: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:crystal_lamb_chop: java.lang.IllegalStateException: kaleidoscopecookery:crystal_lamb_chop: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:caterpillar: java.lang.IllegalStateException: kaleidoscopecookery:caterpillar: direct CE build cannot stack with the production BASE item",
+      "[14:07:21 ERROR]: [CookeryAcceptanceProbe] kaleidoscopecookery:numbing_spicy_chicken: java.lang.IllegalStateException: kaleidoscopecookery:numbing_spicy_chicken: direct CE build cannot stack with the production BASE item",
+      "[14:08:21 ERROR]: [CraftEngine] Timed out waiting for the CraftEngine worker thread pool to terminate"
+    ],
+    "checkedConsumables": 84,
+    "failures": [
+      "kaleidoscopecookery:seafood_miso_soup: java.lang.IllegalStateException: kaleidoscopecookery:seafood_miso_soup: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:wild_mushroom_rabbit_soup: java.lang.IllegalStateException: kaleidoscopecookery:wild_mushroom_rabbit_soup: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:baozi: java.lang.IllegalStateException: kaleidoscopecookery:baozi: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:oolong: java.lang.IllegalStateException: kaleidoscopecookery:oolong: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:samsa: java.lang.IllegalStateException: kaleidoscopecookery:samsa: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:spicy_blood_stew: java.lang.IllegalStateException: kaleidoscopecookery:spicy_blood_stew: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:stargazy_pie: java.lang.IllegalStateException: kaleidoscopecookery:stargazy_pie: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:golden_salad: java.lang.IllegalStateException: kaleidoscopecookery:golden_salad: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:dark_cuisine: java.lang.IllegalStateException: kaleidoscopecookery:dark_cuisine: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:crimson_fungus_pot_soup: java.lang.IllegalStateException: kaleidoscopecookery:crimson_fungus_pot_soup: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:blaze_lamb_chop: java.lang.IllegalStateException: kaleidoscopecookery:blaze_lamb_chop: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:suspicious_stir_fry: java.lang.IllegalStateException: kaleidoscopecookery:suspicious_stir_fry: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:warped_fungus_pot_soup: java.lang.IllegalStateException: kaleidoscopecookery:warped_fungus_pot_soup: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:mystery_tea: java.lang.IllegalStateException: kaleidoscopecookery:mystery_tea: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:zongzi: java.lang.IllegalStateException: kaleidoscopecookery:zongzi: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:flower_tea: java.lang.IllegalStateException: kaleidoscopecookery:flower_tea: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:crystal_lamb_chop: java.lang.IllegalStateException: kaleidoscopecookery:crystal_lamb_chop: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:caterpillar: java.lang.IllegalStateException: kaleidoscopecookery:caterpillar: direct CE build cannot stack with the production BASE item",
+      "kaleidoscopecookery:numbing_spicy_chicken: java.lang.IllegalStateException: kaleidoscopecookery:numbing_spicy_chicken: direct CE build cannot stack with the production BASE item"
+    ],
+    "exactVanillaEffectFoodSet": [
+      "kaleidoscopecookery:baozi",
+      "kaleidoscopecookery:blaze_lamb_chop",
+      "kaleidoscopecookery:caterpillar",
+      "kaleidoscopecookery:crimson_fungus_pot_soup",
+      "kaleidoscopecookery:crystal_lamb_chop",
+      "kaleidoscopecookery:dark_cuisine",
+      "kaleidoscopecookery:flower_tea",
+      "kaleidoscopecookery:golden_salad",
+      "kaleidoscopecookery:mystery_tea",
+      "kaleidoscopecookery:numbing_spicy_chicken",
+      "kaleidoscopecookery:oolong",
+      "kaleidoscopecookery:samsa",
+      "kaleidoscopecookery:seafood_miso_soup",
+      "kaleidoscopecookery:spicy_blood_stew",
+      "kaleidoscopecookery:stargazy_pie",
+      "kaleidoscopecookery:suspicious_stir_fry",
+      "kaleidoscopecookery:warped_fungus_pot_soup",
+      "kaleidoscopecookery:wild_mushroom_rabbit_soup",
+      "kaleidoscopecookery:zongzi"
+    ],
+    "observations": [
+      "All 103 direct CE food PDC snapshots passed exact production encoding before the stackability assertion.",
+      "Exactly the 19 foods with vanilla consumption effects failed actual ItemStack.isSimilar; 84 completed smoke checks.",
+      "Bootstrap stopped before requesting the pack workflow. CE common worker shutdown timed out; bounded runner forced termination. The failure remains terminal."
+    ],
+    "productionJarSha256": "26a37d7187766b4990a53ca7c01622e098fd6606d1c763eb479586051f952457",
+    "artifacts": [
+      {
+        "path": "build/acceptance/sc7/CONFIGURATION.json",
+        "bytes": 3608769,
+        "sha256": "cdd22eabe279d9452ac0a628e1ce555f224373f03f51d8876aa4038eb944b233"
+      },
+      {
+        "path": "build/acceptance/sc7/paper-pack-1/result.json",
+        "bytes": 6054,
+        "sha256": "f708c984ad2dbd3070e6da2239532c156e7794109d756e078e2f9176efe90f49"
+      },
+      {
+        "path": "build/acceptance/sc7/paper-pack-1/console.log",
+        "bytes": 24603,
+        "sha256": "517da14f8782b09529b38253f6e0494b649e274353a6660ff6d77d81f77bb55b"
+      },
+      {
+        "path": "build/acceptance/sc7/paper-pack-1/food-smoke.json",
+        "bytes": 3525,
+        "sha256": "8c344d55456063ea70b114b71e0b79629c7f4d7a1528d285fad7eccf7deba353"
+      }
+    ]
+  },
+  "correction": {
+    "foodCommit": "27c8cd2",
+    "sickleCommit": "2c9f1d3",
+    "sourceArchiveCommit": "99ff5e8",
+    "food": "Explicit non-ambient/particles/icon flags match native food effect defaults; Bukkit three-argument PotionEffect sets ambient=true. Exact PDC and actual stackability assertions remain unchanged. Mismatches now preserve full serialized stacks and consumable JSON.",
+    "sickle": "Freeze actual interaction-hand unit components/count/main slot before protection and takeover callbacks. Reject drift before built-in harvest; retain durability for already committed harvests.",
+    "legacy": "No player inventory is rewritten. Existing food_v1 strings remain decodable."
+  },
+  "validation": {
+    "java": {
+      "suites": 84,
+      "tests": 688,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "tasks": [
+        "test",
+        "shadowJar",
+        "acceptanceJar"
+      ],
+      "log": {
+        "path": "build/source-food-village-java-1.log",
+        "bytes": 2471,
+        "sha256": "d5c1879c7488f01ccef90f96e796cbdcf9549c1c2cd4daa99778fc36a5c05d46"
+      }
+    },
+    "python": {
+      "rootTests": 256,
+      "failures": 0,
+      "log": {
+        "path": "build/source-food-village-python-1.log",
+        "bytes": 362,
+        "sha256": "1235d3591bb77b7bf4ac744c2e37d6e46df8b437365463e6f270014966325972"
+      }
+    },
+    "unchangedPriorSuites": {
+      "seriesPython": 78,
+      "connectedNode": 279,
+      "scope": "Previously verified unchanged suites; not presented as rerun in this follow-up."
+    },
+    "productionJar": {
+      "path": "build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar",
+      "bytes": 1761632,
+      "sha256": "1626840542b74285ebd2f4cb9ad1246a6ddd63771d95d352fa9a8a9493e2b8f6"
+    },
+    "probeJar": {
+      "path": "build/acceptance/probe/CookeryAcceptanceProbe.jar",
+      "bytes": 260860,
+      "sha256": "ba620d2104427f5aebf261a70814f7025dea0bea603500da567b8fbb57f42a40"
+    },
+    "pack": {
+      "path": "build/distribution/kitchen-crops-3.zip",
+      "bytes": 2991133,
+      "sha256": "a3f68c026c7440153444cd306374ce043dc7825dc7ab74df98c3fb1efd1d6c45"
+    }
+  },
+  "nextCandidate": {
+    "id": "sc8",
+    "status": "PREPARING",
+    "runtimeAcceptance": "NOT_RUN"
+  },
+  "remaining": [
+    "Fresh Paper/Folia core reload/workflow and full source-crop interaction gates",
+    "Paper/Folia seed/verify/empty lifecycle",
+    "Client graphics/audio and actual third-party protection",
+    "Natural village template migration/pool integration/reload generation barrier",
+    "Other scope listed in HANDOFF and parity ledgers"
+  ]
+}
