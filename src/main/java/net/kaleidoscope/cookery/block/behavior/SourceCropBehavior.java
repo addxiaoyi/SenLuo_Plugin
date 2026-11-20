@@ -7,7 +7,6 @@ import net.kaleidoscope.cookery.util.InteractGuard;
 import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.kaleidoscope.cookery.util.ItemMatcher;
 import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
-import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.block.behavior.AbstractCanSurviveBlockBehavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -104,7 +103,7 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     @Override public void randomTick(Object thisBlock, Object[] args) {
-        try (var guard = enterResourceReadGate()) {
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
             if (guard == null) return;
             ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
             if (state == null || state.owner().value() != blockDefinition || !canRandomlyTick(state)) return;
@@ -199,7 +198,7 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
 
     private boolean harvest(World world, BlockPos pos, ImmutableBlockState state, Player player, boolean picking, InteractionHand hand) {
         // The caller supplies state; any lookup performed before this callback remains outside the gate.
-        try (var guard = enterResourceReadGate()) {
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
             if (guard == null) return false;
             return harvestInReadEpoch(world, pos, state, player, picking, hand);
         }
@@ -240,13 +239,6 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
         } finally { ACTIVE.remove(block); }
     }
 
-    private static CeResourceReadGate.Guard enterResourceReadGate() {
-        KaleidoscopeCookeryPlugin plugin = KaleidoscopeCookeryPlugin.instance();
-        if (plugin == null || !plugin.isEnabled()) return null;
-        CeResourceReadGate gate = plugin.sourceCropReadGate();
-        return gate == null ? null : gate.tryEnter().guard();
-    }
-
     static ContextHolder sickleLootContext(WorldPosition position, ImmutableBlockState state, Player player) {
         // Deliberately omit ITEM_IN_HAND. Source SickleItem calls playerDestroy with ItemStack.EMPTY.
         return ContextHolder.builder().withParameter(DirectContextParameters.POSITION, position)
@@ -277,20 +269,17 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     /** CE applies its visual-state shapes after creating behaviors, so install after each pack reload. */
-    public static int installShapes() {
-        int installed = 0;
-        for (BlockDefinition definition : CraftEngineBlocks.loadedBlocks().values()) {
+    public static void installShapes(Iterable<BlockDefinition> definitions) {
+        for (BlockDefinition definition : definitions) {
             SourceCropBehavior behavior = definition.defaultState().behavior().getFirst(SourceCropBehavior.class);
-            if (behavior == null) continue;
+            if (behavior == null) throw new IllegalStateException("Missing source crop behavior for " + definition.id());
             BlockShape shape = new CropShape(behavior.age);
             for (ImmutableBlockState state : definition.variantProvider().states()) {
                 Object owner = BlockStateUtils.getBlockOwner(state.customBlockState().minecraftState());
                 if (!(owner instanceof DelegatingBlock block)) throw new IllegalStateException("Source crop is not a CE delegating block");
                 block.shapeDelegate().bindValue(shape);
             }
-            installed++;
         }
-        return installed;
     }
 
     private static final class CropShape implements BlockShape {

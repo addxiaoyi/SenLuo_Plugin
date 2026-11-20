@@ -6,6 +6,8 @@ import net.kaleidoscope.cookery.nms.NativeSickleAccessProvider;
 import net.kaleidoscope.cookery.nms.NativeToolWear;
 import net.kaleidoscope.cookery.nms.NativeMiningDamageTracker;
 import net.kaleidoscope.cookery.nms.NativeMiningImplementation;
+import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
+import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import net.kaleidoscope.cookery.util.EventUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
@@ -13,6 +15,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -30,6 +33,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -65,6 +70,9 @@ class SourceClassifiedSickleTest {
     private final Map<String, Object> values = new HashMap<>();
     private final ConfigSection config = mock(ConfigSection.class);
     private final FakeNative nativeAccess = new FakeNative();
+    private final ResourceOperationCoordinator resourceOperations = new ResourceOperationCoordinator();
+    private final CeResourceReadGate resourceGate = new CeResourceReadGate(resourceOperations, () -> true);
+    private MockedStatic<KaleidoscopeCookeryPlugin> plugin;
     private Runnable protectionCallback = () -> {}, loggingCallback = () -> {};
     private Consumer<SickleHarvestEvent> sickleCallback = event -> {};
     private int logCalls;
@@ -123,6 +131,19 @@ class SourceClassifiedSickleTest {
         when(config.getStringList(any(String[].class), anyList())).thenAnswer(call -> value(call.getArgument(0), call.getArgument(1)));
     }
 
+    @BeforeEach
+    void publishResourceGeneration() {
+        assertTrue(resourceGate.publish(new Object(), () -> true));
+        plugin = mockStatic(KaleidoscopeCookeryPlugin.class);
+        plugin.when(KaleidoscopeCookeryPlugin::tryEnterSourceCropResources)
+                .thenAnswer(call -> resourceGate.tryEnter().guard());
+    }
+
+    @AfterEach
+    void closePluginMock() {
+        if (plugin != null) plugin.close();
+    }
+
     private boolean has(String[] keys) { for (String key : keys) if (values.containsKey(key)) return true; return false; }
     private Object value(String[] keys, Object fallback) { for (String key : keys) if (values.containsKey(key)) return values.get(key); return fallback; }
     private SickleRangeHarvestBehavior behavior() {
@@ -151,6 +172,20 @@ class SourceClassifiedSickleTest {
             });
         }
         @Override public void close() { events.close(); protection.close(); blocks.close(); bukkit.close(); }
+    }
+
+    @Test void busyResourceWriterRejectsTheSweepBeforeAnyContextOrBlockRead() {
+        var behavior = behavior();
+        try (var scope = new Scope(); var writer = resourceOperations.acquire()) {
+            assertEquals(InteractionResult.PASS, behavior.useOnBlock(context));
+            verifyNoInteractions(context);
+            scope.blocks.verifyNoInteractions();
+            scope.protection.verifyNoInteractions();
+            scope.events.verifyNoInteractions();
+            assertEquals(0, nativeAccess.inspections);
+            verify(tool, never()).hurtAndBreak(anyInt(), any(), any());
+        }
+        assertFalse(resourceOperations.isBusy());
     }
 
     @ParameterizedTest @EnumSource(InteractionHand.class)
@@ -461,11 +496,17 @@ class SourceClassifiedSickleTest {
     @Test void nativePostcommitExceptionChargesOnceButIsRethrownInsteadOfReportedAsGreenSuccess() {
         var failure = new IllegalArgumentException("native postcommit error");
         nativeAccess.outcome = NativeSickleAccess.Outcome.failed("partially committed", failure); var behavior = behavior();
+        nativeAccess.onAction = () -> assertThrows(ResourceOperationCoordinator.BusyException.class, resourceOperations::acquire);
+        doAnswer(call -> {
+            assertThrows(ResourceOperationCoordinator.BusyException.class, resourceOperations::acquire);
+            return null;
+        }).when(tool).hurtAndBreak(1, player, null);
         try (var scope = new Scope()) {
             var thrown = assertThrows(IllegalStateException.class, () -> behavior.useOnBlock(context));
             assertSame(failure, thrown.getCause()); assertTrue(thrown.getMessage().contains("partially committed"));
             assertEquals(1, nativeAccess.crops); verify(tool).hurtAndBreak(1, player, null);
         }
+        assertFalse(resourceOperations.isBusy());
     }
 
     @Test void rejectedWearReceiptCannotEraseAnAlreadyReportedNativeFailure() {

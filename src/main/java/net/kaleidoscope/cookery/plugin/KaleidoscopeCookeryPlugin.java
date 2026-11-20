@@ -304,6 +304,13 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
 
     public CeResourceReadGate sourceCropReadGate() { return sourceCropReadGate; }
 
+    public static CeResourceReadGate.Guard tryEnterSourceCropResources() {
+        KaleidoscopeCookeryPlugin plugin = instance();
+        if (plugin == null || !plugin.isEnabled()) return null;
+        CeResourceReadGate gate = plugin.sourceCropReadGate();
+        return gate == null ? null : gate.tryEnter().guard();
+    }
+
     public net.kaleidoscope.cookery.item.listener.CookeryConsumeListener cookeryConsumption() {
         return cookeryConsumption;
     }

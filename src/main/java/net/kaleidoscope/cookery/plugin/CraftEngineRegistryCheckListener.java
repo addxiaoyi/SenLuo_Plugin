@@ -1,5 +1,6 @@
 package net.kaleidoscope.cookery.plugin;
 
+import net.kaleidoscope.cookery.block.behavior.SourceCropBehavior;
 import net.kaleidoscope.cookery.item.ItemNames;
 import net.kaleidoscope.cookery.ui.RecipeMenuConfig;
 
@@ -89,30 +90,25 @@ public final class CraftEngineRegistryCheckListener implements Listener {
                 new java.util.concurrent.atomic.AtomicReference<>();
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, retry -> {
             if (!plugin.isEnabled() || reloadGeneration.get() != generation) { retry.cancel(); return; }
-            AtomicReference<Boolean> registryReady = new AtomicReference<>(false);
             AtomicReference<Map<Key, ?>> registrySnapshot = new AtomicReference<>();
-            AtomicReference<Integer> installed = new AtomicReference<>(0);
+            AtomicReference<List<BlockDefinition>> installed = new AtomicReference<>(List.of());
             boolean published = false;
             try {
                 if (!ceReloading.getAsBoolean()) {
                     published = sourceCropReadGate.publishWithLease(() -> {
                         if (ceReloading.getAsBoolean() || !plugin.isEnabled()
                                 || reloadGeneration.get() != generation) return null;
-                        Map<Key, ?> loadedBlocks = CraftEngineBlocks.loadedBlocks();
-                        Map<Key, ?> snapshot = Map.copyOf(loadedBlocks);
+                        Map<Key, BlockDefinition> snapshot = Map.copyOf(CraftEngineBlocks.loadedBlocks());
                         registrySnapshot.set(snapshot);
-                        Map<Key, CropDefinition> cropDefinitions = sourceCropDefinitions(loadedBlocks);
-                        if (cropDefinitions == null) return null;
-                        registryReady.set(true);
+                        Map<Key, CropDefinition> cropDefinitions = sourceCropDefinitions(snapshot);
+                        List<BlockDefinition> toBind = cropDefinitions.values().stream().map(CropDefinition::definition).toList();
                         CropGeneration cropGeneration = new CropGeneration(generation, cropDefinitions);
                         return new CeResourceReadGate.Publication(cropGeneration,
                                 () -> reloadGeneration.get() == generation && !ceReloading.getAsBoolean()
                                         && plugin.isEnabled() && sameSourceCropDefinitions(cropDefinitions),
                                 () -> {
-                                    int count = net.kaleidoscope.cookery.block.behavior.SourceCropBehavior.installShapes();
-                                    installed.set(count);
-                                    if (count != SOURCE_CROP_KEYS.size())
-                                        throw new IllegalStateException("Expected 3 source-crop definitions, rebound " + count);
+                                    if (!toBind.isEmpty()) SourceCropBehavior.installShapes(toBind);
+                                    installed.set(toBind);
                                 });
                     });
                     if (published) lastShapeFailure.set(null);
@@ -121,15 +117,17 @@ public final class CraftEngineRegistryCheckListener implements Listener {
                 // A failed shape publication leaves the gate poisoned and closed.
                 lastShapeFailure.set(partialReload);
             }
-            if (published && registryReady.get() && installed.get() == SOURCE_CROP_KEYS.size()) {
+            if (published) {
                 checkLoadedBlocks(firstReload, registrySnapshot.get());
-                plugin.getLogger().info("Source crop native shapes rebound after CraftEngine reload: " + installed.get() + "/3");
+                int count = installed.get().size();
+                if (count != 0) {
+                    plugin.getLogger().info("Source crop native shapes rebound after CraftEngine reload: " + count + "/" + SOURCE_CROP_KEYS.size());
+                }
                 retry.cancel();
             } else if (System.nanoTime() - startedAt > TimeUnit.SECONDS.toNanos(30)) {
                 if (registrySnapshot.get() != null) checkLoadedBlocks(firstReload, registrySnapshot.get());
                 RuntimeException failure = lastShapeFailure.get();
-                plugin.getLogger().severe("Source crop shapes were not rebound after CraftEngine reload: "
-                        + installed.get() + "/3; registryReady=" + registryReady.get()
+                plugin.getLogger().severe("Cookery crop and sickle resources were not published after CraftEngine reload"
                         + (failure == null ? "" : "; last error=" + failure.getClass().getSimpleName()
                         + ": " + failure.getMessage()));
                 retry.cancel();
@@ -137,11 +135,11 @@ public final class CraftEngineRegistryCheckListener implements Listener {
         }, 1L, 1L);
     }
 
-    private static Map<Key, CropDefinition> sourceCropDefinitions(Map<Key, ?> loadedBlocks) {
+    private static Map<Key, CropDefinition> sourceCropDefinitions(Map<Key, BlockDefinition> loadedBlocks) {
         Map<Key, CropDefinition> definitions = new java.util.LinkedHashMap<>();
         for (Key key : SOURCE_CROP_KEYS) {
-            Object value = loadedBlocks.get(key);
-            if (!(value instanceof BlockDefinition definition)) return null;
+            BlockDefinition definition = loadedBlocks.get(key);
+            if (definition == null) continue;
             definitions.put(key, new CropDefinition(definition,
                     List.copyOf(definition.variantProvider().states())));
         }
@@ -152,8 +150,12 @@ public final class CraftEngineRegistryCheckListener implements Listener {
         Map<Key, ?> current = CraftEngineBlocks.loadedBlocks();
         for (Key key : SOURCE_CROP_KEYS) {
             CropDefinition expectedDefinition = expected.get(key);
+            if (expectedDefinition == null) {
+                if (current.containsKey(key)) return false;
+                continue;
+            }
             if (current.get(key) != expectedDefinition.definition()) return false;
-            List<ImmutableBlockState> states = List.copyOf(expectedDefinition.definition().variantProvider().states());
+            List<ImmutableBlockState> states = expectedDefinition.definition().variantProvider().states();
             if (states.size() != expectedDefinition.states().size()) return false;
             for (int i = 0; i < states.size(); i++)
                 if (states.get(i) != expectedDefinition.states().get(i)) return false;

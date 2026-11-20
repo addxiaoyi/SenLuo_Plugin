@@ -9,6 +9,7 @@ import net.kaleidoscope.cookery.item.CookeryEnchantments;
 import net.kaleidoscope.cookery.nms.NativeSickleAccess;
 import net.kaleidoscope.cookery.nms.NativeSickleAccessProvider;
 import net.kaleidoscope.cookery.nms.NativeToolWear;
+import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import net.kaleidoscope.cookery.util.BehaviorConfig;
 import net.kaleidoscope.cookery.util.EventUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
@@ -96,6 +97,13 @@ public final class SickleRangeHarvestBehavior extends ItemBehavior {
 
     @Override
     public InteractionResult useOnBlock(UseOnContext context) {
+        // Keep both classification paths and the resulting tool wear in the same resource epoch.
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            return guard == null ? InteractionResult.PASS : sweep(context);
+        }
+    }
+
+    private InteractionResult sweep(UseOnContext context) {
         Player player = context.getPlayer();
         if (player == null) {
             return InteractionResult.PASS;

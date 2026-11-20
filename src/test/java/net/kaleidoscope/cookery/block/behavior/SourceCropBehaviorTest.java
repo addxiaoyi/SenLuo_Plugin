@@ -78,7 +78,7 @@ class SourceCropBehaviorTest {
         var plugin = mock(KaleidoscopeCookeryPlugin.class);
         when(plugin.isEnabled()).thenReturn(true);
         when(plugin.sourceCropReadGate()).thenReturn(new CeResourceReadGate(new ResourceOperationCoordinator(), () -> true));
-        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class)) {
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS)) {
             plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
             assertDoesNotThrow(() -> behavior.randomTick(null, new Object[0]));
             when(plugin.isEnabled()).thenReturn(false);
@@ -96,7 +96,7 @@ class SourceCropBehaviorTest {
         when(plugin.isEnabled()).thenReturn(true);
         when(plugin.sourceCropReadGate()).thenReturn(gate);
         Object state = new Object();
-        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class);
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS);
              var states = mockStatic(BlockStateUtils.class)) {
             plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
             states.when(() -> BlockStateUtils.getOptionalCustomBlockState(state)).thenAnswer(call -> {
@@ -170,7 +170,7 @@ class SourceCropBehaviorTest {
         when(state.owner().value()).thenReturn(definition);
         doReturn(SourceCropGrowth.MAX_AGE).when(state).get(age);
         try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
-             var plugins = mockStatic(KaleidoscopeCookeryPlugin.class); var protection = mockStatic(InteractGuard.class)) {
+             var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS); var protection = mockStatic(InteractGuard.class)) {
             bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(bukkitWorld, 0, 0)).thenReturn(true);
             bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(actor)).thenReturn(true);
             blocks.when(() -> CraftEngineBlocks.getCustomBlockState(block)).thenReturn(state);

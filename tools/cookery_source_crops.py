@@ -98,7 +98,7 @@ def source_crops(source, assets, items, definitions, names):
             raise AuditError('source crop: duplicate seed ' + seed)
         items[seed] = {'material': 'paper', 'data': {'item_name': '<!i>' + names['item.' + ART + '.' + name + '_seed']},
                        'model': copy.deepcopy(definitions[ART + ':item/' + name + '_seed']),
-                       'behavior': {'type': 'block_item', 'block': key}}
+                       'behavior': {'type': PLUGIN + ':source_crop_seed', 'block': key}}
         appearances = {f'age{age}': {
             'auto_state': {'type': 'lower_tripwire', 'id': f'cookery_crop_{name}_{age}'},
             'model': {'path': states[f'age={age}']['model']}}

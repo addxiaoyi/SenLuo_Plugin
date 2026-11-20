@@ -66,7 +66,8 @@ class KitchenPackTest(unittest.TestCase):
             key = NAMESPACE + ':' + name + '_crop'
             self.assertEqual([{'type': NAMESPACE + ':source_crop', 'crop': name}], self.config['blocks'][key]['behavior'])
             self.assertEqual(8, self.manifest['states'][key])
-            self.assertEqual({'type': 'block_item', 'block': key}, self.config['items'][NAMESPACE + ':' + name + '_seed']['behavior'])
+            self.assertEqual({'type': NAMESPACE + ':source_crop_seed', 'block': key},
+                             self.config['items'][NAMESPACE + ':' + name + '_seed']['behavior'])
         crops = self.manifest['sourceCrops']
         self.assertEqual('NOT_TESTED', crops['runtime'])
         self.assertEqual('NOT_TESTED', crops['vanillaClient'])

@@ -3,6 +3,7 @@ package net.kaleidoscope.cookery.plugin;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorType;
 import net.momirealms.craftengine.core.util.Key;
 import net.kaleidoscope.cookery.item.behavior.SickleRangeHarvestBehavior;
+import net.kaleidoscope.cookery.item.behavior.SourceCropSeedItemBehavior;
 import net.kaleidoscope.cookery.item.behavior.OilPotItemBehavior;
 import net.kaleidoscope.cookery.item.behavior.TeapotItemBehavior;
 import net.kaleidoscope.cookery.item.behavior.TransmutationLunchBagBehavior;
@@ -16,10 +17,13 @@ public final class ItemBehaviors {
     public static ItemBehaviorType<net.kaleidoscope.cookery.item.behavior.EightImmortalsTableItemBehavior> EIGHT_IMMORTALS_TABLE;
     public static ItemBehaviorType<net.kaleidoscope.cookery.item.behavior.PlacedMealItemBehavior> PLACED_MEAL;
     public static ItemBehaviorType<net.kaleidoscope.cookery.item.behavior.SteamerItemBehavior> STEAMER;
+    public static ItemBehaviorType<SourceCropSeedItemBehavior> SOURCE_CROP_SEED;
 
     private ItemBehaviors() {}
 
     public static void register() {
+        if (SOURCE_CROP_SEED == null) SOURCE_CROP_SEED = RegistryUtils.registerItemBehavior(
+                Key.of("kaleidoscopecookery:source_crop_seed"), SourceCropSeedItemBehavior.FACTORY);
         if (STEAMER == null) STEAMER = RegistryUtils.registerItemBehavior(
                 Key.of("kaleidoscopecookery:steamer_item"), net.kaleidoscope.cookery.item.behavior.SteamerItemBehavior.FACTORY);
         if (EIGHT_IMMORTALS_TABLE == null) EIGHT_IMMORTALS_TABLE = RegistryUtils.registerItemBehavior(

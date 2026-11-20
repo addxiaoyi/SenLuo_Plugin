@@ -40,7 +40,7 @@ class CraftEngineRegistryCheckListenerTest {
 
             f.reloading.set(false);
             f.ticks.getFirst().accept(task);
-            f.shapes.verify(SourceCropBehavior::installShapes);
+            f.shapes.verify(() -> SourceCropBehavior.installShapes(any()));
             verify(task).cancel();
             assertFalse(f.operations.isBusy());
         }
@@ -61,7 +61,7 @@ class CraftEngineRegistryCheckListenerTest {
             }
 
             f.ticks.getFirst().accept(task);
-            f.shapes.verify(SourceCropBehavior::installShapes);
+            f.shapes.verify(() -> SourceCropBehavior.installShapes(any()));
             verify(task).cancel();
             assertFalse(f.operations.isBusy());
         }
@@ -69,7 +69,7 @@ class CraftEngineRegistryCheckListenerTest {
 
     @Test void shapeFailureReleasesLeaseAndKeepsTheGenerationPermanentlyClosed() {
         try (Fixture f = new Fixture()) {
-            f.shapes.when(SourceCropBehavior::installShapes).thenThrow(new IllegalStateException("partial state"));
+            f.shapes.when(() -> SourceCropBehavior.installShapes(any())).thenThrow(new IllegalStateException("partial state"));
             f.listener.scheduleSourceCropRebind(false);
             ScheduledTask task = mock(ScheduledTask.class);
 
@@ -80,13 +80,13 @@ class CraftEngineRegistryCheckListenerTest {
             assertEquals(CeResourceReadGate.Rejection.POISONED, f.gate.tryEnter().rejection());
 
             f.ticks.getFirst().accept(task);
-            f.shapes.verify(SourceCropBehavior::installShapes);
+            f.shapes.verify(() -> SourceCropBehavior.installShapes(any()));
             verify(task, never()).cancel();
             assertFalse(f.operations.isBusy());
         }
     }
 
-    @Test void incompleteRegistryReleasesLeaseAndWaitsForAllCropDefinitions() {
+    @Test void partialPackPublishesOnlyInstalledCropsAndRejectsUnexpectedNewDefinition() {
         try (Fixture f = new Fixture()) {
             Map<Key, BlockDefinition> partial = new HashMap<>(f.readyBlocks);
             partial.remove(Key.of("kaleidoscopecookery:lettuce_crop"));
@@ -98,14 +98,35 @@ class CraftEngineRegistryCheckListenerTest {
             ScheduledTask task = mock(ScheduledTask.class);
 
             f.ticks.getFirst().accept(task);
-            f.shapes.verifyNoInteractions();
-            verify(task, never()).cancel();
+            f.shapes.verify(() -> SourceCropBehavior.installShapes(argThat(definitions ->
+                    definitions instanceof List<?> bound && bound.size() == 2)));
+            verify(task).cancel();
+            var admission = f.gate.tryEnter();
+            assertTrue(admission.admitted());
+            admission.guard().close();
             assertFalse(f.operations.isBusy());
 
             partial.put(Key.of("kaleidoscopecookery:lettuce_crop"), Fixture.cropDefinition());
+            assertEquals(CeResourceReadGate.Rejection.STALE, f.gate.tryEnter().rejection());
+            assertFalse(f.operations.isBusy());
+        }
+    }
+
+    @Test void aPackWithoutAnySourceCropsStillAllowsGuardedSickleReads() {
+        try (Fixture f = new Fixture()) {
+            for (String name : List.of("tomato_crop", "chili_crop", "lettuce_crop")) {
+                f.readyBlocks.remove(Key.of("kaleidoscopecookery:" + name));
+            }
+            f.listener.scheduleSourceCropRebind(false);
+            ScheduledTask task = mock(ScheduledTask.class);
             f.ticks.getFirst().accept(task);
-            f.shapes.verify(SourceCropBehavior::installShapes);
+            f.shapes.verifyNoInteractions();
             verify(task).cancel();
+            var admission = f.gate.tryEnter();
+            assertTrue(admission.admitted());
+            try (var guard = admission.guard()) {
+                f.assertLeaseHeld();
+            }
             assertFalse(f.operations.isBusy());
         }
     }
@@ -118,7 +139,7 @@ class CraftEngineRegistryCheckListenerTest {
 
             f.ticks.getFirst().accept(task);
 
-            f.shapes.verify(SourceCropBehavior::installShapes);
+            f.shapes.verify(() -> SourceCropBehavior.installShapes(any()));
             verify(task).cancel();
             verify(f.plugin.getLogger(), atLeastOnce()).severe(anyString());
             assertFalse(f.operations.isBusy());
@@ -191,9 +212,9 @@ class CraftEngineRegistryCheckListenerTest {
                 assertLeaseHeld();
                 return readyBlocks;
             });
-            shapes.when(SourceCropBehavior::installShapes).thenAnswer(call -> {
+            shapes.when(() -> SourceCropBehavior.installShapes(any())).thenAnswer(call -> {
                 assertLeaseHeld();
-                return 3;
+                return null;
             });
         }
 

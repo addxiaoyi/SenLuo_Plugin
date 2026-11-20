@@ -2,6 +2,8 @@ package net.kaleidoscope.cookery.item.behavior;
 
 import net.kaleidoscope.cookery.block.behavior.HarvestableCrop;
 import net.kaleidoscope.cookery.api.event.SickleHarvestEvent;
+import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
+import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import net.kaleidoscope.cookery.util.EventUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
@@ -13,6 +15,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -23,16 +26,22 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.PlayerInventory;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -46,6 +55,22 @@ class SickleRangeHarvestBehaviorTest {
     private final Item toolSnapshot = mock(Item.class);
     private final UseOnContext context = mock(UseOnContext.class);
     private final Block crop = mock(Block.class);
+    private final ResourceOperationCoordinator resourceOperations = new ResourceOperationCoordinator();
+    private final CeResourceReadGate resourceGate = new CeResourceReadGate(resourceOperations, () -> true);
+    private MockedStatic<KaleidoscopeCookeryPlugin> plugin;
+
+    @BeforeEach
+    void publishResourceGeneration() {
+        assertTrue(resourceGate.publish(new Object(), () -> true));
+        plugin = mockStatic(KaleidoscopeCookeryPlugin.class);
+        plugin.when(KaleidoscopeCookeryPlugin::tryEnterSourceCropResources)
+                .thenAnswer(call -> resourceGate.tryEnter().guard());
+    }
+
+    @AfterEach
+    void closePluginMock() {
+        if (plugin != null) plugin.close();
+    }
 
     private SickleRangeHarvestBehavior harvest(int enchantmentLevel) {
         when(context.getPlayer()).thenReturn(player);
@@ -143,11 +168,17 @@ class SickleRangeHarvestBehaviorTest {
         when(crop.getZ()).thenReturn(root.z());
         when(state.behavior().getFirst(HarvestableCrop.class)).thenReturn(harvestable);
         when(harvestable.rootPos(eq(adaptedWorld), any(BlockPos.class), same(state))).thenReturn(root);
-        when(harvestable.harvest(eq(adaptedWorld), any(BlockPos.class), same(state), same(player), eq(hand))).thenReturn(true);
+        when(harvestable.harvest(eq(adaptedWorld), any(BlockPos.class), same(state), same(player), eq(hand))).thenAnswer(call -> {
+            assertThrows(ResourceOperationCoordinator.BusyException.class, resourceOperations::acquire);
+            return true;
+        });
         try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
              var adaptor = mockStatic(BukkitAdaptor.class); var protection = mockStatic(InteractGuard.class)) {
             bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(world, 0, 0)).thenReturn(true);
-            blocks.when(() -> CraftEngineBlocks.getCustomBlockState(crop)).thenReturn(state);
+            blocks.when(() -> CraftEngineBlocks.getCustomBlockState(crop)).thenAnswer(call -> {
+                assertThrows(ResourceOperationCoordinator.BusyException.class, resourceOperations::acquire);
+                return state;
+            });
             adaptor.when(() -> BukkitAdaptor.adapt(world)).thenReturn(adaptedWorld);
             protection.when(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt())).thenReturn(true);
 
@@ -158,6 +189,7 @@ class SickleRangeHarvestBehaviorTest {
             verify(player).swingHand(hand);
             verify(bukkitPlayer, never()).swingMainHand();
             verify(tool).hurtAndBreak(1, player, null);
+            assertFalse(resourceOperations.isBusy());
         }
     }
 

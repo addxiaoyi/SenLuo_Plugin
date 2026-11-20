@@ -37,7 +37,7 @@ class SourceCropsTest(unittest.TestCase):
         for name in CROPS:
             key, seed = PLUGIN + ':' + name + '_crop', PLUGIN + ':' + name + '_seed'
             block = blocks[key]
-            self.assertEqual({'type': 'block_item', 'block': key}, items[seed]['behavior'])
+            self.assertEqual({'type': PLUGIN + ':source_crop_seed', 'block': key}, items[seed]['behavior'])
             self.assertEqual(seed, block['settings']['item'])
             self.assertEqual(0, block['settings']['hardness'])
             self.assertEqual('destroy', block['settings']['push_reaction'])

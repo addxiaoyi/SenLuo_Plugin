@@ -13,9 +13,8 @@ import java.util.function.Supplier;
 
 /**
  * Shares one real CE lease among bounded synchronous readers. This primitive is
- * used only by the source-crop random-growth and harvest callbacks. It does not
- * exclude lifecycle writers which bypass CE's coordinator; other crop/native
- * entry points remain outside this first-stage contract.
+ * used by Cookery's synchronous crop and sickle actions. It does not exclude
+ * lifecycle writers which bypass CE's coordinator or cover outer native dispatch.
  */
 public final class CeResourceReadGate {
     public enum Rejection { CLOSED, BUSY, TRANSITION, STALE, POISONED }
