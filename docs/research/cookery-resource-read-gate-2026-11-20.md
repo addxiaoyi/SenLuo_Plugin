@@ -1,6 +1,6 @@
 # CE 资源共享读取门与原生入口边界
 
-2026-11-21。`CeResourceReadGate` 已接入源作物的随机生长、采收、种植回调以及范围镰刀的同步挥砍。完整原生入口和自然村庄仍待完成。
+2026-11-21。`CeResourceReadGate` 已接入源作物的随机生长、采收、种植、支撑检查回调以及范围镰刀的同步挥砍。完整原生入口和自然村庄仍待完成。
 
 读取门初始关闭。发布时在真实 `ResourceOperationCoordinator.Lease` 内验证捕获的资源身份；首位读者重新申请真实 lease，后续同步／嵌套读者共享该 lease。新加入者必须先增加受保护的读者计数，再执行注册表身份检查，否则上一位最后读者可能在检查尚未结束时释放 lease。最后读者先 CAS 到关闭过渡态再释放；失效停止新准入，但已有读者持有 lease 直至退出。验证异常污染后续准入，已有读者仍正常排空。
 
@@ -16,7 +16,7 @@ Paper/Folia 1.21.11 在完整交互事件返回后才调用原生物品 fallback
 
 厨房包为三种种子导出 `source_crop_seed` 行为。它持 guard 调用 `super.useOnBlock`，涵盖 `BlockPlaceContext` 读取、放置和种子扣除，保留原有 CE 事件与操作规则。旧厨房包的通用 `block_item` 不受这个入口保护。镰刀从 Cookery `useOnBlock` 开始持 guard，到分类、事件、收割、耐久及冷却全部结算；嵌套的源作物采收共用同一 lease。两个入口均不涵盖 CE 分派回调前的行为查找或回调返回后的原生流程。
 
-支撑检查的原生 `tick` 同步包含存活判断及破坏；但 CE 卸载时将方块委托换成空行为，已排队的原生 tick 可能在重载期间被消费而完全没有进入 Cookery。因此仅包住 `tick` 或在其拒绝时重排都不能保证后续检查。仍需处理重载期间的派发或重放，并对齐 Folia 所属区块和原生取消语义。
+支撑检查的 `tick` 现在持资源读门完成当前状态复核与原有 CE 原生破坏流程；`updateShape` 和独立存活查询也使用读门。回调因资源忙碌被拒绝时，只记录世界和区块地址，待准入恢复后重查。CE 临时空委托可能使原生 tick 根本没有进入 Cookery，因此每次成功发布作物代际后另行恢复已加载区块中的支撑检查，区块加载也加入恢复队列。恢复按全局每 tick 最多四个区域任务、每个任务最多 256 个区段位置分片，使用 CE 调色板作粗索引，再核对原生当前状态并补排原生 tick。区块卸载、世界替换和停用撤销旧任务；新资源发布从头重扫，旧 continuation 不覆盖新任务。实现与验收范围见[支撑检查恢复](cookery-support-recovery-2026-11-21.md)。
 
 ## 可核对的输入与限制
 
@@ -26,4 +26,4 @@ Paper/Folia 1.21.11 在完整交互事件返回后才调用原生物品 fallback
 | Paper 1.21.11 build 132 | `3a73f0cc4020a5eb45629a67629b14263331c68de45552f8505df8060fa8ed43` |
 | Folia 1.21.11 build 14 | `6bfd94ffd8649cf416d247e849214667ac91759699a4c3536eef2307277c4e33` |
 
-本地原始导出及审计保留在 `build/followups/source-crop-resource-gate/`，包括 `BONE-MEAL-ENTRY-AUDIT.md`、逐指令 JSON 与 class 文件读取器。此核查没有运行服务器。当前生产接线在首轮／重载完成时以同一 CE lease 发布已安装源作物的 `BlockDefinition` 和全部龄状态对象身份，同时记录缺失的作物键；随机生长与采收在 guard 内读写状态并提交成长或掉落。共享门只排斥使用同一 CE coordinator 的写入者，不提供生成 worker、原生数据包重载、CE disable 或绕过 coordinator 写入的屏障，也不保证写入公平性。骨粉完整原生物品事务、原生破坏、支撑丢失和生成的入口覆盖与统一代际仍 OPEN。
+本地原始导出及审计保留在 `build/followups/source-crop-resource-gate/`，包括 `BONE-MEAL-ENTRY-AUDIT.md`、逐指令 JSON 与 class 文件读取器。此核查没有运行服务器。当前生产接线在首轮／重载完成时以同一 CE lease 发布已安装源作物的 `BlockDefinition` 和全部龄状态对象身份，同时记录缺失的作物键；随机生长与采收在 guard 内读写状态并提交成长或掉落。共享门只排斥使用同一 CE coordinator 的写入者，不提供生成 worker、原生数据包重载、CE disable 或绕过 coordinator 写入的屏障，也不保证写入公平性。骨粉完整原生物品事务、其他原生破坏和生成的入口覆盖与统一代际仍 OPEN。新增支撑检查的 Paper/Folia 重载、实际破坏取消和掉落守恒仍需实服验收。

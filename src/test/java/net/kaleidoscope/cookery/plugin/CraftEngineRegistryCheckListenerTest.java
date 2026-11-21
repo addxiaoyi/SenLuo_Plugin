@@ -27,6 +27,22 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class CraftEngineRegistryCheckListenerTest {
+    @Test void supportRecoveryStartsOnlyAfterTheShapeGenerationWasPublished() {
+        try (Fixture f = new Fixture()) {
+            var recovery = mock(SourceCropSupportRecovery.class);
+            when(f.plugin.sourceCropSupportRecovery()).thenReturn(recovery);
+            f.listener.scheduleSourceCropRebind(false);
+            ScheduledTask task = mock(ScheduledTask.class);
+            try (var writer = f.operations.acquire()) {
+                f.ticks.getFirst().accept(task);
+                verifyNoInteractions(recovery);
+            }
+            f.ticks.getFirst().accept(task);
+            verify(recovery).recheckLoadedChunks();
+            assertFalse(f.operations.isBusy());
+        }
+    }
+
     @Test void reloadCompletionFlagDefersAllRegistryReadsAndBinding() {
         try (Fixture f = new Fixture()) {
             f.reloading.set(true);

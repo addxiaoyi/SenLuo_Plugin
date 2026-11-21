@@ -3,6 +3,7 @@ package net.kaleidoscope.cookery.block.behavior;
 import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import net.kaleidoscope.cookery.util.InteractGuard;
 import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
+import net.kaleidoscope.cookery.plugin.SourceCropSupportRecovery;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -119,6 +120,68 @@ class SourceCropBehaviorTest {
         assertSame(player, context.getOrNull(DirectContextParameters.PLAYER));
         assertFalse(context.has(DirectContextParameters.ITEM_IN_HAND));
         verifyNoInteractions(player);
+    }
+
+    @Test void unavailableSupportTicksAreDeferredBeforeAnyCeStateReads() throws Exception {
+        var behavior = behavior(IntegerProperty.create("age", 0, 7, 0), SourceCropBehavior.Crop.TOMATO);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        var recovery = mock(SourceCropSupportRecovery.class);
+        var gate = new CeResourceReadGate(new ResourceOperationCoordinator(), () -> true);
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(gate);
+        when(plugin.sourceCropSupportRecovery()).thenReturn(recovery);
+        Object level = new Object(), pos = new Object(), rawState = new Object();
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS);
+             var states = mockStatic(BlockStateUtils.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+            behavior.tick(null, new Object[]{rawState, level, pos});
+            verify(recovery).deferTick(level, pos);
+            assertTrue(behavior.canSurvive(null, rawState, level, pos));
+            states.verifyNoInteractions();
+        }
+    }
+
+    @Test void unavailableShapeUpdatesKeepTheOriginalStateAndQueueRecovery() throws Exception {
+        var behavior = behavior(IntegerProperty.create("age", 0, 7, 0), SourceCropBehavior.Crop.TOMATO);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        var recovery = mock(SourceCropSupportRecovery.class);
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(new CeResourceReadGate(new ResourceOperationCoordinator(), () -> true));
+        when(plugin.sourceCropSupportRecovery()).thenReturn(recovery);
+        Object raw = new Object();
+        Object[] args = new Object[12];
+        java.util.Arrays.fill(args, raw);
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS);
+             var states = mockStatic(BlockStateUtils.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+            assertSame(raw, behavior.updateShape(null, args));
+            verify(recovery).deferTick(raw, raw);
+            states.verifyNoInteractions();
+        }
+    }
+
+    @Test void supportTickAndSurvivalRejectOldDefinitionsWhileHoldingTheRealLease() throws Exception {
+        var behavior = behavior(IntegerProperty.create("age", 0, 7, 0), SourceCropBehavior.Crop.TOMATO);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        var operations = new ResourceOperationCoordinator();
+        var gate = new CeResourceReadGate(operations, () -> true);
+        assertTrue(gate.publish(new Object(), () -> true));
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(gate);
+        var raw = new Object();
+        var oldState = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS);
+             var states = mockStatic(BlockStateUtils.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+            states.when(() -> BlockStateUtils.getOptionalCustomBlockState(raw)).thenAnswer(call -> {
+                assertThrows(ResourceOperationCoordinator.BusyException.class, operations::acquire);
+                return Optional.of(oldState);
+            });
+            behavior.tick(null, new Object[]{raw});
+            assertTrue(behavior.canSurvive(null, raw, null, null));
+            assertFalse(operations.isBusy());
+            states.verify(() -> BlockStateUtils.getOptionalCustomBlockState(raw), times(2));
+        }
     }
 
     @Test void foreignRegionAndUnloadedChunkAreRejectedBeforeBlockReads() {

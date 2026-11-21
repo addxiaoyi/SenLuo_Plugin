@@ -122,6 +122,8 @@ public final class CraftEngineRegistryCheckListener implements Listener {
                 int count = installed.get().size();
                 if (count != 0) {
                     plugin.getLogger().info("Source crop native shapes rebound after CraftEngine reload: " + count + "/" + SOURCE_CROP_KEYS.size());
+                    var recovery = plugin.sourceCropSupportRecovery();
+                    if (recovery != null) recovery.recheckLoadedChunks();
                 }
                 retry.cancel();
             } else if (System.nanoTime() - startedAt > TimeUnit.SECONDS.toNanos(30)) {
