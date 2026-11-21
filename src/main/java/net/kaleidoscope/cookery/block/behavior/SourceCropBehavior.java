@@ -94,8 +94,52 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
         return state.get(age) < SourceCropGrowth.MAX_AGE;
     }
 
-    // Support checks and native planting callbacks remain outside the read gate.
+    // Support callbacks are gated; native planting callbacks remain outside the read gate.
+    @Override public void tick(Object thisBlock, Object[] args) {
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            if (guard == null) {
+                deferSupport(args, 1, 2);
+                return;
+            }
+            ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[0]).orElse(null);
+            if (state == null || state.owner().value() != blockDefinition) return;
+            org.bukkit.World world = LevelProxy.INSTANCE.getWorld(args[1]);
+            BlockPos pos = LocationUtils.fromBlockPos(args[2]);
+            if (!owned(world, pos.x(), pos.z())
+                    || !current(world.getBlockAt(pos.x(), pos.y(), pos.z()), state)) return;
+            // Keep CE's native destruction/loot path and its event semantics.
+            super.tick(thisBlock, args);
+        }
+    }
+
+    @Override public Object updateShape(Object thisBlock, Object[] args) {
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            if (guard == null) {
+                deferSupport(args, updateShape$level, updateShape$blockPos);
+                return args[0];
+            }
+            return super.updateShape(thisBlock, args);
+        }
+    }
+
+    private static void deferSupport(Object[] args, int levelIndex, int posIndex) {
+        var plugin = KaleidoscopeCookeryPlugin.instance();
+        var recovery = plugin == null ? null : plugin.sourceCropSupportRecovery();
+        if (recovery != null) recovery.deferTick(args[levelIndex], args[posIndex]);
+    }
+
+    // A standalone survival query is conservative while resources are unavailable.
+    // The delayed destruction path above holds the guard through the full native tick.
     @Override protected boolean canSurvive(Object thisBlock, Object state, Object level, Object rawPos) {
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            if (guard == null) return true;
+            ImmutableBlockState custom = BlockStateUtils.getOptionalCustomBlockState(state).orElse(null);
+            if (custom == null || custom.owner().value() != blockDefinition) return true;
+            return canSurviveInReadEpoch(level, rawPos);
+        }
+    }
+
+    private boolean canSurviveInReadEpoch(Object level, Object rawPos) {
         org.bukkit.World world = LevelProxy.INSTANCE.getWorld(level);
         BlockPos pos = LocationUtils.fromBlockPos(rawPos);
         // A boundary that this region does not own is unknown, never an invitation to load it.

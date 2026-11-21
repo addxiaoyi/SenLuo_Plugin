@@ -71,6 +71,9 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
     private BaoziThrowListener baoziThrows;
     private SteamerTransientBlockListener steamerTransients;
     private volatile CeResourceReadGate sourceCropReadGate;
+    private SourceCropSupportRecovery sourceCropSupportRecovery;
+
+    public SourceCropSupportRecovery sourceCropSupportRecovery() { return sourceCropSupportRecovery; }
 
     @Override
     public void onLoad() {
@@ -105,6 +108,9 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         sourceCropReadGate = new CeResourceReadGate(craftEngine.resourceOperations(),
                 () -> isEnabled() && !craftEngine.isDisabled() && !craftEngine.isStopping()
                         && !craftEngine.isEnabling() && !craftEngine.isReloading());
+        sourceCropSupportRecovery = new SourceCropSupportRecovery(this, sourceCropReadGate);
+        getServer().getPluginManager().registerEvents(sourceCropSupportRecovery, this);
+        sourceCropSupportRecovery.start();
         net.kaleidoscope.cookery.nms.NativeSickleAccessProvider.registerObserver(this);
         var cookeryCatalog = net.kaleidoscope.cookery.catalog.CookeryCatalog.bundled();
         net.kaleidoscope.cookery.item.CookeryFoodItems.initialize(cookeryCatalog);
@@ -168,6 +174,7 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
     public void onDisable() {
         CeResourceReadGate readGate = sourceCropReadGate;
         if (readGate != null) readGate.invalidate();
+        if (sourceCropSupportRecovery != null) sourceCropSupportRecovery.close();
         if (cookeryEffects != null) cookeryEffects.close();
         net.kaleidoscope.cookery.recipe.edit.RecipeEditService.close();
         net.kaleidoscope.cookery.recipe.RecipeLoadRecovery.close();
