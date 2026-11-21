@@ -46,6 +46,9 @@ public final class SourceCropSupportRecovery implements Listener, AutoCloseable 
 
     private final KaleidoscopeCookeryPlugin plugin;
     private final CeResourceReadGate gate;
+    @FunctionalInterface
+    interface ChunkLookup { CEChunk find(World world, int x, int z); }
+    private final ChunkLookup loadedChunk;
     private final BiConsumer<World, BlockPos> scheduleSupport;
     private final ConcurrentHashMap<ChunkKey, Scan> pending = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Scan> queue = new ConcurrentLinkedQueue<>();
@@ -53,13 +56,14 @@ public final class SourceCropSupportRecovery implements Listener, AutoCloseable 
     private ScheduledTask dispatcher;
 
     public SourceCropSupportRecovery(KaleidoscopeCookeryPlugin plugin, CeResourceReadGate gate) {
-        this(plugin, gate, SourceCropSupportRecovery::scheduleCurrent);
+        this(plugin, gate, SourceCropSupportRecovery::loadedChunk, SourceCropSupportRecovery::scheduleCurrent);
     }
 
     SourceCropSupportRecovery(KaleidoscopeCookeryPlugin plugin, CeResourceReadGate gate,
-                              BiConsumer<World, BlockPos> scheduleSupport) {
+                              ChunkLookup loadedChunk, BiConsumer<World, BlockPos> scheduleSupport) {
         this.plugin = plugin;
         this.gate = gate;
+        this.loadedChunk = loadedChunk;
         this.scheduleSupport = scheduleSupport;
     }
 
@@ -152,9 +156,7 @@ public final class SourceCropSupportRecovery implements Listener, AutoCloseable 
             allowRestart = true;
             try (var guard = gate.tryEnter().guard()) {
                 if (guard == null) { complete = false; return; }
-                var world = BukkitWorldManager.instance().getWorld(scan.key.world());
-                var storage = world == null ? null : world.storageWorld();
-                CEChunk chunk = storage == null ? null : storage.getChunkAtIfLoaded(scan.key.x(), scan.key.z());
+                CEChunk chunk = loadedChunk.find(scan.world, scan.key.x(), scan.key.z());
                 if (chunk == null || !chunk.isLoaded()) { complete = false; return; }
                 if (scan.restart.getAndSet(false)) { scan.section = 0; scan.offset = 0; }
                 complete = scanSlice(scan, chunk);
@@ -201,6 +203,12 @@ public final class SourceCropSupportRecovery implements Listener, AutoCloseable 
 
     private static boolean isCrop(ImmutableBlockState state) {
         return state != null && !state.isEmpty() && CROPS.contains(state.owner().value().id());
+    }
+
+    private static CEChunk loadedChunk(World world, int x, int z) {
+        var ceWorld = BukkitWorldManager.instance().getWorld(world.getUID());
+        var storage = ceWorld == null ? null : ceWorld.storageWorld();
+        return storage == null ? null : storage.getChunkAtIfLoaded(x, z);
     }
 
     static void scheduleCurrent(World world, BlockPos pos) {

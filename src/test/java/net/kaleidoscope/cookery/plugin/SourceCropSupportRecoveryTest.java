@@ -3,7 +3,6 @@ package net.kaleidoscope.cookery.plugin;
 import io.papermc.paper.threadedregions.scheduler.RegionScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
 import net.momirealms.craftengine.core.util.Key;
@@ -34,12 +33,12 @@ class SourceCropSupportRecoveryTest {
             f.recovery.enqueue(f.world, -2, 3);
             f.recovery.enqueue(f.world, -2, 3);
             f.step();
-            f.managers.verifyNoInteractions();
+            verifyNoInteractions(f.lookup);
             assertTrue(f.positions.isEmpty());
             assertTrue(f.gate.publish(new Object(), () -> true));
             try (var writer = f.operations.acquire()) {
                 f.step();
-                f.managers.verifyNoInteractions();
+                verifyNoInteractions(f.lookup);
             }
             f.step();
             assertEquals(List.of(new BlockPos(-32, -64, 48)), f.positions);
@@ -84,7 +83,7 @@ class SourceCropSupportRecoveryTest {
             f.recovery.enqueue(f.world, -2, 3);
             f.step();
             verify(f.world, never()).isChunkLoaded(anyInt(), anyInt());
-            f.managers.verifyNoInteractions();
+            verifyNoInteractions(f.lookup);
             f.bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(f.world, -2, 3)).thenReturn(true);
             f.step();
             assertEquals(1, f.positions.size());
@@ -97,12 +96,12 @@ class SourceCropSupportRecoveryTest {
             when(f.world.isChunkLoaded(-2, 3)).thenReturn(false);
             f.recovery.enqueue(f.world, -2, 3);
             f.step();
-            f.managers.verifyNoInteractions();
+            verifyNoInteractions(f.lookup);
             when(f.world.isChunkLoaded(-2, 3)).thenReturn(true);
             f.bukkit.when(() -> Bukkit.getWorld(f.id)).thenReturn(mock(World.class));
             f.recovery.enqueue(f.world, -2, 3);
             f.step();
-            f.managers.verifyNoInteractions();
+            verifyNoInteractions(f.lookup);
             assertTrue(f.positions.isEmpty());
         }
     }
@@ -130,7 +129,7 @@ class SourceCropSupportRecoveryTest {
             f.recovery.enqueue(f.world, -2, 3);
             f.recovery.dispatch();
             old.accept(mock(ScheduledTask.class));
-            f.managers.verifyNoInteractions();
+            verifyNoInteractions(f.lookup);
             f.runCallbacks();
             assertEquals(1, f.positions.size());
         }
@@ -198,7 +197,7 @@ class SourceCropSupportRecoveryTest {
             f.recovery.dispatch();
             f.recovery.close();
             f.runCallbacks();
-            f.managers.verifyNoInteractions();
+            verifyNoInteractions(f.lookup);
             verify(f.world, never()).isChunkLoaded(anyInt(), anyInt());
             f.recovery.enqueue(f.world, -2, 3);
             f.recovery.dispatch();
@@ -213,7 +212,7 @@ class SourceCropSupportRecoveryTest {
             f.recovery.dispatch();
             when(f.plugin.isEnabled()).thenReturn(false);
             f.runCallbacks();
-            f.managers.verifyNoInteractions();
+            verifyNoInteractions(f.lookup);
             verify(f.world, never()).isChunkLoaded(anyInt(), anyInt());
         }
     }
@@ -223,13 +222,13 @@ class SourceCropSupportRecoveryTest {
         org.bukkit.block.Block block = mock(org.bukkit.block.Block.class);
         var pos = new BlockPos(1, 64, 2);
         when(world.getBlockAt(1, 64, 2)).thenReturn(block);
-        try (var blocks = mockStatic(CraftEngineBlocks.class); var managers = mockStatic(BukkitWorldManager.class)) {
+        try (var blocks = mockStatic(CraftEngineBlocks.class)) {
             SourceCropSupportRecovery.scheduleCurrent(world, pos);
             var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
             when(state.owner().value().id()).thenReturn(Key.of("other:crop"));
             blocks.when(() -> CraftEngineBlocks.getCustomBlockState(block)).thenReturn(state);
             SourceCropSupportRecovery.scheduleCurrent(world, pos);
-            managers.verifyNoInteractions();
+            verify(state, never()).behavior();
         }
     }
 
@@ -241,19 +240,18 @@ class SourceCropSupportRecoveryTest {
         final UUID id = UUID.randomUUID();
         final Chunk bukkitChunk = mock(Chunk.class);
         final RegionScheduler scheduler = mock(RegionScheduler.class);
-        final BukkitWorldManager manager = mock(BukkitWorldManager.class, RETURNS_DEEP_STUBS);
+        final SourceCropSupportRecovery.ChunkLookup lookup = mock(SourceCropSupportRecovery.ChunkLookup.class);
         final CEChunk chunk = mock(CEChunk.class);
         final CESection section = mock(CESection.class);
         @SuppressWarnings("unchecked")
         final PalettedContainer<ImmutableBlockState> palette = mock(PalettedContainer.class);
         final ImmutableBlockState crop = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
         final MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class);
-        final MockedStatic<BukkitWorldManager> managers = mockStatic(BukkitWorldManager.class);
         final List<Consumer<ScheduledTask>> callbacks = new ArrayList<>();
         final List<BlockPos> positions = new ArrayList<>();
         Set<Integer> cropIndexes = Set.of(0);
         boolean failScheduling;
-        final SourceCropSupportRecovery recovery = new SourceCropSupportRecovery(plugin, gate, (w, pos) -> {
+        final SourceCropSupportRecovery recovery = new SourceCropSupportRecovery(plugin, gate, lookup, (w, pos) -> {
             assertSame(world, w);
             assertThrows(ResourceOperationCoordinator.BusyException.class, operations::acquire);
             if (failScheduling) throw new IllegalStateException("schedule failed");
@@ -277,8 +275,7 @@ class SourceCropSupportRecoveryTest {
                 callbacks.add(call.getArgument(4));
                 return mock(ScheduledTask.class);
             });
-            managers.when(BukkitWorldManager::instance).thenReturn(manager);
-            when(manager.getWorld(id).storageWorld().getChunkAtIfLoaded(-2, 3)).thenReturn(chunk);
+            when(lookup.find(world, -2, 3)).thenReturn(chunk);
             when(chunk.isLoaded()).thenReturn(true);
             when(chunk.sections()).thenReturn(new CESection[]{section});
             when(section.sectionY()).thenReturn(-4);
@@ -294,6 +291,6 @@ class SourceCropSupportRecoveryTest {
             callbacks.clear();
             batch.forEach(callback -> callback.accept(mock(ScheduledTask.class)));
         }
-        @Override public void close() { recovery.close(); managers.close(); bukkit.close(); }
+        @Override public void close() { recovery.close(); bukkit.close(); }
     }
 }

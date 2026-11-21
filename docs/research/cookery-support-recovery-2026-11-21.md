@@ -28,3 +28,5 @@ CE 重载期间会临时解除原生方块行为委托；此时被消费的支�
 - [CE 支撑行为](https://github.com/Xiao-MoMi/craft-engine/blob/2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985/bukkit/src/main/java/net/momirealms/craftengine/bukkit/block/behavior/AbstractCanSurviveBlockBehavior.java)
 - [CE 区块与区段](https://github.com/Xiao-MoMi/craft-engine/tree/2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985/core/src/main/java/net/momirealms/craftengine/core/world/chunk)
 - [CE 当前原生方块查询](https://github.com/Xiao-MoMi/craft-engine/blob/2b9e6f59a0bf4dac7f71958c0ea96c14b8e44985/bukkit/src/main/java/net/momirealms/craftengine/bukkit/api/CraftEngineBlocks.java)
+
+首轮 CI `44873122119` 中生产及 NMS 编译通过，998 项 Java 中 14 项新夹具在 Mockito 初始化时失败：直接 mock 完整 `BukkitWorldManager` 需要测试类路径中没有的 CE relocated Caffeine。改为对已加载区块查询使用窄接口夹具，生产默认实现仍调用原有管理器 API；保留首次失败日志和 XML，不记为行为回归通过。
