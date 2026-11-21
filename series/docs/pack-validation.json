@@ -1,9 +1,11 @@
 {
-  "items": 2038,
+  "items": 2299,
   "furniture": 1592,
   "recipes": 141,
-  "reachable_custom_models": 2802,
+  "reachable_custom_models": 2735,
   "errors": [],
-  "asset_warnings": [],
+  "asset_warnings": [
+    "kdeco_kaleidoscope_cookery:meals/gui/dark: missing kdeco_kaleidoscope_cookery/textures/block/bowl.png"
+  ],
   "scope": "Declared CE item/furniture/recipe references are errors. Additional exported custom model and item-definition dependencies are asset_warnings. Vanilla assets and client rendering require target-client validation."
 }

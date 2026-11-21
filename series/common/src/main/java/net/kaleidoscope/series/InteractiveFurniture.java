@@ -59,7 +59,7 @@ public abstract class InteractiveFurniture extends FurnitureController {
     public boolean allowsRemovalWithContents() { return false; }
 
     @Override public final void preRemove(net.momirealms.craftengine.core.entity.player.Player player) {
-        if (blocked() || hasContents()) plugin.recoverFurniture(this);
+        if (blocked() || hasContents() && !allowsRemovalWithContents()) plugin.recoverFurniture(this);
     }
 
     public final boolean blocked() { return rejectedKey != null; }

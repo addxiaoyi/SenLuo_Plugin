@@ -28,7 +28,9 @@ class PinnedImportTests(unittest.TestCase):
             legacy = parse_json(assets[f"{namespace}/items/{name}.json"])["model"]["model"]
             self.assertEqual(f"{namespace}:item/{name}", legacy)
             model = parse_json(assets[f"{namespace}/models/item/{name}.json"])
-            self.assertEqual(f"{namespace}:meals/item/{name}", model["parent"])
+            # The source meal model intentionally inherits the vanilla generated
+            # item model; the alias only repairs the moved path and namespace.
+            self.assertEqual("item/generated", model["parent"])
             self.assertIn(f"{namespace}/models/meals/item/{name}.json", assets)
         for direction in ("left", "right"):
             button = parse_json(assets[f"{namespace}/models/gui/button/page_{direction}.json"])
@@ -42,7 +44,7 @@ class PinnedImportTests(unittest.TestCase):
         self.assertTrue(gui["elements"])
         self.assertIn("gui", gui["display"])
         dark = parse_json(assets[f"{namespace}/models/meals/gui/dark.json"])
-        self.assertEqual(f"{namespace}:block/meals/plate", dark["textures"]["particle"])
+        self.assertEqual(f"{namespace}:block/bowl", dark["textures"]["particle"])
         self.assertIn(f"{namespace}/textures/block/meals/plate.png", assets)
 
     def test_pinned_tavern_lamp_uses_target_chain_texture(self):

@@ -1,8 +1,11 @@
 import copy
 import json
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from deco_seating import ASSET_NS, COLORS, SOURCE, WOODS, append_seating, static_model
+import import_sources
 from import_sources import furniture, model_tree, placeable
 
 
@@ -47,6 +50,21 @@ def convert(files=None, original=None):
 
 
 class DecoSeatingTests(unittest.TestCase):
+    def test_main_converter_exports_seating_catalog_definitions_and_recipes(self):
+        files, original = fixture()
+        files.update({f"src/{ASSET_NS}/assets/{path}": content for path, content in original.items()})
+        source = SimpleNamespace(files=files)
+
+        with patch.object(import_sources, "deco_indexes", return_value=({}, {}, {}, [])), \
+                patch("deco_fishrack.add_fishrack_variants"):
+            catalog, definitions, _, _ = import_sources.deco(source)
+
+        seating = [entry for entry in catalog["entries"] if entry["source"] == SOURCE]
+        self.assertEqual(24, len(seating))
+        self.assertIn("kaleidoscope_deco:chair/oak", definitions["furniture"])
+        self.assertIn("kaleidoscope_deco:cook_stool/warped", definitions["items"])
+        self.assertEqual(24, len(definitions["recipes"]))
+
     def test_all_wood_families_and_recipes_are_explicit(self):
         items, furnishings, entries, recipes = convert()
         self.assertEqual((216, 24, 24, 24), tuple(map(len, (items, furnishings, entries, recipes))))

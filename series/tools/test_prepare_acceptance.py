@@ -22,6 +22,16 @@ class AcceptancePreparationTests(unittest.TestCase):
         self.assertTrue(_within(parent / "paper", parent))
         self.assertFalse(_within(Path("/tmp/senluo-prod"), parent))
 
+    def test_existing_empty_acceptance_root_is_rejected_before_preparation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            destination = workspace / "build/acceptance/empty"
+            destination.mkdir(parents=True)
+            with patch("prepare_independent_servers.WORKSPACE", workspace):
+                with self.assertRaisesRegex(ValueError, "existing acceptance root"):
+                    prepare(destination, workspace / "missing-artifacts", workspace / "missing-packs")
+            self.assertEqual([], list(destination.iterdir()))
+
     def test_archive_path_escape_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             archive = Path(directory) / "unsafe.zip"

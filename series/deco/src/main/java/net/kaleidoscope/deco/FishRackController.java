@@ -177,12 +177,6 @@ public final class FishRackController extends InteractiveFurniture {
         });
     }
 
-    @Override protected void beforeRemoval(net.momirealms.craftengine.core.entity.player.Player player) {
-        // CE also removes the furniture when preRemove throws. Recover poisoned or
-        // concurrently changing state before that irreversible removal.
-        if (blocked() || busy) plugin.recoverFurniture(this);
-    }
-
     @Override public void postRemove(net.momirealms.craftengine.core.entity.player.Player player) {
         if (removed) return;
         removed = true;

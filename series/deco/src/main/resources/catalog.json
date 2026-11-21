@@ -8513,52 +8513,19 @@
       "id": "kaleidoscope_deco:fishrack_1",
       "category": "kaleidoscope_cookery_plus",
       "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/fishrack.mcfunction",
-      "rules": [
-        {
-          "inputs": [
-            "minecraft:air"
-          ],
-          "wand": false,
-          "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
-        }
-      ]
+      "rules": []
     },
     {
       "id": "kaleidoscope_deco:fishrack_2",
       "category": "kaleidoscope_cookery_plus",
       "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/fishrack.mcfunction",
-      "rules": [
-        {
-          "inputs": [
-            "minecraft:air"
-          ],
-          "wand": false,
-          "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
-        }
-      ]
+      "rules": []
     },
     {
       "id": "kaleidoscope_deco:fishrack_3",
       "category": "kaleidoscope_cookery_plus",
       "source": "src/kaleidoscope_cookery_plus/data/kaleidoscope/function/cookery_plus/index/fishrack.mcfunction",
-      "rules": [
-        {
-          "inputs": [
-            "minecraft:air"
-          ],
-          "wand": false,
-          "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
-        }
-      ]
+      "rules": []
     },
     {
       "id": "kaleidoscope_deco:fondant_eyes",
@@ -9451,9 +9418,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:vine"
+          ]
         },
         {
           "inputs": [],
@@ -9476,9 +9449,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:torchflower"
+          ]
         },
         {
           "inputs": [],
@@ -9501,9 +9480,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:wither_rose"
+          ]
         },
         {
           "inputs": [],
@@ -9526,9 +9511,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:peony"
+          ]
         },
         {
           "inputs": [],
@@ -9551,9 +9542,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:pitcher_plant"
+          ]
         },
         {
           "inputs": [],
@@ -9576,9 +9573,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:pink_petals"
+          ]
         },
         {
           "inputs": [],
@@ -9601,9 +9604,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:sunflower"
+          ]
         },
         {
           "inputs": [],
@@ -9626,9 +9635,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:rose_bush"
+          ]
         },
         {
           "inputs": [],
@@ -9651,9 +9666,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:cornflower"
+          ]
         },
         {
           "inputs": [],
@@ -9676,9 +9697,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:blue_orchid"
+          ]
         },
         {
           "inputs": [],
@@ -9701,9 +9728,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:allium"
+          ]
         },
         {
           "inputs": [],
@@ -9726,9 +9759,15 @@
           ],
           "wand": false,
           "sneak": -1,
-          "target": "",
-          "sounds": [],
-          "pending": true
+          "target": "kaleidoscope_deco:kaleidoscope_bar/blackboard/0",
+          "sounds": [
+            "minecraft:block.vine.break",
+            "minecraft:entity.sheep.shear"
+          ],
+          "pending": false,
+          "drops": [
+            "minecraft:oxeye_daisy"
+          ]
         },
         {
           "inputs": [],

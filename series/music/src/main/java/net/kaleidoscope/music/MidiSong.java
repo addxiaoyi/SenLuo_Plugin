@@ -7,8 +7,11 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public record MidiSong(List<Note> notes, long durationTicks) {
     private static final int MAX_EVENTS = 200_000;
@@ -17,12 +20,19 @@ public record MidiSong(List<Note> notes, long durationTicks) {
     private static final long MICROS_PER_SERVER_TICK = 50_000;
     private static final int MAX_NOTES_PER_TICK = 64;
 
-    public record Note(long tick, int key, int velocity, int program, boolean percussion) {
+    public record Note(long tick, int key, int velocity, int program, boolean percussion, long durationTicks) {
+        public Note(long tick, int key, int velocity, int program, boolean percussion) {
+            this(tick, key, velocity, program, percussion, 1);
+        }
+
         public Note {
-            if (tick < 0 || key < 0 || key > 127 || velocity < 1 || velocity > 127 || program < 0 || program > 127)
+            if (tick < 0 || key < 0 || key > 127 || velocity < 1 || velocity > 127
+                    || program < 0 || program > 127 || durationTicks < 1 || durationTicks > 36_000)
                 throw new IllegalArgumentException("MIDI 音符无效。");
         }
     }
+
+    private record Voice(int noteIndex, int channel, Clock.Mark started) {}
 
     public MidiSong {
         notes = List.copyOf(notes);
@@ -64,6 +74,9 @@ public record MidiSong(List<Note> notes, long durationTicks) {
         }
         Clock clock = new Clock(denominator);
         List<Note> notes = new ArrayList<>();
+        Map<Integer, ArrayDeque<Voice>> active = new HashMap<>();
+        List<Voice> sustained = new ArrayList<>();
+        boolean[] pedal = new boolean[16];
         for (MidiEvent event : events) {
             long delta = event.getTick() - previousTick;
             if (delta < 0) throw new IllegalArgumentException("MIDI 时间戳无效。");
@@ -78,16 +91,76 @@ public record MidiSong(List<Note> notes, long durationTicks) {
             if (!(event.getMessage() instanceof ShortMessage message)) continue;
             int channel = message.getChannel();
             if (message.getCommand() == ShortMessage.PROGRAM_CHANGE) programs[channel] = message.getData1();
-            if (message.getCommand() != ShortMessage.NOTE_ON || message.getData2() == 0) continue;
+            Clock.Mark now = clock.mark();
+            int identity = channel * 128 + message.getData1();
+            if (message.getCommand() == ShortMessage.CONTROL_CHANGE) {
+                int control = message.getData1();
+                if (control == 64 || control == 121) {
+                    pedal[channel] = control == 64 && message.getData2() >= 64;
+                    if (!pedal[channel]) {
+                        for (var iterator = sustained.iterator(); iterator.hasNext();) {
+                            Voice voice = iterator.next();
+                            if (voice.channel() == channel) {
+                                finish(notes, voice, now, clock);
+                                iterator.remove();
+                            }
+                        }
+                    }
+                } else if (control == 120 || control == 123) {
+                    for (var entry : active.entrySet()) {
+                        if (entry.getKey() / 128 != channel) continue;
+                        for (Voice voice : entry.getValue()) {
+                            if (control == 123 && pedal[channel] && channel != 9) sustained.add(voice);
+                            else finish(notes, voice, now, clock);
+                        }
+                        entry.getValue().clear();
+                    }
+                    if (control == 120) {
+                        for (var iterator = sustained.iterator(); iterator.hasNext();) {
+                            Voice voice = iterator.next();
+                            if (voice.channel() == channel) {
+                                finish(notes, voice, now, clock);
+                                iterator.remove();
+                            }
+                        }
+                    }
+                }
+            }
+            if (message.getCommand() == ShortMessage.NOTE_OFF
+                    || message.getCommand() == ShortMessage.NOTE_ON && message.getData2() == 0) {
+                var queue = active.get(identity);
+                if (queue != null && !queue.isEmpty()) {
+                    Voice voice = queue.removeFirst();
+                    if (pedal[channel] && channel != 9) sustained.add(voice);
+                    else finish(notes, voice, now, clock);
+                }
+                continue;
+            }
+            if (message.getCommand() != ShortMessage.NOTE_ON) continue;
             if (notes.size() == MAX_NOTES) throw new IllegalArgumentException("MIDI 音符过多。");
-            notes.add(new Note(clock.tick(), message.getData1(),
-                    message.getData2(), programs[channel], channel == 9));
+            int index = notes.size();
+            boolean percussion = channel == 9;
+            notes.add(new Note(clock.tick(), message.getData1(), message.getData2(), programs[channel], percussion));
+            active.computeIfAbsent(identity, ignored -> new ArrayDeque<>())
+                    .addLast(new Voice(index, channel, now));
         }
+        Clock.Mark end = clock.mark();
+        for (var voices : active.values()) for (Voice voice : voices) finish(notes, voice, end, clock);
+        for (Voice voice : sustained) finish(notes, voice, end, clock);
         return new MidiSong(notes, clock.durationTicks());
+    }
+
+    private static void finish(List<Note> notes, Voice voice, Clock.Mark end, Clock clock) {
+        Note note = notes.get(voice.noteIndex());
+        long duration = note.percussion() ? 1 : Math.max(1, clock.elapsedTicks(voice.started(), end));
+        notes.set(voice.noteIndex(), new Note(note.tick(), note.key(), note.velocity(), note.program(),
+                note.percussion(), duration));
     }
 
     /** Preserve fractions across tempo changes and unrelated events at MIDI tick boundaries. */
     private static final class Clock {
+        private record Mark(long micros, long remainder) {}
+
         private final long denominator;
         private long micros, remainder;
 
@@ -114,6 +187,20 @@ public record MidiSong(List<Note> notes, long durationTicks) {
         }
 
         private long tick() { return micros / MICROS_PER_SERVER_TICK; }
+        private Mark mark() { return new Mark(micros, remainder); }
+        private long elapsedTicks(Mark start, Mark end) {
+            long wholeMicros = end.micros() - start.micros();
+            long fraction = end.remainder() - start.remainder();
+            if (fraction < 0) {
+                wholeMicros--;
+                fraction += denominator;
+            }
+            if (wholeMicros < 0) throw new IllegalArgumentException("MIDI 音符时间戳无效。");
+            BigInteger numerator = BigInteger.valueOf(wholeMicros).multiply(BigInteger.valueOf(denominator))
+                    .add(BigInteger.valueOf(fraction));
+            BigInteger divisor = BigInteger.valueOf(denominator).multiply(BigInteger.valueOf(MICROS_PER_SERVER_TICK));
+            return numerator.add(divisor.subtract(BigInteger.ONE)).divide(divisor).longValueExact();
+        }
         private long durationTicks() {
             return (micros + MICROS_PER_SERVER_TICK - 1 + (remainder == 0 ? 0 : 1)) / MICROS_PER_SERVER_TICK;
         }

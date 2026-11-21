@@ -1,25 +1,43 @@
 import unittest
 
-from deco_interactions import function_sounds, item_tag_sources, link_variants, rules, selected_model, tag_inputs
+from deco_interactions import (TULIP_LOOT_FILE, function_sounds, item_tag_sources, link_variants,
+                               rules, selected_model, tag_inputs, tulip_drops)
+
+TULIP_LOOT_SOURCE = (
+    b'loot spawn ~ ~ ~ loot {"pools":[{rolls:1,entries:['
+    b'{type:"item",name:"red_tulip"},{type:"item",name:"orange_tulip"},'
+    b'{type:"item",name:"white_tulip"},{type:"item",name:"pink_tulip"},]}]}'
+)
 
 
 class InteractionTests(unittest.TestCase):
-    def test_tulip_extraction_and_decoration_form_a_paid_cycle(self):
+    def test_tulip_extraction_and_decoration_form_a_consumable_cycle(self):
+        files = {TULIP_LOOT_FILE: TULIP_LOOT_SOURCE}
         decorate = {"events": {"right_click": {"criteria": [{"event": "trans",
                     "item": {"id": "#demo:tulips"}, "args": {"index": "kaleidoscope_bar:blackboard/9"}}]}}}
         pending = []
-        parsed = rules(decorate, {}, pending, "kaleidoscope_bar:blackboard/0", "bar",
+        parsed = rules(decorate, files, pending, "kaleidoscope_bar:blackboard/0", "bar",
                        {"demo:tulips": {"bar": {"values": ["red_tulip", "orange_tulip", "white_tulip", "pink_tulip"]}}})
-        self.assertEqual(1, parsed[0]["cost"])
+        self.assertTrue(parsed[0]["consume"])
         extract = {"events": {"right_click": {"criteria": [{"event": "group", "item": {"id": "shears"},
                    "args": {"events": [{"event": "custom", "args": {"func": "kaleidoscope:bar/events/tulip_loot"}},
                                        {"event": "trans", "args": {"index": "kaleidoscope_bar:blackboard/0"}}]}}]}}}
-        parsed = rules(extract, {}, pending, "kaleidoscope_bar:blackboard/9")
+        parsed = rules(extract, files, pending, "kaleidoscope_bar:blackboard/9")
         self.assertFalse(parsed[0]["pending"])
-        self.assertEqual(4, len(parsed[0]["rewards"]))
-        self.assertEqual(0, parsed[0]["cost"])
+        self.assertEqual(["minecraft:red_tulip", "minecraft:orange_tulip", "minecraft:white_tulip", "minecraft:pink_tulip"],
+                         parsed[0]["drops"])
+        self.assertNotIn("consume", parsed[0])
         self.assertEqual("kaleidoscope_deco:kaleidoscope_bar/blackboard/0", parsed[0]["target"])
         self.assertEqual([], pending)
+
+    def test_tulip_drops_require_the_pinned_source_function(self):
+        with self.assertRaisesRegex(ValueError, "Missing pinned"):
+            tulip_drops({})
+        with self.assertRaisesRegex(ValueError, "Unrecognized tulip board loot pool"):
+            tulip_drops({TULIP_LOOT_FILE: (
+                b'loot spawn ~ ~ ~ loot {"pools":[{rolls:1,entries:['
+                b'{type:"item",name:"blue_orchid"}]}]}'
+            )})
 
     def test_loot_without_a_transition_cannot_repeat_forever(self):
         definition = {"events": {"right_click": {"fallback": {"event": "custom",
@@ -27,7 +45,7 @@ class InteractionTests(unittest.TestCase):
         pending = []
         parsed = rules(definition, {}, pending, "kaleidoscope_bar:blackboard/4")
         self.assertTrue(parsed[0]["pending"])
-        self.assertEqual([], parsed[0]["rewards"])
+        self.assertNotIn("drops", parsed[0])
 
     def test_custom_tag_uses_its_module_and_does_not_guess_conflicting_overlays(self):
         tags = item_tag_sources({
@@ -75,12 +93,16 @@ class InteractionTests(unittest.TestCase):
 
     def test_variant_graph_handles_cycles_and_rejects_absent_targets(self):
         entries = [{"id": "demo:a", "rules": [{"target": "demo:b", "pending": False}]},
-                   {"id": "demo:b", "rules": [{"target": "demo:a", "pending": False}, {"target": "demo:missing", "pending": False}]}]
+                   {"id": "demo:b", "rules": [{"target": "demo:a", "pending": False},
+                                                 {"target": "demo:missing", "pending": False,
+                                                  "consume": True, "drops": ["minecraft:apple"]}]}]
         furniture = {key: {"variants": {"ground": {"elements": [{"item": key}]}}} for key in ("demo:a", "demo:b")}
         pending = []
         link_variants(entries, furniture, pending)
         self.assertIn("demo/b", furniture["demo:a"]["variants"])
         self.assertTrue(entries[1]["rules"][1]["pending"])
+        self.assertNotIn("consume", entries[1]["rules"][1])
+        self.assertNotIn("drops", entries[1]["rules"][1])
         self.assertEqual(1, len(pending))
 
 

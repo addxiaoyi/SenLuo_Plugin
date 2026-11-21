@@ -158,8 +158,8 @@ def prepare(root: Path, artifacts: Path, packs: Path, *, cookery_jar: Path | Non
     # Keep test worlds out of the source tree and production locations.
     if not _within(root, allowed):
         raise ValueError(f"isolated server root must be under {allowed}")
-    if root.exists() and any(root.iterdir()):
-        raise ValueError(f"refusing to overwrite existing acceptance root: {root}")
+    if root.exists():
+        raise ValueError(f"refusing to use existing acceptance root: {root}")
     display_root = root
     # ZIP members can exceed MAX_PATH even when the isolated server root is short.
     # Apply the extended Windows path only after checking the real destination.

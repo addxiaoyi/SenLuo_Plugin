@@ -63,6 +63,18 @@ class MidiSongTest {
         assertEquals(1, MidiSong.read(sequence).notes().size());
     }
 
+    @Test void unmatchedNoteOffDoesNotCreateOrShortenAnotherVoice() throws Exception {
+        Sequence sequence = new Sequence(Sequence.PPQ, 100);
+        Track track = sequence.createTrack();
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, 60, 0), 0));
+        note(track, 10, 60, 100);
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, 61, 0), 20));
+        track.add(new MidiEvent(new ShortMessage(ShortMessage.NOTE_OFF, 0, 60, 0), 30));
+        var parsed = MidiSong.read(sequence).notes();
+        assertEquals(1, parsed.size());
+        assertEquals(2, parsed.getFirst().durationTicks());
+    }
+
     @Test void programChangesStayOnTheirOwnChannels() throws Exception {
         Sequence sequence = new Sequence(Sequence.PPQ, 96);
         Track track = sequence.createTrack();
@@ -162,6 +174,8 @@ class MidiSongTest {
         assertThrows(IllegalArgumentException.class, () -> new MidiSong(List.of(first), 36001));
         assertThrows(IllegalArgumentException.class, () -> new MidiSong.Note(0, 60, 0, 0, false));
         assertThrows(IllegalArgumentException.class, () -> new MidiSong.Note(0, 60, 100, 128, false));
+        assertThrows(IllegalArgumentException.class, () -> new MidiSong.Note(0, 60, 100, 0, false, 0));
+        assertThrows(IllegalArgumentException.class, () -> new MidiSong.Note(0, 60, 100, 0, false, 36_001));
     }
 
     private static void note(Track track, long tick, int key, int velocity) throws Exception {

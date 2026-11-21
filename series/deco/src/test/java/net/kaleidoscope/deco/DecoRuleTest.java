@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class DecoRuleTest {
     @Test void rewardsMustTransitionToPreventUnlimitedExtraction() {
         assertThrows(IllegalArgumentException.class, () -> new DecoRule(List.of("minecraft:shears"), false, -1,
-                "", List.of(), false, 0, List.of("minecraft:red_tulip")));
+                "", List.of(), false, false, List.of("minecraft:red_tulip")));
         assertThrows(IllegalArgumentException.class, () -> new DecoRule(List.of(), false, -1,
-                "kaleidoscope_deco:plain", List.of(), true, 1, List.of()));
+                "kaleidoscope_deco:plain", List.of(), false, true, List.of()));
     }
     @Test void wandAndSneakAreBothRequired() {
         var rule = new DecoRule(List.of(), true, 1, "kaleidoscope_deco:table_left", List.of(), false);

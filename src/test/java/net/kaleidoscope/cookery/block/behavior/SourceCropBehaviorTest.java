@@ -6,6 +6,7 @@ import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.block.BlockStateVariantProvider;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
@@ -24,6 +25,8 @@ import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.junit.jupiter.api.Test;
 import java.util.Optional;
+
+import com.google.common.collect.ImmutableList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -57,19 +60,69 @@ class SourceCropBehaviorTest {
         assertFalse(SourceCropBehavior.Crop.LETTUCE.canPick());
     }
 
-    @Test void randomTicksAndNativeBonemealStopAtMaturity() throws Exception {
+    @Test void randomTicksAndBonemealEligibilityStopAtMaturity() throws Exception {
+        var definition = mock(BlockDefinition.class);
+        var variants = mock(BlockStateVariantProvider.class);
         var age = IntegerProperty.create("age", 0, 7, 0);
-        var behavior = behavior(age, SourceCropBehavior.Crop.TOMATO);
-        var state = mock(ImmutableBlockState.class);
-        Object raw = new Object();
-        try (var states = mockStatic(BlockStateUtils.class)) {
-            states.when(() -> BlockStateUtils.getOptionalCustomBlockState(raw)).thenReturn(Optional.of(state));
-            for (int value = 0; value < 8; value++) {
-                when(state.get(age)).thenReturn(value);
-                assertEquals(value < 7, behavior.canRandomlyTick(state));
-                assertEquals(value < 7, behavior.isValidBonemealTarget(null, new Object[]{null, null, raw}));
-            }
+        var behavior = behavior(definition, age, SourceCropBehavior.Crop.TOMATO);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        when(definition.variantProvider()).thenReturn(variants);
+        when(variants.states()).thenReturn(ImmutableList.of(state));
+        when(state.owner().value()).thenReturn(definition);
+        for (int value = 0; value < 8; value++) {
+            doReturn(value).when(state).get(age);
+            assertEquals(value < 7, behavior.canRandomlyTick(state));
+            assertEquals(value < 7, behavior.canReceiveBonemeal(state));
+        }
+        assertTrue(behavior.isBonemealSuccess(null, new Object[0]));
+    }
+
+    @Test void nativeBonemealReadGuardSpansTargetCheckAndPerformCallback() throws Exception {
+        var definition = mock(BlockDefinition.class);
+        var variants = mock(BlockStateVariantProvider.class);
+        var age = IntegerProperty.create("age", 0, 7, 0);
+        var behavior = behavior(definition, age, SourceCropBehavior.Crop.TOMATO);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        var operations = new ResourceOperationCoordinator();
+        var gate = new CeResourceReadGate(operations, () -> true);
+        assertTrue(gate.publish(new Object(), () -> true));
+        when(definition.variantProvider()).thenReturn(variants);
+        when(variants.states()).thenReturn(ImmutableList.of(state));
+        when(state.owner().value()).thenReturn(definition);
+        doReturn(0).when(state).get(age);
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(gate);
+        Object target = new Object();
+
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS);
+             var states = mockStatic(BlockStateUtils.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+            states.when(() -> BlockStateUtils.getOptionalCustomBlockState(target)).thenReturn(Optional.of(state));
+
+            assertTrue(behavior.isValidBonemealTarget(null, new Object[]{null, null, target}));
+            assertThrows(ResourceOperationCoordinator.BusyException.class, operations::acquire);
+            gate.invalidate();
             assertTrue(behavior.isBonemealSuccess(null, new Object[0]));
+            assertThrows(ResourceOperationCoordinator.BusyException.class, operations::acquire);
+
+            doReturn(7).when(state).get(age);
+            behavior.performBonemeal(null, new Object[]{null, null, null, target});
+            try (var writer = operations.acquire()) { assertTrue(operations.isBusy()); }
+        }
+    }
+
+    @Test void nativeBonemealTargetFailsClosedWhenTheResourceGenerationIsUnavailable() throws Exception {
+        var behavior = behavior(IntegerProperty.create("age", 0, 7, 0), SourceCropBehavior.Crop.TOMATO);
+        var plugin = mock(KaleidoscopeCookeryPlugin.class);
+        when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.sourceCropReadGate()).thenReturn(new CeResourceReadGate(new ResourceOperationCoordinator(), () -> true));
+        Object target = new Object();
+        try (var plugins = mockStatic(KaleidoscopeCookeryPlugin.class, CALLS_REAL_METHODS);
+             var states = mockStatic(BlockStateUtils.class)) {
+            plugins.when(KaleidoscopeCookeryPlugin::instance).thenReturn(plugin);
+            assertFalse(behavior.isValidBonemealTarget(null, new Object[]{null, null, target}));
+            states.verifyNoInteractions();
         }
     }
 

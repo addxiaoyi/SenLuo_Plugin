@@ -8,9 +8,9 @@
 
 三种源作物的种子从 CraftEngine 构造放置上下文前开始持有资源读门，直到原有放置、保护事件和扣种逻辑返回。范围镰刀整次同步挥砍共用读门，覆盖方块分类、事件、收割和耐久结算。旧包即使没有安装这三种作物也能发布资源代际供镰刀使用。要启用种植保护，部署新插件时应同时替换以旧 `block_item` 配置生成的厨房包。
 
-根工程 `test shadowJar acceptanceJar` 通过，Java **980/980**，无失败、错误或跳过；根 Python **329/329**。重导出的 `build/distribution/kitchen-crops-guarded.zip` 通过 ZIP CRC 及三种种子配置核对，仍包含 **612/612** 条来源配方，SHA-256 为 `93fd4d3d307d62a7b4847d832152d2a792ee93f216556a38036d033c294de0d3`。
+根工程 `test shadowJar acceptanceJar` 通过，Java **1055/1055**，无失败、错误或跳过；根 Python **329/329**。重导出的 `build/distribution/kitchen-crops-guarded.zip` 通过 ZIP CRC 及三种种子配置核对，仍包含 **612/612** 条来源配方，SHA-256 为 `93fd4d3d307d62a7b4847d832152d2a792ee93f216556a38036d033c294de0d3`。
 
-骨粉完整原生事务及支撑丢失仍未纳入读门。固定 CraftEngine 重载时会暂时替换原生方块的行为委托，已排队的支撑检查可能根本没有进入 Cookery；仅在回调内重排不足以保证检查送达。Paper、Folia 和客户端仍待实测。详见[读门覆盖范围](research/cookery-resource-read-gate-2026-11-20.md)。
+骨粉目标判定到 `performBonemeal` 返回之间现由同一 guard 连续保护，覆盖 CE 状态读取、生长事件和状态提交。新增回归验证了读门失效后已准入的操作仍持 lease 完成回调。原版随后扣粉、外层捕获及进度处理仍在读门之外。支撑丢失也尚未纳入读门，固定 CraftEngine 重载时会暂时替换原生方块的行为委托，已排队的支撑检查可能根本没有进入 Cookery；仅在回调内重排不足以保证检查送达。Paper、Folia 和客户端仍待实测。详见[读门覆盖范围](research/cookery-resource-read-gate-2026-11-20.md)。
 
 ## 2026-11-21 源作物资源读门接入
 

@@ -18,3 +18,20 @@ def add_moved_asset_aliases(assets: dict[str, bytes]) -> list[dict[str, str]]:
         assets[old] = assets[current]
         added.append({'alias': old, 'source': current})
     return added
+
+
+def add_missing_meal_gui_aliases(assets: dict[str, bytes]) -> list[dict[str, str]]:
+    """Use each meal's source-authored first state for legacy GUI model paths absent upstream."""
+    added = []
+    prefix = "kaleidoscope_cookery/items/meals/gui/"
+    for path in sorted(tuple(assets)):
+        if not path.startswith(prefix) or not path.endswith(".json"):
+            continue
+        name = path[len(prefix):-5]
+        alias = f"kaleidoscope_cookery/models/meals/gui/{name}.json"
+        source = f"kaleidoscope_cookery/models/meals/block/{name}/0.json"
+        if alias in assets or source not in assets:
+            continue
+        assets[alias] = assets[source]
+        added.append({"alias": alias, "source": source})
+    return added

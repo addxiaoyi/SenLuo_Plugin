@@ -6,6 +6,11 @@ import json
 import re
 from typing import Any
 
+TULIP_BOARD = "kaleidoscope_bar:blackboard/9"
+PLAIN_BOARD = "kaleidoscope_bar:blackboard/0"
+TULIP_LOOT = "kaleidoscope:bar/events/tulip_loot"
+TULIP_LOOT_FILE = "src/kaleidoscope_bar/data/kaleidoscope/function/bar/events/tulip_loot/execute.mcfunction"
+
 
 def deco_id(index: str) -> str:
     return "kaleidoscope_deco:" + index.replace(":", "/")
@@ -36,6 +41,23 @@ def function_sounds(files: dict[str, bytes], name: str) -> list[str]:
         elif not line.startswith("particle "):
             raise ValueError(f"Function has additional behavior: {name}")
     return sounds
+
+
+def tulip_drops(files: dict[str, bytes]) -> list[str]:
+    source_bytes = files.get(TULIP_LOOT_FILE)
+    if source_bytes is None:
+        raise ValueError("Missing pinned tulip board loot function")
+    source = source_bytes.decode("utf-8").strip()
+    if not source:
+        raise ValueError("Empty pinned tulip board loot function")
+    match = re.fullmatch(r'loot spawn ~ ~ ~ loot \{"pools":\[\{rolls:1,entries:\[(.+)\]\}\]\}', source)
+    if not match:
+        raise ValueError("Unrecognized tulip board loot command")
+    entries = re.fullmatch(r'(?:\{type:"item",name:"(?:red|orange|white|pink)_tulip"\},?)+', match[1])
+    drops = re.findall(r'name:"([a-z_]+)"', match[1])
+    if not entries or len(drops) != 4 or len(set(drops)) != 4:
+        raise ValueError("Unrecognized tulip board loot pool")
+    return ["minecraft:" + drop for drop in drops]
 
 
 def item_tag_sources(files: dict[str, bytes]) -> dict[str, dict[str, dict]]:
@@ -88,7 +110,7 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
         if not event or event.get("event") in ("sit", "__nothing__"):
             continue
         rule: dict[str, Any] = {"inputs": [], "wand": False, "sneak": -1, "target": "", "sounds": [],
-                                "pending": False, "cost": 0, "rewards": []}
+                                "pending": False}
         predicate = event.get("predicate", "")
         if predicate:
             if predicate not in ("kaleidoscope:shift", "!kaleidoscope:shift"):
@@ -137,19 +159,21 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
                     continue
                 elif kind == "custom" and index.startswith("kaleidoscope_bar:blackboard/") and args.get("func") == "kaleidoscope:bar/events/custom_loot":
                     item = args.get("item", "")
-                    if not re.fullmatch(r"(?:minecraft:)?[a-z0-9_]+", item) or rule["rewards"]:
+                    if not re.fullmatch(r"(?:minecraft:)?[a-z0-9_]+", item) or rule.get("drops"):
                         raise ValueError("Unsupported custom loot item")
-                    rule["rewards"] = [item if ":" in item else "minecraft:" + item]
-                elif kind == "custom" and index == "kaleidoscope_bar:blackboard/9" and args.get("func") == "kaleidoscope:bar/events/tulip_loot":
-                    if rule["rewards"]:
+                    rule["drops"] = [item if ":" in item else "minecraft:" + item]
+                elif kind == "custom" and index == TULIP_BOARD and args.get("func") == TULIP_LOOT:
+                    if rule.get("drops"):
                         raise ValueError("Multiple loot actions")
-                    rule["rewards"] = ["minecraft:" + color + "_tulip" for color in ("red", "orange", "white", "pink")]
+                    rule["drops"] = tulip_drops(files)
                 else:
                     raise ValueError(f"Event pending: {kind}: {args.get('func', '')}")
-            if rule["rewards"] and not rule["target"]:
+            if rule.get("drops") and not rule["target"]:
                 raise ValueError("Loot action requires a state transition to prevent repeated extraction")
-            if index == "kaleidoscope_bar:blackboard/0" and rule["target"] and rule["inputs"]:
-                rule["cost"] = 1
+            if index == PLAIN_BOARD and rule["target"] == deco_id(TULIP_BOARD):
+                if len(flatten(event)) != 1 or sorted(rule["inputs"]) != sorted(tulip_drops(files)):
+                    raise ValueError("Unrecognized tulip board placement transition")
+                rule["consume"] = True
             if rule["target"] or rule["sounds"]:
                 converted.append(rule)
         except ValueError as error:
@@ -157,8 +181,8 @@ def rules(definition: dict, files: dict[str, bytes], pending: list[str], index: 
                 rule["target"] = ""
                 rule["sounds"] = []
                 rule["pending"] = True
-                rule["cost"] = 0
-                rule["rewards"] = []
+                rule.pop("consume", None)
+                rule.pop("drops", None)
                 converted.append(rule)
             pending.append(f"Interaction action pending: {error}")
     return converted
@@ -249,7 +273,9 @@ def link_variants(entries: list[dict], furnishings: dict, pending: list[str]) ->
         for rule in entry["rules"]:
             if rule["target"] and rule["target"] not in by_id:
                 pending.append(f"Transition target not exported: {entry['id']} -> {rule['target']}")
-                rule.update(target="", pending=True, cost=0, rewards=[])
+                rule.update(target="", pending=True)
+                rule.pop("consume", None)
+                rule.pop("drops", None)
     for origin in entries:
         seen, queue = set(), [origin["id"]]
         while queue:

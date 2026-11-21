@@ -304,6 +304,19 @@ def resolve_ingredient(value: Any, tags: dict[str, bytes], trail: tuple[str, ...
 
 def tavern(source: Source) -> tuple[dict, dict, dict, list]:
     assets, tags = source.resources("assets"), source.resources("data")
+    compat_textures = Path(__file__).with_name("compat-textures")
+    board = "kaleidoscope_tavern/textures/block/deco/sandwich_board/base.png"
+    if board not in assets:
+        assets[board] = (compat_textures / "undecorated_board.png").read_bytes()
+    for path, content in list(assets.items()):
+        if "/models/" in path and path.endswith(".json"):
+            model = parse_json(content)
+            textures = model.get("textures", {})
+            fixed = {key: "minecraft:block/iron_chain" if value in ("block/chain", "minecraft:block/chain") else value
+                     for key, value in textures.items()}
+            if fixed != textures:
+                model["textures"] = fixed
+                assets[path] = json_bytes(model)
     labels = names(assets, "kaleidoscope_tavern")
     java = source.files["src/main/java/com/github/ysbbbbbb/kaleidoscopetavern/init/ModItems.java"].decode()
     registrations = re.findall(r'ITEMS\.register\("([a-z0-9_]+)"', java)
@@ -360,7 +373,11 @@ def tavern(source: Source) -> tuple[dict, dict, dict, list]:
             items[id_]["settings"] = {"consume_replacement": "kaleidoscope_tavern:empty_glassware"
                                      if len(catalog["effects"].get(id_, [])) <= 1 else "kaleidoscope_tavern:empty_bottle"}
         behavior = {"barrel": "barrel", "pressing_tub": "pressing_tub", "shaker": "shaker",
-                    "trellis": "grape", "tap": "tap", "empty_bottle": "bottle", "empty_glassware": "bottle"}.get(path)
+                    "trellis": "grape", "tap": "tap", "empty_bottle": "bottle", "empty_glassware": "bottle",
+                    "molotov": "molotov", "holder": "molotov", "tilted_rack": "molotov",
+                    "circular_rack": "molotov", "cellar_cabinet": "molotov"}.get(path)
+        if path.endswith("_sandwich_board") and path != "deco_sandwich_board":
+            behavior = "sandwich_board"
         seated = path.endswith(("_sofa", "_bar_stool"))
         if behavior or seated:
             placeable(items[id_], id_)
@@ -372,7 +389,9 @@ def tavern(source: Source) -> tuple[dict, dict, dict, list]:
         if recipe["output"] not in items:
             raise ValueError(f"Missing brewing output: {recipe['output']}")
     pending += ["handheld shaker uses vanilla use animation; native mod hand animation is unavailable",
-                "tap sources support barrels, melon, dragon heads, hives, waterlogged blocks and cauldrons; wild grape worldgen, thrown molotovs and remaining furniture behavior pending",
+                "tap sources support barrels, melon, dragon heads, hives, waterlogged blocks and cauldrons; wild grape worldgen and remaining furniture behavior pending",
+                "Molotov storage supports Molotov only; native snowball flight display, online same-region fire protection, no saved in-flight projectile across unload/restart",
+                "sandwich boards use native dialog and at most 8 CE text lines; non-ASCII/uniform/custom font metrics, exact outline, two-block waterlogging and collision need client parity acceptance",
                 "grape growth uses staggered loaded-furniture pulses; spread is restricted to same-owner trellises",
                 "barrel uses its inventory item model; full multi-block appearance pending"]
     recipes, skipped = crafting(tags, items)
@@ -525,8 +544,26 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
                 raise ValueError(f"Conflicting base Deco assets: {key}")
             original[key] = content
     namespaces = {key.split("/")[0] for key in original}
-    from deco_asset_aliases import add_moved_asset_aliases
+    from deco_asset_aliases import add_missing_meal_gui_aliases, add_moved_asset_aliases
     add_moved_asset_aliases(original)
+    add_missing_meal_gui_aliases(original)
+    # The pinned source references these GUI textures from models but does not
+    # ship the corresponding files. Keep the two buttons distinct and provide
+    # the legacy cookbook icon name used by older item definitions.
+    compat_textures = Path(__file__).with_name("compat-textures")
+    original.setdefault("kaleidoscope_cookery/textures/item/ui/page_left.png",
+                       (compat_textures / "page_left.png").read_bytes())
+    original.setdefault("kaleidoscope_cookery/textures/item/ui/page_right.png",
+                       (compat_textures / "page_right.png").read_bytes())
+    cookbook = original.get("kaleidoscope_cookery/textures/item/icons/cookbook.png")
+    if cookbook is not None:
+        original.setdefault("kaleidoscope_cookery/textures/item/icons/cookery.png", cookbook)
+    frame_tool = "kaleidoscope_frame/items/test.json"
+    if frame_tool in original:
+        selector = parse_json(original[frame_tool])
+        for case in selector.get("model", {}).get("cases", []):
+            case["when"] = ["on_shelf" if context == "shelf" else context for context in case["when"]]
+        original[frame_tool] = json_bytes(selector)
     assets = {"kdeco_" + key: json_bytes(remap_deco(parse_json(content), namespaces))
               if key.endswith(".json") else content for key, content in original.items()}
     indexes, templates, tables, pending = deco_indexes(source)
@@ -603,9 +640,16 @@ def deco(source: Source) -> tuple[dict, dict, dict, list]:
     link_variants(entries, furnishings, pending)
     from deco_fishrack import add_fishrack_variants
     add_fishrack_variants(items, furnishings, assets)
+    from deco_seating import SOURCE as SEATING_SOURCE, append_seating
+    recipes = {}
+    if SEATING_SOURCE in source.files:
+        recipes = append_seating(source.files, original, namespaces, items, furnishings, entries,
+                                 model_tree, furniture, placeable)
+    elif getattr(source, "name", None) == "KaleidoscopeDeco":
+        raise ValueError(f"Pinned Deco source is missing seating index: {SEATING_SOURCE}")
     pending = [f"{message} ({count} uses)" if count > 1 else message for message, count in Counter(pending).items()]
     items["kaleidoscope_deco:state_tool"] = item("kaleidoscope_deco:state_tool", "minecraft:item/stick", "家具状态工具", max_stack=1)
-    return {"entries": entries, "styles": styles}, {"items": items, "furniture": furnishings}, assets, pending + [
+    return {"entries": entries, "styles": styles}, {"items": items, "furniture": furnishings, "recipes": recipes}, assets, pending + [
         "only literal registered furniture exported; GUI-only models are not items",
         "source-driven simple transitions and sofa dye/modes supported; additional scripted events are individually reported",
         "Deco namespaces are prefixed with kdeco_ to prevent collisions with the full gameplay mods",
@@ -693,7 +737,7 @@ class PackBuilder:
         for path, content in assets.items():
             bundle[f"{module}/resourcepack/assets/{path}"] = content
         for path, content in source.files.items():
-            if "/" not in path and ("LICENSE" in path.upper() or path.lower().startswith("readme")):
+            if "/" not in path and (path.lower().startswith(("license", "licence", "notice", "copying", "readme"))):
                 bundle[f"{module}/upstream-notices/{path}"] = content
         bundle[f"{module}/IMPORT-REPORT.json"] = json_bytes(report)
 

@@ -1,6 +1,6 @@
 import unittest
 
-from deco_asset_aliases import add_moved_asset_aliases
+from deco_asset_aliases import add_missing_meal_gui_aliases, add_moved_asset_aliases
 
 
 class MovedAssetTests(unittest.TestCase):
@@ -23,3 +23,22 @@ class MovedAssetTests(unittest.TestCase):
         self.assertEqual([], add_moved_asset_aliases(assets))
         self.assertEqual(original, assets)
         self.assertNotIn('kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json', assets)
+
+    def test_missing_meal_gui_alias_uses_only_the_matching_source_state_and_preserves_existing_model(self):
+        meal = 'kaleidoscope_cookery/items/meals/gui/frogspawn_jelly.json'
+        source = 'kaleidoscope_cookery/models/meals/block/frogspawn_jelly/0.json'
+        alias = 'kaleidoscope_cookery/models/meals/gui/frogspawn_jelly.json'
+        assets = {meal: b'{}', source: b'{"elements":[{}],"display":{"gui":{}}}'}
+        self.assertEqual([{'alias': alias, 'source': source}], add_missing_meal_gui_aliases(assets))
+        self.assertEqual(assets[source], assets[alias])
+
+        custom = b'{"elements":[],"display":{"gui":{}}}'
+        assets[alias] = custom
+        self.assertEqual([], add_missing_meal_gui_aliases(assets))
+        self.assertEqual(custom, assets[alias])
+
+    def test_missing_meal_gui_alias_requires_the_matching_source_state(self):
+        assets = {'kaleidoscope_cookery/items/meals/gui/missing.json': b'{}',
+                  'kaleidoscope_cookery/models/meals/block/other/0.json': b'{}'}
+        self.assertEqual([], add_missing_meal_gui_aliases(assets))
+        self.assertNotIn('kaleidoscope_cookery/models/meals/gui/missing.json', assets)

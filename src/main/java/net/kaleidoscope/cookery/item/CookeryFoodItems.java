@@ -70,7 +70,7 @@ public final class CookeryFoodItems {
             if (!effect.id().startsWith("minecraft:")) continue;
             var type = Registry.EFFECT.get(NamespacedKey.fromString(effect.id()));
             if (type == null) throw new IllegalStateException("Unsupported vanilla food effect " + effect.id());
-            effects.add(ConsumeEffect.applyStatusEffects(List.of(vanillaEffect(type, effect)), (float) effect.probability()));
+            effects.add(new ItemComponents.Effect(vanillaEffect(type, effect), (float) effect.probability()));
         }
         ItemComponents.food(stack, baked.food().consumeTicks() / 20f, baked.drink(), effects);
         return BukkitItemManager.instance().wrap(stack);

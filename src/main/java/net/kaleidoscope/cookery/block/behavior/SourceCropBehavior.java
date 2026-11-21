@@ -1,12 +1,13 @@
 package net.kaleidoscope.cookery.block.behavior;
 
 import net.kaleidoscope.cookery.block.entity.render.Particles;
+import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
+import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import net.kaleidoscope.cookery.util.DropUtils;
 import net.kaleidoscope.cookery.util.EventUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
 import net.kaleidoscope.cookery.util.InventoryUtils;
 import net.kaleidoscope.cookery.util.ItemMatcher;
-import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.block.behavior.AbstractCanSurviveBlockBehavior;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
@@ -49,6 +50,8 @@ import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Farmland;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -64,6 +67,10 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
     private static final ItemMatcher SICKLES = ItemMatcher.of(List.of(
             "kaleidoscopecookery:sickle", "#kaleidoscopecookery:range_harvest_tool"));
     private static final Set<Block> ACTIVE = ConcurrentHashMap.newKeySet();
+    private static final ThreadLocal<Deque<BonemealTransaction>> BONEMEAL_TRANSACTIONS =
+            ThreadLocal.withInitial(ArrayDeque::new);
+
+    private record BonemealTransaction(SourceCropBehavior behavior, CeResourceReadGate.Guard guard) {}
 
     enum Crop {
         TOMATO("tomato"), CHILI("red_chili"), LETTUCE("lettuce");
@@ -87,9 +94,7 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
         return state.get(age) < SourceCropGrowth.MAX_AGE;
     }
 
-    // Survival/support checks and native planting/bonemeal callbacks are not
-    // covered by this first-stage gate; their earlier CE/native entry points
-    // still require a complete wrapper before they can be admitted safely.
+    // Support checks and native planting callbacks remain outside the read gate.
     @Override protected boolean canSurvive(Object thisBlock, Object state, Object level, Object rawPos) {
         org.bukkit.World world = LevelProxy.INSTANCE.getWorld(level);
         BlockPos pos = LocationUtils.fromBlockPos(rawPos);
@@ -149,16 +154,58 @@ public final class SourceCropBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     @Override public boolean isValidBonemealTarget(Object thisBlock, Object[] args) {
-        // Bone-meal target lookup is not in this first-stage resource-read contract.
-        return BlockStateUtils.getOptionalCustomBlockState(args[2]).filter(this::canRandomlyTick).isPresent();
+        CeResourceReadGate.Guard guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources();
+        if (guard == null) return false;
+        boolean retained = false;
+        try {
+            ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[2]).orElse(null);
+            if (!canReceiveBonemeal(state)) return false;
+            BONEMEAL_TRANSACTIONS.get().addLast(new BonemealTransaction(this, guard));
+            retained = true;
+            return true;
+        } finally {
+            if (!retained) guard.close();
+        }
     }
 
     @Override public boolean isBonemealSuccess(Object thisBlock, Object[] args) { return true; }
 
     @Override public void performBonemeal(Object thisBlock, Object[] args) {
-        // The complete native item-use/fallback transaction is not wrapped here.
+        CeResourceReadGate.Guard transactionGuard = takeBonemealGuard();
+        if (transactionGuard != null) {
+            try { performBonemealInReadEpoch(args); }
+            finally { transactionGuard.close(); }
+            return;
+        }
+        try (var guard = KaleidoscopeCookeryPlugin.tryEnterSourceCropResources()) {
+            if (guard == null) return;
+            performBonemealInReadEpoch(args);
+        }
+    }
+
+    boolean canReceiveBonemeal(ImmutableBlockState state) {
+        if (state == null || state.owner().value() != blockDefinition || !canRandomlyTick(state)) return false;
+        for (ImmutableBlockState current : blockDefinition.variantProvider().states()) {
+            if (current == state) return true;
+        }
+        return false;
+    }
+
+    private CeResourceReadGate.Guard takeBonemealGuard() {
+        Deque<BonemealTransaction> transactions = BONEMEAL_TRANSACTIONS.get();
+        BonemealTransaction transaction = transactions.peekLast();
+        if (transaction == null || transaction.behavior() != this) {
+            if (transactions.isEmpty()) BONEMEAL_TRANSACTIONS.remove();
+            return null;
+        }
+        transactions.removeLast();
+        if (transactions.isEmpty()) BONEMEAL_TRANSACTIONS.remove();
+        return transaction.guard();
+    }
+
+    private void performBonemealInReadEpoch(Object[] args) {
         ImmutableBlockState state = BlockStateUtils.getOptionalCustomBlockState(args[3]).orElse(null);
-        if (state == null || !canRandomlyTick(state)) return;
+        if (!canReceiveBonemeal(state)) return;
         org.bukkit.World world = LevelProxy.INSTANCE.getWorld(args[0]);
         BlockPos pos = LocationUtils.fromBlockPos(args[2]);
         if (!owned(world, pos.x(), pos.z())) return;
