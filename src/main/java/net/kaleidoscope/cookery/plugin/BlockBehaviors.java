@@ -18,6 +18,7 @@ import net.kaleidoscope.cookery.block.behavior.TeapotBehavior;
 import net.kaleidoscope.cookery.block.behavior.TeacupCoasterBehavior;
 import net.kaleidoscope.cookery.block.behavior.RiceCropBehavior;
 import net.kaleidoscope.cookery.block.behavior.CropHarvestBehavior;
+import net.kaleidoscope.cookery.block.behavior.SourceCropBehavior;
 import net.kaleidoscope.cookery.block.behavior.TableBehavior;
 import net.kaleidoscope.cookery.block.behavior.BambooTrayBehavior;
 import net.kaleidoscope.cookery.block.behavior.PlateBehavior;
@@ -41,6 +42,7 @@ public final class BlockBehaviors {
     public static BlockBehaviorType<TeacupCoasterBehavior> TEACUP_COASTER;
     public static BlockBehaviorType<RiceCropBehavior> RICE_CROP;
     public static BlockBehaviorType<CropHarvestBehavior> CROP_HARVEST;
+    public static BlockBehaviorType<SourceCropBehavior> SOURCE_CROP;
     public static BlockBehaviorType<TableBehavior> TABLE;
     public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.EightImmortalsTableBehavior> EIGHT_IMMORTALS_TABLE;
     public static BlockBehaviorType<net.kaleidoscope.cookery.block.behavior.LongBenchBehavior> LONG_BENCH;
@@ -56,6 +58,8 @@ public final class BlockBehaviors {
     private BlockBehaviors() {}
 
     public static void register() {
+        if (SOURCE_CROP == null) SOURCE_CROP = RegistryUtils.registerBlockBehavior(
+                Key.of("kaleidoscopecookery:source_crop"), SourceCropBehavior.FACTORY);
         if (EIGHT_IMMORTALS_TABLE == null) EIGHT_IMMORTALS_TABLE = RegistryUtils.registerBlockBehavior(
                 Key.of("kaleidoscopecookery:eight_immortals_table"), net.kaleidoscope.cookery.block.behavior.EightImmortalsTableBehavior.FACTORY);
         if (LONG_BENCH == null) LONG_BENCH = RegistryUtils.registerBlockBehavior(

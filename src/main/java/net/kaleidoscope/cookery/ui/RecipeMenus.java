@@ -15,6 +15,7 @@ import net.kaleidoscope.cookery.recipe.edit.ChoppingRecipeDraft;
 import net.kaleidoscope.cookery.recipe.edit.TeapotRecipeDraft;
 import net.kaleidoscope.cookery.recipe.edit.BambooTrayRecipeDraft;
 import net.kaleidoscope.cookery.recipe.edit.FlexRecipeDraft;
+import net.kaleidoscope.cookery.recipe.edit.StockpotRecipeDraft;
 import net.kaleidoscope.cookery.ui.input.MenuInput;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -149,7 +150,7 @@ public final class RecipeMenus {
 
     // 创建入口 两类配方都存在时先让管理员选类型 只有精准可选时直接问 id
     public static void startCreate(org.bukkit.entity.Player bukkitPlayer, ApplianceType cook) {
-        // 这两个厨具只有一种配方形态 不用先问精准还是模糊
+        // 这些厨具只有一种配方形态 不用先问精准还是模糊
         if (cook == ApplianceType.CHOPPING_BOARD || cook == ApplianceType.TEAPOT) {
             askIdThenCreate(bukkitPlayer, cook, true);
             return;
@@ -162,10 +163,10 @@ public final class RecipeMenus {
         if (viewer == null) {
             return;
         }
-        GuiLayout layout = new GuiLayout(
-                "#########",
-                "#  A#B  #",
-                "R########");
+        boolean stockpot = cook == ApplianceType.STOCKPOT;
+        GuiLayout layout = stockpot
+                ? new GuiLayout("#########", "#A##B##C#", "R########")
+                : new GuiLayout("#########", "#  A#B  #", "R########");
         layout.addIngredient('#', Ingredient.simple(MenuIcons.filler(viewer)));
         layout.addIngredient('R', Ingredient.simple(
                 MenuIcons.back(viewer, () -> RecipeListMenu.open(bukkitPlayer, cook, true))));
@@ -177,8 +178,15 @@ public final class RecipeMenus {
         layout.addIngredient('B', MenuIcons.button(
                 MenuIcons.icon(MenuButton.ADD, viewer,
                         MenuIcons.text("新建模糊食谱", NamedTextColor.GREEN),
-                        MenuIcons.lore("按理想配比匹配最近邻", "投料越贴近配比品质越高")),
+                        MenuIcons.lore("按理想配比匹配最近邻", stockpot ? "沿用旧版余弦规则" : "投料越贴近配比品质越高")),
                 () -> askIdThenCreate(bukkitPlayer, cook, false)));
+        if (stockpot) {
+            layout.addIngredient('C', MenuIcons.button(
+                    MenuIcons.icon(MenuIcons.iconOf(cook), viewer,
+                            MenuIcons.text("新建高汤锅食谱", NamedTextColor.AQUA),
+                            MenuIcons.lore("按槽位精确或种类匹配", "可设汤底、份数和外观")),
+                    () -> askStockpotIdThenCreate(bukkitPlayer, cook)));
+        }
         Gui gui = BasicGuiImpl.builder()
                 .layout(layout)
                 .inventoryClickConsumer(inventoryGuard())
@@ -209,6 +217,21 @@ public final class RecipeMenus {
                     } else {
                         FlexEditMenu.open(bukkitPlayer, FlexRecipeDraft.creating(cook, id));
                     }
+                },
+                () -> RecipeListMenu.open(bukkitPlayer, cook, true));
+    }
+
+    private static void askStockpotIdThenCreate(org.bukkit.entity.Player bukkitPlayer, ApplianceType cook) {
+        String suggested = ItemKeys.NAMESPACE + ":stockpot_new";
+        MenuInput.requestText(bukkitPlayer, "新建高汤锅食谱", "食谱 id", suggested,
+                raw -> {
+                    Key id = parseKey(raw);
+                    if (id == null) {
+                        message(bukkitPlayer, "食谱 id 格式不正确");
+                        RecipeListMenu.open(bukkitPlayer, cook, true);
+                        return;
+                    }
+                    StockpotEditMenu.open(bukkitPlayer, StockpotRecipeDraft.creating(id));
                 },
                 () -> RecipeListMenu.open(bukkitPlayer, cook, true));
     }

@@ -28,7 +28,13 @@ def baked(entry: dict) -> dict | None:
                 'effects': entry['tea']['effects'] if entry['tea'] else []}
     if food is None:
         return None
-    food = {key: value for key, value in food.items() if key != 'saturationModifier'}
+    # food_v1 is a STRING component, so JSON member order and numeric spelling
+    # must match BakedFood.encode(), not only its decoded values. Use the Java
+    # FoodDefinition/ConsumeEffectDefinition record order for every source path.
+    food = {'nutrition': food['nutrition'], 'saturation': float(food['saturation']),
+            'alwaysEat': food['alwaysEat'], 'meat': food['meat'], 'consumeTicks': food['consumeTicks'],
+            'effects': [{'id': effect['id'], 'duration': effect['duration'], 'amplifier': effect['amplifier'],
+                         'probability': float(effect['probability'])} for effect in food['effects']]}
     return {'version': 1, 'sourceCommit': COMMIT, 'itemId': entry['pluginId'], 'quality': {'name': 'BASE', 'ratio': 1.0},
             'food': food, 'drink': drink, **({'container': entry['container']} if entry['container'] else {}),
             'damage': entry.get('consumeDamage', 0), 'removeHarmful': entry.get('consumeAction') == 'remove_harmful_effects'}

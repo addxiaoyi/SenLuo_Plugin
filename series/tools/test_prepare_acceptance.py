@@ -8,34 +8,10 @@ import hashlib
 
 from check_acceptance_matrix import load as load_matrix
 from import_sources import load_module_specs
-from prepare_independent_servers import _within, install_artifact, io_path, prepare, required_artifacts, verify_zip
+from prepare_independent_servers import _within, install_artifact, prepare, required_artifacts, verify_zip
 
 
 class AcceptancePreparationTests(unittest.TestCase):
-    def test_long_model_paths_extract_without_changing_windows_policy(self):
-        with tempfile.TemporaryDirectory(dir=io_path(Path(tempfile.gettempdir()))) as directory:
-            root = Path(directory)
-            archive = root / "models.zip"
-            model = "resourcepack/assets/test/models/" + "/".join(["long_model_name" * 3] * 4) + "/model.json"
-            with ZipFile(archive, "w") as output:
-                output.writestr("pack.yml", "namespace: test\n")
-                output.writestr("configuration/content.yml", "{}\n")
-                output.writestr(model, '{"parent":"minecraft:item/generated"}')
-            destination = install_artifact(root, "plugins/CraftEngine/resources/test", archive, "ce-pack")
-            self.assertGreater(len(str(destination / model)), 260)
-            self.assertEqual('{"parent":"minecraft:item/generated"}', io_path(destination / model).read_text())
-            self.assertTrue(_within(destination / model, root))
-
-    def test_invalid_target_or_ports_fail_before_creating_server(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            destination = root / "build/acceptance/runtime"
-            with patch("prepare_independent_servers.WORKSPACE", root):
-                for options in ({"minecraft": "26.10"}, {"paper_port": 80}, {"paper_port": 25592}):
-                    with self.subTest(options=options), self.assertRaises(ValueError):
-                        prepare(destination, root, root, **options)
-            self.assertFalse(destination.exists())
-
     def test_matrix_keeps_all_five_modules_explicit(self):
         matrix = load_matrix()
         self.assertEqual({"cookery", "doll", "tavern", "deco", "music"},
@@ -109,7 +85,7 @@ class AcceptancePreparationTests(unittest.TestCase):
                 archive.writestr("manifest.json", "{}\n")
             destination = root / "build/acceptance/runtime"
             engine = root / "craft-engine.jar"
-            engine_config = "block:\n  serverside-blocks: 2000\nmisc:\n  delay-configuration-load: true\n"
+            engine_config = "block:\n  serverside-blocks: 2000\nresource-pack:\n  cache-resource-files: true\nmisc:\n  delay-configuration-load: true\n"
             with ZipFile(engine, "w") as archive:
                 archive.writestr("plugin.yml", "name: CraftEngine\n")
                 archive.writestr("config.yml", engine_config)
@@ -123,16 +99,8 @@ class AcceptancePreparationTests(unittest.TestCase):
             with patch("prepare_independent_servers.WORKSPACE", root), \
                     patch("prepare_independent_servers.SUITE", sources):
                 report = prepare(destination, artifacts, packs, cookery_pack=cookery,
-                                 craft_engine=engine, server_blocks=3000, base_resources=base_resources,
-                                 minecraft="26.3", paper_port=25603, folia_port=25604)
-            self.assertEqual("26.3", report["minecraft"])
-            self.assertEqual(25, report["java"])
-            self.assertEqual(25603, report["instances"]["paper"]["port"])
-            self.assertIn("server-port=25603", (destination / "paper/server.properties").read_text())
-            self.assertIn("eula=false", (destination / "paper/eula.txt").read_text())
-            self.assertFalse(report["instances"]["paper"]["eulaAccepted"])
-            self.assertTrue((destination / "paper/start.cmd").is_file())
-            config_sha = hashlib.sha256(engine_config.replace("2000", "3000").encode()).hexdigest()
+                                 craft_engine=engine, server_blocks=3000, base_resources=base_resources, early_pack_load=True)
+            config_sha = hashlib.sha256(engine_config.replace("2000", "3000").replace(": true", ": false").encode()).hexdigest()
             self.assertEqual(config_sha, report["craftEngineConfig"]["sha256"])
             prepared_config = destination / "artifacts" / report["craftEngineConfig"]["path"]
             self.assertEqual(config_sha, hashlib.sha256(prepared_config.read_bytes()).hexdigest())
@@ -149,7 +117,7 @@ class AcceptancePreparationTests(unittest.TestCase):
                 self.assertEqual([], list(resources.glob("*.zip")))
                 self.assertEqual(6, len(report["instances"][platform]["cePacks"]))
                 config = destination / platform / "plugins/CraftEngine/config.yml"
-                self.assertEqual(engine_config.replace("2000", "3000"), config.read_text())
+                self.assertEqual(engine_config.replace("2000", "3000").replace(": true", ": false"), config.read_text())
                 self.assertEqual(3000, report["craftEngineConfig"]["serverBlocks"])
                 self.assertEqual(config_sha, hashlib.sha256(config.read_bytes()).hexdigest())
 

@@ -181,7 +181,7 @@ public class SteamerItemBehavior extends BlockItemBehavior {
         if (context.getPlayer() != null && !InteractGuard.canPlace(context.getPlayer(), context.getLevel(), context.getClickedPos())) return false;
         if (!validPlayer(context) || !accessible(context, context.getClickedPos())) return false;
         BlockPos pos = context.getClickedPos();
-        return NmsBridgeProvider.bridge().canPlaceEightImmortalsTable(context.getLevel().minecraftWorld(), pos.x(), pos.y(), pos.z(),
+        return NmsBridgeProvider.bridge().canPlaceKitchenPart(context.getLevel().minecraftWorld(), pos.x(), pos.y(), pos.z(),
                 context.getPlayer() == null ? null : context.getPlayer().minecraftPlayer(), context.getItem().minecraftItem());
     }
     private static boolean adventureAllowed(BlockPlaceContext context) {

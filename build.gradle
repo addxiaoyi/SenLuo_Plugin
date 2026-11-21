@@ -34,6 +34,11 @@ repositories {
     // Spigot BuildTools installs the version-specific NMS dependencies here.
     mavenLocal()
     mavenCentral()
+    maven {
+        name = "mojangLogging"
+        url = 'https://libraries.minecraft.net/'
+        content { includeModule('com.mojang', 'logging') }
+    }
     exclusiveContent {
         forRepository { maven { url = 'https://api.modrinth.com/maven' } }
         filter { includeGroup('maven.modrinth') }
@@ -75,12 +80,17 @@ nmsVersions.each { sourceSetName, version ->
     }
 }
 
+configurations {
+    mockitoAgent
+}
+
 dependencies {
     legacyGsonRuntime('com.google.code.gson:gson:2.10.1') { transitive = false }
     modernCompatCompileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testImplementation(platform('org.junit:junit-bom:5.11.4'))
     testImplementation('org.junit.jupiter:junit-jupiter')
     testImplementation('org.mockito:mockito-core:5.15.2')
+    mockitoAgent('org.mockito:mockito-core:5.15.2') { transitive = false }
     testImplementation('org.ow2.asm:asm:9.8')
     testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
@@ -90,6 +100,9 @@ dependencies {
     // CE's published APIs omit relocated classes used by Player method signatures.
     testRuntimeOnly("maven.modrinth:craftengine:${craftEngineVersion}")
     testRuntimeOnly('com.mojang:authlib:7.0.61')
+    // Native NBT tag codecs require DynamicOps during the bounded source-reader tests.
+    testRuntimeOnly('com.mojang:datafixerupper:8.0.16')
+    testRuntimeOnly('com.mojang:logging:1.6.11')
     // CE's block API reads /version.json through a Minecraft class at initialization.
     testRuntimeOnly('org.spigotmc:spigot:1.21.11-R0.1-SNAPSHOT:remapped-mojang') { transitive = false }
     testRuntimeOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
@@ -134,11 +147,21 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // Load Mockito's supported premain agent with the test JVM. Dynamic
+    // attachment otherwise starts an extra external JVM and can fail before
+    // the first mock is initialized on constrained hosts.
+    jvmArgumentProviders.add({ ->
+        ["-javaagent:${configurations.mockitoAgent.singleFile.absolutePath}"]
+    } as org.gradle.process.CommandLineArgumentProvider)
     systemProperty 'file.encoding', 'UTF-8'
     dependsOn(tasks.named('shadowJar'))
     def pluginJar = tasks.named('shadowJar').get().archiveFile
     inputs.file(pluginJar)
     systemProperty 'cookery.pluginJar', pluginJar.get().asFile.absolutePath
+    dependsOn('acceptanceJar')
+    def acceptanceJarFile = layout.buildDirectory.file('acceptance/probe/CookeryAcceptanceProbe.jar')
+    inputs.file(acceptanceJarFile)
+    systemProperty 'cookery.acceptanceJar', acceptanceJarFile.get().asFile.absolutePath
 }
 
 // Exercise the catalog parser with the Gson actually shipped by Paper 1.21.1.
@@ -255,4 +278,7 @@ tasks.register('acceptanceJar', Jar) {
     from(sourceSets.acceptance.output)
     archiveFileName.set('CookeryAcceptanceProbe.jar')
     destinationDirectory.set(layout.buildDirectory.dir('acceptance/probe'))
+    // The probe's native reflection names already use Mojang mappings. Keep its
+    // defining JAR stable instead of sending it through the Spigot remapper.
+    manifest.attributes('paperweight-mappings-namespace': 'mojang')
 }

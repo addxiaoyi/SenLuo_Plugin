@@ -860,6 +860,10 @@ public final class FoodRecipeRegistry {
         });
     }
 
+    public boolean removeStockpot(Key id) {
+        return update(() -> state().stockpotRecipes.removeIf(r -> r.id().equals(id)));
+    }
+
     public List<ChoppingBoardRecipe> choppingRecipes() {
         State view = state();
         return List.copyOf(view.choppingRecipes);

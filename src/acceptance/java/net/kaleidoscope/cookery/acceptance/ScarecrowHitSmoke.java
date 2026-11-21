@@ -57,6 +57,14 @@ final class ScarecrowHitSmoke implements Listener {
         second=nativeActor("ScarecrowProbeB",GameMode.SURVIVAL);
         creative=nativeActor("ScarecrowProbeC",GameMode.CREATIVE);
         check(!first.isOnline() && Bukkit.getPlayer(first.getUniqueId())==null,"Probe actor unexpectedly registered online");
+        if (!Bukkit.isOwnedByCurrentRegion(first)) {
+            // Folia owns only tracked players or their active connections on a region thread.
+            // A live player is needed to exercise the hit sequence there.
+            check(!first.isOnline() && !second.isOnline() && !creative.isOnline(), "Unexpected connected actor");
+            report.put("playerHits", "NEEDS_CONNECTED_REGION_OWNED_PLAYER");
+            finish();
+            return;
+        }
         var definition=CraftEngineFurniture.byId(Key.of("kaleidoscopecookery:scarecrow"));
         check(definition.settings().hitTimes()==1,"CE must dispatch every hit to source timing");
         report.put("perHitBreakEventConfigured",true);

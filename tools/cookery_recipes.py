@@ -58,7 +58,7 @@ PENDING = {
 MILLSTONE_MISSING_TAGS = frozenset(('forge:gravel', 'forge:sand/red', 'forge:sand/colorless'))
 # Explicit vanilla members of Forge's standard tags. Bukkit has no Forge tag
 # registry; source-provided definitions always take precedence over these fallbacks.
-VANILLA_TAG_FALLBACKS = {
+TARGET_TAG_MEMBERS = {
     'forge:ingots/iron': ('minecraft:iron_ingot',),
     'forge:ingots/gold': ('minecraft:gold_ingot',),
     'forge:ingots/copper': ('minecraft:copper_ingot',),
@@ -178,8 +178,8 @@ class RecipeSources:
         if tag in chain:
             raise AuditError(f'cyclic ingredient tag: {chain + (tag,)}')
         if tag not in self.tags:
-            if tag in VANILLA_TAG_FALLBACKS:
-                return list(VANILLA_TAG_FALLBACKS[tag])
+            if tag in TARGET_TAG_MEMBERS:
+                return list(TARGET_TAG_MEMBERS[tag])
             if tag in VANILLA_TAG_ALIASES:
                 return self.expand({'tag': VANILLA_TAG_ALIASES[tag]}, chain + (tag,), vanilla_tags, omissions)
             if vanilla_tags and tag.startswith('minecraft:'):
@@ -195,7 +195,7 @@ class RecipeSources:
             optional = isinstance(entry, dict) and not entry['required']
             reason = None
             if (optional and ref.startswith('#') and ref[1:] not in self.tags
-                    and ref[1:] not in VANILLA_TAG_FALLBACKS and ref[1:] not in VANILLA_TAG_ALIASES
+                    and ref[1:] not in TARGET_TAG_MEMBERS and ref[1:] not in VANILLA_TAG_ALIASES
                     and not ref.startswith('#minecraft:')):
                 reason = 'Optional tag is absent from the fixed source tree.'
             elif optional and not ref.startswith(('#', 'minecraft:', ART + ':')):
@@ -508,7 +508,8 @@ def recipe_report(sources: RecipeSources, records: list[dict], config: dict) -> 
                                                     'installed external content requires an explicit mapping and a new import.'},
             'targetItemAliases': VANILLA_ALIASES,
             'pluginItemAliases': PLUGIN_ITEM_ALIASES,
-            'externalTagFallbacks': VANILLA_TAG_FALLBACKS,
+            'targetTagMappings': {tag: list(members) for tag, members in TARGET_TAG_MEMBERS.items()
+                                  if tag not in sources.tags},
             'externalTagAliases': VANILLA_TAG_ALIASES,
             'externalTagPolicy': 'Explicit vanilla members only when the fixed source has no tag definition; '
                                  'additional modded members require a configured mapping and a new import.',

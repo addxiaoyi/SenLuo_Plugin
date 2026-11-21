@@ -1,6 +1,5 @@
 package net.kaleidoscope.cookery.item;
 
-import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -25,7 +24,7 @@ public final class ItemIcons {
     private ItemIcons() {}
 
     // 生成到 CE 的配置目录 由 CE 在解析阶段照常读取
-    // CE 的配置解析发生在所有插件启用之后
+    // 在 CE 解析配置前写入，从第一次启动即可使用。
     private static final String GENERATED_FILE = "configuration/font/generated_item_icons.yml";
     private static final String ASSETS = "resourcepack/assets";
     private static final String ITEM_DIR = "item";
@@ -53,7 +52,7 @@ public final class ItemIcons {
     }
 
     // 启动时跑一次 写配置 + 建索引 失败只是没图标 不该拦住插件启动
-    public static void generate() {
+    public static void generate(Plugin owner) {
         ICONS.clear();
         Plugin ce = Bukkit.getPluginManager().getPlugin("CraftEngine");
         if (ce == null) {
@@ -66,10 +65,10 @@ public final class ItemIcons {
             collectPackTextures(packRoot, entries);
             collectVanillaIds(packRoot, entries);
             writeConfig(packRoot.resolve(GENERATED_FILE), entries);
-            KaleidoscopeCookeryPlugin.instance().getLogger().info(
+            owner.getLogger().info(
                     "[icon] 已在资源包 " + packRoot.getFileName() + " 生成 " + entries.size() + " 条物品图标字体");
         } catch (IOException e) {
-            KaleidoscopeCookeryPlugin.instance().getLogger().warning(
+            owner.getLogger().warning(
                     "[icon] 生成物品图标失败 lore 将回退为文字: " + e.getMessage());
         }
     }

@@ -21,8 +21,12 @@ public interface NmsBridge {
     /** Complete one detached food/potion stack through vanilla's version-specific implementation. */
     Object finishConsumingItem(Object item, Player player);
 
-    /** Source table checks: world border, build height, top-quarter obstruction and item-use permission. */
-    boolean canPlaceEightImmortalsTable(Object level, int x, int y, int z, Object player, Object item);
+    /** World border, build height, top-quarter obstruction and item-use permission. */
+    boolean canPlaceKitchenPart(Object level, int x, int y, int z, Object player, Object item);
+
+    default boolean canPlaceEightImmortalsTable(Object level, int x, int y, int z, Object player, Object item) {
+        return canPlaceKitchenPart(level, x, y, z, player, item);
+    }
 
     default Player bukkitPlayer(Object nmsEntity) {
         Object bukkit = bukkitEntity(nmsEntity);

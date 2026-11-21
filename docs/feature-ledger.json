@@ -16,26 +16,17 @@
       "title": "可复现构建基线",
       "parity_level": "A",
       "status": "implemented",
-      "source_ids": [
-        "toolchain:paper-1.21.11",
-        "toolchain:craftengine-26.9.1"
-      ],
-      "evidence": [
-        "docs/build-baseline.md"
-      ]
+      "source_ids": ["toolchain:paper-1.21.11", "toolchain:craftengine-26.9.1"],
+      "evidence": ["docs/build-baseline.md"]
     },
     {
       "feature_id": "E02",
       "module": "engineering",
-      "title": "Java/Python/CE 静态 CI",
+      "title": "Java/Python/Node/CE 静态 CI",
       "parity_level": "A",
       "status": "implemented",
-      "source_ids": [
-        "workflow:ci"
-      ],
-      "evidence": [
-        ".github/workflows/ci.yml"
-      ]
+      "source_ids": ["workflow:ci"],
+      "evidence": [".github/workflows/ci.yml", "tools/acceptance/connected/test-persistence.cjs", "tools/acceptance/connected/test-gameplay-persistence.cjs", "tools/test_connected_acceptance.py"]
     },
     {
       "feature_id": "E03",
@@ -43,13 +34,8 @@
       "title": "功能台账与证据状态",
       "parity_level": "A",
       "status": "implemented",
-      "source_ids": [
-        "ledger:schema-v1"
-      ],
-      "evidence": [
-        "docs/feature-ledger.json",
-        "tools/feature_ledger.py"
-      ]
+      "source_ids": ["ledger:schema-v1"],
+      "evidence": ["docs/feature-ledger.json", "tools/feature_ledger.py"]
     },
     {
       "feature_id": "E04",
@@ -57,16 +43,8 @@
       "title": "五插件隔离 Paper/Folia/客户端验收",
       "parity_level": "C",
       "status": "runtime_tested",
-      "source_ids": [
-        "acceptance:paper-folia-client"
-      ],
-      "evidence": [
-        "series/docs/ACCEPTANCE.md",
-        "series/docs/acceptance-matrix.json",
-        "series/tools/prepare_independent_servers.py",
-        "docs/research/series-runtime-acceptance-2026-11-08.json",
-        "docs/research/series-five-runtime-acceptance-2026-11-08.json"
-      ]
+      "source_ids": ["acceptance:paper-folia-client"],
+      "evidence": ["series/docs/ACCEPTANCE.md", "series/docs/acceptance-matrix.json", "series/tools/prepare_independent_servers.py", "docs/research/series-runtime-acceptance-2026-11-08.json", "docs/research/series-five-runtime-acceptance-2026-11-08.json", "docs/research/series-runtime-2026-11-18.json", "docs/research/series-restart-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "E05",
@@ -74,13 +52,8 @@
       "title": "资源引用与独立分发检查",
       "parity_level": "A",
       "status": "unit_tested",
-      "source_ids": [
-        "pack:independent-ce-packs"
-      ],
-      "evidence": [
-        "series/tools/validate_packs.py",
-        "series/tools/check_independence.py"
-      ]
+      "source_ids": ["pack:independent-ce-packs"],
+      "evidence": ["series/tools/validate_packs.py", "series/tools/check_independence.py"]
     },
     {
       "feature_id": "E06",
@@ -88,14 +61,8 @@
       "title": "上游许可证逐包核验",
       "parity_level": "C",
       "status": "blocked",
-      "source_ids": [
-        "license:upstream-assets"
-      ],
-      "evidence": [
-        "docs/research/organization-checkouts.json",
-        "docs/license-policy.json",
-        "tools/audit_licenses.py"
-      ]
+      "source_ids": ["license:upstream-assets"],
+      "evidence": ["docs/research/organization-checkouts.json", "docs/license-policy.json", "tools/audit_licenses.py", "series/docs/UPSTREAM-LICENSES.md"]
     },
     {
       "feature_id": "C01",
@@ -103,14 +70,8 @@
       "title": "竹筛完整玩家闭环",
       "parity_level": "B",
       "status": "implemented",
-      "source_ids": [
-        "KaleidoscopeCookery:bamboo-tray"
-      ],
-      "evidence": [
-        "docs/COOKERY-PARITY.md",
-        "docs/VALIDATION.md",
-        "docs/research/cookery-bamboo-acceptance.json"
-      ]
+      "source_ids": ["KaleidoscopeCookery:bamboo-tray"],
+      "evidence": ["docs/COOKERY-PARITY.md", "docs/VALIDATION.md", "docs/research/cookery-bamboo-acceptance.json"]
     },
     {
       "feature_id": "C02",
@@ -118,15 +79,8 @@
       "title": "38种直接食用大菜方块与逐口流程",
       "parity_level": "B",
       "status": "runtime_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:FoodBiteRegistry",
-        "KaleidoscopeCookery:cold_cut_ham_slices"
-      ],
-      "evidence": [
-        "docs/research/cookery-placed-meals-acceptance-2026-11-15.json",
-        "docs/VALIDATION.md",
-        "src/main/java/net/kaleidoscope/cookery/block/entity/PlacedMealController.java"
-      ]
+      "source_ids": ["KaleidoscopeCookery:FoodBiteRegistry", "KaleidoscopeCookery:cold_cut_ham_slices"],
+      "evidence": ["docs/research/cookery-placed-meals-acceptance-2026-11-15.json", "docs/VALIDATION.md", "src/main/java/net/kaleidoscope/cookery/block/entity/PlacedMealController.java"]
     },
     {
       "feature_id": "C11",
@@ -134,14 +88,8 @@
       "title": "5种盖饭 native 合成与熟米饭余料",
       "parity_level": "A",
       "status": "runtime_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:rice_bowl"
-      ],
-      "evidence": [
-        "src/main/java/net/kaleidoscope/cookery/recipe/RiceBowlRecipe.java",
-        "docs/research/cookery-rice-bowls-acceptance-2026-11-16.json",
-        "build/acceptance/rice-bowl-api-audit/summary.txt"
-      ]
+      "source_ids": ["KaleidoscopeCookery:rice_bowl"],
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/recipe/RiceBowlRecipe.java", "docs/research/cookery-rice-bowls-acceptance-2026-11-16.json"]
     },
     {
       "feature_id": "C12",
@@ -149,16 +97,26 @@
       "title": "茶旗放置、染色、图案存档与带状态掉落",
       "parity_level": "B",
       "status": "unit_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:TeaBannerBlock",
-        "KaleidoscopeCookery:TeaBannerBlockEntity"
-      ],
-      "evidence": [
-        "src/main/java/net/kaleidoscope/cookery/block/behavior/TeaBannerBehavior.java",
-        "src/main/java/net/kaleidoscope/cookery/block/entity/TeaBannerController.java",
-        "tools/test_cookery_kitchen_pack.py",
-        "docs/research/cookery-tea-banner-2026-11-16.json"
-      ]
+      "source_ids": ["KaleidoscopeCookery:TeaBannerBlock", "KaleidoscopeCookery:TeaBannerBlockEntity"],
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/block/behavior/TeaBannerBehavior.java", "src/main/java/net/kaleidoscope/cookery/block/entity/TeaBannerController.java", "tools/test_cookery_kitchen_pack.py", "docs/research/cookery-tea-banner-2026-11-16.json"]
+    },
+    {
+      "feature_id": "C13",
+      "module": "cookery",
+      "title": "农夫套装解码ID规则与玩家实体调度生命周期",
+      "parity_level": "A",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeCookery:ArmorEffectEvent"],
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/effect/KitchenEffectHandlers.java", "src/test/java/net/kaleidoscope/cookery/effect/FarmerOutfitTest.java", "docs/research/series-effects-gift-regression-2026-11-19.json"]
+    },
+    {
+      "feature_id": "C14",
+      "module": "cookery",
+      "title": "番茄、辣椒、生菜三作物24龄状态、maintains_farmland原生标签、农田光照生长和骨粉；主副手成熟采果回龄5，生菜PASS，成熟持骨粉先采果不耗粉；镰刀实际手快照及空工具来源掉落回龄0；服务端选框空碰撞，客户端仍绊线轮廓",
+      "parity_level": "B",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeCookery:BaseCropBlock", "KaleidoscopeCookery:ChiliCropBlock", "KaleidoscopeCookery:LettuceCropBlock", "KaleidoscopeCookery:SickleItem"],
+      "evidence": ["tools/cookery_source_crops.py", "tools/test_cookery_source_crops.py", "src/main/java/net/kaleidoscope/cookery/block/behavior/SourceCropBehavior.java", "src/main/java/net/kaleidoscope/cookery/block/behavior/SourceCropGrowth.java", "src/main/java/net/kaleidoscope/cookery/block/behavior/SourceCropHarvestSource.java", "src/main/java/net/kaleidoscope/cookery/block/behavior/HarvestableCrop.java", "src/main/java/net/kaleidoscope/cookery/item/behavior/SickleRangeHarvestBehavior.java", "src/test/java/net/kaleidoscope/cookery/block/behavior/SourceCropBehaviorTest.java", "src/test/java/net/kaleidoscope/cookery/block/behavior/SourceCropGrowthTest.java", "src/test/java/net/kaleidoscope/cookery/block/behavior/SourceCropHarvestSourceTest.java", "src/test/java/net/kaleidoscope/cookery/block/behavior/HarvestableCropHandTest.java", "src/test/java/net/kaleidoscope/cookery/item/behavior/SickleRangeHarvestBehaviorTest.java", "docs/COOKERY-PARITY.md", "docs/research/cookery-source-sickle-2026-11-20.md", "docs/research/cookery-source-sickle-validation-2026-11-20.json", "src/test/java/net/kaleidoscope/cookery/item/behavior/SourceClassifiedSickleTest.java"]
     },
     {
       "feature_id": "C10",
@@ -166,14 +124,8 @@
       "title": "11种整份取物盘的服务端存取与掉落",
       "parity_level": "B",
       "status": "runtime_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:PlateRegistry"
-      ],
-      "evidence": [
-        "src/main/java/net/kaleidoscope/cookery/block/entity/PlateController.java",
-        "docs/research/cookery-plate-acceptance-2026-11-15.json",
-        "docs/VALIDATION.md"
-      ]
+      "source_ids": ["KaleidoscopeCookery:PlateRegistry"],
+      "evidence": ["src/main/java/net/kaleidoscope/cookery/block/entity/PlateController.java", "docs/research/cookery-plate-acceptance-2026-11-15.json", "docs/VALIDATION.md"]
     },
     {
       "feature_id": "C03",
@@ -181,28 +133,17 @@
       "title": "食品效果语义与状态存档",
       "parity_level": "A",
       "status": "unit_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:food-effects"
-      ],
-      "evidence": [
-        "src/test",
-        "src/main/java/net/kaleidoscope/cookery/util/CookeryStateEnvelope.java",
-        "src/main/java/net/kaleidoscope/cookery/util/CookeryBlockStateEnvelope.java"
-      ]
+      "source_ids": ["KaleidoscopeCookery:food-effects"],
+      "evidence": ["src/test", "src/main/java/net/kaleidoscope/cookery/util/CookeryStateEnvelope.java", "src/main/java/net/kaleidoscope/cookery/util/CookeryBlockStateEnvelope.java"]
     },
     {
       "feature_id": "C04",
       "module": "cookery",
       "title": "612 条来源配方全部裁决",
       "parity_level": "A",
-      "status": "blocked",
-      "source_ids": [
-        "KaleidoscopeCookery:recipes-612"
-      ],
-      "evidence": [
-        "docs/COOKERY-PARITY.md",
-        "docs/research/cookery-pending-recipes-2026-11-15.json"
-      ]
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeCookery:recipes-612"],
+      "evidence": ["docs/COOKERY-PARITY.md", "tools/test_cookery_kitchen_pack.py", "docs/research/series-runtime-2026-11-18.json", "docs/research/series-connected-2026-11-19.json", "docs/research/deco-tulip-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "C09",
@@ -210,13 +151,8 @@
       "title": "Cookery 五插件整合 CE 运行加载",
       "parity_level": "A",
       "status": "runtime_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:runtime-load"
-      ],
-      "evidence": [
-        "docs/research/series-five-runtime-acceptance-2026-11-08.json",
-        "src/main/java/net/kaleidoscope/cookery/plugin/KaleidoscopeCookeryPlugin.java"
-      ]
+      "source_ids": ["KaleidoscopeCookery:runtime-load"],
+      "evidence": ["docs/research/series-five-runtime-acceptance-2026-11-08.json", "src/main/java/net/kaleidoscope/cookery/plugin/KaleidoscopeCookeryPlugin.java"]
     },
     {
       "feature_id": "D01",
@@ -224,14 +160,8 @@
       "title": "抽奖、收藏与兑换守恒",
       "parity_level": "A",
       "status": "unit_tested",
-      "source_ids": [
-        "KaleidoscopeDoll:lottery",
-        "KaleidoscopeDoll:collection"
-      ],
-      "evidence": [
-        "series/doll/src/test",
-        "series/doll/src/main/java/net/kaleidoscope/doll/api/DollCollectedEvent.java"
-      ]
+      "source_ids": ["KaleidoscopeDoll:lottery", "KaleidoscopeDoll:collection"],
+      "evidence": ["series/doll/src/test", "series/doll/src/main/java/net/kaleidoscope/doll/api/DollCollectedEvent.java", "series/doll/src/test/java/net/kaleidoscope/doll/LotteryRestoreTest.java", "series/common/src/test/java/net/kaleidoscope/series/FurnitureTickersTest.java", "series/doll/src/test/java/net/kaleidoscope/doll/GiftBoxesTest.java", "docs/research/series-effects-gift-regression-2026-11-19.json"]
     },
     {
       "feature_id": "D04",
@@ -239,12 +169,17 @@
       "title": "玩偶投掷与实体调度",
       "parity_level": "B",
       "status": "unit_tested",
-      "source_ids": [
-        "KaleidoscopeDoll:throw-physics"
-      ],
-      "evidence": [
-        "series/doll/src/test"
-      ]
+      "source_ids": ["KaleidoscopeDoll:throw-physics"],
+      "evidence": ["series/doll/src/test"]
+    },
+    {
+      "feature_id": "D05",
+      "module": "doll",
+      "title": "doll_0 固定九轴姿态正常重启、唯一回收及空状态再启动",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeDoll:doll_0"],
+      "evidence": ["docs/research/series-restart-acceptance-2026-11-19.json", "tools/acceptance/connected/persistence-players.cjs", "series/docs/ACCEPTANCE.md"]
     },
     {
       "feature_id": "T02",
@@ -252,13 +187,26 @@
       "title": "酒桶熟成与饮品守恒",
       "parity_level": "A",
       "status": "unit_tested",
-      "source_ids": [
-        "KaleidoscopeTavern:barrel"
-      ],
-      "evidence": [
-        "series/tavern/src/test",
-        "series/tavern/src/main/java/net/kaleidoscope/tavern/api/DrinkCreatedEvent.java"
-      ]
+      "source_ids": ["KaleidoscopeTavern:barrel"],
+      "evidence": ["series/tavern/src/test", "series/tavern/src/main/java/net/kaleidoscope/tavern/api/DrinkCreatedEvent.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/TavernPersistenceTest.java", "series/common/src/test/java/net/kaleidoscope/series/FurnitureTickersTest.java"]
+    },
+    {
+      "feature_id": "T03",
+      "module": "tavern",
+      "title": "液量0果盆的单个带标记未加工发光浆果正常重启、取回及空状态再启动",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeTavern:pressing_tub", "minecraft:glow_berries"],
+      "evidence": ["docs/research/series-restart-acceptance-2026-11-19.json", "tools/acceptance/connected/persistence-players.cjs", "series/docs/ACCEPTANCE.md"]
+    },
+    {
+      "feature_id": "T04",
+      "module": "tavern",
+      "title": "血腥玛丽同区域本次致死归因与可取消治疗",
+      "parity_level": "B",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeTavern:EffectEvent-bloody_mary"],
+      "evidence": ["series/tavern/src/main/java/net/kaleidoscope/tavern/TavernAbilities.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/BloodyMaryAttributionTest.java", "docs/research/series-effects-gift-regression-2026-11-19.json"]
     },
     {
       "feature_id": "F02",
@@ -266,13 +214,35 @@
       "title": "组件选择模型状态转换",
       "parity_level": "B",
       "status": "implemented",
-      "source_ids": [
-        "KaleidoscopeDeco:model-branches"
-      ],
-      "evidence": [
-        "series/tools/import_sources.py",
-        "series/tools/test_import_sources.py"
-      ]
+      "source_ids": ["KaleidoscopeDeco:model-branches"],
+      "evidence": ["series/tools/import_sources.py", "series/tools/test_import_sources.py"]
+    },
+    {
+      "feature_id": "T05",
+      "module": "tavern",
+      "title": "燃烧瓶永久consumable、原生雪球与同区域火焰保护；四储物家具仅燃烧瓶链，飞行体不跨卸载或重启保存；地面回收按原槽安全交付或重规划，异常分层记录含家具UUID须人工核对且不自动重放，无法完整编码时明确标记；协议代表场景限空地面正常回收，不扩展为投掷、满载储物或异常恢复实服验收",
+      "parity_level": "B",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeTavern:MolotovBlockItem", "KaleidoscopeTavern:ThrownMolotovEntity", "KaleidoscopeTavern:MolotovBlock", "KaleidoscopeTavern:AbstractStorageBlock"],
+      "evidence": ["series/tavern/src/main/java/net/kaleidoscope/tavern/Molotov.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/MolotovPhysics.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/MolotovController.java", "series/tools/tavern_furniture.py", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovPhysicsTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/MolotovControllerTest.java", "series/tools/test_tavern_furniture.py", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/ConnectedKitchenProbe.java", "tools/acceptance/connected/players.cjs", "tools/acceptance/connected/gameplay-persistence.cjs", "tools/acceptance/connected/test-gameplay-persistence.cjs", "docs/research/series-gameplay-connected-acceptance-2026-11-19.json"]
+    },
+    {
+      "feature_id": "T06",
+      "module": "tavern",
+      "title": "14款文字展板原生Dialog、染色发光墨囊与蜡；320个UTF-16单元原文和最多8个CE文字行，拆下仅当前花纹空白板不带文字；协议代表场景限指定中文右对齐与base到poppy，不扩展为全部14板型或GPU验收",
+      "parity_level": "B",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeTavern:SandwichBoardBlock", "KaleidoscopeTavern:SandwichBlockEntity", "KaleidoscopeTavern:SandwichBlockEntityRender"],
+      "evidence": ["series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardController.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardEditor.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardState.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardDisplay.java", "series/tavern/src/main/java/net/kaleidoscope/tavern/SandwichBoardText.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardControllerTest.java", "series/tavern/src/test/java/net/kaleidoscope/tavern/SandwichBoardStateTest.java", "series/tools/test_sandwich_transform.py", "docs/research/board-render-research.md", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/ConnectedKitchenProbe.java", "tools/acceptance/connected/players.cjs", "tools/acceptance/connected/gameplay-persistence.cjs", "tools/acceptance/connected/test-gameplay-persistence.cjs", "docs/research/series-gameplay-connected-acceptance-2026-11-19.json"]
+    },
+    {
+      "feature_id": "F04",
+      "module": "deco",
+      "title": "12木种椅子各空垫及16色垫、12木种静态厨娘凳无坐下或椅垫事件，共24条石切配方；已进入CE不可取消销毁的未结算椅垫仅完整人工恢复记录，不保留原家具或自动返垫；协议代表场景限oak红垫取消、安装、剪取和基础椅回收，不扩展为全部木种或座位验收",
+      "parity_level": "B",
+      "status": "unit_tested",
+      "source_ids": ["KaleidoscopeDeco:kaleidoscope:cookery_plus/index/table", "KaleidoscopeDeco:kaleidoscope:cookery_plus/events/carpets", "KaleidoscopeDeco:kaleidoscope:cookery_plus/events/shear", "KaleidoscopeDeco:kaleidoscope:recipe/cookery_plus/chair", "KaleidoscopeDeco:kaleidoscope:recipe/cookery_plus/cook_stool"],
+      "evidence": ["series/tools/deco_seating.py", "series/deco/src/main/java/net/kaleidoscope/deco/WoodenSeats.java", "series/deco/src/main/java/net/kaleidoscope/deco/WoodenSeatController.java", "series/deco/src/test/java/net/kaleidoscope/deco/WoodenSeatsTest.java", "series/deco/src/test/java/net/kaleidoscope/deco/WoodenSeatControllerTest.java", "series/tools/test_deco_seating.py", "docs/research/series-gameplay-regression-2026-11-19.json", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/SeriesGameplaySmoke.java", "tools/acceptance/run_series_gameplay.py", "src/acceptance/java/net/kaleidoscope/cookery/acceptance/ConnectedKitchenProbe.java", "tools/acceptance/connected/players.cjs", "tools/acceptance/connected/gameplay-persistence.cjs", "tools/acceptance/connected/test-gameplay-persistence.cjs", "docs/research/series-gameplay-connected-acceptance-2026-11-19.json"]
     },
     {
       "feature_id": "F05",
@@ -280,13 +250,26 @@
       "title": "家具座位、碰撞与沙发染色",
       "parity_level": "B",
       "status": "implemented",
-      "source_ids": [
-        "KaleidoscopeDeco:furniture-states"
-      ],
-      "evidence": [
-        "series/deco/src/test",
-        "series/docs/PORTING-MATRIX.md"
-      ]
+      "source_ids": ["KaleidoscopeDeco:furniture-states"],
+      "evidence": ["series/deco/src/test", "series/docs/PORTING-MATRIX.md", "docs/research/series-polish-acceptance-2026-11-19.json", "series/deco/src/test/java/net/kaleidoscope/deco/DecoControllerTest.java"]
+    },
+    {
+      "feature_id": "F06",
+      "module": "deco",
+      "title": "郁金香展板装饰、剪取与物品守恒",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeDeco:kaleidoscope_bar:blackboard/0", "KaleidoscopeDeco:kaleidoscope_bar:blackboard/9"],
+      "evidence": ["docs/research/deco-tulip-acceptance-2026-11-19.json", "tools/acceptance/connected/README.md", "docs/research/series-restart-acceptance-2026-11-19.json"]
+    },
+    {
+      "feature_id": "F07",
+      "module": "deco",
+      "title": "红色左段沙发正常重启、保留原PDC的唯一回收及空状态再启动",
+      "parity_level": "B",
+      "status": "runtime_tested",
+      "source_ids": ["KaleidoscopeDeco:kaleidoscope_bar/sofa", "acceptance:red-left-sofa"],
+      "evidence": ["docs/research/series-restart-acceptance-2026-11-19.json", "tools/acceptance/connected/persistence-players.cjs", "series/docs/ACCEPTANCE.md"]
     },
     {
       "feature_id": "M01",
@@ -294,12 +277,8 @@
       "title": "安全 MIDI 解析",
       "parity_level": "A",
       "status": "unit_tested",
-      "source_ids": [
-        "MusicPlus:midi-parser"
-      ],
-      "evidence": [
-        "series/music/src/test"
-      ]
+      "source_ids": ["MusicPlus:midi-parser"],
+      "evidence": ["series/music/src/test"]
     },
     {
       "feature_id": "M02",
@@ -307,14 +286,8 @@
       "title": "官方吉他贴图与原版物品模型",
       "parity_level": "B",
       "status": "unit_tested",
-      "source_ids": [
-        "MusicPlus:ce-guitar-texture"
-      ],
-      "evidence": [
-        "series/tools/import_sources.py",
-        "series/tools/test_import_sources.py",
-        "series/docs/music-import.json"
-      ]
+      "source_ids": ["MusicPlus:ce-guitar-texture"],
+      "evidence": ["series/tools/import_sources.py", "series/tools/test_import_sources.py", "series/docs/music-import.json"]
     },
     {
       "feature_id": "M05",
@@ -322,12 +295,8 @@
       "title": "原版客户端演奏验收",
       "parity_level": "B",
       "status": "not_started",
-      "source_ids": [
-        "MusicPlus:client-playback"
-      ],
-      "evidence": [
-        "series/docs/ACCEPTANCE.md"
-      ]
+      "source_ids": ["MusicPlus:client-playback"],
+      "evidence": ["series/docs/ACCEPTANCE.md"]
     },
     {
       "feature_id": "C_TRASH_STORAGE",
@@ -335,14 +304,8 @@
       "title": "垃圾桶三槽/红石筛选/重启/取消拆除回收（不含真人流程）",
       "parity_level": "B",
       "status": "runtime_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:TrashCanBlockEntity"
-      ],
-      "evidence": [
-        "docs/TRASH-CAN.md",
-        "docs/research/trashcan-runtime-2026-11-17.json",
-        "src/test/java/net/kaleidoscope/cookery/block/entity/TrashCanControllerTest.java"
-      ]
+      "source_ids": ["KaleidoscopeCookery:TrashCanBlockEntity"],
+      "evidence": ["docs/TRASH-CAN.md", "docs/research/trashcan-runtime-2026-11-17.json", "src/test/java/net/kaleidoscope/cookery/block/entity/TrashCanControllerTest.java"]
     },
     {
       "feature_id": "C_TRASH_ANIMATION",
@@ -350,17 +313,8 @@
       "title": "垃圾桶五轨道来源曲线与四部件元数据编码（客户端未验收）",
       "parity_level": "B",
       "status": "runtime_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:TrashCanAnimation",
-        "KaleidoscopeCookery:TrashCanModel"
-      ],
-      "evidence": [
-        "docs/TRASH-CAN-ANIMATION.md",
-        "docs/research/cookery-trashcan-animation-source-audit-2026-11-17.json",
-        "src/test/java/net/kaleidoscope/cookery/block/entity/TrashCanAnimationTest.java",
-        "tools/test_cookery_trash_can.py",
-        "docs/research/trashcan-animation-runtime-2026-11-17.json"
-      ]
+      "source_ids": ["KaleidoscopeCookery:TrashCanAnimation", "KaleidoscopeCookery:TrashCanModel"],
+      "evidence": ["docs/TRASH-CAN-ANIMATION.md", "docs/research/cookery-trashcan-animation-source-audit-2026-11-17.json", "src/test/java/net/kaleidoscope/cookery/block/entity/TrashCanAnimationTest.java", "tools/test_cookery_trash_can.py", "docs/research/trashcan-animation-runtime-2026-11-17.json"]
     },
     {
       "feature_id": "C_TRASH_PARITY",
@@ -368,15 +322,8 @@
       "title": "垃圾桶实体碰撞/水浸/来源乘坐躲藏/库存HUD",
       "parity_level": "C",
       "status": "not_started",
-      "source_ids": [
-        "KaleidoscopeCookery:TrashCanBlock",
-        "KaleidoscopeCookery:SitEntity",
-        "KaleidoscopeCookery:TrashCanOverlay"
-      ],
-      "evidence": [
-        "docs/TRASH-CAN.md",
-        "docs/research/cookery-trashcan-source-audit-2026-11-17.json"
-      ]
+      "source_ids": ["KaleidoscopeCookery:TrashCanBlock", "KaleidoscopeCookery:SitEntity", "KaleidoscopeCookery:TrashCanOverlay"],
+      "evidence": ["docs/TRASH-CAN.md", "docs/research/cookery-trashcan-source-audit-2026-11-17.json"]
     },
     {
       "feature_id": "C_SCARECROW_EQUIPMENT",
@@ -384,15 +331,8 @@
       "title": "稻草人双手/头颅装备规则、持久化与取消移除回收",
       "parity_level": "B",
       "status": "runtime_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:ScarecrowEntity"
-      ],
-      "evidence": [
-        "docs/SCARECROW.md",
-        "src/test/java/net/kaleidoscope/cookery/block/entity/ScarecrowControllerTest.java",
-        "src/test/java/net/kaleidoscope/cookery/block/entity/ScarecrowEquipmentTest.java",
-        "docs/research/scarecrow-runtime-2026-11-17.json"
-      ]
+      "source_ids": ["KaleidoscopeCookery:ScarecrowEntity"],
+      "evidence": ["docs/SCARECROW.md", "src/test/java/net/kaleidoscope/cookery/block/entity/ScarecrowControllerTest.java", "src/test/java/net/kaleidoscope/cookery/block/entity/ScarecrowEquipmentTest.java", "docs/research/scarecrow-runtime-2026-11-17.json"]
     },
     {
       "feature_id": "C_SCARECROW_ENTITY",
@@ -400,14 +340,8 @@
       "title": "稻草人来源重力/矿车/命名/伤害/肩膀实体行为",
       "parity_level": "C",
       "status": "not_started",
-      "source_ids": [
-        "KaleidoscopeCookery:ScarecrowEntity",
-        "KaleidoscopeCookery:ScarecrowItem"
-      ],
-      "evidence": [
-        "docs/SCARECROW.md",
-        "docs/research/cookery-scarecrow-content-source-audit-2026-11-17.json"
-      ]
+      "source_ids": ["KaleidoscopeCookery:ScarecrowEntity", "KaleidoscopeCookery:ScarecrowItem"],
+      "evidence": ["docs/SCARECROW.md", "docs/research/cookery-scarecrow-content-source-audit-2026-11-17.json"]
     },
     {
       "feature_id": "C_SCARECROW_HITS",
@@ -415,16 +349,8 @@
       "title": "稻草人共享五tick受击窗口、晃动与CE取消/掉落规则",
       "parity_level": "B",
       "status": "runtime_tested",
-      "source_ids": [
-        "KaleidoscopeCookery:ScarecrowEntity.hurt",
-        "KaleidoscopeCookery:ScarecrowRender.setupRotations"
-      ],
-      "evidence": [
-        "docs/SCARECROW-HITS.md",
-        "docs/research/cookery-scarecrow-hit-source-audit-2026-11-17.json",
-        "src/test/java/net/kaleidoscope/cookery/block/entity/ScarecrowHitStateTest.java",
-        "docs/research/scarecrow-hit-runtime-2026-11-17.json"
-      ]
+      "source_ids": ["KaleidoscopeCookery:ScarecrowEntity.hurt", "KaleidoscopeCookery:ScarecrowRender.setupRotations"],
+      "evidence": ["docs/SCARECROW-HITS.md", "docs/research/cookery-scarecrow-hit-source-audit-2026-11-17.json", "src/test/java/net/kaleidoscope/cookery/block/entity/ScarecrowHitStateTest.java", "docs/research/scarecrow-hit-runtime-2026-11-17.json"]
     }
   ]
 }

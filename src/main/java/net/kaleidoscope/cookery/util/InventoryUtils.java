@@ -16,7 +16,6 @@ public final class InventoryUtils {
     public static ItemStack bukkitCopy(Item item) {
         return ItemStackUtils.getBukkitStack(item).clone();
     }
-
     public static Item wrap(ItemStack stack) { return BukkitItemManager.instance().wrap(stack); }
     public static Item wrapNative(Object stack) { return ItemStackUtils.wrap(stack); }
     public static void give(org.bukkit.entity.Player player, Item item) {

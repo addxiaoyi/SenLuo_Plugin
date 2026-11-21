@@ -42,11 +42,7 @@ final class SmithingSmoke {
             check(definition instanceof CustomSmithingTransformRecipe,"Registered CE recipe has wrong type");
             var recipe=(CustomSmithingTransformRecipe)definition;
             check(Bukkit.getRecipe(NamespacedKey.fromString(RECIPE)) instanceof SmithingTransformRecipe,"Native smithing registration missing");
-            ItemStack original=InventoryUtils.bukkitCopy(InventoryUtils.createOrEmpty(ItemKeys.DIAMOND_KITCHEN_KNIFE));
-            var meta=(Damageable)original.getItemMeta();meta.setDamage(137);meta.displayName(NAME);meta.lore(LORE);
-            ((org.bukkit.inventory.meta.Repairable)meta).setRepairCost(7);meta.getPersistentDataContainer().set(OWNER,PersistentDataType.STRING,"Alice");original.setItemMeta(meta);
-            var sharpness=Objects.requireNonNull(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("sharpness")));
-            original.addUnsafeEnchantment(sharpness,4);
+            ItemStack original=sourceKnife();
             Item base=InventoryUtils.wrap(original);
             Item template=InventoryUtils.wrap(new ItemStack(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE,3));
             Item addition=InventoryUtils.wrap(new ItemStack(Material.NETHERITE_INGOT,5));
@@ -80,7 +76,16 @@ final class SmithingSmoke {
         } catch(java.io.IOException exception){plugin.getLogger().log(Level.SEVERE,"Cannot save smithing smoke report",exception);}
     }
     private static SmithingInput input(Item base,Item template,Item addition){return new SmithingInput(UniqueIdItem.of(base),UniqueIdItem.of(template),UniqueIdItem.of(addition));}
-    private static void assertProduct(ItemStack stack){
+    static ItemStack sourceKnife() {
+        ItemStack original=InventoryUtils.bukkitCopy(InventoryUtils.createOrEmpty(ItemKeys.DIAMOND_KITCHEN_KNIFE));
+        var meta=(Damageable)original.getItemMeta();meta.setDamage(137);meta.displayName(NAME);meta.lore(LORE);
+        ((org.bukkit.inventory.meta.Repairable)meta).setRepairCost(7);meta.getPersistentDataContainer().set(OWNER,PersistentDataType.STRING,"Alice");original.setItemMeta(meta);
+        var sharpness=Objects.requireNonNull(Registry.ENCHANTMENT.get(NamespacedKey.minecraft("sharpness")));
+        original.addUnsafeEnchantment(sharpness,4);
+        return original;
+    }
+
+    static void assertProduct(ItemStack stack){
         check(stack.getType()==Material.NETHERITE_SWORD && stack.getAmount()==1,"Wrong material or count");
         Item item=InventoryUtils.wrap(stack);check(ItemKeys.NETHERITE_KITCHEN_KNIFE.equals(item.id()),"Wrong CE identity");
         check(item.maxDamage()==2031,"Target durability was not upgraded");

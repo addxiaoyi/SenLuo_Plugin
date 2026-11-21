@@ -4,3 +4,14 @@ main: net.kaleidoscope.cookery.acceptance.FoodSmokePlugin
 api-version: '1.21'
 folia-supported: true
 depend: [CraftEngine, KaleidoscopeCookeryPlugin]
+softdepend: [KaleidoscopeDecoPlugin, KaleidoscopeDollPlugin, KaleidoscopeTavernPlugin]
+commands:
+  senluocrop:
+    description: Arrange and observe the isolated source-crop protocol fixture from its console.
+    permission: senluo.acceptance.console
+  senluoprobe:
+    description: Inspect the isolated connected-player acceptance fixture from its console.
+    permission: senluo.acceptance.console
+permissions:
+  senluo.acceptance.console:
+    default: op

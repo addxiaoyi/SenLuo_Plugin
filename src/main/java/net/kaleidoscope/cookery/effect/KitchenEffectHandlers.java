@@ -95,7 +95,7 @@ final class KitchenEffectHandlers {
         String[] slots = {"farmer_boots", "farmer_leggings", "farmer_chest_plate", "straw_hat"};
         for (int slot = 0; slot < armor.length; slot++) {
             if (armor[slot] == null || armor[slot].getType().isAir()) return;
-            String id = net.momirealms.craftengine.bukkit.item.BukkitItemManager.instance().wrap(armor[slot]).id().toString();
+            String id = net.kaleidoscope.cookery.util.InventoryUtils.wrap(armor[slot]).id().toString();
             if (!id.equals("kaleidoscopecookery:" + slots[slot])
                     && !(slot == 3 && id.equals("kaleidoscopecookery:straw_hat_flower"))) return;
         }

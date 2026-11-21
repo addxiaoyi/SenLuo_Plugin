@@ -2,6 +2,7 @@ package net.kaleidoscope.music;
 
 import org.junit.jupiter.api.Test;
 import javax.sound.midi.*;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MidiSongTest {
@@ -96,6 +97,71 @@ class MidiSongTest {
         for (int key = 0; key < 128; key++) assertTrue(MidiSong.pitch(key) >= 0.5f && MidiSong.pitch(key) <= 2f);
         assertEquals(1f, MidiSong.pitch(66));
         assertThrows(IllegalArgumentException.class, () -> MidiSong.pitch(128));
+    }
+
+    @Test void irrelevantEventsCannotMoveAnExactlyTimedNoteIntoThePreviousServerTick() throws Exception {
+        Sequence sequence = new Sequence(Sequence.PPQ, 480);
+        Track track = sequence.createTrack();
+        for (int tick = 0; tick < 48; tick++)
+            track.add(new MidiEvent(new ShortMessage(ShortMessage.CONTROL_CHANGE, 0, 1, 0), tick));
+        note(track, 48, 60, 100);
+        MidiSong song = MidiSong.read(sequence);
+        assertEquals(1, song.notes().getFirst().tick());
+        assertEquals(1, song.durationTicks());
+    }
+
+    @Test void preservesFractionalTimeAcrossTempoChanges() throws Exception {
+        Sequence sequence = new Sequence(Sequence.PPQ, 3);
+        Track track = sequence.createTrack();
+        track.add(new MidiEvent(new MetaMessage(0x51, new byte[]{0x0f, 0x42, 0x40}, 3), 1));
+        note(track, 2, 60, 100);
+        MidiSong song = MidiSong.read(sequence);
+        assertEquals(10, song.notes().getFirst().tick());
+        assertEquals(10, song.durationTicks());
+    }
+
+    @Test void dropFrameUsesItsExactRationalRate() throws Exception {
+        Sequence sequence = new Sequence(Sequence.SMPTE_30DROP, 1);
+        note(sequence.createTrack(), 1500, 60, 100);
+        MidiSong song = MidiSong.read(sequence);
+        assertEquals(1001, song.notes().getFirst().tick());
+        assertEquals(1001, song.durationTicks());
+    }
+
+    @Test void largeSmpteResolutionsDoNotOverflowFractionalTime() throws Exception {
+        Sequence sequence = new Sequence(Sequence.SMPTE_30DROP, Integer.MAX_VALUE);
+        note(sequence.createTrack(), 30L * Integer.MAX_VALUE, 60, 100);
+        MidiSong song = MidiSong.read(sequence);
+        assertEquals(20, song.notes().getFirst().tick());
+        assertEquals(21, song.durationTicks());
+    }
+
+    @Test void excessiveQuantizedDensityIsRejectedBeforeAnyNoteCanPlay() throws Exception {
+        Sequence permitted = new Sequence(Sequence.PPQ, 960);
+        for (int i = 0; i < 64; i++) note(permitted.createTrack(), i, 60, 100);
+        assertEquals(64, MidiSong.read(permitted).notes().size());
+        Sequence rejected = new Sequence(Sequence.PPQ, 960);
+        for (int i = 0; i < 65; i++) note(rejected.createTrack(), i, 60, 100);
+        assertThrows(IllegalArgumentException.class, () -> MidiSong.read(rejected));
+    }
+
+    @Test void thirtyMinuteBoundaryIsInclusiveAndDoesNotOverflow() throws Exception {
+        Sequence sequence = new Sequence(Sequence.PPQ, 1);
+        Track track = sequence.createTrack();
+        note(track, 3600, 60, 100);
+        assertEquals(36000, MidiSong.read(sequence).durationTicks());
+        note(track, 3601, 62, 100);
+        assertThrows(IllegalArgumentException.class, () -> MidiSong.read(sequence));
+    }
+
+    @Test void publicSongValuesCannotBypassTimingAndNoteValidation() {
+        var first = new MidiSong.Note(0, 60, 100, 0, false);
+        var later = new MidiSong.Note(1, 62, 100, 0, false);
+        assertThrows(IllegalArgumentException.class, () -> new MidiSong(List.of(later, first), 1));
+        assertThrows(IllegalArgumentException.class, () -> new MidiSong(List.of(later), 0));
+        assertThrows(IllegalArgumentException.class, () -> new MidiSong(List.of(first), 36001));
+        assertThrows(IllegalArgumentException.class, () -> new MidiSong.Note(0, 60, 0, 0, false));
+        assertThrows(IllegalArgumentException.class, () -> new MidiSong.Note(0, 60, 100, 128, false));
     }
 
     private static void note(Track track, long tick, int key, int velocity) throws Exception {

@@ -8,7 +8,7 @@ import unittest
 import yaml
 
 from audit_upstream import AuditError
-from cookery_recipes import ART, RecipeSources, mapped, read_sources, processing_recipes, cooking_recipes, rice_bowl_recipes, validate_recipe
+from cookery_recipes import ART, TARGET_TAG_MEMBERS, RecipeSources, mapped, read_sources, processing_recipes, cooking_recipes, rice_bowl_recipes, validate_recipe
 from cookery_stockpot import stockpot_recipes
 from cookery_pot import pot_recipes
 from export_cookery_kitchen_pack import build, PACK
@@ -17,6 +17,43 @@ SOURCE = Path(__file__).resolve().parents[2] / '.references' / 'KaleidoscopeCook
 
 
 class RecipeImportTest(unittest.TestCase):
+    def test_forge_mushrooms_mapping_retains_both_vanilla_members(self):
+        self.assertEqual(('minecraft:brown_mushroom', 'minecraft:red_mushroom'),
+                         TARGET_TAG_MEMBERS['forge:mushrooms'])
+        self.assertEqual(['minecraft:brown_mushroom', 'minecraft:red_mushroom'],
+                         self.sources.expand({'tag': 'forge:mushrooms'}))
+        self.assertEqual(['minecraft:brown_mushroom', 'minecraft:red_mushroom'],
+                         self.report['targetTagMappings']['forge:mushrooms'])
+        expected = {
+            ART + ':pot/fish_flavored_shredded_pork', ART + ':pot/fried_spring_roll',
+            ART + ':flex_pot/fish_flavored_shredded_pork', ART + ':flex_pot/fried_spring_roll',
+            ART + ':stockpot/chicken_and_mushroom_stew', ART + ':stockpot/wild_mushroom_rabbit_soup',
+            ART + ':flex_stockpot/chicken_and_mushroom_stew', ART + ':flex_stockpot/wild_mushroom_rabbit_soup',
+        }
+        rows = [row for row in self.report['recipes'] if row['sourceId'] in expected]
+        self.assertEqual(expected, {row['sourceId'] for row in rows})
+        self.assertTrue(all(row['status'] == 'imported' for row in rows))
+
+    def test_fixed_target_tags_preserve_explicit_source_members_and_nested_optional_inputs(self):
+        sources = RecipeSources({}, {}, {}, {})
+        for tag, members in TARGET_TAG_MEMBERS.items():
+            self.assertEqual(list(members), sources.expand({'tag': tag}))
+        with self.assertRaisesRegex(AuditError, 'required tag absent'):
+            sources.expand({'tag': 'forge:ingots/unobtainium'})
+        tags = {
+            'forge:ingots/iron': {'values': ['minecraft:iron_ingot', 'kaleidoscope_cookery:test_iron']},
+            'test:nested': {'values': [{'id': '#forge:gravel', 'required': False}]},
+        }
+        sources = RecipeSources({}, tags, {}, {})
+        self.assertEqual(['minecraft:iron_ingot', 'kaleidoscopecookery:test_iron'],
+                         sources.expand({'tag': 'forge:ingots/iron'}))
+        omissions = []
+        self.assertEqual(['minecraft:gravel'], sources.expand({'tag': 'test:nested'}, omissions=omissions))
+        self.assertEqual([], omissions)
+        self.assertEqual({tag: list(members) for tag, members in TARGET_TAG_MEMBERS.items()},
+                         self.report['targetTagMappings'])
+        self.assertEqual(self.report['targetTagMappings'], self.manifest['targetTagMappings'])
+
     @classmethod
     def setUpClass(cls):
         cls.sources = read_sources(SOURCE)

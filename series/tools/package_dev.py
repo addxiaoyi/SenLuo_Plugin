@@ -146,7 +146,7 @@ def main() -> None:
             if any(name.endswith('.class') and name.startswith(forbidden) for name in names):
                 raise ValueError(f'Unrelocated or server/test classes bundled in {jar.name}')
             metadata = archive.read('plugin.yml').decode('utf-8')
-            if "api-version: '1.21'" not in metadata or '${version}' in metadata:
+            if "api-version: '1.21.11'" not in metadata or '${version}' in metadata:
                 raise ValueError(f'Incorrect plugin metadata: {jar.name}')
             catalog = (SUITE / module / 'src/main/resources/catalog.json').read_bytes()
             if archive.read('catalog.json') != catalog:
@@ -241,8 +241,9 @@ def main() -> None:
         'created_at': datetime.now().astimezone().isoformat(),
         'status': 'development; see VERSION-COMPATIBILITY.md for runtime coverage; vanilla-client acceptance not performed',
         'baseline_commit': subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip(),
-        'uncommitted_work': True,
-        'compile_target': {'java': 21, 'paper_api': '1.21.1', 'modern_components_api': '1.21.11', 'craftengine_api': '26.9.1'},
+        'uncommitted_work': bool(subprocess.check_output(
+            ['git', '-C', str(ROOT), 'status', '--porcelain'], text=True).strip()),
+        'compile_target': {'java': 21, 'paper_api': '1.21.11', 'modern_components_api': '1.21.11', 'craftengine_api': '26.9.1'},
         'java_tests': java_tests,
         'legacy_compat_tests': tests(SUITE / 'common/build/test-results/legacyCompatTest'),
         'legacy_gson_tests': tests(ROOT / 'build/test-results/testLegacyGson'),

@@ -1,10 +1,48 @@
 import json
 import unittest
 
-from tavern_furniture import VANILLA_BOTTLES, add_variants
+from tavern_furniture import VANILLA_BOTTLES, BOARD_STYLES, add_sandwich_boards, add_molotov_furniture, add_variants
 
 
 class TavernFurnitureTests(unittest.TestCase):
+    def test_molotov_and_four_storage_shapes_use_cardinal_rotation_and_permanent_spear_component(self):
+        from import_sources import furniture, item, placeable
+        items, definitions = {}, {}
+        for name in ("molotov", "holder", "tilted_rack", "circular_rack", "cellar_cabinet"):
+            identifier = "kaleidoscope_tavern:" + name
+            items[identifier] = item(identifier, identifier, name)
+            placeable(items[identifier], identifier)
+            definitions[identifier] = furniture(identifier, "kaleidoscope_tavern:molotov")
+        add_molotov_furniture(items, definitions)
+        for definition in items.values():
+            self.assertEqual("four", definition["behavior"]["rules"]["ground"]["rotation"])
+        component = items["kaleidoscope_tavern:molotov"]["data"]["components"]["minecraft:consumable"]
+        self.assertEqual({"consume_seconds": 3600, "animation": "spear", "has_consume_particles": False}, component)
+        heights = {name: definition["variants"]["ground"]["hitboxes"][0]["height"] for name, definition in definitions.items()}
+        self.assertEqual(.875, heights["kaleidoscope_tavern:molotov"])
+        self.assertEqual(.125, heights["kaleidoscope_tavern:circular_rack"])
+        self.assertEqual(2, len(definitions["kaleidoscope_tavern:holder"]["variants"]["ground"]["hitboxes"]))
+
+    def test_all_fourteen_board_types_have_every_pattern_and_full_height_hitbox(self):
+        boards = {f"kaleidoscope_tavern:{style}_sandwich_board": {"variants": {"ground": {
+            "elements": [{"item": style}], "hitboxes": [{}]}}} for style in BOARD_STYLES}
+        add_sandwich_boards(boards)
+        self.assertEqual(14, len(boards))
+        for board in boards.values():
+            self.assertEqual(15, len(board["variants"]))
+            ground_hitboxes = board["variants"]["ground"]["hitboxes"]
+            for style in BOARD_STYLES:
+                variant = board["variants"][style]
+                # Decoration switches bypass a second placement collision test only because geometry is identical.
+                self.assertEqual(ground_hitboxes, variant["hitboxes"])
+                self.assertEqual(f"kaleidoscope_tavern:{style}_sandwich_board", variant["elements"][0]["item"])
+                self.assertEqual(1.375, variant["hitboxes"][0]["height"])
+                self.assertEqual(.75, variant["hitboxes"][0]["width"])
+
+    def test_partial_board_group_is_rejected_instead_of_silent_missing_styles(self):
+        with self.assertRaisesRegex(ValueError, "All 14"):
+            add_sandwich_boards({"kaleidoscope_tavern:base_sandwich_board": {"variants": {"ground": {}}}})
+
     def fixtures(self):
         furniture = {"kaleidoscope_tavern:" + name: {"variants": {"ground": {
             "elements": [{"item": "kaleidoscope_tavern:" + name}], "hitboxes": []}}}

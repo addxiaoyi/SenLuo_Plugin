@@ -14,6 +14,7 @@ import net.kaleidoscope.cookery.recipe.ChoppingBoardRecipe;
 import net.kaleidoscope.cookery.recipe.TeapotRecipe;
 import net.kaleidoscope.cookery.recipe.BambooTrayRecipe;
 import net.kaleidoscope.cookery.recipe.edit.BambooTrayRecipeDraft;
+import net.kaleidoscope.cookery.recipe.edit.StockpotRecipeDraft;
 import net.kaleidoscope.cookery.recipe.edit.ChoppingRecipeDraft;
 import net.kaleidoscope.cookery.recipe.edit.TeapotRecipeDraft;
 import net.kaleidoscope.cookery.recipe.FoodRecipeRegistry;
@@ -131,7 +132,8 @@ public final class RecipeListMenu {
                 StockpotRecipe soup = soups.get(idx);
                 page.add(new ItemWithAction(MenuIcons.nativePreview(soup.result(), viewer), (element, click) -> {
                     click.cancel();
-                    RecipeDetailMenu.openStockpot(bukkitPlayer, soup, () -> open(bukkitPlayer, ApplianceType.STOCKPOT, editable));
+                    if (editable) StockpotEditMenu.open(bukkitPlayer, StockpotRecipeDraft.editing(soup));
+                    else RecipeDetailMenu.openStockpot(bukkitPlayer, soup, () -> open(bukkitPlayer, ApplianceType.STOCKPOT, false));
                 }));
                 continue;
             }

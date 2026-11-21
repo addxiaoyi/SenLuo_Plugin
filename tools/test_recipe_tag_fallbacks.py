@@ -1,13 +1,13 @@
 import unittest
 
 from audit_upstream import AuditError
-from cookery_recipes import RecipeSources, mapped, VANILLA_TAG_FALLBACKS
+from cookery_recipes import RecipeSources, mapped, TARGET_TAG_MEMBERS
 
 
 class TagFallbackTests(unittest.TestCase):
     def test_vanilla_members_are_explicit_and_do_not_hide_unknown_tags(self):
         source = RecipeSources({}, {}, {}, {})
-        for tag, items in VANILLA_TAG_FALLBACKS.items():
+        for tag, items in TARGET_TAG_MEMBERS.items():
             self.assertEqual(list(items), source.expand({'tag': tag}))
         self.assertEqual(['minecraft:brown_mushroom', 'minecraft:red_mushroom'], source.expand({'tag': 'forge:mushrooms'}))
         with self.assertRaises(AuditError):

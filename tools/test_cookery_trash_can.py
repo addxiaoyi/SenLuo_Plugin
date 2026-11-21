@@ -4,8 +4,8 @@ import unittest
 
 from audit_upstream import AuditError
 from cookery_trash_can import MODEL_SOURCE, parse_mesh, mesh_cube
-from export_versioned_ce_pack import adapt_configuration
 from export_trash_can_animations import export, OUTPUT, parse as parse_animations
+from export_versioned_ce_pack import adapt_configuration
 
 SOURCE = Path(__file__).resolve().parents[2] / '.references/KaleidoscopeCookery'
 
@@ -44,15 +44,15 @@ class TrashCanModelTest(unittest.TestCase):
                 parse_mesh(self.source.replace(before, after))
 
     def test_overlay_component_is_removed_only_from_legacy_trash_helmet(self):
-        component = {'slot':'head','camera_overlay':'kaleidoscope_cookery:misc/trash_can_overlay'}
-        config = {'items': {'kaleidoscopecookery:trashcan_helmet': {'material':'carved_pumpkin',
-                    'data': {'components': {'minecraft:equippable': component}}}}}
-        old, changes = adapt_configuration(config,'1.21.1')
-        self.assertNotIn('minecraft:equippable',old['items']['kaleidoscopecookery:trashcan_helmet']['data']['components'])
-        self.assertEqual(1,changes['legacyTrashCanOverlay'])
-        for version in ('1.21.2','1.21.9','26.3'):
-            current,_ = adapt_configuration(config,version)
-            self.assertEqual(config,current)
+        component = {'slot': 'head', 'camera_overlay': 'kaleidoscope_cookery:misc/trash_can_overlay'}
+        config = {'items': {'kaleidoscopecookery:trashcan_helmet': {'material': 'carved_pumpkin',
+                  'data': {'components': {'minecraft:equippable': component}}}}}
+        old, changes = adapt_configuration(config, '1.21.1')
+        self.assertNotIn('minecraft:equippable', old['items']['kaleidoscopecookery:trashcan_helmet']['data']['components'])
+        self.assertEqual(1, changes['legacyTrashCanOverlay'])
+        for version in ('1.21.2', '1.21.9', '26.3'):
+            current, _ = adapt_configuration(config, version)
+            self.assertEqual(config, current)
 
     def test_bundled_animation_channels_match_every_pinned_java_frame(self):
         raw=export(SOURCE)

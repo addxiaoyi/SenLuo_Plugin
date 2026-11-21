@@ -114,7 +114,7 @@ class SteamerItemBehaviorTest {
         writer=()->{if(entity!=null)entity.blockState=full;else add(bottom);data=mock(BlockData.class);return true;};
         guard=stat(InteractGuard.class);guard.when(()->InteractGuard.canPlace(player,level,POS)).thenReturn(true);
         var bridge=mock(NmsBridge.class);stat(NmsBridgeProvider.class).when(NmsBridgeProvider::bridge).thenReturn(bridge);
-        when(bridge.canPlaceEightImmortalsTable(any(),anyInt(),anyInt(),anyInt(),any(),any())).thenReturn(true);
+        when(bridge.canPlaceKitchenPart(any(),anyInt(),anyInt(),anyInt(),any(),any())).thenReturn(true);
         when(player.platformPlayer()).thenReturn(actor);when(actor.getWorld()).thenReturn(world);when(actor.isOnline()).thenReturn(true);
         when(actor.isValid()).thenReturn(true);when(actor.getGameMode()).thenReturn(GameMode.SURVIVAL);
         when(context.getPlayer()).thenReturn(player);when(context.getLevel()).thenReturn(level);when(context.getClickedPos()).thenReturn(POS);

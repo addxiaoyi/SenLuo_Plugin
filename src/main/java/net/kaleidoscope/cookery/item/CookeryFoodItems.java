@@ -4,6 +4,7 @@ import net.kaleidoscope.compat.ItemComponents;
 import net.kaleidoscope.cookery.catalog.BakedFood;
 import net.kaleidoscope.cookery.catalog.BiteState;
 import net.kaleidoscope.cookery.catalog.CookeryCatalog;
+import net.kaleidoscope.cookery.catalog.ConsumeEffectDefinition;
 import net.kaleidoscope.cookery.catalog.QualityProfile;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
@@ -13,6 +14,7 @@ import org.bukkit.Registry;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,10 +70,16 @@ public final class CookeryFoodItems {
             if (!effect.id().startsWith("minecraft:")) continue;
             var type = Registry.EFFECT.get(NamespacedKey.fromString(effect.id()));
             if (type == null) throw new IllegalStateException("Unsupported vanilla food effect " + effect.id());
-            effects.add(new ItemComponents.Effect(new PotionEffect(type, effect.duration(), effect.amplifier()), (float) effect.probability()));
+            effects.add(ConsumeEffect.applyStatusEffects(List.of(vanillaEffect(type, effect)), (float) effect.probability()));
         }
         ItemComponents.food(stack, baked.food().consumeTicks() / 20f, baked.drink(), effects);
         return BukkitItemManager.instance().wrap(stack);
+    }
+
+    static PotionEffect vanillaEffect(PotionEffectType type, ConsumeEffectDefinition effect) {
+        // MobEffectInstance and its item codec default to non-ambient effects.
+        // Bukkit's three-argument constructor defaults ambient to true instead.
+        return new PotionEffect(type, effect.duration(), effect.amplifier(), false, true, true);
     }
 
     public static BakedFood read(ItemStack stack) {

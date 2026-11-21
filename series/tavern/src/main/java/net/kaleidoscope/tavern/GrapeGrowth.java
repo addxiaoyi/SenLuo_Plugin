@@ -1,7 +1,6 @@
 package net.kaleidoscope.tavern;
 
 record GrapeGrowth(String kind, int vine, int fruit, boolean waxed) {
-    static final int PULSE_TICKS = 68;
     GrapeGrowth {
         if (!java.util.Set.of("none", "grape", "ice_grape", "gold_grape").contains(kind)
                 || vine < 0 || vine > 3 || fruit < -1 || fruit > 5
@@ -20,8 +19,8 @@ record GrapeGrowth(String kind, int vine, int fruit, boolean waxed) {
     GrapeGrowth harvested() { return new GrapeGrowth(kind, vine, -1, false); }
     double probability(double temperature, int randomTickSpeed) {
         double chance = kind.equals("ice_grape") && temperature < 0.15 || kind.equals("gold_grape") && temperature > 1 ? 0.8 : 0.25;
-        // Vanilla selects random block positions out of a 16^3 chunk section each tick.
-        return 1 - Math.pow(1 - chance / 4096, (double) Math.max(0, randomTickSpeed) * PULSE_TICKS);
+        // Vanilla makes random-tick attempts independently every server tick.
+        return 1 - Math.pow(1 - chance / 4096, Math.max(0, randomTickSpeed));
     }
     String variant() { return planted() ? kind + "_" + vine + "_" + (fruit + 1) : "ground"; }
 }

@@ -1,0 +1,2382 @@
+{
+  "date": "2026-11-19",
+  "sourceBaseCommit": "b0dfe641bf477c8056fad30908fd476910894801",
+  "target": {
+    "minecraft": "1.21.11",
+    "paper": "132",
+    "folia": "14",
+    "java": 21,
+    "craftEngine": "26.9.1"
+  },
+  "scope": "Two ordinary offline survival protocol players per loopback platform; three normal starts of the same world. Seed uses player packets; verify and empty only observe existing furniture before actual player recovery. Official headless resource codecs, without GPU rendering or account authentication.",
+  "javaTests": {
+    "cookery": {
+      "tests": 567,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "common": {
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "doll": {
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "tavern": {
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "deco": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "music": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "javaTestTotal": 695,
+  "pythonTests": {
+    "root": 165,
+    "series": 58,
+    "total": 223
+  },
+  "nodeTests": {
+    "tests": 75,
+    "failures": 0
+  },
+  "fixes": [
+    "Absent initial save keys no longer freeze new pressing tubs, barrels or lottery machines; malformed existing tags still freeze operations and are preserved.",
+    "Late shaker item restoration prepares serialization before applying carried contents and synchronizes the future source item.",
+    "Six series furniture tickers resolve the current CraftEngine controller by metadata entity and matching furniture UUID, preserving the same-type occurrence ordinal across absolute behavior slots without an old-controller fallback.",
+    "Restart runner requires explicit phase reports, normal shutdowns, an immutable seed checkpoint and identical runtime JAR/resource and scenario-code hashes.",
+    "The repeated pressing-tub return explicitly reselects and reads back an empty hand after the first return fills the original selected slot; exact holdings reject duplicate output.",
+    "Original-scenario and restart sofa/Doll recovery share a network-position pickup helper with a five-second walking bound and a moving target; disappearance or replacement of that exact network entity stops walking only, after which authoritative participant inventories must still prove pickup. Restart observes both participants through persistinspect, records the actual owner, and rejects duplicate combined counts or changed source PDC.",
+    "The original sofa/Doll replay temporarily moves the peer away through a bounded clear lane only after the interaction-denial assertions, requires the acting player to own the recovered item, and returns the peer in a finally block.",
+    "A read-only FurnitureInteractEvent MONITOR counter acknowledges each single network furniture use, including cancellation and no-op cases; bounded polling requires a receipt increment plus exact expected state, preserves invariants on each observation, and never resends the action.",
+    "Each single Doll-axis menu click waits first for the exact progressively committed nine-axis pose and then for a newly opened menu window before the next click.",
+    "Concurrent tulip harvest reads both baselines before two single old-target packets, requires at least one receipt with exact empty state and one drop, and permits a missing second receipt only when the hitbox changed; B then performs a separately acknowledged fresh-hitbox empty use without another drop.",
+    "The tulip-board scenario settles and accounts for its sole returned flower through normal network inventory and pickup actions before any subsequent fixture setup. It records the actual owner and storage slot plus whether a full-storage stack moved to offhand, preserves unrelated inventory components, and leaves the following sofa whole-inventory invariant strict."
+  ],
+  "limitations": [
+    "Only the red/left sofa, doll_0 nine-axis pose and unprocessed marked pressing-tub ingredient have this three-phase player restart evidence.",
+    "Barrel, bottle, shaker and lottery persistence or ticker dispatch have unit regressions; this run does not prove their full player flows.",
+    "No GPU visuals, audio, authenticated account, third-party protection, independent chunk unload, hot reload, cross-region or density/performance acceptance.",
+    "Concurrent tulip attemptedPlayers records the two sent requests; acknowledged lists only observed FurnitureInteractEvents. A request to the retired hitbox may not reach a controller, so two controller deliveries are not claimed.",
+    "Tulip cleanup proves the returned flower by server storage-inventory differences and validates transfer cursor transitions with server snapshots. The reserved offhand stack is observed through ordinary client inventory packets; the probe does not expose a server-side offhand snapshot.",
+    "CraftEngine startup watchdog causes remain open, including the historical native recipe-registration sample and Folia2 at 6.3533891 seconds while shaded ByteBuddy instrumentation entered FastNMSImpl.createSmithingTrimRecipe; later clean starts do not erase these failures.",
+    "Upstream release-license blockers and remaining feature parity gaps remain open; the full series is not accepted."
+  ],
+  "runs": {
+    "paper": {
+      "server": "Paper 132",
+      "localRun": "build/acceptance/net/paper-restart-12",
+      "passed": true,
+      "suiteResultSha256": "04204723cefc82e40328d60221697a2685c5c5b4e5901e51c0787e6835495374",
+      "seedStateSha256": "b1f0846ebba9de59407c0804e915d19fdd992b060d16da28f6402f3fded649b5",
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "873d29910251aa61921a4489b054492e0c80d234e9d49dd1cc996e06e16e5dc2",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "d5bb0c55dbf5fc8700cbcfb83d1089e44d1dc2458c16e619a717970d2d56401c",
+        "persistence-players.cjs": "7bace58ab86af99e96e5a890a8443d988c056f5ace60f7ec711e2cb042fe05cf"
+      },
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": true,
+          "readySeconds": 39.062,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "ae5cd3af046f4e725ac32ee5ef6f571a27c72b36e743b47dcd25ef6e93c731df",
+          "resultSha256": "3bf903cdde7812c3c82ca780bdfbb4dd4d875afd4cef81b4b9569e44641fe11b",
+          "playerReportSha256": "5e9d8640750daa257d4b47743259dca4795a2933ae5c160ad387b836a18fb7ae",
+          "fixtureSha256": "f37fa72a028b863223de5c4d0be15d55e683d99b68fbd62e4f1f86087d236013",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose",
+            "persistenceSeed"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        },
+        {
+          "phase": "verify",
+          "passed": true,
+          "readySeconds": 36.33,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "6e3a41c4324ed41a48b906c996c2feabdc483dfe3550bf773e4db24a7aca56ec",
+          "resultSha256": "2fdc9238df0ec093587351526295678107f8cd6df52d6ec40be1566ea8178245",
+          "playerReportSha256": "a7a72b006b81c4720442bf9ccf4c7fcdab71a00c0fd8e083878405da19be109a",
+          "fixtureSha256": "f37fa72a028b863223de5c4d0be15d55e683d99b68fbd62e4f1f86087d236013",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "persistenceVerify"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        },
+        {
+          "phase": "empty",
+          "passed": true,
+          "readySeconds": 33.125,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "3b01b099a3d222035076b98e9552b95a6cdf7c791db6238f2f902953420a7c64",
+          "resultSha256": "52f8d10e9d0fb013e0a01635e528d5ada042cf151de14428480691080b7aa8c2",
+          "playerReportSha256": "096b7af30752503f813a6e935c0f875bee7e12a17b5ebe3d9b8063688b886e1e",
+          "fixtureSha256": "8701059afc2435787021c7bef5002ad987f4f31f09be1f1b8535c268ab5ee786",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "persistenceEmpty"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        }
+      ],
+      "tulipBoard": {
+        "consumed": 1,
+        "fullInventory": true,
+        "deniedInteraction": 1,
+        "deniedSpawn": 1,
+        "attemptedPlayers": [
+          "SenLuoProbeA",
+          "SenLuoProbeB"
+        ],
+        "acknowledged": [
+          "SenLuoProbeA"
+        ],
+        "oldHitbox": 136,
+        "newHitbox": 140,
+        "returned": {
+          "id": "minecraft:red_tulip",
+          "count": 1
+        },
+        "cleanup": {
+          "owner": "SenLuoProbeB",
+          "slot": 0,
+          "id": "minecraft:red_tulip",
+          "count": 1,
+          "movedStackToOffhand": false
+        }
+      },
+      "fixtures": {
+        "sofa": {
+          "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+          "uuid": "bb3b3133-e4e1-4391-b0cd-90bd35b625bd",
+          "world": "acceptance-world",
+          "position": [
+            678.5,
+            200,
+            9.5
+          ],
+          "variant": "kaleidoscope_deco/kaleidoscope_bar/sofa/style/red/left",
+          "blocked": false,
+          "hasContents": false,
+          "source": {
+            "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+            "count": 1,
+            "pdcSha256": "a323663ee20c24b8821ef3305e31ffffa0427d8a3acb38a5de50d73447c675f9",
+            "serializedSha256": "4fc6de1de2b4dd26fee71c521e065437cf9b5d2bff47f9f1f9b195c3c88f0d03"
+          },
+          "savedSha256": "6a5c4baa0d31910a078861a31663fec8ccb1aa494ae6b6f0cf3d223d4e2f7853",
+          "state": {
+            "mode": "left",
+            "state": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+            "color": "red"
+          }
+        },
+        "doll": {
+          "id": "kaleidoscope_doll:doll_0",
+          "uuid": "fcf07edc-cc06-4832-9989-10736048eff9",
+          "world": "acceptance-world",
+          "position": [
+            682.5,
+            200,
+            9.5
+          ],
+          "variant": "ground",
+          "blocked": false,
+          "hasContents": false,
+          "source": {
+            "id": "kaleidoscope_doll:doll_0",
+            "count": 1,
+            "pdcSha256": "63ebc9d610d0cb2168568249d5fa6d0ef6ba0b5b6324d6320cbd7cb6951262ad",
+            "serializedSha256": "901969681770934acbfebcbcb7068a7aaae14885b7f83202a9ab71c632b4ac13"
+          },
+          "savedSha256": "3a799398b002717a5495cc4720322563a85395af110de9251f7399c1aac10314",
+          "state": {
+            "pose": "1.1,1.1,1.1,0.05,0.05,0.05,15.0,15.0,15.0"
+          }
+        },
+        "tub": {
+          "id": "kaleidoscope_tavern:pressing_tub",
+          "uuid": "f8a4ed01-522b-44bf-b309-9d8ac6cec3be",
+          "world": "acceptance-world",
+          "position": [
+            680.5,
+            200,
+            6.5
+          ],
+          "variant": "ground",
+          "blocked": false,
+          "hasContents": true,
+          "source": {},
+          "savedSha256": "d7fcf306530e79501abdd2ff94da0f15f4b6a395eff3de241cc96d5ccae7f23a",
+          "state": {
+            "amount": 0,
+            "ingredients": {
+              "id": "minecraft:glow_berries",
+              "count": 1,
+              "pdcSha256": "cb4d761da2c01f83a90d8e1639156c1b80e6057dfd45900e0ae76a027ee05d1d",
+              "serializedSha256": "22fe56ba5e16f021db8a446d04ac07fa219ede358513073cc0e1f076fb52eb11"
+            }
+          }
+        }
+      },
+      "recovery": {
+        "sofaDropCount": 1,
+        "dollDropCount": 1,
+        "returnedBerries": 1,
+        "repeatedReturn": 0,
+        "emptyObservationMs": 2000,
+        "furnitureReturns": {
+          "sofa": {
+            "pickedUpBy": "SenLuoProbeA",
+            "item": {
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+              "count": 1,
+              "pdcSha256": "a323663ee20c24b8821ef3305e31ffffa0427d8a3acb38a5de50d73447c675f9"
+            }
+          },
+          "doll": {
+            "pickedUpBy": "SenLuoProbeB",
+            "item": {
+              "id": "kaleidoscope_doll:doll_0",
+              "count": 1,
+              "pdcSha256": "63ebc9d610d0cb2168568249d5fa6d0ef6ba0b5b6324d6320cbd7cb6951262ad"
+            }
+          }
+        }
+      }
+    },
+    "folia": {
+      "server": "Folia 14",
+      "localRun": "build/acceptance/net/folia-restart-3",
+      "passed": true,
+      "suiteResultSha256": "10b0283c3b9e426123ce9f106614a2be27960ecf11864561204baeda1d59011c",
+      "seedStateSha256": "992e3e003fb8f9723d81a5b1267db3c2758367792b262efa5e68029e7deeed10",
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "873d29910251aa61921a4489b054492e0c80d234e9d49dd1cc996e06e16e5dc2",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "d5bb0c55dbf5fc8700cbcfb83d1089e44d1dc2458c16e619a717970d2d56401c",
+        "persistence-players.cjs": "7bace58ab86af99e96e5a890a8443d988c056f5ace60f7ec711e2cb042fe05cf"
+      },
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": true,
+          "readySeconds": 43.935,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "16f1bbe6f1e5ca7956434e3ccb266ad5991a797ad3cde7631141aeb91418ef53",
+          "resultSha256": "9e2da4982c771ab166f28a67baea572a3fab39767d833d6c86932759be974a7b",
+          "playerReportSha256": "674e55891d5e35681e4935196149c5ee3f4b421e52997cca78b7a0539b2de9f4",
+          "fixtureSha256": "a5c5e671de3a5a8292ba50adc3bcb7628d753f0fa22bcf731ee36c388976f6d2",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "ec0a8d00023065606c222ec0b414bdd659fe5bc79c1fc451b99a9ab339f20fab",
+            "SenLuoProbeB": "ec0a8d00023065606c222ec0b414bdd659fe5bc79c1fc451b99a9ab339f20fab"
+          },
+          "checks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose",
+            "persistenceSeed"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799505,
+              "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+              "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799505,
+              "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+              "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        },
+        {
+          "phase": "verify",
+          "passed": true,
+          "readySeconds": 39.168,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "344bf747979fb2a7d8bd9c089e43a57338d3c0ffcd3057dc9758af9609fe7a1b",
+          "resultSha256": "3e45e0439afe5a55bd41c202fa4dd5f11393a574e334d6aad3e40efd3d8d2ca2",
+          "playerReportSha256": "bdedd838a4b7b4b2541af219cc7dc60b682eb3d8b7285e5b88d9e804ed7d1063",
+          "fixtureSha256": "a5c5e671de3a5a8292ba50adc3bcb7628d753f0fa22bcf731ee36c388976f6d2",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "ec0a8d00023065606c222ec0b414bdd659fe5bc79c1fc451b99a9ab339f20fab",
+            "SenLuoProbeB": "ec0a8d00023065606c222ec0b414bdd659fe5bc79c1fc451b99a9ab339f20fab"
+          },
+          "checks": [
+            "persistenceVerify"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799505,
+              "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+              "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799505,
+              "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+              "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        },
+        {
+          "phase": "empty",
+          "passed": true,
+          "readySeconds": 32.787,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "dfc589a2fc17d8013e9627472e1940bfea57871b73447610654b18fd59c9b62e",
+          "resultSha256": "42d9601bb7bfa28ce174c9549361061bca7f26f213beef827fb28c7d45d43284",
+          "playerReportSha256": "64cff40490e9b630b2b53b826e3a3a9023178db5a9844583d91bd9841e34195a",
+          "fixtureSha256": "8c31bd1788f357fa41ccfd74325ab9598e07d70f6e8b691f5dc1fff9ba8cd0e0",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "ec0a8d00023065606c222ec0b414bdd659fe5bc79c1fc451b99a9ab339f20fab",
+            "SenLuoProbeB": "ec0a8d00023065606c222ec0b414bdd659fe5bc79c1fc451b99a9ab339f20fab"
+          },
+          "checks": [
+            "persistenceEmpty"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799505,
+              "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+              "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799505,
+              "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+              "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        }
+      ],
+      "tulipBoard": {
+        "consumed": 1,
+        "fullInventory": true,
+        "deniedInteraction": 1,
+        "deniedSpawn": 1,
+        "attemptedPlayers": [
+          "SenLuoProbeA",
+          "SenLuoProbeB"
+        ],
+        "acknowledged": [
+          "SenLuoProbeB"
+        ],
+        "oldHitbox": 124,
+        "newHitbox": 128,
+        "returned": {
+          "id": "minecraft:pink_tulip",
+          "count": 1
+        },
+        "cleanup": {
+          "owner": "SenLuoProbeA",
+          "slot": 2,
+          "id": "minecraft:pink_tulip",
+          "count": 1,
+          "movedStackToOffhand": true
+        }
+      },
+      "fixtures": {
+        "sofa": {
+          "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+          "uuid": "7e3e8957-2ff0-444e-a22a-672e8a95d58e",
+          "world": "acceptance-world",
+          "position": [
+            678.5,
+            200,
+            9.5
+          ],
+          "variant": "kaleidoscope_deco/kaleidoscope_bar/sofa/style/red/left",
+          "blocked": false,
+          "hasContents": false,
+          "source": {
+            "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+            "count": 1,
+            "pdcSha256": "a323663ee20c24b8821ef3305e31ffffa0427d8a3acb38a5de50d73447c675f9",
+            "serializedSha256": "4fc6de1de2b4dd26fee71c521e065437cf9b5d2bff47f9f1f9b195c3c88f0d03"
+          },
+          "savedSha256": "6a5c4baa0d31910a078861a31663fec8ccb1aa494ae6b6f0cf3d223d4e2f7853",
+          "state": {
+            "mode": "left",
+            "color": "red",
+            "state": "kaleidoscope_deco:kaleidoscope_bar/sofa"
+          }
+        },
+        "doll": {
+          "id": "kaleidoscope_doll:doll_0",
+          "uuid": "ace19a02-27fd-46bc-83aa-f662f8c220f8",
+          "world": "acceptance-world",
+          "position": [
+            682.5,
+            200,
+            9.5
+          ],
+          "variant": "ground",
+          "blocked": false,
+          "hasContents": false,
+          "source": {
+            "id": "kaleidoscope_doll:doll_0",
+            "count": 1,
+            "pdcSha256": "63ebc9d610d0cb2168568249d5fa6d0ef6ba0b5b6324d6320cbd7cb6951262ad",
+            "serializedSha256": "901969681770934acbfebcbcb7068a7aaae14885b7f83202a9ab71c632b4ac13"
+          },
+          "savedSha256": "3a799398b002717a5495cc4720322563a85395af110de9251f7399c1aac10314",
+          "state": {
+            "pose": "1.1,1.1,1.1,0.05,0.05,0.05,15.0,15.0,15.0"
+          }
+        },
+        "tub": {
+          "id": "kaleidoscope_tavern:pressing_tub",
+          "uuid": "2509c5c0-9b83-4a1c-b404-4016258b080e",
+          "world": "acceptance-world",
+          "position": [
+            680.5,
+            200,
+            6.5
+          ],
+          "variant": "ground",
+          "blocked": false,
+          "hasContents": true,
+          "source": {},
+          "savedSha256": "d7fcf306530e79501abdd2ff94da0f15f4b6a395eff3de241cc96d5ccae7f23a",
+          "state": {
+            "amount": 0,
+            "ingredients": {
+              "id": "minecraft:glow_berries",
+              "count": 1,
+              "pdcSha256": "cb4d761da2c01f83a90d8e1639156c1b80e6057dfd45900e0ae76a027ee05d1d",
+              "serializedSha256": "22fe56ba5e16f021db8a446d04ac07fa219ede358513073cc0e1f076fb52eb11"
+            }
+          }
+        }
+      },
+      "recovery": {
+        "sofaDropCount": 1,
+        "dollDropCount": 1,
+        "returnedBerries": 1,
+        "repeatedReturn": 0,
+        "emptyObservationMs": 2000,
+        "furnitureReturns": {
+          "sofa": {
+            "pickedUpBy": "SenLuoProbeA",
+            "item": {
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+              "count": 1,
+              "pdcSha256": "a323663ee20c24b8821ef3305e31ffffa0427d8a3acb38a5de50d73447c675f9"
+            }
+          },
+          "doll": {
+            "pickedUpBy": "SenLuoProbeB",
+            "item": {
+              "id": "kaleidoscope_doll:doll_0",
+              "count": 1,
+              "pdcSha256": "63ebc9d610d0cb2168568249d5fa6d0ef6ba0b5b6324d6320cbd7cb6951262ad"
+            }
+          }
+        }
+      }
+    }
+  },
+  "packValidation": {
+    "items": 1822,
+    "furniture": 1549,
+    "recipes": 117,
+    "reachable_custom_models": 2759,
+    "errors": [],
+    "asset_warnings": [],
+    "scope": "Declared CE item/furniture/recipe references are errors. Additional exported custom model and item-definition dependencies are asset_warnings. Vanilla assets and client rendering require target-client validation."
+  },
+  "packValidationSha256": "6b01a881026043540585750b31a3c4c90cc93f639a6d0b9fc80ee2d4b1860294",
+  "cePackSha256": {
+    "deco-ce-pack-0.1.0-dev.zip": "664f551e8bacfe2008f16b7cd81bbde295731f48dc688b55fa0124418e2de437",
+    "doll-ce-pack-0.1.0-dev.zip": "cfc5b20166ef83b6ea2e512f817a01cf18b0a0484e58b6e651a9b38b18f8d231",
+    "music-ce-pack-0.1.0-dev.zip": "5c45ddba200f9c521f4f6d4a6e86f2ac422faa2b3ead6a17bd71a4e9e61f8cc4",
+    "shared-ce-pack-0.1.0-dev.zip": "c0d871a56e99c32421f6c416ea10b4242f8249a68fca993b7280ca1a1f691990",
+    "tavern-ce-pack-0.1.0-dev.zip": "ceacacb43ef85866eb0e55a0cd090fe259f8d106393d2bf823d97cf79ab32425",
+    "cookery-ce-pack-1.3.0.zip": "7340f24cb4522520d8835c71f2a862837b257fd978ce8d0a57dc810265b1f853"
+  },
+  "cePackSourceEvidenceSha256": "6dd3922c33042ba532846b8b587036ca724b2f3ea76a36dfef4ddc120630cae1",
+  "hostedPackSha256": {
+    "paper": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+    "folia": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a"
+  },
+  "supersededSuccessfulRuns": [
+    {
+      "server": "Paper 132",
+      "localRun": "build/acceptance/net/paper-restart-7",
+      "passed": true,
+      "suiteResultSha256": "b8461c010168c28dc38209a95e837018f2c5a9e055dd6db5e9408c77feb3a382",
+      "seedStateSha256": "f579832fbc44df9a217ed37a794ebabc91f78885cbd2d708e44b04fdd844a49f",
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "c6af215cf7a88dd85493725f7b4e9c80befa989662c00e086cc22d2149ce7e20",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "f868c7c14e919a730505c0715d8bab1ef7f3da10c2afddd55e5d180e6985254e",
+        "persistence-players.cjs": "b1aff697e18c2ab8124c780a22287624c363da5fea6bc15c346db0ee1e631682"
+      },
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": true,
+          "readySeconds": 33.003,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "e3e5686abe4e4a0a96bb74ac0b296abf06092235d29b9612d9c6a2cef08615bc",
+          "resultSha256": "c27ca466bf603e5f8402efb09dbf2b5685e9068067be371bff6cc93c20835e2c",
+          "playerReportSha256": "a9fae08c67849c49e757b583d583779459aca050b24eed85189a3a6bf2ed69eb",
+          "fixtureSha256": "a5af44b14e37fc2037ebf106092e1ee5d696abf1a2d74c6d5f3de3a0db766993",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose",
+            "persistenceSeed"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        },
+        {
+          "phase": "verify",
+          "passed": true,
+          "readySeconds": 30.808,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "9a674b370f483122b6b711990fb8615def296ce2bacbedac2bf0f27aafc42d52",
+          "resultSha256": "f0946e9824ff919b46c152080b993bd0a2b05e94d0e372f80e2effbb75145682",
+          "playerReportSha256": "58c3197bc13462adcaf1582d971ce0cd62dd65456ebce1e30a519be98e7b2dbd",
+          "fixtureSha256": "a5af44b14e37fc2037ebf106092e1ee5d696abf1a2d74c6d5f3de3a0db766993",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "persistenceVerify"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        },
+        {
+          "phase": "empty",
+          "passed": true,
+          "readySeconds": 31.326,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "9670a158b12285966e5ef38f07bc7edb6ecb65d32ebcf2934e998badb1accc95",
+          "resultSha256": "181c56ad15c05efdf3d8748e7fac23e0d6f282025d6e773e3cb57d12aa4c5ec5",
+          "playerReportSha256": "d54f5ea65b95a9d884e1f4b1b8ea5b78578376723be9337653e34b0a8d0cc2cd",
+          "fixtureSha256": "0264281297912e42c7294dccf87980f6267d8526a1b4a98693023a70f9021274",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "persistenceEmpty"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        }
+      ],
+      "tulipBoard": {
+        "consumed": 1,
+        "fullInventory": true,
+        "deniedInteraction": 1,
+        "deniedSpawn": 1,
+        "returned": {
+          "id": "minecraft:white_tulip",
+          "count": 1
+        }
+      },
+      "fixtures": {
+        "sofa": {
+          "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+          "uuid": "a65202f5-45d4-4907-bbae-10f48c34b962",
+          "world": "acceptance-world",
+          "position": [
+            678.5,
+            200,
+            9.5
+          ],
+          "variant": "kaleidoscope_deco/kaleidoscope_bar/sofa/style/red/left",
+          "blocked": false,
+          "hasContents": false,
+          "source": {
+            "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+            "count": 1,
+            "pdcSha256": "a323663ee20c24b8821ef3305e31ffffa0427d8a3acb38a5de50d73447c675f9",
+            "serializedSha256": "4fc6de1de2b4dd26fee71c521e065437cf9b5d2bff47f9f1f9b195c3c88f0d03"
+          },
+          "savedSha256": "6a5c4baa0d31910a078861a31663fec8ccb1aa494ae6b6f0cf3d223d4e2f7853",
+          "state": {
+            "state": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+            "color": "red",
+            "mode": "left"
+          }
+        },
+        "doll": {
+          "id": "kaleidoscope_doll:doll_0",
+          "uuid": "9a696a2c-e304-411d-a7fe-8f5252303437",
+          "world": "acceptance-world",
+          "position": [
+            682.5,
+            200,
+            9.5
+          ],
+          "variant": "ground",
+          "blocked": false,
+          "hasContents": false,
+          "source": {
+            "id": "kaleidoscope_doll:doll_0",
+            "count": 1,
+            "pdcSha256": "63ebc9d610d0cb2168568249d5fa6d0ef6ba0b5b6324d6320cbd7cb6951262ad",
+            "serializedSha256": "901969681770934acbfebcbcb7068a7aaae14885b7f83202a9ab71c632b4ac13"
+          },
+          "savedSha256": "3a799398b002717a5495cc4720322563a85395af110de9251f7399c1aac10314",
+          "state": {
+            "pose": "1.1,1.1,1.1,0.05,0.05,0.05,15.0,15.0,15.0"
+          }
+        },
+        "tub": {
+          "id": "kaleidoscope_tavern:pressing_tub",
+          "uuid": "43e6802b-c99f-4fd7-a20b-3dd0325b4aec",
+          "world": "acceptance-world",
+          "position": [
+            680.5,
+            200,
+            6.5
+          ],
+          "variant": "ground",
+          "blocked": false,
+          "hasContents": true,
+          "source": {},
+          "savedSha256": "d7fcf306530e79501abdd2ff94da0f15f4b6a395eff3de241cc96d5ccae7f23a",
+          "state": {
+            "amount": 0,
+            "ingredients": {
+              "id": "minecraft:glow_berries",
+              "count": 1,
+              "pdcSha256": "cb4d761da2c01f83a90d8e1639156c1b80e6057dfd45900e0ae76a027ee05d1d",
+              "serializedSha256": "22fe56ba5e16f021db8a446d04ac07fa219ede358513073cc0e1f076fb52eb11"
+            }
+          }
+        }
+      },
+      "recovery": {
+        "sofaDropCount": 1,
+        "dollDropCount": 1,
+        "returnedBerries": 1,
+        "repeatedReturn": 0,
+        "emptyObservationMs": 2000,
+        "furnitureReturns": {
+          "sofa": {
+            "pickedUpBy": null,
+            "item": {
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+              "count": 1,
+              "pdcSha256": "a323663ee20c24b8821ef3305e31ffffa0427d8a3acb38a5de50d73447c675f9"
+            }
+          },
+          "doll": {
+            "pickedUpBy": null,
+            "item": {
+              "id": "kaleidoscope_doll:doll_0",
+              "count": 1,
+              "pdcSha256": "63ebc9d610d0cb2168568249d5fa6d0ef6ba0b5b6324d6320cbd7cb6951262ad"
+            }
+          }
+        }
+      },
+      "status": "superseded",
+      "reason": "All three phases passed under the earlier probe JAR and pickup scenario, whose historical hashes are preserved here. The later Folia attempt exposed natural pickup by the other participant; the final probe also adds a read-only interaction observation counter. This archived success is not evidence for the final probe or scenario hashes.",
+      "artifactScope": "Historical probe JAR and scenario code; no current-artifact match is asserted. Final runs separately require all six current built JAR hashes, including the rebuilt probe.",
+      "supersededBy": {
+        "paper": "build/acceptance/net/paper-restart-12",
+        "folia": "build/acceptance/net/folia-restart-3"
+      }
+    },
+    {
+      "server": "Paper 132",
+      "localRun": "build/acceptance/net/paper-restart-11",
+      "passed": true,
+      "suiteResultSha256": "5b262028504a4d18174c07a54ec308c0e1c58eed44dcf758b9033d974df692e5",
+      "seedStateSha256": "1413d88134d248cb2dbac6333293f184eecffa337f2bb025ab1248ba0fe866b1",
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "873d29910251aa61921a4489b054492e0c80d234e9d49dd1cc996e06e16e5dc2",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "3cd6559501deb2738c122771c7bbc3ed027b42c1292e40b1315279faa88d7ac1",
+        "persistence-players.cjs": "7bace58ab86af99e96e5a890a8443d988c056f5ace60f7ec711e2cb042fe05cf"
+      },
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": true,
+          "readySeconds": 33.104,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "defc875357abeb66df9ab0ec5eed7e052fe8e9af47a4bb6d3218e6e10e77c218",
+          "resultSha256": "e26aff563352c489f49127eaeeb65871614f9dbde7547fdb6217eddecfd58cfc",
+          "playerReportSha256": "617de5a5bd15f27f2de59e43451665954a2d62729348f66feec6fad1f749b243",
+          "fixtureSha256": "81d1ccaaf193b7b409ea35bb21daf871e0768a69f53a3108c7f242a6c76167d6",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose",
+            "persistenceSeed"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        },
+        {
+          "phase": "verify",
+          "passed": true,
+          "readySeconds": 32.968,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "3c06357f162a03b2120640414a116cb33dcaf20d455744cd6879037a1731a48c",
+          "resultSha256": "922085907b0bf139178eed50c02c57add3dd62205aec8d96afefbe7993753112",
+          "playerReportSha256": "e3aa500b09e20f925bb270d4b789a28824e8a0b0727b1fa8476d3b23ec88999d",
+          "fixtureSha256": "81d1ccaaf193b7b409ea35bb21daf871e0768a69f53a3108c7f242a6c76167d6",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "persistenceVerify"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        },
+        {
+          "phase": "empty",
+          "passed": true,
+          "readySeconds": 33.833,
+          "serverExit": 0,
+          "clientExit": 0,
+          "completionReason": "client-finished",
+          "serverErrors": [],
+          "consoleSha256": "99d9f888d838b01330e64131354c2e1e2a8e0dec5f1cc65b7d26a62088041447",
+          "resultSha256": "ead7b04bf3d6288597597931b0c445989244abdbdeca3c1cc37936bb234e46a6",
+          "playerReportSha256": "0a7003057f09b2bf011a85139e2aa762e3cf82ca63569679d6da5c47dc18afb9",
+          "fixtureSha256": "a007fff26b8d94a8226d7fb33e417dce1787fe76c05f094e865fd1b11bb70b93",
+          "resourceReaderSha256": {
+            "SenLuoProbeA": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59",
+            "SenLuoProbeB": "1305fd96157bcf77f0147fa71f7809a58659161ec48102dd94ce38fe99884b59"
+          },
+          "checks": [
+            "persistenceEmpty"
+          ],
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          }
+        }
+      ],
+      "tulipBoard": {
+        "consumed": 1,
+        "fullInventory": true,
+        "deniedInteraction": 1,
+        "deniedSpawn": 1,
+        "attemptedPlayers": [
+          "SenLuoProbeA",
+          "SenLuoProbeB"
+        ],
+        "acknowledged": [
+          "SenLuoProbeA"
+        ],
+        "oldHitbox": 119,
+        "newHitbox": 123,
+        "returned": {
+          "id": "minecraft:red_tulip",
+          "count": 1
+        }
+      },
+      "fixtures": {
+        "sofa": {
+          "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+          "uuid": "2ad019dc-099d-49c3-adc0-03000ceb2705",
+          "world": "acceptance-world",
+          "position": [
+            678.5,
+            200,
+            9.5
+          ],
+          "variant": "kaleidoscope_deco/kaleidoscope_bar/sofa/style/red/left",
+          "blocked": false,
+          "hasContents": false,
+          "source": {
+            "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+            "count": 1,
+            "pdcSha256": "a323663ee20c24b8821ef3305e31ffffa0427d8a3acb38a5de50d73447c675f9",
+            "serializedSha256": "4fc6de1de2b4dd26fee71c521e065437cf9b5d2bff47f9f1f9b195c3c88f0d03"
+          },
+          "savedSha256": "6a5c4baa0d31910a078861a31663fec8ccb1aa494ae6b6f0cf3d223d4e2f7853",
+          "state": {
+            "mode": "left",
+            "state": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+            "color": "red"
+          }
+        },
+        "doll": {
+          "id": "kaleidoscope_doll:doll_0",
+          "uuid": "a0af845d-4d6c-4111-b865-34b860fb672a",
+          "world": "acceptance-world",
+          "position": [
+            682.5,
+            200,
+            9.5
+          ],
+          "variant": "ground",
+          "blocked": false,
+          "hasContents": false,
+          "source": {
+            "id": "kaleidoscope_doll:doll_0",
+            "count": 1,
+            "pdcSha256": "63ebc9d610d0cb2168568249d5fa6d0ef6ba0b5b6324d6320cbd7cb6951262ad",
+            "serializedSha256": "901969681770934acbfebcbcb7068a7aaae14885b7f83202a9ab71c632b4ac13"
+          },
+          "savedSha256": "3a799398b002717a5495cc4720322563a85395af110de9251f7399c1aac10314",
+          "state": {
+            "pose": "1.1,1.1,1.1,0.05,0.05,0.05,15.0,15.0,15.0"
+          }
+        },
+        "tub": {
+          "id": "kaleidoscope_tavern:pressing_tub",
+          "uuid": "c4e97398-ed2e-40c0-95e6-d29205787c5d",
+          "world": "acceptance-world",
+          "position": [
+            680.5,
+            200,
+            6.5
+          ],
+          "variant": "ground",
+          "blocked": false,
+          "hasContents": true,
+          "source": {},
+          "savedSha256": "d7fcf306530e79501abdd2ff94da0f15f4b6a395eff3de241cc96d5ccae7f23a",
+          "state": {
+            "amount": 0,
+            "ingredients": {
+              "id": "minecraft:glow_berries",
+              "count": 1,
+              "pdcSha256": "cb4d761da2c01f83a90d8e1639156c1b80e6057dfd45900e0ae76a027ee05d1d",
+              "serializedSha256": "22fe56ba5e16f021db8a446d04ac07fa219ede358513073cc0e1f076fb52eb11"
+            }
+          }
+        }
+      },
+      "recovery": {
+        "sofaDropCount": 1,
+        "dollDropCount": 1,
+        "returnedBerries": 1,
+        "repeatedReturn": 0,
+        "emptyObservationMs": 2000,
+        "furnitureReturns": {
+          "sofa": {
+            "pickedUpBy": "SenLuoProbeA",
+            "item": {
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+              "count": 1,
+              "pdcSha256": "a323663ee20c24b8821ef3305e31ffffa0427d8a3acb38a5de50d73447c675f9"
+            }
+          },
+          "doll": {
+            "pickedUpBy": "SenLuoProbeB",
+            "item": {
+              "id": "kaleidoscope_doll:doll_0",
+              "count": 1,
+              "pdcSha256": "63ebc9d610d0cb2168568249d5fa6d0ef6ba0b5b6324d6320cbd7cb6951262ad"
+            }
+          }
+        }
+      },
+      "status": "superseded",
+      "reason": "All three phases passed under the 60-contract network-removal pickup scenario. Folia2 subsequently failed both a real startup watchdog and a strict sofa inventory assertion after naturally collecting the preceding tulip-board return. The replacement scenario must settle the returned flower before the next fixture; both platforms require new complete runs. Paper11 is retained as a true historical success, not evidence for the replacement scenario or a resolution of the watchdog.",
+      "artifactScope": "Historical 60-contract scenario hashes and original runtime hashes are preserved. No current-scenario match is asserted for this superseded run; final runs must independently match the final artifacts and scripts.",
+      "supersededBy": {
+        "paper": "build/acceptance/net/paper-restart-12",
+        "folia": "build/acceptance/net/folia-restart-3"
+      }
+    }
+  ],
+  "builtPluginHashes": {
+    "plugins/CookeryAcceptanceProbe.jar": "873d29910251aa61921a4489b054492e0c80d234e9d49dd1cc996e06e16e5dc2",
+    "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+    "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+    "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+    "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+    "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445"
+  },
+  "protocolClientDependencies": {
+    "packageJsonSha256": "0045505a362f34b543bf8bca0e23bee03034d81b79014fa375046677676b5a8b",
+    "packageLockSha256": "51aceebac7f1763f23c213e4330e1c9d275e45024d07018b216193ca7204c7ca",
+    "installed": {
+      "mineflayer": {
+        "version": "4.39.0",
+        "packageJsonSha256": "0be37d69783b0a29fffd0447b875c75480c167f5a6de1727b81efdad661c3735"
+      },
+      "minecraft-protocol": {
+        "version": "1.68.0",
+        "packageJsonSha256": "be0ec981835085977446bf11748443118a8cb3d1b76138c25dafa7175cd8f749"
+      },
+      "minecraft-data": {
+        "version": "3.119.0",
+        "packageJsonSha256": "a0824fdcce7ecc455417b766ff6852ea7f823f7bc61d295d971b96743ed41da9"
+      },
+      "prismarine-entity": {
+        "version": "2.6.0",
+        "packageJsonSha256": "f9491cc47346825f668956725f0c3d1e73b03d1d2244b781d59786cc28364566"
+      },
+      "prismarine-item": {
+        "version": "1.18.0",
+        "packageJsonSha256": "67056a24bea1cc6a065ca20c708273146d7d53d2074042584b1009dffe8d1db8"
+      }
+    },
+    "scope": "Installed package manifest identities recorded at evidence collection and checked against package-lock versions; this is not an automated codec-compatibility test."
+  },
+  "evidenceCollectorSha256": "4f5dbf91df522b156061e7ad80d8a682eecc1b2574baae55e1989dc502a388cc",
+  "testedSourceFilesSha256": {
+    ".github/workflows/ci.yml": "d86ab05b3f560cf62cf2b31a04805e7b2d00c8c57d74abba98504cc9206586f0",
+    "series/common/src/main/java/net/kaleidoscope/series/FurnitureTickers.java": "65edb0e628b9bb53b54792261d8b37be5ca6440b15339d4e2f3bc325f6b37c76",
+    "series/common/src/test/java/net/kaleidoscope/series/FurnitureTickersTest.java": "3c884beb105a67cfb2bfe4274879376c9e8febcd09305ea9f05d04bb4efb5398",
+    "series/deco/src/test/java/net/kaleidoscope/deco/DecoControllerTest.java": "b216a14f84acb698880b8ef52b3a290e402b94c52acdecb8de49d80b443a8a94",
+    "series/doll/src/main/java/net/kaleidoscope/doll/LotteryController.java": "f64688df6f6861001264a57929705bff81769c99588c1af10ef8b3f078d5f710",
+    "series/doll/src/test/java/net/kaleidoscope/doll/DollItemRestoreTest.java": "75a632bbf949af266c482111037001590f9b123fef422ffcf9e844c208901b57",
+    "series/doll/src/test/java/net/kaleidoscope/doll/LotteryDeliveryTest.java": "aa79ebd3e2cdb41eca6e98e5bc76eb1282786e2afe659da42e69f92fb43d554a",
+    "series/doll/src/test/java/net/kaleidoscope/doll/LotteryRestoreTest.java": "db48649d86e30a69f7a38623250ce910856ea9ccaa548fb1563ed33454e6d42b",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/BarrelController.java": "a28e4f06bed2c2194ad20b99c20eb58897a044544d8d9af3df8ce54cb1a31348",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/GrapeController.java": "d2dda2a449572819daaaed73ac76853c14ac7f1aa23d1c0333a51d581fc0965a",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/PressingController.java": "286237bb4eb2cb55e99b9a100edac6ece57770e016891c63b4fd6cb5e38cf95f",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/ShakerController.java": "8a6cb84b99dc507f0c349418521cc6bdb5c11c3ac3db3851d85117784ab2a8aa",
+    "series/tavern/src/main/java/net/kaleidoscope/tavern/TapController.java": "ed5fc54e2257a121aeae39dd42a0b1b301e3e74dea964b8bdc62854d33d57dea",
+    "series/tavern/src/test/java/net/kaleidoscope/tavern/TavernPersistenceTest.java": "b019789befd01424b740ddd1575db2b2954505c2cc6dc483aea21fd2d4f2cc0b",
+    "src/acceptance/java/net/kaleidoscope/cookery/acceptance/ConnectedKitchenProbe.java": "d4390235877abffa64d19bd02d1e10d1a2e947938547fe937f73dc062639b7ec",
+    "src/acceptance/resources/plugin.yml": "4e8a98e2a4fe811e2e92797fe759f4724979aa48e78a0e9e88f60e8b081145ec",
+    "tools/acceptance/connected/persistence-players.cjs": "7bace58ab86af99e96e5a890a8443d988c056f5ace60f7ec711e2cb042fe05cf",
+    "tools/acceptance/connected/players.cjs": "d5bb0c55dbf5fc8700cbcfb83d1089e44d1dc2458c16e619a717970d2d56401c",
+    "tools/acceptance/connected/run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+    "tools/acceptance/connected/test-persistence.cjs": "de9249357a81fcf15b247c72a6c67dac37fe84feeb8c2b683c6cdf8188e1115a",
+    "tools/build_all.py": "18eee75e4ee9796afcf28388447c734dd00f553d54c88af41e60e4c992b1bfc7",
+    "tools/test_connected_acceptance.py": "cfe9c049dcf3f6db37df078f953a40af8339b3c1f55b221151036547348eb5ad"
+  },
+  "buildLogSha256": {
+    "build/restart-root-final-2.log": "761d78a421a24e21707e70c579c0825d11b700362cf0bce89d0e6ea50cfc9173",
+    "build/restart-series-final-4.log": "cd9f885a8929832416bc4385af486407dc16aaf9812dc44ac0fb38cece0d9ec4",
+    "build/restart-probe-final.log": "6320581c147015d2ece9431238c8857b51efedfa3962f4ad6a9db68ec261dc2a",
+    "build/restart-python-final.log": "634cf9c347fdc60d9b785b2bc7068063113c784630dc570adea91624eb90b3aa",
+    "build/restart-node-final.log": "4503b62cb382e957979a6d6b748fe46dea904365d9ce59a11ca49fa5b02cf2c4",
+    "build/restart-cookery-check.log": "3fa0147a16d588f095a759139fa7cdad1e9e4083714e80ac8ac165716c713b1b",
+    "build/restart-series-check.log": "06f6b8a85c1a5c592aa4e46e88489bd54c6766234647e5db19f4dc4d9ca11974",
+    "build/restart-release-final.log": "02480dc18a8f6a5e395e86ce55fe6b5c72c6742a1d2ccfdbcf03625a1c62cc6f",
+    "build/restart-final-cookery-import.log": "3fa0147a16d588f095a759139fa7cdad1e9e4083714e80ac8ac165716c713b1b",
+    "build/restart-final-series-import.log": "06f6b8a85c1a5c592aa4e46e88489bd54c6766234647e5db19f4dc4d9ca11974"
+  },
+  "failedRuns": [
+    {
+      "localRun": "build/acceptance/net/paper-restart-1",
+      "category": "acceptance-fixture-initial-null-source-assumption",
+      "reason": "The seed helper incorrectly required a source item for a default unposed Doll and an empty API-created tub. CE permits a null source in these states; stateful sofa/Doll source and PDC assertions remain mandatory.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: seed"
+      ],
+      "suiteResultSha256": "fe7302c6864bc2607da52797b23606b380d40af00c47af245cb9d4473234fb6c",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'kaleidoscope_doll:doll_0'\n\n    at fixture (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:38:12)\n    at persistenceScenario (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:132:55)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:326:25)",
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose"
+          ],
+          "resultSha256": "9e6db249a821b03a5f0436ef90295a361388998358c57e528095ab9aebeff42f",
+          "playerReportSha256": "76db97e75555e1a488edc29be096d4e95233f6248c5ff20246b78fbb5033f532",
+          "consoleSha256": "0a662dc1f6415aaa71e86341f547d9c9f833697bd45b70d6aeb3ef03fd16d14b"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "2a78f6e945bbe7422c195ccb964d3bf6df19d3d26923f161ea645f8fb2a4bffb",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "9454316f50c83c36863e2a171dac0578e3e239c52c410eb47eec37332af8ed4a",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "fec2668952be5800c233f37c43fa5874507c55d8b8f0793f6c3c160bd6404b50",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "772253256181b9389994223ce5badd4436135cb93d05021b87aa274838ab8b88",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "eeedf0b532f41b039d507c934b94ca9e8be2098c038dd64e9fdc867cf613111b",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": null
+    },
+    {
+      "localRun": "build/acceptance/net/paper-restart-2",
+      "category": "acceptance-fixture-leftover-collision-before-seed",
+      "reason": "A persistent Doll left by the first rejected seed occupied the original tulip-board test position. Seed-only preflight cleanup now removes known test furniture before the original scenario; verification and empty phases still never clear or create furniture.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: seed"
+      ],
+      "suiteResultSha256": "e8326bd44a4719565bd6194a7b2cff6b894a3b58fbd2f260974af5d10f0b719d",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "AssertionError [ERR_ASSERTION]: java.lang.IllegalStateException: Unexpected fixture furniture kaleidoscope_doll:doll_0\n    at inspect (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:39:10)\n    at async tulipBoard (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:182:19)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:323:9)",
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow"
+          ],
+          "resultSha256": "14830bec8f005ddd4c39d54b4e796602877bacad2c8c57bb367fc4d99646ed7a",
+          "playerReportSha256": "613f1a413f4043d8ddef291aba0a65fc49fcea3957c16b9d43fb9f68957cce88",
+          "consoleSha256": "41f9d6d313929cc65693af4fdaef54caefd0a5097a0627fb37ecf9e55f671678"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "2a78f6e945bbe7422c195ccb964d3bf6df19d3d26923f161ea645f8fb2a4bffb",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": null
+    },
+    {
+      "localRun": "build/acceptance/net/paper-restart-3",
+      "category": "acceptance-probe-null-pointer-during-original-scenario-cleanup",
+      "reason": "The original scenario cleanup reported a Java NullPointerException through the console probe. A dead cached CraftEngine furniture wrapper is the high-probability explanation, but the original reply did not preserve the Java stack trace, so that root cause is not proven. The probe now includes Java stack frames in its diagnostic reply.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: seed"
+      ],
+      "suiteResultSha256": "61bbc61c122410a5656deec3262d88cd5a7b2d0d94c98a9cdef69595960e0ca1",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "AssertionError [ERR_ASSERTION]: java.lang.NullPointerException\n    at inspect (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:39:10)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:325:42)",
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard"
+          ],
+          "resultSha256": "22774b8c5b46b00080056d0416001c6bf1993bfae3aa88cbde852af94bf911f7",
+          "playerReportSha256": "e7002265ead7a75de658220886e19b3d11341a3ca5a5db815d234b9e7150d5e6",
+          "consoleSha256": "c02dabd0454d251d31b6fadf8f4dbd6c4b70aa43f2df4fac5e9f911264fd81f7"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "eed3d6bd94328c0df1e8461aaa2b9af8cf246f8d5d52f0ecb53b18d50dc62c1c",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "e88ed12ca82b0da0fbbae68c6900b516222d3c2a2ab2bd1f6d2f16b9db6571ae",
+        "persistence-players.cjs": "ff9a538fd3f0e933eb464f38265a992526008e1377edec25762647b9e53ab75d"
+      }
+    },
+    {
+      "localRun": "build/acceptance/net/paper-restart-4",
+      "category": "acceptance-scenario-returned-ingredient-reinserted",
+      "reason": "Seed passed; verify failed its final empty-tub assertion after the first returned berry filled the selected empty hotbar slot. The next interaction could reinsert that berry. The corrected scenario reselects and reads back another empty hand before repeating the return; protocol contract tests model this slot-filling behavior and reject duplicate production.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: verify"
+      ],
+      "suiteResultSha256": "65ced0e2dd47c9033b98bd289f449018665c03eaae8268d07bef6dff70e8b89b",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": true,
+          "serverExit": 0,
+          "clientExit": 0,
+          "serverErrors": [],
+          "clientError": null,
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose",
+            "persistenceSeed"
+          ],
+          "resultSha256": "79914511604988502b0a9464eea6cd48ea2a90d49f2ab2094cfb8e07f4ad4c96",
+          "playerReportSha256": "91da612f6b5b077fc029847837cbb518470b8a4cc1388f6ee1e857b2cdf77e56",
+          "consoleSha256": "2f487e12c5940fc0473509c2c099b2af1368e047535424971f80c264e33533ec"
+        },
+        {
+          "phase": "verify",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at emptyFixtures (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:94:10)\n    at persistenceScenario (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:250:3)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:317:5)",
+          "originalChecks": [],
+          "resultSha256": "6756fbf028565cfee8bd40d5e7f09d169f20b92e0a3992b6885c683f26b6823d",
+          "playerReportSha256": "be1e4a7f8a1226fd7811178903f41defff040104892ea3d5e6b95bf9dec1c3f7",
+          "consoleSha256": "be164476afd119b93ff8d551c57db50d512a3983361ceb8f962d429aa0d169c4"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "0dec0eb2a8d079931bd599492403d0e3fa180dc8288669745f2a2772eb61a30f",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "e88ed12ca82b0da0fbbae68c6900b516222d3c2a2ab2bd1f6d2f16b9db6571ae",
+        "persistence-players.cjs": "ff9a538fd3f0e933eb464f38265a992526008e1377edec25762647b9e53ab75d"
+      }
+    },
+    {
+      "localRun": "build/acceptance/net/paper-restart-5",
+      "category": "acceptance-scenario-fixed-duration-sofa-pickup-timeout",
+      "reason": "The original sofa-style scenario timed out because fixed 300 ms forward movement did not reach the randomly thrown item. Diagnostic save inspection found player A at (681.791499, 200, 9.5) and the single sofa drop at (683.350264, 200, 8.691447), about 1.756 horizontal blocks apart; the drop had PickupDelay 0, Age 338 and preserved red/left PDC, while A had no sofa. The phase recorded no server errors and the server stopped normally. The next scenario uses bounded walking toward the actual network-observed dropped item without weakening item or drop assertions.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: seed"
+      ],
+      "suiteResultSha256": "9c69b539ea083a394c0fea65347adc135802ca37907adab8e593f856186c8273",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "Error: Timed out waiting for styled sofa pickup\n    at until (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:31:9)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async sofaStyle (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:257:20)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:325:9)",
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard"
+          ],
+          "resultSha256": "cc25082162d90640edc67e0ed04af380832f20bba6aedef496fc28c1dde8dbc3",
+          "playerReportSha256": "b64b9bb17e3d776824c252cbb9e7d728b7085299a43d50240edf2e4a0ae0546b",
+          "consoleSha256": "d7f907f081c1ac61e7b695ab7a40d90c96660d8770f132b3440bf41810301813"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "c6af215cf7a88dd85493725f7b4e9c80befa989662c00e086cc22d2149ce7e20",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "e88ed12ca82b0da0fbbae68c6900b516222d3c2a2ab2bd1f6d2f16b9db6571ae",
+        "persistence-players.cjs": "51b6a5e1f807ae2505080ab49973d8e04806ae62c2b8ff713eff628292d6bd11"
+      }
+    },
+    {
+      "localRun": "build/acceptance/net/paper-restart-6",
+      "category": "acceptance-restart-recovery-walked-to-old-furniture-center",
+      "reason": "Seed passed all seven check groups. Verify timed out waiting for sofa pickup because restart recovery walked to within 0.85 blocks of the old furniture center instead of the randomized dropped-item location. Diagnostic save inspection found player A at (678.992687, 200, 9.5), player B at (681.5, 200, 9.5), and the single sofa item at (677.032693, 200, 9.428182), about 1.961 horizontal blocks from A; the item had PickupDelay 0, Age 333 and intact deco_state_v1 PDC. The server recorded no errors and stopped normally. Restart recovery now uses the shared network-position pickup helper with persistinspect observations while retaining source-PDC and two-player exact-total assertions.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: verify"
+      ],
+      "suiteResultSha256": "86bc2777977d304cdc6e5c31ac842bd24562f8a771b33a47cc65e3d30c8c88a4",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": true,
+          "serverExit": 0,
+          "clientExit": 0,
+          "serverErrors": [],
+          "clientError": null,
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose",
+            "persistenceSeed"
+          ],
+          "resultSha256": "fb6fc003e7a17786e66c54943d91fc85a3bc0d5ab0a81124018278d7d21a6423",
+          "playerReportSha256": "baed0e70c9808c7fc436d6962d780042eacb92e7b89bb18c783c9ff9bbf3b923",
+          "consoleSha256": "9ac58d8d59d320273a6d1bb847cba102ac78e2b2113256c24c880195751243d0"
+        },
+        {
+          "phase": "verify",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "Error: Timed out waiting for sofa pickup\n    at until (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:31:9)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async recover (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:148:5)\n    at async persistenceScenario (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:234:16)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:353:5)",
+          "originalChecks": [],
+          "resultSha256": "21f8fbed78f2a39389219c0580b346d5b1157360694e38fc4682499f532b6127",
+          "playerReportSha256": "5d35f0a53e7bb9b4b64b6d33adf7b250798d43a90cbe4cce20ada4c78493f917",
+          "consoleSha256": "1148f999b9db12515dbf7f0fe8c0551b3c9606be5ad96c8992ceb3b6859f3eba"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "c6af215cf7a88dd85493725f7b4e9c80befa989662c00e086cc22d2149ce7e20",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "e062eb62e81e915982f753bf47a17a36f8a70621b14da3240da9606305c2adc5",
+        "persistence-players.cjs": "51b6a5e1f807ae2505080ab49973d8e04806ae62c2b8ff713eff628292d6bd11"
+      }
+    },
+    {
+      "localRun": "build/acceptance/net/paper-restart-8",
+      "category": "acceptance-scenario-console-observation-before-network-commit",
+      "reason": "Seed failed the original tulip-board decoration observation. Initial snapshots showed board variant 0 and two tulips; after one use packet and a fixed 200 ms wait, the assertion still observed variant 0, two tulips and hitbox 124, while the following finally/clearboard reply showed one remaining tulip and the saved world had no residual board. CraftEngine bytecode review confirmed setVariant mutates the same furniture wrapper without constructing a replacement. Together these observations support the console snapshot occurring before the network action committed, rather than a wrapper-replacement or production-loss explanation. The server recorded no errors and stopped normally. The final probe records a read-only interaction count, and the next scenario waits for that count plus exact expected state after each single action without resending it or weakening assertions.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: seed"
+      ],
+      "suiteResultSha256": "53ffdc3b2423b11e19c138d6907bd3edbef638376497f2586fb5659b4aa28aca",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'kaleidoscope_deco/kaleidoscope_bar/blackboard/0'\n- 'kaleidoscope_deco/kaleidoscope_bar/blackboard/9'\n                                                 ^\n\n    at tulipBoard (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:255:10)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:378:9)",
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow"
+          ],
+          "resultSha256": "de2c54f62bb2e6fa25e754f254fe7f825017730a6e7c6c02dcf7b26c3c223864",
+          "playerReportSha256": "05d584030d14302cd75180c0d77b64f3ce3cc78886c61c01f9a6898c8aaa2b67",
+          "consoleSha256": "8194ff02bf471b28610b33e012ed33df8cb7c7b7f49331837fe95157d95b33dc"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "c6af215cf7a88dd85493725f7b4e9c80befa989662c00e086cc22d2149ce7e20",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "e0804b2ecea6a1776c1f56bc83139f0180bdc06820fda9e7c0ec3c32f3d0b789",
+        "persistence-players.cjs": "fe0fb673eee6e703300d436ac0083a091d74fc5be5b9a9949db268660fb03843"
+      }
+    },
+    {
+      "localRun": "build/acceptance/net/paper-restart-9",
+      "category": "acceptance-scenario-second-concurrent-packet-targeted-retired-hitbox",
+      "reason": "Seed failed while requiring a receipt from both concurrent tulip-board uses. Raw observations showed old hitbox 123, A interaction count increasing from 2 to 3, the board becoming empty with replacement hitbox 127, and exactly one pink tulip drop; B interaction count remained 1. The first successful harvest replaced the interactable entity ID, so the second packet could legitimately target the retired hitbox and never reach FurnitureInteractEvent. The server recorded no errors and stopped normally. The corrected scenario reads both baselines before sending two packets once, requires at least one receipt plus exact empty state and one drop, accepts a missing second receipt only with hitbox-replacement evidence, and then requires B to receive a fresh-hitbox empty-use receipt without another drop. Attempted and acknowledged counts are reported separately, without claiming both controller calls were received.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: seed"
+      ],
+      "suiteResultSha256": "71d805acb974bc77a5636d34a4ee2598ec8d790ea212d2611b6d9bfcd9e08c47",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "Error: Timed out waiting for single concurrent tulip harvest committed\n    at until (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:31:9)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async Promise.all (index 1)\n    at async tulipBoard (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:316:23)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:431:9)",
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow"
+          ],
+          "resultSha256": "77f01782ed9083a2b5e0fa14fae33759e1b074d727a69124036b387db5490f7e",
+          "playerReportSha256": "cc07970432865e9a64f53ad9947c4b51dddeab590934b0bf5399ad04df0ea9bf",
+          "consoleSha256": "814f691e7e5a94341b672fce3d84e5b136413a0df9a34f7530b34bd7d1ecd9f6"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "873d29910251aa61921a4489b054492e0c80d234e9d49dd1cc996e06e16e5dc2",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "d9aee5b2f0a844d2f8b10c59dbd34bce0c3ff0adcd2feaee8fc1a61a9f84ea48",
+        "persistence-players.cjs": "7bace58ab86af99e96e5a890a8443d988c056f5ace60f7ec711e2cb042fe05cf"
+      }
+    },
+    {
+      "localRun": "build/acceptance/net/paper-restart-10",
+      "category": "acceptance-restart-pickup-completed-during-stale-target-walk",
+      "reason": "Seed passed all seven check groups. Verify timed out at walk to doll pickup because the helper continued following its cached network entity until within 0.35 blocks before reading authoritative inventories again. Saved player data shows A at (677.0738477215548, 200, 9.101015735773451) with the sole sofa in slot 3 and B at (682.0110188917639, 200, 8.311238619868707) with the sole Doll in slot 0. Both recovered items have count 1 and raw state-PDC bytes exactly equal to their seed checkpoint. The final probe reply still reported the earlier Doll drop at (682.4262107848969, 200, 7.3178720969226525), about 1.08 horizontal blocks from B; saved entity-region inspection found no remaining item in the fixture area. Pickup had already completed during walking, but stale-target pursuit prevented the next server-inventory observation. The server recorded no errors and stopped normally (server exit 0, client exit 1). The corrected scenario stops walking when that exact network entity disappears, then still requires authoritative actual-owner, combined-count and source-PDC validation; disappearance alone is never treated as pickup success.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: verify"
+      ],
+      "suiteResultSha256": "f329a8c1d314589e8fa24211883ae8a3106de6e9cb7f5a6832b71b00a2ed5fe9",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": true,
+          "serverExit": 0,
+          "clientExit": 0,
+          "serverErrors": [],
+          "clientError": null,
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose",
+            "persistenceSeed"
+          ],
+          "resultSha256": "364abba906c4f6cd62df8b47d73a8cf832a67dd6de075ba217213b97b094c394",
+          "playerReportSha256": "4738fb98c426a8cb974eb4ddcdb4f19f60c15247479602b2573c315e3fe5239b",
+          "consoleSha256": "916084abc8358a66d4798327f1e195ec4c6243161320709187b7271285337cb3"
+        },
+        {
+          "phase": "verify",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "Error: Timed out waiting for walk to doll pickup\n    at until (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:31:9)\n    at async walkTo (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:144:5)\n    at async pickUpFurniture (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:196:5)\n    at async recover (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:151:20)\n    at async persistenceScenario (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:247:16)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:450:5)",
+          "originalChecks": [],
+          "resultSha256": "ee1c10009f6ba3387e40ce6357c8d98aeb0e83655c777cdbff58c0a41569fa83",
+          "playerReportSha256": "a77192952486320fe99e7ad91041b222126f319063db8dbfaa1bede420202e8c",
+          "consoleSha256": "eddd238131108b8b4cb36a4d3a453cd8f877ea10922b11b52b258d2b2c163a9e"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "873d29910251aa61921a4489b054492e0c80d234e9d49dd1cc996e06e16e5dc2",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "f3a9e1ba64b06858ab7130c9d2d8e178fc83556c6b6ae9d113f81284e7eb45ba",
+        "persistence-players.cjs": "7bace58ab86af99e96e5a890a8443d988c056f5ace60f7ec711e2cb042fe05cf"
+      },
+      "diagnosticEvidence": {
+        "scope": "Read-only post-shutdown analysis of four preserved player/entity-region files, not a passing protocol phase.",
+        "preservedFileSha256": {
+          "build/acceptance/net/paper-restart-10/diagnostic-world/playerdata/16f20c15-2f5c-3c6e-81e4-1715922c7ab5.dat": "a8bc0ab2aac9cb3a882c962e9abbbc60f378e4695f65bbfec5be8c7be11cabd8",
+          "build/acceptance/net/paper-restart-10/diagnostic-world/playerdata/90c495fb-c1be-3a0b-9d62-ee19eb9a186d.dat": "b2dd988b69f63543a3693c188ffb7a6bbd1d99c6bf50f7b9bc495bddbd35d00e",
+          "build/acceptance/net/paper-restart-10/diagnostic-world/entities/r.1.-1.mca": "7e0034e1d917cde31b6545499d47169f2714d69ed8cb9f09ebfd4971a1c843de",
+          "build/acceptance/net/paper-restart-10/diagnostic-world/entities/r.1.0.mca": "a8112994ea08f016e53691b5d7f3cc4ef696b8ba4412a1159c692a79148a4588"
+        },
+        "seedStateSha256": "139133665bd035a85a8ab06795fdcd1aa7f7a972a11aa07f87e9d92a541ec4ab",
+        "players": {
+          "SenLuoProbeA": {
+            "uuid": "16f20c15-2f5c-3c6e-81e4-1715922c7ab5",
+            "position": [
+              677.0738477215548,
+              200.0,
+              9.101015735773451
+            ]
+          },
+          "SenLuoProbeB": {
+            "uuid": "90c495fb-c1be-3a0b-9d62-ee19eb9a186d",
+            "position": [
+              682.0110188917639,
+              200.0,
+              8.311238619868707
+            ]
+          }
+        },
+        "recoveredFurniture": {
+          "sofa": [
+            {
+              "owner": "SenLuoProbeA",
+              "slot": 3,
+              "id": "kaleidoscope_deco:kaleidoscope_bar/sofa",
+              "count": 1,
+              "rawPdcSha256": "3665803edec836e5a6ba998f87869dd1616303f8108850d75b0a9d09b082e86c",
+              "exactSeedPdc": true
+            }
+          ],
+          "doll": [
+            {
+              "owner": "SenLuoProbeB",
+              "slot": 0,
+              "id": "kaleidoscope_doll:doll_0",
+              "count": 1,
+              "rawPdcSha256": "0f44570cd1c0d748a75490b47b1e9efe71a803e32921a1898f6f9d7363cdeafe",
+              "exactSeedPdc": true
+            }
+          ]
+        },
+        "entityScan": {
+          "regions": [
+            "r.1.-1.mca",
+            "r.1.0.mca"
+          ],
+          "all1024ChunkOffsetsPerRegion": true,
+          "xBounds": [
+            670,
+            690
+          ],
+          "zBounds": [
+            -5,
+            20
+          ],
+          "looseItems": []
+        },
+        "lastPreWalkReply": {
+          "localPath": "build/acceptance/net/paper-restart-10/verify/reply-46023210.json",
+          "sha256": "c44a8bbbfc60018917e26ff5bc90d72ac74b13c48ba42c52a4d14bc10b4f98a4",
+          "dollDropPosition": [
+            682.4262107848969,
+            200.0,
+            7.3178720969226525
+          ],
+          "horizontalDistanceFromSavedB": 1.0766435608098208
+        }
+      }
+    },
+    {
+      "localRun": "build/acceptance/net/folia-restart-1",
+      "category": "acceptance-restart-pickup-observed-only-the-acting-player",
+      "reason": "Seed passed; verify timed out because the recovery helper inspected only acting player A after participant B naturally picked up the sofa. Diagnostic save inspection found A at (680.5, 200, 9.5) without a sofa and B at (681.5, 200, 9.5) with exactly one sofa in slot 0, whose deco_state_v1 base64 matched the seed checkpoint; no nearby saved item entity remained. This was an observer-ownership assumption, not production item loss. The corrected restart helper observes both participants, reports the actual owner and slot, and preserves exact combined count and source-PDC checks; both platforms are rerun with the final scenario.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: verify"
+      ],
+      "suiteResultSha256": "23b7733bebc29a88a39484bd61b6732c5772530b90f57d86dccd68d03d3228a5",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": true,
+          "serverExit": 0,
+          "clientExit": 0,
+          "serverErrors": [],
+          "clientError": null,
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard",
+            "sofaStyle",
+            "dollPose",
+            "persistenceSeed"
+          ],
+          "resultSha256": "79cb5fafd4e00affe57d105e7c8f6e5fe15b813ae7994754f62c1889cf3f9aa0",
+          "playerReportSha256": "a8979b6ac3bb52ca5448c78be7d972e6971cf71c6ac8c7759218cf0afb7f6028",
+          "consoleSha256": "78337c697cdd2922fcf26a0f6d1b3842e4da9f0e577801eff8fc11b687c7fd56"
+        },
+        {
+          "phase": "verify",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [],
+          "clientError": "Error: Timed out waiting for sofa pickup inventory or network drop\n    at until (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:31:9)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async pickUpFurniture (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:125:19)\n    at async recover (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:148:20)\n    at async persistenceScenario (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\persistence-players.cjs:242:16)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:353:5)",
+          "originalChecks": [],
+          "resultSha256": "c92fdaf4fcf9e6ed33ffa5a5bec93dee4dcd277de897f96cbce928d4bd430e8e",
+          "playerReportSha256": "1de52c7adc5a17fd10d8148209621dd1aa69a74d0441b63aa819f9ac6a36820a",
+          "consoleSha256": "4815f8752dc4e114781f49fdf8127ccade10c032e7332ea220fb21d74a823386"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "c6af215cf7a88dd85493725f7b4e9c80befa989662c00e086cc22d2149ce7e20",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "f868c7c14e919a730505c0715d8bab1ef7f3da10c2afddd55e5d180e6985254e",
+        "persistence-players.cjs": "b1aff697e18c2ab8124c780a22287624c363da5fea6bc15c346db0ee1e631682"
+      }
+    },
+    {
+      "localRun": "build/acceptance/net/folia-restart-2",
+      "category": "real-startup-watchdog-and-scenario-returned-flower-isolation-failure",
+      "reason": "Seed failed with two independent retained rejection conditions. The default Folia watchdog reported the global region unresponsive for 6.3533891 seconds; all 48 ERROR lines show CraftEngine shaded ByteBuddy class instrumentation through FastNMSImpl.createSmithingTrimRecipe and BukkitRecipeManager.delayedLoad. The native startup cause remains OPEN. The later client assertion also failed because the preceding tulip-board return was naturally collected into A slot 4 after the sofa baseline, changing the strict complete inventory while the sofa state and dye quantities remained unchanged. The original client assertion and full server stack remain preserved; this run is never reported as PASS. Server exit 0/client exit 1, no forced stop or timeout. New scenarios must settle and account for the prior returned flower before starting the next fixture without weakening the inventory assertion.",
+      "passed": false,
+      "errors": [
+        "Restart phase failed: seed"
+      ],
+      "suiteResultSha256": "a025c080d8aa2e2e27f626e06da8a036333d560aa1ed9a2441886192e3275c5a",
+      "phases": [
+        {
+          "phase": "seed",
+          "passed": false,
+          "serverExit": 0,
+          "clientExit": 1,
+          "serverErrors": [
+            "[13:32:32 ERROR]: [io.papermc.paper.threadedregions.FoliaWatchdogThread] Global region has not responded in 6.3533891s:",
+            "[13:32:32 ERROR]: ------------------------------",
+            "[13:32:32 ERROR]: Current Thread: Folia Region Scheduler Thread #0",
+            "[13:32:32 ERROR]: \tPID: 61 | Suspended: false | Native: false | State: RUNNABLE",
+            "[13:32:32 ERROR]: \tStack:",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.matcher.NameMatcher.doMatch(NameMatcher.java:54)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.matcher.NameMatcher.doMatch(NameMatcher.java:33)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.matcher.ElementMatcher$Junction$ForNonNullValues.matches(ElementMatcher.java:252)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.matcher.ElementMatcher$Junction$Conjunction.matches(ElementMatcher.java:148)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.matcher.ElementMatcher$Junction$Disjunction.matches(ElementMatcher.java:217)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$RawMatcher$ForElementMatchers.matches(AgentBuilder.java:1975)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$RawMatcher$Disjunction.matches(AgentBuilder.java:1863)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$Default$ExecutingTransformer.doTransform(AgentBuilder.java:12799)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$Default$ExecutingTransformer.transform(AgentBuilder.java:12759)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$Default$ExecutingTransformer.access$1800(AgentBuilder.java:12468)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$Default$ExecutingTransformer$Java9CapableVmDispatcher.run(AgentBuilder.java:13250)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$Default$ExecutingTransformer$Java9CapableVmDispatcher.run(AgentBuilder.java:13180)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.security.AccessController.executePrivileged(AccessController.java:778)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.security.AccessController.doPrivileged(AccessController.java:400)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$Default$ExecutingTransformer.doPrivileged(AgentBuilder.java)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$Default$ExecutingTransformer.transform(AgentBuilder.java:12702)",
+            "[13:32:32 ERROR]: \t\tnet.momirealms.craftengine.libraries.bytebuddy.agent.builder.AgentBuilder$Default$ExecutingTransformer$ByteBuddy$ModuleSupport.transform(Unknown Source)",
+            "[13:32:32 ERROR]: \t\tjava.instrument@21.0.13.0.2/sun.instrument.TransformerManager.transform(TransformerManager.java:188)",
+            "[13:32:32 ERROR]: \t\tjava.instrument@21.0.13.0.2/sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:610)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.lang.ClassLoader.defineClass1(Native Method)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.lang.ClassLoader.defineClass(ClassLoader.java:1027)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.security.SecureClassLoader.defineClass(SecureClassLoader.java:150)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.plugin.entrypoint.classloader.PaperSimplePluginClassLoader.findClass(PaperSimplePluginClassLoader.java:110)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.lang.ClassLoader.loadClass(ClassLoader.java:593)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.plugin.entrypoint.classloader.PaperPluginClassLoader.loadClass(PaperPluginClassLoader.java:118)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.plugin.entrypoint.classloader.PaperPluginClassLoader.loadClass(PaperPluginClassLoader.java:107)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.lang.ClassLoader.loadClass(ClassLoader.java:526)",
+            "[13:32:32 ERROR]: \t\tcraftengine-26.9.1.jar//net.momirealms.craftengine.bukkit.nms.v1_21_11.FastNMSImpl.createSmithingTrimRecipe(FastNMSImpl.java:203)",
+            "[13:32:32 ERROR]: \t\tcraftengine-26.9.1.jar//net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager.lambda$static$10(BukkitRecipeManager.java:65)",
+            "[13:32:32 ERROR]: \t\tcraftengine-26.9.1.jar//net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager$$Lambda/0x000001d39f77dc70.apply(Unknown Source)",
+            "[13:32:32 ERROR]: \t\tcraftengine-26.9.1.jar//net.momirealms.craftengine.bukkit.item.recipe.BukkitRecipeManager.delayedLoad(BukkitRecipeManager.java:201)",
+            "[13:32:32 ERROR]: \t\tcraftengine-26.9.1.jar//net.momirealms.craftengine.core.plugin.CraftEngine.lambda$onPluginEnable$1(CraftEngine.java:501)",
+            "[13:32:32 ERROR]: \t\tcraftengine-26.9.1.jar//net.momirealms.craftengine.core.plugin.CraftEngine$$Lambda/0x000001d39f997db0.run(Unknown Source)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.threadedregions.scheduler.FoliaGlobalRegionScheduler.lambda$execute$0(FoliaGlobalRegionScheduler.java:46)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.threadedregions.scheduler.FoliaGlobalRegionScheduler$$Lambda/0x000001d39f8e9870.accept(Unknown Source)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.threadedregions.scheduler.FoliaGlobalRegionScheduler$GlobalScheduledTask.run(FoliaGlobalRegionScheduler.java:178)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.threadedregions.scheduler.FoliaGlobalRegionScheduler.tick(FoliaGlobalRegionScheduler.java:36)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.threadedregions.RegionizedServer.globalTick(RegionizedServer.java:340)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.threadedregions.RegionizedServer$GlobalTickTickHandle.tickRegion(RegionizedServer.java:184)",
+            "[13:32:32 ERROR]: \t\tio.papermc.paper.threadedregions.TickRegionScheduler$RegionScheduleHandle.runTick(TickRegionScheduler.java:481)",
+            "[13:32:32 ERROR]: \t\tca.spottedleaf.concurrentutil.scheduler.EDFSchedulerThreadPool$TickThreadRunner.run(EDFSchedulerThreadPool.java:526)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.lang.Thread.runWith(Thread.java:1596)",
+            "[13:32:32 ERROR]: \t\tjava.base@21.0.13.0.2/java.lang.Thread.run(Thread.java:1583)"
+          ],
+          "clientError": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      count: 3,\n      id: 'minecraft:red_dye'\n    },\n...\n    },\n+   {\n+     count: 1,\n+     id: 'minecraft:pink_tulip'\n+   },\n    {},\n    {},\n    {},\n    {},\n    {},\n...\n    {},\n-   {}\n  ]\n\n    at C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:373:73\n    at C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:46:5\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async until (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:27:20)\n    at async sofaStyle (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:372:20)\n    at async main (C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\tools\\acceptance\\connected\\players.cjs:464:11)",
+          "originalChecks": [
+            "smithing",
+            "steamer",
+            "scarecrow",
+            "tulipBoard"
+          ],
+          "resultSha256": "5d01c0afa2e0dff36c2f97009eba32759ff3525195cbe7aa9a8a1d8d51c73607",
+          "playerReportSha256": "16bcfc82640ca78c63a2803f15692690e10c80592e3f1fde4e0044b4b133f052",
+          "consoleSha256": "8eb8b2342b9d3bfe005a54bdb655c4729ec2b70dff79514d91ab92f0c2886932"
+        }
+      ],
+      "runtimeHashes": {
+        "plugins/CookeryAcceptanceProbe.jar": "873d29910251aa61921a4489b054492e0c80d234e9d49dd1cc996e06e16e5dc2",
+        "plugins/craftengine-26.9.1.jar": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+        "plugins/KaleidoscopeCookeryPlugin-1.3.0.jar": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+        "plugins/KaleidoscopeDeco-0.1.0-dev.jar": "e20f86b8e275e521e9ff03624c7e73bffd0ca3e3ab1d0c6f37319174e67b6cb6",
+        "plugins/KaleidoscopeDoll-0.1.0-dev.jar": "3f4a29185f87cb0475f97b7ac5c77149328ac5b1e8cc7c28ff88bd4321ce572e",
+        "plugins/KaleidoscopeMusic-0.1.0-dev.jar": "fbf619a8460673f50fcf541dedd17d69ac643cd202262263256255f030ebe445",
+        "plugins/KaleidoscopeTavern-0.1.0-dev.jar": "fa25917ab8def2a2652f9861c7a6af46d7866ce0dfa85ceb7484f8457dd3d6e3",
+        "server.jar": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+        "plugins/CraftEngine/cache/hosted/default/resource_pack.zip": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a"
+      },
+      "scenarioHashes": {
+        "run.py": "a7d1d1167b2b98be4473ec9f334db6203116fcc8ad93025d9909a37d35c303b2",
+        "players.cjs": "3cd6559501deb2738c122771c7bbc3ed027b42c1292e40b1315279faa88d7ac1",
+        "persistence-players.cjs": "7bace58ab86af99e96e5a890a8443d988c056f5ace60f7ec711e2cb042fe05cf"
+      },
+      "diagnosticEvidence": {
+        "scope": "Two independent rejection conditions retained. The real startup watchdog is not explained away by the later scenario isolation failure.",
+        "watchdog": {
+          "seconds": 6.3533891,
+          "fullErrorLineCount": 48,
+          "consoleSha256": "8eb8b2342b9d3bfe005a54bdb655c4729ec2b70dff79514d91ab92f0c2886932",
+          "recordedStack": "CraftEngine shaded ByteBuddy class instrumentation -> FastNMSImpl.createSmithingTrimRecipe -> BukkitRecipeManager.delayedLoad",
+          "jfrObservation": {
+            "sourceJfr": {
+              "localPath": "build/acceptance/net/folia-restart-2/seed/startup.jfr",
+              "sha256": "3bbba57ac6c53e63e1c9cff0c6aaee927b6735b4e6e785a6d565c56f6e6b0c48"
+            },
+            "derivedSummary": {
+              "localPath": "build/restart-folia-2-jfr-summary.json",
+              "sha256": "5bf17513319d9b3657e58aba32f7204d5409abf233d62c0c1805401a9b460702"
+            },
+            "cpuWindow": {
+              "firstSample": "2026-11-19T13:32:20.507402534+08:00",
+              "lastSample": "2026-11-19T13:32:39.612248381+08:00",
+              "samples": 16,
+              "allMachineTotalOne": true
+            },
+            "lastRecordedGcBeforeWatchdog": {
+              "startTime": "2026-11-19T13:32:26.189108676+08:00",
+              "duration": "PT0.066070063S",
+              "gcId": 52,
+              "name": "G1New",
+              "cause": "G1 Evacuation Pause",
+              "sumOfPauses": "PT0.066070063S",
+              "longestPause": "PT0.066070063S"
+            },
+            "interpretation": "System CPU saturation is a correlated observation, not an established cause. The last recorded GC pause before the watchdog was about 66 ms, with no later recorded GC through the watchdog timestamp; these data do not support attributing the six-second stall to a GC stop-the-world pause and do not resolve the watchdog root cause."
+          },
+          "rootCause": "OPEN; the captured stack is evidence of the blocked work, not proof of a final cause or a fix."
+        },
+        "clientInventoryAssertion": {
+          "snapshots": {
+            "beforeSofa": {
+              "localPath": "build/acceptance/net/folia-restart-2/seed/reply-18590229.json",
+              "sha256": "bc39f975fd224a82f6813f1989d88f5a929a2a806c382069da213fad1335823b",
+              "inventory": [
+                {
+                  "id": "minecraft:red_dye",
+                  "count": 3
+                },
+                {
+                  "id": "minecraft:blue_dye",
+                  "count": 3
+                },
+                {
+                  "id": "kaleidoscope_deco:state_tool",
+                  "count": 1
+                },
+                {
+                  "id": "minecraft:water_bucket",
+                  "count": 1
+                },
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {}
+              ],
+              "sofa": "kaleidoscope_deco/kaleidoscope_bar/sofa/style/none/single",
+              "canceledTrades": 0,
+              "furnitureInteractions": 2
+            },
+            "afterCanceledSofa": {
+              "localPath": "build/acceptance/net/folia-restart-2/seed/reply-18590234.json",
+              "sha256": "0c83d9fa025a81e9e4c5e4473f468716dad37a7b03c9f9744e4b2c04dea7e921",
+              "inventory": [
+                {
+                  "id": "minecraft:red_dye",
+                  "count": 3
+                },
+                {
+                  "id": "minecraft:blue_dye",
+                  "count": 3
+                },
+                {
+                  "id": "kaleidoscope_deco:state_tool",
+                  "count": 1
+                },
+                {
+                  "id": "minecraft:water_bucket",
+                  "count": 1
+                },
+                {
+                  "id": "minecraft:pink_tulip",
+                  "count": 1
+                },
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {},
+                {}
+              ],
+              "sofa": "kaleidoscope_deco/kaleidoscope_bar/sofa/style/none/single",
+              "canceledTrades": 1,
+              "furnitureInteractions": 3
+            }
+          },
+          "changedSlots": [
+            {
+              "slot": 4,
+              "before": {},
+              "after": {
+                "id": "minecraft:pink_tulip",
+                "count": 1
+              }
+            }
+          ],
+          "originalAssertionSha256": "fdad3da1504def48a7492160c4f0ec5aabeef280013afebf025560733374fd64",
+          "explanation": "The previous tulip-board flow returned one pink tulip which remained available for natural pickup. It later entered A slot 4 while sofa dye quantities and sofa state remained unchanged, violating the strict whole-inventory invariant. The original assertion remains a failure."
+        }
+      }
+    }
+  ]
+}

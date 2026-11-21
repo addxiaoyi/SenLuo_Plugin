@@ -12,7 +12,10 @@ import net.kaleidoscope.cookery.recipe.FlexFoodRecipe;
 import net.kaleidoscope.cookery.recipe.TeapotRecipe;
 import net.kaleidoscope.cookery.recipe.BambooTrayRecipe;
 import net.kaleidoscope.cookery.recipe.FoodRecipeRegistry;
+import net.kaleidoscope.cookery.recipe.FoodRecipeManager;
 import net.kaleidoscope.cookery.recipe.SoupBaseRegistry;
+import net.kaleidoscope.cookery.recipe.StockpotRecipe;
+import net.kaleidoscope.cookery.recipe.StockpotVisuals;
 import net.kaleidoscope.cookery.recipe.WeightedResult;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
@@ -251,6 +254,35 @@ public final class RecipeEditService {
                 RecipeFileStore::defaultBambooTrayFile, bambooTrayNode(recipe));
     }
 
+    public static String validate(StockpotRecipeDraft draft) {
+        String idError = validateId(draft.id());
+        if (idError != null) return idError;
+        if (isTakenId(draft.id(), draft.originalId(), k -> RecipeSourceIndex.instance().hasSource(RecipeSourceIndex.Kind.STOCKPOT, k)))
+            return "该 id 已被占用";
+        if (draft.mode() == null) return "请选择精准或种类匹配模式";
+        if (draft.ingredients() == null || draft.ingredients().isEmpty() || draft.ingredients().size() > 9
+                || draft.ingredients().stream().anyMatch(slot -> slot == null || slot.isEmpty() || slot.size() > 128)) {
+            return "原料必须包含 1 到 9 个有效槽位，每槽最多 128 种备选物品";
+        }
+        if (draft.soupBase() == null) return "请先设置汤底";
+        if (draft.result() == null) return "请先设置成品";
+        if (draft.resultCount() < 1 || draft.resultCount() > 9) return "产出数量必须为 1 到 9";
+        if (draft.time() < 1) return "烹饪时间必须大于 0 tick";
+        try {
+            FoodRecipeManager.validateStockpotRecipe(draft.toRecipe(), "高汤锅配方");
+        } catch (RuntimeException error) { return "高汤锅配方无效：" + error.getMessage(); }
+        return null;
+    }
+
+    public static CompletableFuture<String> saveStockpot(StockpotRecipeDraft draft) {
+        String error = validate(draft);
+        if (error != null) return CompletableFuture.completedFuture(error);
+        StockpotRecipe recipe = draft.toRecipe();
+        return saveRecipe(recipe.id(), draft.originalId(), recipe, draft.originalRecipe(),
+                RecipeSourceIndex.Kind.STOCKPOT, RecipeFileStore.stockpotSections(),
+                RecipeFileStore::defaultStockpotFile, stockpotNode(recipe));
+    }
+
     // 配方保存共用一条链路，差异在 kind、sections、默认文件与写盘节点。
     // 运行时的增删都按 kind 与实际类型分派 见 removeRuntime registerRuntime removeMenuRecipe
     // old 为空表示新建 此时索引里查不到旧来源 各步都会自然跳过
@@ -349,6 +381,10 @@ public final class RecipeEditService {
     }
 
     public static CompletableFuture<String> deleteBambooTray(BambooTrayRecipe recipe) {
+        AtomicReference<String> failure = new AtomicReference<>("食谱来源已变化或写入失败，食谱未删除");
+        return deleteRecipe(recipe, recipe.id(), failure::set).thenApply(success -> success ? null : failure.get());
+    }
+    public static CompletableFuture<String> deleteStockpot(StockpotRecipe recipe) {
         AtomicReference<String> failure = new AtomicReference<>("食谱来源已变化或写入失败，食谱未删除");
         return deleteRecipe(recipe, recipe.id(), failure::set).thenApply(success -> success ? null : failure.get());
     }
@@ -471,6 +507,7 @@ public final class RecipeEditService {
             case CHOPPING -> registry.removeChopping(id);
             case TEAPOT -> registry.removeTeapot(id);
             case BAMBOO_TRAY -> registry.removeBambooTray(id);
+            case STOCKPOT -> registry.removeStockpot(id);
         }
     }
 
@@ -503,6 +540,7 @@ public final class RecipeEditService {
                 ApplianceFoodRegistry.instance().register(ApplianceType.TEAPOT, recipe.input());
             }
             case BAMBOO_TRAY -> registry.registerBambooTray((BambooTrayRecipe) candidate);
+            case STOCKPOT -> registry.registerStockpot((StockpotRecipe) candidate);
         }
     }
 
@@ -844,6 +882,7 @@ public final class RecipeEditService {
         if (recipe instanceof ChoppingBoardRecipe value) return choppingNode(ChoppingRecipeDraft.editing(value));
         if (recipe instanceof TeapotRecipe value) return teapotNode(TeapotRecipeDraft.editing(value));
         if (recipe instanceof BambooTrayRecipe value) return bambooTrayNode(value);
+        if (recipe instanceof StockpotRecipe value) return stockpotNode(value);
         return Map.of();
     }
 
@@ -924,7 +963,23 @@ public final class RecipeEditService {
                     ChoppingMode.valueOf(section.getString("mode", "single").toUpperCase(java.util.Locale.ROOT)),
                     savedChoppingResults(section.get("result")), savedChoppingResults(section.get("extra")));
         }
+        if (recipe instanceof StockpotRecipe value) return StockpotRecipe.fromConfig(value.id(), section);
         return recipe;
+    }
+
+    static Map<String, Object> stockpotNode(StockpotRecipe recipe) {
+        Map<String, Object> node = new LinkedHashMap<>();
+        node.put("match", recipe.mode().name().toLowerCase(java.util.Locale.ROOT));
+        node.put("ingredients", recipe.ingredients().stream().map(set -> set.stream().map(Key::asString).sorted().toList()).toList());
+        node.put("soup_base", recipe.soupBase().asString());
+        node.put("result", recipe.result().asString());
+        node.put("result_count", recipe.resultCount());
+        node.put("time", recipe.time());
+        node.put("carrier", recipe.carrier() == null ? "minecraft:air" : recipe.carrier().asString());
+        node.put("visuals", Map.of("cooking_model", recipe.visuals().cookingModel().asString(),
+                "finished_model", recipe.visuals().finishedModel().asString(),
+                "cooking_color", recipe.visuals().cookingColor(), "finished_color", recipe.visuals().finishedColor()));
+        return node;
     }
 
     private static List<ChoppingResult> savedChoppingResults(Object raw) {

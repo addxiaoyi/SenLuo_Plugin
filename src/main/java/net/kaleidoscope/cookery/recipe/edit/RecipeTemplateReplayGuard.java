@@ -10,8 +10,6 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.config.template.TemplateManager;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -149,11 +147,7 @@ public final class RecipeTemplateReplayGuard {
                 try (var files = Files.walk(folder)) {
                     for (Path file : files.filter(Files::isRegularFile).filter(RecipeTemplateReplayGuard::yaml).toList()) {
                         if (!scanned.add(file.toAbsolutePath().normalize())) continue;
-                        YamlConfiguration configuration = new YamlConfiguration();
-                        try { configuration.load(file.toFile()); }
-                        catch (InvalidConfigurationException malformed) {
-                            throw new IOException("无法检查模板来源，配置格式错误：" + file, malformed);
-                        }
+                        var configuration = RecipeYamlConfiguration.read(file.toFile());
                         sources.add(new DefinitionSource(pack.namespace(), map(configuration)));
                     }
                 }

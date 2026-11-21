@@ -82,8 +82,10 @@ def validate(files: dict[str, bytes]) -> dict[str, Any]:
             for child in node:
                 model_tree(child)
         elif isinstance(node, dict):
-            if node.get('type') in ('model', 'minecraft:model') and 'path' in node:
-                model(node['path'])
+            if node.get('type') in ('model', 'minecraft:model'):
+                identifier = node.get('path', node.get('model'))
+                if identifier is not None:
+                    model(identifier)
             for child in node.values():
                 if isinstance(child, (dict, list)):
                     model_tree(child)
@@ -127,9 +129,20 @@ def validate(files: dict[str, bytes]) -> dict[str, Any]:
                      for path in files)
     if not items and has_content:
         errors.add('No generated item definitions found')
+    reachable_errors = errors
+    reachable_models = len(checked)
+    errors = set()
+    for path in sorted(assets):
+        if '/models/' in path and path.endswith('.json'):
+            namespace, name = path.split('/models/', 1)
+            model(namespace + ':' + name.removesuffix('.json'))
+        elif '/items/' in path and path.endswith('.json'):
+            model_tree(json.loads(assets[path]).get('model', {}))
+    asset_warnings = errors - reachable_errors
     return {'items': len(items), 'furniture': len(furnishings), 'recipes': len(recipes),
-            'reachable_custom_models': len(checked), 'errors': sorted(errors),
-            'scope': 'Custom model parents, concrete texture references, item/furniture IDs and shared asset collisions; no server/render validation'}
+            'reachable_custom_models': reachable_models, 'errors': sorted(reachable_errors),
+            'asset_warnings': sorted(asset_warnings),
+            'scope': 'Declared CE item/furniture/recipe references are errors. Additional exported custom model and item-definition dependencies are asset_warnings. Vanilla assets and client rendering require target-client validation.'}
 
 
 def main() -> None:

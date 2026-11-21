@@ -1,0 +1,362 @@
+{
+  "date": "2026-11-19",
+  "target": {
+    "minecraft": "1.21.11",
+    "paper": 132,
+    "folia": 14,
+    "java": 21,
+    "craftEngine": "26.9.1"
+  },
+  "scope": "Two local loopback-only offline survival protocol clients on each platform. Pack bytes decoded by the official 1.21.11 client codecs. No GPU, Microsoft login, third-party protection plugin, or cross-region test.",
+  "recipeSourceProfile": {
+    "configurationBytes": 2474184,
+    "finding": "Bukkit YAML loading could not handle an empty CraftEngine block variant key; failed source-index reads parsed the mixed configuration again. Use a reversible key translation and serialize index construction per file.",
+    "jfrExecutionSamples": {
+      "baselineWithWatchdogRecipeFileStoreScanTargets": 389,
+      "baselineWithoutWatchdogRecipeFileStoreScanTargets": 441,
+      "fixedFoliaFinalRecipeYamlConfigurationTranslateKeys": 2
+    },
+    "comparison": {
+      "baselineWithWatchdog": {
+        "localRun": "build/acceptance/v612/folia/run-2",
+        "metrics": {
+          "doneSeconds": 82.743,
+          "accurateFoodsMs": 44853.92,
+          "bambooTrayMs": 22232.34,
+          "nativeRecipeParseMs": 248.47,
+          "nativeRecipeCount": 304,
+          "watchdogSamples": 1
+        },
+        "consoleSha256": "7978be1995034ed63eecd4f3e7ab314da0abbdb2c6d6a6f926f5f611d1423c63",
+        "jfrSha256": "a4ced14ae975cacc65d41b006d9bd837dcd424963218782f5f39900023f09b07"
+      },
+      "baselineExclusive": {
+        "localRun": "build/acceptance/v612/folia/run-3",
+        "metrics": {
+          "doneSeconds": 74.513,
+          "accurateFoodsMs": 45112.55,
+          "bambooTrayMs": 20397.41,
+          "nativeRecipeParseMs": 162.93,
+          "nativeRecipeCount": 304,
+          "watchdogSamples": 0
+        },
+        "consoleSha256": "3474c4e8fbeb5f5f8c20f48ca7af7869bd0fd989c381c063ab0b6f3533d9547c",
+        "jfrSha256": "d7a376b22bea4e1f851654b83bff90f5e6d42b910c99f387623f2799bdee5993"
+      },
+      "fixedFoliaStarts": [
+        {
+          "localRun": "build/acceptance/net/f1",
+          "metrics": {
+            "doneSeconds": 39.102,
+            "accurateFoodsMs": 2721.31,
+            "bambooTrayMs": 2718.94,
+            "nativeRecipeParseMs": 191.84,
+            "nativeRecipeCount": 304,
+            "watchdogSamples": 0
+          },
+          "consoleSha256": "737f85a44f5f8aee6c9b9dd67da09403ffb9fddff876df48395764fec290148d",
+          "jfrSha256": "4c513963632230819c0864b3f9ec2b610122308d34b26a14fc60ea857fe58914"
+        },
+        {
+          "localRun": "build/acceptance/net/f2",
+          "metrics": {
+            "doneSeconds": 32.575,
+            "accurateFoodsMs": 1927.31,
+            "bambooTrayMs": 1856.46,
+            "nativeRecipeParseMs": 161.48,
+            "nativeRecipeCount": 304,
+            "watchdogSamples": 0
+          },
+          "consoleSha256": "1253518aeaa387339bd7a5e2647329a70b145053d052b7c9b9ace29df37e3513",
+          "jfrSha256": "72b5f35b863e77a1c5295433616e3957a8a143cd4c8ba87c3faa62ad333d630a"
+        },
+        {
+          "localRun": "build/acceptance/net/folia-body",
+          "metrics": {
+            "doneSeconds": 36.87,
+            "accurateFoodsMs": 1658.45,
+            "bambooTrayMs": 1630.5,
+            "nativeRecipeParseMs": 157.39,
+            "nativeRecipeCount": 304,
+            "watchdogSamples": 0
+          },
+          "consoleSha256": "daf0dad0600b21bfb56e97d49e75a716778f8239622658dd22623f242115620b",
+          "jfrSha256": "8495e84e119eace951bdda1408eada85b3fa1f8a42f490864fb3592aa5e67269"
+        },
+        {
+          "localRun": "build/acceptance/net/folia-final",
+          "metrics": {
+            "doneSeconds": 56.413,
+            "accurateFoodsMs": 1622.79,
+            "bambooTrayMs": 2039.52,
+            "nativeRecipeParseMs": 245.95,
+            "nativeRecipeCount": 304,
+            "watchdogSamples": 0
+          },
+          "consoleSha256": "6a30a5c432d6434dc72da46dc3f967e8441aa63f467a8934cf30ae1399f69eb2",
+          "jfrSha256": "30ffc6debc57a999dacb0c0b1d13793393b14c13e23c25131ba1012aba667156"
+        },
+        {
+          "localRun": "build/acceptance/net/folia-aim",
+          "metrics": {
+            "doneSeconds": 31.423,
+            "accurateFoodsMs": 1832.69,
+            "bambooTrayMs": 1919.35,
+            "nativeRecipeParseMs": 185.97,
+            "nativeRecipeCount": 304,
+            "watchdogSamples": 0
+          },
+          "consoleSha256": "d60acdd87c77b87eef35d65ae934e5713b23e73321c557df8fac45aa9b5d3f2b",
+          "jfrSha256": "38dd911a7d180c11fe4bd3b76c029db55e467cbbc7b0a0926fcc0aa3c2a6e71d"
+        }
+      ]
+    },
+    "boundaries": "Startup times are observed wall-clock samples, not a controlled benchmark. The original CE Ingredient.ofStacks watchdog was on a different path; it did not recur on these fixed runs. Full cause of the original native registration stall is unproven."
+  },
+  "passed": {
+    "paper": {
+      "localRun": "build/acceptance/net/paper-aim",
+      "metrics": {
+        "doneSeconds": 33.959,
+        "accurateFoodsMs": 1927.73,
+        "bambooTrayMs": 1617.6,
+        "nativeRecipeParseMs": 183.88,
+        "nativeRecipeCount": 304,
+        "watchdogSamples": 0
+      },
+      "consoleSha256": "bae15ddc62407de8823bf6961b85382785626c992029d59e7db6cd354338c0c2",
+      "jfrSha256": "623ad5f31c7336e01481be05530572c27d5dc00821f7601d814a84ead8ed8dcf",
+      "result": {
+        "ready": true,
+        "serverExit": 0,
+        "errors": [],
+        "client": {
+          "passed": true,
+          "protocol": "1.21.11",
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799511,
+              "sha1": "454f2bd86653ca6cd6fe46a4517a966d37a8e7aa",
+              "packSha256": "d4838f66209924fedc1942d719f0aedfeeeccf176a5d639c9aa7d475cc88b8e3",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          },
+          "checks": {
+            "smithing": {
+              "canceledShift": 1,
+              "productsWithPreservedComponents": 2,
+              "remainingTemplates": 1,
+              "remainingIngots": 3
+            },
+            "steamer": {
+              "craftedSlots": [
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1"
+              ],
+              "placedSlots": [
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1"
+              ],
+              "recoveredDough": 4,
+              "recoveredSteamers": 1,
+              "extraDrops": 0
+            },
+            "scarecrow": {
+              "hits": [
+                {
+                  "player": "SenLuoProbeB",
+                  "tick": 7313,
+                  "regionOwned": true,
+                  "canceled": true
+                },
+                {
+                  "player": "SenLuoProbeA",
+                  "tick": 7322,
+                  "regionOwned": true,
+                  "canceled": true
+                },
+                {
+                  "player": "SenLuoProbeB",
+                  "tick": 7324,
+                  "regionOwned": true,
+                  "canceled": false
+                }
+              ],
+              "drops": [
+                {
+                  "id": "kaleidoscopecookery:scarecrow",
+                  "count": 1
+                }
+              ]
+            }
+          }
+        }
+      },
+      "cookeryJarSha256": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+      "probeJarSha256": "f5b545784b62660b696c9820f4406030692ae40f70f29f96b9f62353b69d13ad"
+    },
+    "folia": {
+      "localRun": "build/acceptance/net/folia-aim",
+      "metrics": {
+        "doneSeconds": 31.423,
+        "accurateFoodsMs": 1832.69,
+        "bambooTrayMs": 1919.35,
+        "nativeRecipeParseMs": 185.97,
+        "nativeRecipeCount": 304,
+        "watchdogSamples": 0
+      },
+      "consoleSha256": "d60acdd87c77b87eef35d65ae934e5713b23e73321c557df8fac45aa9b5d3f2b",
+      "jfrSha256": "38dd911a7d180c11fe4bd3b76c029db55e467cbbc7b0a0926fcc0aa3c2a6e71d",
+      "result": {
+        "ready": true,
+        "serverExit": 0,
+        "errors": [],
+        "client": {
+          "passed": true,
+          "protocol": "1.21.11",
+          "packs": {
+            "SenLuoProbeA": {
+              "bytes": 12799505,
+              "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+              "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            },
+            "SenLuoProbeB": {
+              "bytes": 12799505,
+              "sha1": "31fde5701f08c4663e3ed90eccaccaf0f8ef6085",
+              "packSha256": "2f3bae4a4e7b3a432673745227bc5c0e710c22ff87d161c2f961a38700aed29a",
+              "client": "1.21.11",
+              "resourceFormat": "75.0",
+              "activeOverlays": [
+                "ce_overlay_75-97"
+              ],
+              "namespaces": 20,
+              "assetsRead": 14203,
+              "decoded": {
+                "blockstates": 1023,
+                "itemDefinitions": 4060,
+                "models": 6292,
+                "otherBytes": 50,
+                "otherJson": 161,
+                "png": 2617
+              }
+            }
+          },
+          "checks": {
+            "smithing": {
+              "canceledShift": 1,
+              "productsWithPreservedComponents": 2,
+              "remainingTemplates": 1,
+              "remainingIngots": 3
+            },
+            "steamer": {
+              "craftedSlots": [
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1"
+              ],
+              "placedSlots": [
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1",
+                "kaleidoscopecookery:raw_dough*1"
+              ],
+              "recoveredDough": 4,
+              "recoveredSteamers": 1,
+              "extraDrops": 0
+            },
+            "scarecrow": {
+              "hits": [
+                {
+                  "tick": 40095,
+                  "regionOwned": true,
+                  "canceled": true,
+                  "player": "SenLuoProbeB"
+                },
+                {
+                  "tick": 40105,
+                  "regionOwned": true,
+                  "canceled": true,
+                  "player": "SenLuoProbeA"
+                },
+                {
+                  "tick": 40106,
+                  "regionOwned": true,
+                  "canceled": false,
+                  "player": "SenLuoProbeB"
+                }
+              ],
+              "drops": [
+                {
+                  "id": "kaleidoscopecookery:scarecrow",
+                  "count": 1
+                }
+              ]
+            }
+          }
+        }
+      },
+      "cookeryJarSha256": "9a9376bd5be327027755480bf9043739530482c4749a14c088d4971d0eedd354",
+      "probeJarSha256": "f5b545784b62660b696c9820f4406030692ae40f70f29f96b9f62353b69d13ad"
+    }
+  },
+  "open": [
+    "authenticated vanilla GPU render and audio",
+    "remaining five-plugin upstream feature parity",
+    "third-party protection, full inventories, real-world migration, hot reload, cross-region and load scenarios",
+    "human license review before distribution"
+  ]
+}

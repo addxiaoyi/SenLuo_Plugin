@@ -27,6 +27,7 @@ final class EnchantmentSmoke {
         var failures = new ArrayList<String>();
         int checked = 0;
         int reloaded = 0;
+        Map<String, Object> sourceSickle = SourceSickleComponentsSmoke.verify(failures);
         for (String name : new String[]{"quick_knife", "sweep"}) {
             var key = new NamespacedKey("kaleidoscopecookery", name);
             var enchantment = Registry.ENCHANTMENT.get(key);
@@ -62,6 +63,7 @@ final class EnchantmentSmoke {
         report.put("sourceCommit", CookeryCatalog.SOURCE_COMMIT);
         report.put("checkedTools", checked);
         report.put("reloadedTools", reloaded);
+        report.put("sourceSickle", sourceSickle);
         report.put("failures", failures);
         report.put("playerFlow", "NOT_TESTED");
         report.put("clientResourcePack", "NOT_TESTED");

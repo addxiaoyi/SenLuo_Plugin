@@ -2,6 +2,7 @@ package net.kaleidoscope.cookery.block.behavior;
 
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.World;
 
@@ -14,4 +15,9 @@ public interface HarvestableCrop {
 
     // 未成熟或无权限返回 false 调用方据此决定挥不挥手 扣不扣耐久
     boolean harvest(World world, BlockPos pos, ImmutableBlockState state, Player player);
+
+    // Preserve the triggering hand for crops whose callbacks validate the source item.
+    default boolean harvest(World world, BlockPos pos, ImmutableBlockState state, Player player, InteractionHand hand) {
+        return harvest(world, pos, state, player);
+    }
 }

@@ -1,11 +1,21 @@
 package net.kaleidoscope.cookery.item.behavior;
 
+import net.kaleidoscope.cookery.block.behavior.HarvestableCrop;
+import net.kaleidoscope.cookery.api.event.SickleHarvestEvent;
+import net.kaleidoscope.cookery.plugin.CeResourceReadGate;
+import net.kaleidoscope.cookery.plugin.KaleidoscopeCookeryPlugin;
+import net.kaleidoscope.cookery.util.EventUtils;
 import net.kaleidoscope.cookery.util.InteractGuard;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
+import net.momirealms.craftengine.bukkit.world.BukkitWorld;
+import net.momirealms.craftengine.core.block.ImmutableBlockState;
+import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.component.value.Enchantment;
+import net.momirealms.craftengine.core.plugin.ResourceOperationCoordinator;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -15,14 +25,23 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.inventory.PlayerInventory;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -31,17 +50,42 @@ class SickleRangeHarvestBehaviorTest {
     private final org.bukkit.World world = mock(org.bukkit.World.class);
     private final Player player = mock(Player.class);
     private final org.bukkit.entity.Player bukkitPlayer = mock(org.bukkit.entity.Player.class);
+    private final PlayerInventory inventory = mock(PlayerInventory.class);
     private final Item tool = mock(Item.class);
+    private final Item toolSnapshot = mock(Item.class);
     private final UseOnContext context = mock(UseOnContext.class);
     private final Block crop = mock(Block.class);
+    private final ResourceOperationCoordinator resourceOperations = new ResourceOperationCoordinator();
+    private final CeResourceReadGate resourceGate = new CeResourceReadGate(resourceOperations, () -> true);
+    private MockedStatic<KaleidoscopeCookeryPlugin> plugin;
+
+    @BeforeEach
+    void publishResourceGeneration() {
+        assertTrue(resourceGate.publish(new Object(), () -> true));
+        plugin = mockStatic(KaleidoscopeCookeryPlugin.class);
+        plugin.when(KaleidoscopeCookeryPlugin::tryEnterSourceCropResources)
+                .thenAnswer(call -> resourceGate.tryEnter().guard());
+    }
+
+    @AfterEach
+    void closePluginMock() {
+        if (plugin != null) plugin.close();
+    }
 
     private SickleRangeHarvestBehavior harvest(int enchantmentLevel) {
         when(context.getPlayer()).thenReturn(player);
         when(context.getLevel()).thenReturn(level);
         when(context.getItem()).thenReturn(tool);
+        when(context.getHand()).thenReturn(InteractionHand.MAIN_HAND);
         when(context.getClickedPos()).thenReturn(new BlockPos(8, 64, 8));
         when(level.platformWorld()).thenReturn(world);
         when(player.platformPlayer()).thenReturn(bukkitPlayer);
+        when(bukkitPlayer.getInventory()).thenReturn(inventory);
+        when(inventory.getHeldItemSlot()).thenReturn(2);
+        when(player.getItemInHand(any(InteractionHand.class))).thenReturn(tool);
+        when(tool.count()).thenReturn(1);
+        when(tool.copyWithCount(1)).thenReturn(toolSnapshot);
+        when(tool.isSimilar(toolSnapshot)).thenReturn(true);
         when(tool.enchantments()).thenReturn(Optional.of(List.of(
                 new Enchantment(Key.of("kaleidoscopecookery:sweep"), enchantmentLevel))));
         when(world.isChunkLoaded(anyInt(), anyInt())).thenReturn(true);
@@ -106,6 +150,179 @@ class SickleRangeHarvestBehaviorTest {
             verify(player, never()).breakBlock(anyInt(), anyInt(), anyInt());
             verify(tool, never()).hurtAndBreak(anyInt(), any(), any());
             protection.verify(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt()), times(242));
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(InteractionHand.class)
+    void customCropReceivesTheTriggeringHandAndTheSameHandSwings(InteractionHand hand) {
+        var behavior = harvest(0);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        var harvestable = mock(HarvestableCrop.class);
+        var adaptedWorld = mock(BukkitWorld.class);
+        var root = new BlockPos(8, 64, 8);
+        when(context.getHand()).thenReturn(hand);
+        when(crop.getWorld()).thenReturn(world);
+        when(crop.getX()).thenReturn(root.x());
+        when(crop.getY()).thenReturn(root.y());
+        when(crop.getZ()).thenReturn(root.z());
+        when(state.behavior().getFirst(HarvestableCrop.class)).thenReturn(harvestable);
+        when(harvestable.rootPos(eq(adaptedWorld), any(BlockPos.class), same(state))).thenReturn(root);
+        when(harvestable.harvest(eq(adaptedWorld), any(BlockPos.class), same(state), same(player), eq(hand))).thenAnswer(call -> {
+            assertThrows(ResourceOperationCoordinator.BusyException.class, resourceOperations::acquire);
+            return true;
+        });
+        try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
+             var adaptor = mockStatic(BukkitAdaptor.class); var protection = mockStatic(InteractGuard.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(world, 0, 0)).thenReturn(true);
+            blocks.when(() -> CraftEngineBlocks.getCustomBlockState(crop)).thenAnswer(call -> {
+                assertThrows(ResourceOperationCoordinator.BusyException.class, resourceOperations::acquire);
+                return state;
+            });
+            adaptor.when(() -> BukkitAdaptor.adapt(world)).thenReturn(adaptedWorld);
+            protection.when(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt())).thenReturn(true);
+
+            assertEquals(InteractionResult.SUCCESS_AND_CANCEL, behavior.useOnBlock(context));
+
+            verify(harvestable).harvest(eq(adaptedWorld), any(BlockPos.class), same(state), same(player), eq(hand));
+            verify(harvestable, never()).harvest(any(), any(), any(), any());
+            verify(player).swingHand(hand);
+            verify(bukkitPlayer, never()).swingMainHand();
+            verify(tool).hurtAndBreak(1, player, null);
+            assertFalse(resourceOperations.isBusy());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "MAIN_HAND,slot,protection", "MAIN_HAND,count,protection", "MAIN_HAND,item,protection", "MAIN_HAND,empty,protection",
+            "OFF_HAND,count,protection", "OFF_HAND,item,protection", "OFF_HAND,empty,protection",
+            "MAIN_HAND,slot,event", "MAIN_HAND,count,event", "MAIN_HAND,item,event", "MAIN_HAND,empty,event",
+            "OFF_HAND,count,event", "OFF_HAND,item,event", "OFF_HAND,empty,event"
+    })
+    void callbacksCannotReplaceTheOriginalSickleSourceBeforeBuiltInHarvest(
+            InteractionHand hand, String fault, String callback) {
+        var behavior = harvest(0);
+        when(context.getHand()).thenReturn(hand);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        var calls = new AtomicInteger();
+        Runnable mutate = () -> {
+            calls.incrementAndGet();
+            switch (fault) {
+                case "slot" -> when(inventory.getHeldItemSlot()).thenReturn(3);
+                case "count" -> when(tool.count()).thenReturn(2);
+                case "item" -> when(tool.isSimilar(toolSnapshot)).thenReturn(false);
+                case "empty" -> when(player.getItemInHand(hand)).thenReturn(null);
+                default -> throw new AssertionError(fault);
+            }
+        };
+        try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
+             var protection = mockStatic(InteractGuard.class); var events = mockStatic(EventUtils.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(world, 0, 0)).thenReturn(true);
+            blocks.when(() -> CraftEngineBlocks.getCustomBlockState(crop)).thenReturn(state);
+            protection.when(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt()))
+                    .thenAnswer(call -> { if (callback.equals("protection")) mutate.run(); return true; });
+            events.when(() -> EventUtils.hasListeners(SickleHarvestEvent.getHandlerList())).thenReturn(true);
+            events.when(() -> EventUtils.fireAndCheckCancel(any(SickleHarvestEvent.class)))
+                    .thenAnswer(call -> { if (callback.equals("event")) mutate.run(); return false; });
+
+            assertEquals(InteractionResult.PASS, behavior.useOnBlock(context));
+
+            assertEquals(1, calls.get(), "A stale source must stop later candidates before another callback");
+            verify(player, never()).breakBlock(anyInt(), anyInt(), anyInt());
+            verify(player, never()).swingHand(any());
+            verify(tool, never()).hurtAndBreak(anyInt(), any(), any());
+            verify(state, never()).behavior();
+        }
+    }
+
+    @Test
+    void sourceDriftAlsoRejectsACanceledTakeoverDurabilityCharge() {
+        var behavior = harvest(0);
+        try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
+             var protection = mockStatic(InteractGuard.class); var events = mockStatic(EventUtils.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(world, 0, 0)).thenReturn(true);
+            protection.when(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt())).thenReturn(true);
+            events.when(() -> EventUtils.hasListeners(SickleHarvestEvent.getHandlerList())).thenReturn(true);
+            events.when(() -> EventUtils.fireAndCheckCancel(any(SickleHarvestEvent.class))).thenAnswer(call -> {
+                SickleHarvestEvent event = call.getArgument(0);
+                event.setCancelled(true);
+                event.setCostDurability(true);
+                when(inventory.getHeldItemSlot()).thenReturn(3);
+                return true;
+            });
+
+            assertEquals(InteractionResult.PASS, behavior.useOnBlock(context));
+
+            verify(player, never()).breakBlock(anyInt(), anyInt(), anyInt());
+            verify(tool, never()).hurtAndBreak(anyInt(), any(), any());
+        }
+    }
+
+    @Test
+    void offhandSweepIgnoresUnrelatedMainHandAndHotbarChanges() {
+        var behavior = harvest(0);
+        when(context.getHand()).thenReturn(InteractionHand.OFF_HAND);
+        try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
+             var protection = mockStatic(InteractGuard.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(world, 0, 0)).thenReturn(true);
+            protection.when(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt())).thenAnswer(call -> {
+                when(inventory.getHeldItemSlot()).thenReturn(7);
+                when(player.getItemInHand(InteractionHand.MAIN_HAND)).thenReturn(null);
+                return true;
+            });
+
+            assertEquals(InteractionResult.SUCCESS_AND_CANCEL, behavior.useOnBlock(context));
+
+            verify(player, times(50)).breakBlock(anyInt(), anyInt(), anyInt());
+            verify(player).swingHand(InteractionHand.OFF_HAND);
+            verify(player, never()).getItemInHand(InteractionHand.MAIN_HAND);
+            verify(tool).hurtAndBreak(1, player, null);
+        }
+    }
+
+    @Test
+    void contextItemMustStillMatchTheActualInteractionHandBeforeCallbacks() {
+        var behavior = harvest(0);
+        when(tool.isSimilar(toolSnapshot)).thenReturn(false);
+        try (var bukkit = mockStatic(Bukkit.class); var protection = mockStatic(InteractGuard.class)) {
+            assertEquals(InteractionResult.PASS, behavior.useOnBlock(context));
+            verify(world, never()).getBlockAt(anyInt(), anyInt(), anyInt());
+            verify(tool, never()).hurtAndBreak(anyInt(), any(), any());
+            protection.verifyNoInteractions();
+        }
+    }
+
+    @Test
+    void aCommittedCustomHarvestStillChargesTheOriginalToolAndStopsTheRemainingSweep() {
+        var behavior = harvest(0);
+        var state = mock(ImmutableBlockState.class, RETURNS_DEEP_STUBS);
+        var harvestable = mock(HarvestableCrop.class);
+        var adaptedWorld = mock(BukkitWorld.class);
+        var root = new BlockPos(8, 64, 8);
+        when(crop.getWorld()).thenReturn(world);
+        when(crop.getX()).thenReturn(root.x());
+        when(crop.getY()).thenReturn(root.y());
+        when(crop.getZ()).thenReturn(root.z());
+        when(state.behavior().getFirst(HarvestableCrop.class)).thenReturn(harvestable);
+        when(harvestable.rootPos(eq(adaptedWorld), any(BlockPos.class), same(state))).thenReturn(root);
+        when(harvestable.harvest(eq(adaptedWorld), any(BlockPos.class), same(state), same(player), eq(InteractionHand.MAIN_HAND)))
+                .thenAnswer(call -> {
+                    // A committed crop may emit an item-spawn callback that changes the hand.
+                    when(inventory.getHeldItemSlot()).thenReturn(3);
+                    return true;
+                });
+        try (var bukkit = mockStatic(Bukkit.class); var blocks = mockStatic(CraftEngineBlocks.class);
+             var adaptor = mockStatic(BukkitAdaptor.class); var protection = mockStatic(InteractGuard.class)) {
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(world, 0, 0)).thenReturn(true);
+            blocks.when(() -> CraftEngineBlocks.getCustomBlockState(crop)).thenReturn(state);
+            adaptor.when(() -> BukkitAdaptor.adapt(world)).thenReturn(adaptedWorld);
+            protection.when(() -> InteractGuard.canBreak(eq(player), eq(level), anyInt(), anyInt(), anyInt())).thenReturn(true);
+
+            assertEquals(InteractionResult.SUCCESS_AND_CANCEL, behavior.useOnBlock(context));
+
+            verify(harvestable).harvest(eq(adaptedWorld), any(BlockPos.class), same(state), same(player), eq(InteractionHand.MAIN_HAND));
+            verify(tool).hurtAndBreak(1, player, null);
         }
     }
 }

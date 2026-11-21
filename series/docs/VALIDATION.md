@@ -1,5 +1,15 @@
 # 本地验证记录
 
+截至 2026-11-19 的目标版本、五插件整合记录、分层协议验证及仍需玩家操作的项目见仓库根目录的[验收记录](../../docs/VALIDATION.md)。下方按原日期保留历史候选的构建和运行范围。
+
+## 2026-11-19 当前构建与有界协议场景
+
+当前 Java 构建为 923 项：Cookery 582、common 34、Doll 43、Tavern 186、Deco 64、MusicPlus 14，失败／错误／跳过均为 0；Python 282 项（根工具 204＋系列 78）通过。207 项 Node 场景契约通过（legacy 96＋gameplay 111），其中包括 21 项转向／到达重检／诊断回归及新增 37 项原生命中收据回归。构建／合同层与下方独立实服证据分别登记。
+
+三样例 `gameplay` 协议场景与历史 `legacy` 场景分开核验。最终相同五插件、探针和场景在 Paper 132 `gp2/paper-run-6` 与 Folia 14 `gp2/folia-run-5` 各通过三阶段正常重启；六阶段 server/client 均退出 0、`errors=[]`，每阶段两名协议玩家各读取 14,419 项资源。原生命中各端为 6 hit／2 break，最大相邻命中间隔分别 150／151 毫秒。完整哈希与首次失败见[本轮有界证据](../../docs/research/series-gameplay-connected-acceptance-2026-11-19.json)；方法、逐槽组件守恒、真实 Dialog、原 UUID 与来源物品检查及回收后空状态复启的边界见[协议复现](ACCEPTANCE.md#木椅文字展板与地面燃烧瓶的三阶段协议复现)。该范围不扩展广义 T05／T06／F04 状态，也不关闭历史 watchdog。
+
+广义 T05／T06／F04 保持 `unit_tested`；11 项 Molotov 异常归档合同不等于满载实服或真实异常恢复。四条上游 UV 兼容提示、历史及本轮 Folia watchdog、全系列 `accepted=[]` 和 E06 `blocked` 均保持原状态。以下 2026-11-08 及更早记录只证明各自候选，不能改写为当前新 JAR 的运行证据。
+
 ## 2026-11-08 四插件运行加载
 
 Paper 1.21.11 build 132 和 Folia 1.21.11 build 14 在独立目录中分别加载 CraftEngine 26.9.1、Doll、Tavern、Deco、Music 四个系列插件并正常停服。日志中未出现 Unknown plugin 或插件启用异常。运行证据和所有 JAR/CE 包哈希见 [`docs/research/series-runtime-acceptance-2026-11-08.json`](../../docs/research/series-runtime-acceptance-2026-11-08.json)。玩家流程、资源包下载和原版客户端显示仍需单独验收。

@@ -1,6 +1,7 @@
 package net.kaleidoscope.doll;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.FurnitureTickers;
 import net.kaleidoscope.series.InventoryTrade;
 import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.SavedState;
@@ -24,6 +25,7 @@ public final class LotteryController extends InteractiveFurniture {
     private int tier;
     private int ticks;
     private boolean outputFailed;
+    private boolean delivering;
 
     public LotteryController(Furniture furniture, DollPlugin plugin) {
         super(furniture, plugin);
@@ -43,34 +45,48 @@ public final class LotteryController extends InteractiveFurniture {
         String candidate = bag.peek(ThreadLocalRandom.current());
         dolls.gifts().create(selected, candidate);
         String token = dolls.catalog().tokens().get(selected);
-        if (!InventoryTrade.exchange(player.getInventory(), s -> Items.id(s).equals(token), 1, List.of())) return;
-        bag.take(candidate);
-        pending = candidate;
-        tier = selected;
-        ticks = DRAW_TICKS;
-        outputFailed = false;
-        changed();
+        if (!InventoryTrade.exchange(player.getInventory(), s -> Items.id(s).equals(token), 1, List.of(), () -> {
+            if (!operational() || !furniture().isValid() || pending != null) return false;
+            bag.take(candidate);
+            pending = candidate;
+            tier = selected;
+            ticks = DRAW_TICKS;
+            outputFailed = false;
+            changed();
+            return true;
+        })) return;
         location().getWorld().playSound(location(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1, 2);
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return net.kaleidoscope.series.FurnitureTicks.current(LotteryController.class, LotteryController::tick);
+        return FurnitureTickers.current(LotteryController.class, LotteryController::tick);
     }
 
     private void tick() {
-        if (!operational() || pending == null || outputFailed) return;
+        if (!operational() || !furniture().isValid() || isInteracting() || delivering || pending == null || outputFailed) return;
         if (ticks > 0) { ticks--; changed(); return; }
+        delivering = true;
+        org.bukkit.entity.Item drop = null;
+        boolean committed = false;
         try {
             var gift = dolls.gifts().create(tier, pending);
-            var drop = location().getWorld().dropItemNaturally(location().add(0, 1.8, 0), gift);
+            drop = location().getWorld().dropItemNaturally(location().add(0, 1.8, 0), gift.clone());
             // EntitySpawnEvent cancellation must not consume an already paid prize.
-            if (!drop.isValid()) { ticks = 20; return; }
+            if (!drop.isValid() || !gift.equals(drop.getItemStack()) || !operational() || !furniture().isValid()) {
+                ticks = 20;
+                changed();
+                return;
+            }
             pending = null;
             changed();
+            committed = true;
             location().getWorld().playSound(location(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         } catch (RuntimeException exception) {
             outputFailed = true;
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "抽奖机产出失败，奖品已保留：" + location(), exception);
+        } finally {
+            if (!committed && drop != null && drop.isValid()) drop.remove();
+            delivering = false;
         }
     }
 
@@ -94,12 +110,9 @@ public final class LotteryController extends InteractiveFurniture {
     }
 
     private void restore(CompoundTag root) {
+        if (!root.containsKey(SAVE_KEY)) return;
         CompoundTag saved = SavedState.payload(root.getCompound(SAVE_KEY), SavedState.namespace(SAVE_KEY),
                 SavedState.SERIES_SOURCE, 1, null);
-        if (saved == null) {
-            if (root.containsKey(SAVE_KEY)) throw new IllegalArgumentException("Invalid lottery save tag");
-            return;
-        }
         if (SavedState.integer(saved, "version") != 1) throw new IllegalArgumentException("Unsupported lottery save version");
         for (int i = 0; i < bags.size(); i++) {
             String queue = SavedState.text(saved, "tier_" + i);

@@ -1,6 +1,7 @@
 package net.kaleidoscope.tavern;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.FurnitureTickers;
 import net.kaleidoscope.series.InventoryTrade;
 import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.SavedState;
@@ -34,7 +35,7 @@ public final class BarrelController extends InteractiveFurniture {
     @Override public void onUnload() { tavern.barrels.remove(this); }
     @Override public void postRemove(net.momirealms.craftengine.core.entity.player.Player player) { tavern.barrels.remove(this); }
 
-    boolean canBottle(String carrier) { return operational() && batch != null && batch.recipe().carriers().contains(carrier); }
+    boolean canBottle(String carrier) { return operational() && !isInteracting() && batch != null && batch.recipe().carriers().contains(carrier); }
     void fill(BottleController destination) {
         if (!canBottle(destination.carrier()) || !destination.empty()) return;
         ItemStack drink = tavern.bottle(batch);
@@ -71,19 +72,32 @@ public final class BarrelController extends InteractiveFurniture {
 
     private void transferFluid(Player player, ItemStack held, String incoming) {
         if (Arrays.stream(slots).anyMatch(Objects::nonNull)) { player.sendMessage("请先取出原料。"); return; }
+        int previousBuckets = buckets;
+        String previousFluid = fluid;
         if (incoming == null) {
             if (buckets == 0) return;
             ItemStack filled = Items.create(tavern.catalog().buckets().get(fluid));
-            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(filled))) return;
-            buckets--;
-            if (buckets == 0) fluid = null;
+            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(filled), () -> {
+                if (!operational() || !furniture().isValid() || !open || batch != null
+                        || previousBuckets != buckets || !Objects.equals(previousFluid, fluid)
+                        || Arrays.stream(slots).anyMatch(Objects::nonNull)) return false;
+                buckets--;
+                if (buckets == 0) fluid = null;
+                changed();
+                return true;
+            })) return;
         } else {
             if (buckets == 4 || (fluid != null && !fluid.equals(incoming))) { player.sendMessage("酒桶已满或液体不同。"); return; }
-            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(Items.create("minecraft:bucket")))) return;
-            fluid = incoming;
-            buckets++;
+            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(Items.create("minecraft:bucket")), () -> {
+                if (!operational() || !furniture().isValid() || !open || batch != null
+                        || previousBuckets != buckets || !Objects.equals(previousFluid, fluid)
+                        || Arrays.stream(slots).anyMatch(Objects::nonNull)) return false;
+                fluid = incoming;
+                buckets++;
+                changed();
+                return true;
+            })) return;
         }
-        changed();
         status(player);
     }
 
@@ -97,17 +111,29 @@ public final class BarrelController extends InteractiveFurniture {
         int stored = slots[slot] == null ? 0 : slots[slot].getAmount();
         int accepted = Math.min(held.getAmount(), Math.min(16, held.getMaxStackSize()) - stored);
         ItemStack filled = held.asQuantity(stored + accepted);
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, accepted, List.of())) return;
-        slots[slot] = filled;
-        changed();
+        int selected = slot;
+        ItemStack previous = slots[selected];
+        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, accepted, List.of(), () -> {
+            if (!operational() || !furniture().isValid() || !open || batch != null || buckets != 4
+                    || slots[selected] != previous) return false;
+            slots[selected] = filled;
+            changed();
+            return true;
+        })) return;
         player.sendMessage("已放入 " + accepted + " 个原料；空手潜行右键封盖。");
     }
 
     private void takeIngredient(Player player) {
         for (int i = slots.length - 1; i >= 0; i--) {
             if (slots[i] == null) continue;
-            if (InventoryTrade.give(player.getInventory(), slots[i])) { slots[i] = null; changed(); }
-            else player.sendMessage("背包空间不足。");
+            int selected = i;
+            ItemStack previous = slots[i];
+            if (!InventoryTrade.exchange(player.getInventory(), stack -> false, 0, List.of(slots[i]), () -> {
+                if (!operational() || !furniture().isValid() || !open || batch != null || slots[selected] != previous) return false;
+                slots[selected] = null;
+                changed();
+                return true;
+            })) player.sendMessage("背包空间不足。");
             return;
         }
         status(player);
@@ -116,12 +142,16 @@ public final class BarrelController extends InteractiveFurniture {
     private void extract(Player player, ItemStack held, String id) {
         if (!batch.recipe().carriers().contains(id)) { status(player); return; }
         ItemStack filled = tavern.bottle(batch);
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(filled))) {
+        BrewBatch supplying = batch;
+        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(filled), () -> {
+            if (!operational() || !furniture().isValid() || batch != supplying) return false;
+            batch.bottle();
+            if (batch.servings() == 0) { batch = null; open = true; }
+            changed();
+            return true;
+        })) {
             player.sendMessage("背包空间不足，酒液已保留。"); return;
         }
-        batch.bottle();
-        if (batch.servings() == 0) { batch = null; open = true; }
-        changed();
     }
 
     private void status(Player player) {
@@ -130,11 +160,11 @@ public final class BarrelController extends InteractiveFurniture {
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return net.kaleidoscope.series.FurnitureTicks.current(BarrelController.class, BarrelController::tick);
+        return FurnitureTickers.current(BarrelController.class, BarrelController::tick);
     }
 
     private void tick() {
-        if (!operational() || open || failed || (batch != null && batch.level() == BrewBatch.MAX_LEVEL)) return;
+        if (!operational() || isInteracting() || open || failed || (batch != null && batch.level() == BrewBatch.MAX_LEVEL)) return;
         if (++checkTicks < BrewBatch.CHECK_INTERVAL) return;
         checkTicks = 0;
         if (batch != null) { batch.pulse(); changed(); return; }
@@ -179,6 +209,7 @@ public final class BarrelController extends InteractiveFurniture {
     }
 
     private void restore(CompoundTag root) {
+        if (!root.containsKey(SAVE_KEY)) return;
         CompoundTag saved = SavedState.payload(root.getCompound(SAVE_KEY), SavedState.namespace(SAVE_KEY),
                 SavedState.SERIES_SOURCE, 1, null);
         if (saved == null) {

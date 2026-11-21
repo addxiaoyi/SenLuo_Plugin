@@ -101,7 +101,7 @@ class EightImmortalsTableItemBehaviorTest {
         writer = (pos, state) -> { add(pos, state); return true; };
         guard = staticMock(InteractGuard.class); guard.when(() -> InteractGuard.canPlace(eq(player), eq(level), any())).thenReturn(true);
         staticMock(NmsBridgeProvider.class).when(NmsBridgeProvider::bridge).thenReturn(bridge);
-        when(bridge.canPlaceEightImmortalsTable(any(), anyInt(), anyInt(), anyInt(), any(), any())).thenReturn(true);
+        when(bridge.canPlaceKitchenPart(any(), anyInt(), anyInt(), anyInt(), any(), any())).thenReturn(true);
         var stack = mock(org.bukkit.inventory.ItemStack.class); when(stack.clone()).thenReturn(stack);
         staticMock(InventoryUtils.class).when(() -> InventoryUtils.bukkitCopy(any())).thenReturn(stack);
         staticMock(FoliaUtil.class);
@@ -196,7 +196,7 @@ class EightImmortalsTableItemBehaviorTest {
     }
     @Test void nativeBorderCollisionOrUsePermissionFailureAtAnySidePreventsWrites() {
         BlockPos side = footprint().get(3);
-        when(bridge.canPlaceEightImmortalsTable(any(), eq(side.x()), eq(side.y()), eq(side.z()), any(), any())).thenReturn(false);
+        when(bridge.canPlaceKitchenPart(any(), eq(side.x()), eq(side.y()), eq(side.z()), any(), any())).thenReturn(false);
         assertEquals(InteractionResult.FAIL, item.place(context)); assertEquals(0, writes);
     }
     @Test void contextualNonreplaceableSideRejectsPlacement() {

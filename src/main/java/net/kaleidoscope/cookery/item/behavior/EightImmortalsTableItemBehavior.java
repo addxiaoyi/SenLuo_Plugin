@@ -205,7 +205,7 @@ public final class EightImmortalsTableItemBehavior extends BlockItemBehavior {
         if (player != null && !InteractGuard.canPlace(player, context.getLevel(), pos)) return false;
         // Protection plugins may change player/world state while answering the check.
         if (!validPlayer(context) || !accessible((World) context.getLevel().platformWorld(), pos)) return false;
-        return NmsBridgeProvider.bridge().canPlaceEightImmortalsTable(context.getLevel().minecraftWorld(),
+        return NmsBridgeProvider.bridge().canPlaceKitchenPart(context.getLevel().minecraftWorld(),
                 pos.x(), pos.y(), pos.z(), player == null ? null : player.minecraftPlayer(), context.getItem().minecraftItem());
     }
 

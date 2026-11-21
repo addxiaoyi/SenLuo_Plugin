@@ -20,7 +20,8 @@ public final class RecipeSourceIndex {
         STOCK_FLEX,
         CHOPPING,
         TEAPOT,
-        BAMBOO_TRAY
+        BAMBOO_TRAY,
+        STOCKPOT
     }
 
     private record SourceKey(Kind kind, Key id, Path file, RecipeFileStore.SourceTarget target) {

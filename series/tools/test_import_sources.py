@@ -1,7 +1,7 @@
 import unittest
 from import_sources import (parse_json, resolve_ingredient, strip_trailing_commas, model_tree, music,
                             inherit_template, loot_components, crafting, json_bytes, pack_groups,
-                            load_module_specs, PackDefinition, PackBuilder, SourceSnapshot)
+                            load_module_specs, PackDefinition, PackBuilder)
 
 
 class ImportTests(unittest.TestCase):
@@ -25,11 +25,12 @@ class ImportTests(unittest.TestCase):
 
     def test_pack_builder_writes_declared_pack_namespace(self):
         definition = PackDefinition("music", "MusicPlus", "musicplus", "kseries_music", "music")
-        source = type("Snapshot", (), {"files": {}})()
+        source = type("Snapshot", (), {"files": {"LICENCE": b"License evidence", "src/LICENCE": b"Nested"}})()
         bundle = {}
         PackBuilder("test", "shared").add_module(bundle, definition, source,
                                                   {"items": {}}, {}, {"module": "music"})
         self.assertEqual("kseries_music", parse_json(bundle["music/pack.yml"])["namespace"])
+        self.assertEqual(b"License evidence", bundle["music/upstream-notices/LICENCE"])
 
     def test_music_import_uses_the_official_guitar_texture_in_a_vanilla_model(self):
         class SourceFixture:
@@ -107,25 +108,6 @@ class ImportTests(unittest.TestCase):
         converted, pending = crafting(tags, {})
         self.assertFalse(converted)
         self.assertEqual(1, len(pending))
-
-    def test_pinned_tavern_recipes_use_target_1_21_11_ingredient_names(self):
-        source = SourceSnapshot("KaleidoscopeTavern", "c4ec1880bd44cf3139d3ba744ab30bb379cf1416")
-        tags = source.resources("data")
-        recipe_paths = ("bell_pendant_lamp", "grass_sandwich_board_from_grass")
-        recipes = {f"kaleidoscope_tavern/recipes/{name}.json":
-                   tags[f"kaleidoscope_tavern/recipes/{name}.json"] for name in recipe_paths}
-        items = {"kaleidoscope_tavern:" + name: {} for name in
-                 ("bell_pendant_lamp", "base_sandwich_board", "grass_sandwich_board")}
-        converted, pending = crafting(recipes, items)
-        self.assertEqual([], pending)
-        lamp = converted["kaleidoscope_tavern:bell_pendant_lamp"]
-        self.assertEqual(["C", "C", "B"], lamp["pattern"])
-        self.assertEqual({"B": "minecraft:bell", "C": "minecraft:iron_chain"}, lamp["ingredients"])
-        self.assertEqual({"id": "kaleidoscope_tavern:bell_pendant_lamp", "count": 8}, lamp["result"])
-        board = converted["kaleidoscope_tavern:grass_sandwich_board_from_grass"]
-        self.assertEqual(["kaleidoscope_tavern:base_sandwich_board", "minecraft:short_grass"],
-                         board["ingredients"])
-        self.assertEqual({"id": "kaleidoscope_tavern:grass_sandwich_board", "count": 1}, board["result"])
 
     def test_crafting_aliases_apply_inside_alternatives_and_resolved_custom_tags(self):
         recipe = {"type": "minecraft:crafting_shaped", "pattern": ["AB"],

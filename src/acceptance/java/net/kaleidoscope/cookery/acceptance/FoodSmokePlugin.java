@@ -12,7 +12,9 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.charset.StandardCharsets;
@@ -28,7 +30,14 @@ public final class FoodSmokePlugin extends JavaPlugin {
     private static final long PROBE_POLL_TICKS = 20;
     private static final long PROBE_WAIT_LIMIT = 20 * 240;
 
+    @Override public void onLoad() {
+        VillagePublicationSmoke.register(this);
+    }
+
     @Override public void onEnable() {
+        VillagePublicationSmoke.checkOnEnable(this);
+        if (getConfig().getBoolean("connected-smoke.enabled", false)) ConnectedKitchenProbe.enable(this);
+        if (getConfig().getBoolean("source-crops-smoke.enabled", false)) SourceCropProbe.enable(this);
         long bootStarted = System.currentTimeMillis();
         Bukkit.getGlobalRegionScheduler().runDelayed(this, task -> {
             verify();
@@ -44,6 +53,11 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 startProbe("millstone smoke", delay, () -> MillstoneSmoke.start(this));
             }
             List<String> precedingReports = new ArrayList<>();
+            if (getConfig().getBoolean("series-gameplay-smoke.enabled", false)) {
+                startProbe("series gameplay smoke", delay, () -> SeriesGameplaySmoke.start(this));
+                precedingReports.add("series-gameplay-smoke.json");
+                delay += 200;
+            }
             if (getConfig().getBoolean("scarecrow-hit-smoke.enabled", false)) {
                 startProbe("scarecrow hit smoke", delay, () -> ScarecrowHitSmoke.start(this));
                 precedingReports.add("scarecrow-hit-smoke.json");
@@ -109,6 +123,10 @@ public final class FoodSmokePlugin extends JavaPlugin {
         }, 100);
     }
 
+    @Override public void onDisable() {
+        SourceCropProbe.disable(this);
+    }
+
     private void awaitMillstoneStart(List<String> reports, long bootStarted, long waitedTicks) {
         startProbe("millstone report barrier", PROBE_POLL_TICKS, () -> {
             for (String name : reports) {
@@ -144,6 +162,7 @@ public final class FoodSmokePlugin extends JavaPlugin {
 
     private void verify() {
         List<String> failures = new ArrayList<>();
+        Map<String, Object> stackabilityMismatches = new LinkedHashMap<>();
         int checked = 0;
         int checkedBites = 0;
         for (var entry : CookeryCatalog.bundled().snapshot().items().values()) {
@@ -167,6 +186,9 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 var built = buildable.buildItem((net.momirealms.craftengine.core.entity.player.Player) null);
                 ItemStack direct = ItemStackUtils.getBukkitStack(built.minecraftItem());
                 check(expected.equals(CookeryFoodItems.read(direct)), entry.id() + ": direct CE build omitted/changed food PDC");
+                check(expected.encode().equals(direct.getItemMeta().getPersistentDataContainer().get(
+                        new NamespacedKey("kaleidoscopecookery", "food_v1"), PersistentDataType.STRING)),
+                        entry.id() + ": direct CE food PDC string differs from the production encoding");
                 check(direct.getItemMeta().getFood().getNutrition() == expected.food().nutrition(), entry.id() + ": wrong food component");
                 ItemStack restored = ItemStack.deserializeBytes(direct.serializeAsBytes());
                 check(expected.equals(CookeryFoodItems.read(restored)), entry.id() + ": serialization lost food snapshot");
@@ -185,6 +207,18 @@ public final class FoodSmokePlugin extends JavaPlugin {
                 long vanilla = expected.food().effects().stream().filter(effect -> effect.id().startsWith("minecraft:")).count();
                 check(actual == vanilla, entry.id() + ": duplicated/missing vanilla effects");
                 var created = InventoryUtils.createOrEmpty(Key.of(entry.id()));
+                ItemStack production = ItemStackUtils.getBukkitStack(created.minecraftItem());
+                boolean canStack = direct.isSimilar(production);
+                if (!canStack) {
+                    stackabilityMismatches.put(entry.id(), Map.of(
+                            "directBytes", java.util.Base64.getEncoder().encodeToString(direct.serializeAsBytes()),
+                            "productionBytes", java.util.Base64.getEncoder().encodeToString(production.serializeAsBytes()),
+                            "directConsumable", String.valueOf(raw),
+                            "productionConsumable", String.valueOf(created.getComponentAsJson(
+                                    Key.of(modern ? "minecraft:consumable" : "minecraft:food")))));
+                }
+                check(canStack,
+                        entry.id() + ": direct CE build cannot stack with the production BASE item");
                 var quality = CookeryFoodItems.bake(created, QualityProfile.of(DishQuality.STANDARD));
                 var scaled = CookeryFoodItems.read(ItemStackUtils.getBukkitStack(quality.minecraftItem()));
                 check(BakedFood.of(entry, QualityProfile.of(DishQuality.STANDARD)).equals(scaled), entry.id() + ": quality differs");
@@ -202,6 +236,7 @@ public final class FoodSmokePlugin extends JavaPlugin {
         report.put("checkedConsumables", checked);
         report.put("checkedBites", checkedBites);
         report.put("failures", failures);
+        report.put("stackabilityMismatches", stackabilityMismatches);
         report.put("playerFlow", "NOT_TESTED");
         report.put("clientResourcePack", "NOT_TESTED");
         try {

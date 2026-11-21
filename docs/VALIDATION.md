@@ -1,146 +1,65 @@
 # 本地开发验证记录
 
-更新于 2026-11-17（Asia/Shanghai）。完整计划和换设备步骤见 [根 README](../README.md#继续开发)。11 月 7 日构建/依赖失败、离线校验和历史运行日志见 [交接证据](handoff/2026-11-07/README.md)；后续检查点按日期保留。玩家点击和原版客户端画面仍未覆盖。
+更新于 2026-11-21（Asia/Shanghai）。完整计划和换设备步骤见 [根 README](../README.md#继续开发)。11 月 7 日构建/依赖失败、离线校验和历史运行日志见 [交接证据](handoff/2026-11-07/README.md)；后续检查点按日期保留。双人协议验收见下方；原版客户端画面仍待实机验证。
 
-构建目标扩展至 1.21.1–26.3，编译 API 为 CraftEngine 26.9.1，本轮运行使用 26.9.2。1.21.x 使用 Java 21，26.x 使用 Java 25。下列旧运行记录针对各自注明的版本，不升级成全版本或全系列完成；未发布、部署或操作生产服。
+目标 Paper/Folia 1.21.11、Java 21、CraftEngine 26.9.1。历史构建/运行记录不因 Git 交接升级成全系列完成；未发布、部署或操作生产服。
 
-## 稻草人受击（2026-11-17，scarecrow-hit-v1）
+## 当前交付状态（2026-11-21）
 
-厨房Java638项、旧Gson60项、根Python147项通过；系列80＋4 Java、75 Python结果保留。新增10项Java回归覆盖受击窗口/晃动/取消/掉落。g/31–32与h/20–21十组探针通过，真实CE事件验证不同攻击者五tick边界、六tick重置、创造无掉落和事件抑制掉落；资源生成、重启库存/回收与正常停服通过。g/29因探针CE适配器缺少luck失败，生产JAR未变；g/30修正后通过。h每轮两条Windows OSHI错误保留。见 [验收边界](SCARECROW-HITS.md) 与 [最终证据](research/scarecrow-hit-runtime-2026-11-17.json)。
+当前配方计数以[整合运行证据](research/series-runtime-2026-11-18.json)为准：612 条来源配方全部导入，状态为 `imported=612`、`pending=0`，导出段共 teapot 11、accurate foods 94、chopping 16、bamboo tray 28、stockpot 105、pot 225、普通 recipes 142。本文后面的 `550/612`、`62 pending`、`558/612` 和 `54 pending` 是历史增量记录，保留用于追溯，不代表当前状态。
 
-## 稻草人内容与装备（2026-11-17，scarecrow-v1）
+当前系列静态资源报告为 `errors=[]`、`asset_warnings=[]`；仍保留的四条 Doll UV 越界信息来自固定上游模型，属于目标客户端兼容验收，不应通过修改上游资产消除。玩家逐条合成／原料链、客户端显示、保护／多人、跨区／卸载／热重载以及 Folia watchdog 根因仍未完成。
 
-厨房Java628项、旧Gson60项、根Python147项通过；系列Java80＋4、Python75结果保留。新增14项Java测试和3项模型测试。最终g/27–28、h/18–19各九组探针通过，资源生成/正常停服、三件装备组件重启恢复、拆除和取消掉落回收通过；h每轮仍有两条Windows OSHI错误。六类生成模型/纹理核验通过，厨房612/612配方配置导入。详见 [稻草人边界](SCARECROW.md) 和 [运行证据](research/scarecrow-runtime-2026-11-17.json)。
+## 燃烧瓶、文字展板与木椅回归（2026-11-19）
 
-## 垃圾桶来源动画（2026-11-17，trashcan-animation-v1）
+当前冻结构建通过 **923 项 Java、282 项 Python、207 项 Node 场景契约测试**，厨房与系列来源导入 `--check` 均通过。本轮新增燃烧瓶及四种储物家具的燃烧瓶链、14 款文字展板、12 木种椅子的空垫／16 色椅垫、12 木种静态厨娘凳和 24 条石切配方。下方原生 API 回归属于前序冻结候选，其源码、产物和日志哈希保留在[玩法回归证据](research/series-gameplay-regression-2026-11-19.json)，不能替代新候选的协议或重启结果。
 
-厨房Java614项、旧Gson60项及根Python144项通过；系列80＋4 Java、75 Python结果保留。五轨道/15通道/51关键帧从固定Java源码提取，6项新增Java测试涵盖曲线、部位/支点、世界时间/追踪者/卸载。最终g/25–26、h/16–17八组探针通过，每轮编码116姿势，资源生成与正常停服通过；h仍有两条Windows OSHI错误行。来源四部件几何/两张纹理核对通过。g/23–24通过但使用坐标哈希溢出修正前JAR，仅为历史记录。详见 [动画说明](TRASH-CAN-ANIMATION.md) 与 [最终运行证据](research/trashcan-animation-runtime-2026-11-17.json)。
+前序冻结五插件 JAR 候选在 Paper 132 和 Folia 14 各验证 43 个定义、431 个变体、235 个物品，完成 9 件代表家具的放置、二进制 NBT 进程内往返与移除，以及 19 个真实储物显示的生成和清理。两端正常停服、退出码 0、`errors=[]`；该候选的最终托管资源包各有 14,419 项通过官方 1.21.11 代码离线读取，不能自动作为后续新 JAR 的验证结果。静态引用检查警告为 0，但运行日志每端仍保留 4 条上游 Doll 模型越界 UV 兼容提示，不能声称无任何警告。
 
-## 垃圾桶（2026-11-17，trashcan-v1）
+这层原生探针未驱动玩家，也未执行服务器重启，不能覆盖 Dialog 操作、投掷、红石、座位、保护或 GPU／音频验收。首次及第二候选失败均保留，历史 Folia watchdog 根因继续 OPEN；全系列 `accepted=[]`，许可证 E06 仍 `blocked`。精确范围和复现步骤见[玩家验收表](../series/docs/ACCEPTANCE.md#本轮原生回归复现)，下面保留旧提交的历史检查点。
 
-厨房完整 Java 608 项和旧 Gson 60 项通过，十组专用 JAR 重建；系列未改 Java，保留 80＋4 项结果。根 Python143、系列75项通过，打包器3项复核通过。新增10项垃圾桶 Java回归、3项模型/版本测试。Paper1.21.1 的g/21–22、Paper26.3的h/14–15各八组探针通过，资源生成成功并正常停服。红石六项、三组库存重启恢复、拆除返还及取消回收通过；最终模型/来源纹理检查通过。26.3每轮两条Windows OSHI性能计数器错误仍存在，完整日志保留。见 [垃圾桶差异](TRASH-CAN.md) 和 [运行证据](research/trashcan-runtime-2026-11-17.json)。
+## 木椅、文字展板与地面燃烧瓶协议检查点（2026-11-19）
 
-## 资源路径兼容（2026-11-17，resource-paths-v1）
+独立 `--restart-suite --scenario gameplay` 场景以两名普通生存协议玩家检查一把橡木红垫椅、一块空白到罂粟花纹文字展板及一个空地面燃烧瓶。最终相同五插件、探针与场景脚本在 Paper 132 的 `gp2/paper-run-6` 和 Folia 14 的 `gp2/folia-run-5` 各完整通过三阶段；六次服务器／客户端均正常退出 0、`errors=[]`，每阶段每位玩家各以官方代码读取 14,419 项资源。完整产物、源码、依赖、检查点、原生事件及历史失败哈希见[本轮有界协议证据](research/series-gameplay-connected-acceptance-2026-11-19.json)。
 
-修复六个酒馆吊灯原版铁链纹理的1.21.9改名边界；官方四版客户端SHA-1和纹理字节核对通过。两个Deco食物旧路径补充来源模型别名，保留原纹理与动画。Python140＋75通过，Java生产代码未变，742次对应JAR测试记录有效。详见 [资源路径](RESOURCE-PATHS.md) 和 [运行证据](research/resource-path-runtime-2026-11-17.json)。玩偶UV缺陷仍OPEN，未猜测裁剪或缩放。
+范围为取消与实际装垫、服务器真实 Dialog 中文／反斜杠／尖括号／换行输入及右对齐、染色／发光／封蜡／换花纹，正常重启后保留原 UUID、完整来源物品和状态，再由指定玩家剪回红垫、实际拾取基础椅及空白罂粟板、空手直接取回地面燃烧瓶。第三次启动核对独立 SHA 绑定检查点、每人 36 个存储槽与光标的组件账本、无家具和遗留物，两秒后再查无复活或增产；不观察盔甲和副手。完整方法见[协议复现](../series/docs/ACCEPTANCE.md#木椅文字展板与地面燃烧瓶的三阶段协议复现)。
 
-## 挂鱼勾与复合模型（2026-11-17，fishrack-v1）
+这层代表样例不覆盖全部木种／颜色／板型、投掷／火焰／红石、四种储物家具满载、异常人工恢复、座位碰撞、保护、跨区、卸载／热重载或 GPU／音频，T05／T06／F04 仍为广义 `unit_tested`。本轮 11 项 Molotov 异常归档合同计入 Tavern 186 项 Java 单元测试，不是满载实服验证。Paper 的 URL、Dialog 编码、夹具来源物品、旧击打节奏失败与 Folia 的 watchdog、公钥 TLS EOF、异常退出及移动超时均保留；异常退出原因没有证实，后续成功不覆盖失败或关闭 watchdog。Paper6 期间的独立 PowerShell／分页文件与 .NET 内存观察单列保留，不等同已通过的实服 suite 失败。
 
-三格原生物品、后进先出、创造模式、拆除返还、取消回滚/持久回收、主手格支付和超大组件扣物前拒绝已实现。CE 实体加入世界前的初始化时序已修复；回调核对当前控制器，避免旧实例改动新家具。完整说明见 [挂鱼勾](FISHRACK.md)。
+## 前序双人协议验收（2026-11-19）
 
-系列 build 80 项和旧 Paper 4 项通过；厨房 598 与旧 Gson 60 项保留对应构建的通过结果，合计 742 次 Java 测试执行。系列 Python 73 项通过，厨房未改动并保留前序 138 项。最终 g/19、h/11 的七组报告和正常退出由打包器读取并核对 JAR 哈希；详见 [运行证据](research/fishrack-runtime-2026-11-17.json)。
+Paper 132 和 Folia 14 各两名普通生存玩家在隔离服完成资源包下载及官方解码、厨刀锻造取消／普通／Shift 扣料、四槽蒸笼回收和稻草人保护取消及两人连续击打。每位玩家解码 14,203 个资源；两端都正常保存和停服，无 watchdog 或 ERROR 日志。方法见[协议验收工具](../tools/acceptance/connected/README.md)，结果及 JFR 哈希见[双端证据](research/series-connected-2026-11-19.json)。两者均为本机离线协议客户端，不代表已认证客户端的画面或声音验收。
 
-独立来源对照检查 40 种鱼架组合的几何、UV、旋转、元素顺序、160 个家具变体和四张原纹理。Deco 共1115物品、785家具、2423变体；1.21.1检查1088个现代模型、1087个旧模型，27个复杂Deco仍被旧转换省略；26.3检查1115个现代模型。旧版总转换警告37→30。失败初始轮次、CE关闭等待快照和测试实体定点清理记录保留；不以报告通过替代正常保存退出。真人/客户端/Folia及完整复刻尚未完成。
+## 612 条厨房配方与五插件整合（2026-11-18）
 
-## Deco 模型与双端资源包（2026-11-17，deco-models-v1）
+厨房包含 1,432 件物品、81 个方块、25 件家具。612 条来源配方均有目标映射。根工程 565 项与系列工程 60 项 Java 测试通过，两个 Python 套件分别通过 139 和 58 项。完整输入、启动日志摘要、各轮产物哈希和玩家验收范围见[双端验收记录](research/series-runtime-2026-11-18.json)。
 
-递归 CMD、独立家具显示分支、旧版常用场景模型和绵羊颜色转换完成，见 [模型检查点](DECO-MODELS.md)。Python 138＋69 项通过；系列 build 与 acceptanceJar 编译通过，生产 Java 未新增改动，保留 598＋71＋4＋60 的验证记录。g/11、h/5 六组探针均通过；1075 Deco 物品、785 家具、2263 变体，以及11个样本的92次切换和重启恢复通过。
+服务端用 `--server-blocks 8000 --early-pack-load` 准备。Folia 默认配置曾在 `AbstractPackManager.loadResourceConfigs` 等待 77.026 秒，同轮 CE 异步初始化与资源生成都在写入同一缓存。调整加载时机并关闭该资源缓存后，五个插件在 CE 读包前注册所需类型。另一次 Folia 重启在原生有序配方的 `Ingredient.ofStacks` 注册路径记录了 5.59 秒全局线程 watchdog，注册随后完成。五轮均正常停服，另一次独占的 Folia 重启未再报警。原来的 tag packet 栈也保留在历史记录中。
 
-1.21.1 实际生成包检查1041个现代模型、1040个旧版模型，34个复杂Deco条目仍被旧版转换省略；26.3检查全部1075个现代模型。旧服总模型转换警告从229降至37。最终资源包均完成CRC和逐模型比对，缺纹理/源模型、UV及默认世界生成警告仍保留。实际证据见 [运行摘要](research/deco-model-runtime-2026-11-17.json)。
+原版客户端的离线检查用 Java 21、1.21.11 官方客户端 JAR 和对应运行库，读取每个平台 `plugins/CraftEngine/cache/hosted/default/resource_pack.zip`。两份托管包各通过 14,203 个资源检查。客户端选中了 `ce_overlay_75-97`。原版解码器解析了每包的 6,292 个模型、4,060 个物品定义和 1,023 个方块状态，另有 2,617 张 PNG 成功解码。所有有效资源均通过客户端读取，并逐项与 ZIP 内对应内容比较。可用官方启动器准备好该版本和依赖，将启动时的类路径（含客户端 JAR）赋给 `CLIENT_CP` 后复验。
 
-## 蒸笼交互与双端兼容（2026-11-17，steamer-runtime-v3）
+```powershell
+$instances = 'build/acceptance/series-five-runtime'
+$hosted = 'plugins/CraftEngine/cache/hosted/default/resource_pack.zip'
+java '-Djava.awt.headless=true' -cp "$env:CLIENT_CP" tools/acceptance/VanillaPack12111.java build/client-read.json "$instances/paper/$hosted" "$instances/folia/$hosted"
+```
 
-厨房 598 项 Java、系列前序 71＋4 项保持通过，新增真实 Gson 2.10.1 专用 60 项测试；新交互与兼容说明见 [蒸笼交互](STEAMER-INTERACTION.md)。用户已同意 EULA，本轮在 g/h 顺序启动 1.21.1/26.3 Paper；五插件加载、五组厨房探针和资源包工作流已有双端通过结果。最终轮次和哈希记录在 `research/cookery-steamer-runtime-2026-11-17.json`。
+本机 demo 启动到创建窗口时报告 `GLFW error 65542`。已登录客户端的接包、渲染和普通玩家操作仍待验收。
 
-1.21.1/26.3 的厨房 81 方块/5,599 内部状态均完整登记，五插件总缓存 6,045 项。资源包仍有缺模型/纹理，旧版另有 229 项现代物品模型无法自动转换，26.3 默认棕榈树世界生成配置报错。服务器探针不证明玩家操作或客户端显示，完整功能目标保持未完成。
+## 导入与资源转换（2026-11-18，前序检查点）
 
-## 带内容蒸笼（2026-11-17，前序 steamer-portable-v1）
+- 已同步远端 `1d283d6`，保持五个固定上游提交。八组 Forge 基础材料标签映射到明确的原版目标，已有来源标签优先；映射写入厨房 manifest 和 `recipe-parity.json` 的 `targetTagMappings`。
+- 新增 11 条合成与 3 条石磨来源配方：550/612 imported、62 pending；石磨 85 条来源完整展开为 90 条具体输入。厨房仍为 1,206 物品、63 方块和 1,218 个通过引用检查的模型。
+- Deco 新增两个旧物品模型转发和蛙卵果冻 GUI 模型，修正盘粒子；Tavern 铁链贴图转换为 1.21.11 的 `minecraft:block/iron_chain`。声明的 CE 资源依赖无错误，额外随包导出的自定义资源当时有 5 条 `asset_warnings`，当前结果见[资源检查报告](../series/docs/pack-validation.json)。
+- Python 根工具 105 项、系列工具 57 项通过；固定源码目录及生成导入报告检查通过。本轮新增资源与配方的 Paper/Folia 加载、原版客户端和玩家验收待执行；双端运行基线见 [2026-11-17 记录](research/series-runtime-2026-11-17.json)。
 
-- 蒸笼物品保存四槽及进度/配方；叠放合并上下层，放置事件拒绝、原生写入异常和回调替换时避免重复扣料，拆除封装为一或两个容器。
-- 两条来源 NBT 合成转换为原生无序配方及结果处理器；每笼四件原料、每槽 1,200 tick。关闭旧空容器 loot，创造模式和方块掉落规则有专门测试。
-- 新增 33 Java、2 Python；厨房 548 Java 全量通过，系列构建成功并保留 71＋4 旧 API 通过结果，Python 138＋59 全量通过。
-- 五插件、十组厨房版本 JAR、18 个 CE 配置 ZIP 已构建；610/612 配方导入，余下稻草人与垃圾桶。来源和边界见 [带内容蒸笼](STEAMER-PORTABLE.md)，哈希见 [构建证据](research/cookery-steamer-portable-build-2026-11-17.json)。实服探针仅编译；e/f EULA=false，未启动。
+## Forge 蘑菇标签配方（2026-11-18，前序检查点）
 
-## 蒸笼存档与叠放（2026-11-17，前序 steamer-state-v1）
+- Forge 47.3.0 universal JAR（SHA-256 `a3c07e6b33fe8a4b42fdb4841a37e3ffda62797366c7050c481d799d6d35831c`）中 `data/forge/tags/items/mushrooms.json`（资源 SHA-256 `5c689ad6d0c3abb7af662644c0d539f591d8faa88be36afa598f8f4e6fca29f2`）将 `forge:mushrooms` 明确展开为 `minecraft:brown_mushroom` 和 `minecraft:red_mushroom`。Cookery 配方报告保存该目标映射，来源若以后提供同名标签仍优先采用来源定义。
+- 8 条炒锅/高汤锅配方（鱼香肉丝、春卷、鸡肉蘑菇炖汤、野蘑菇兔肉汤的两种配方形式）全部导入，分别为 225 条炒锅、105 条高汤锅；总量 558/612 imported、54 pending。
+- Windows Python 全量测试当前为 106 根工具、57 系列工具；本轮额外修正路径规范化测试在 Windows 临时目录的大小写/短路径差异。根工程 `test shadowJar acceptanceJar` 和系列 `build` 均通过，使用本地 Gradle 9.4.0 与 Java 21/25。厨房包来源检查通过。Paper/Folia 加载、客户端资源包显示和玩家操作尚未复验。
 
-- 固定上下层八槽，旧 dense 存档可迁移；严格原子加载与坏档原样保留。修复取物只返一件、重复掉落、重载 ticker、稀疏显示及陈旧盖子状态。
-- 叠放接回物品已注册的 CE 放置行为，取消结果直接返回且不额外扣物；下落失败读档兼容新旧格式。实际事件/回滚和客户端尚未运行验证。
-- 新增 20 Java；旧实现的最初 12 项有 10 项失败，修复后全量厨房 515 通过。系列 71＋4 旧 API、Python 136＋59 保留未改逻辑的前序通过记录。
-- 五插件、十组厨房版本 JAR 和 18 个 CE 配置包完成打包；内容沿用 smithing-v1，608/612 配方导入。带内容蒸笼组件、分层掉落及两条合成尚未完成。见 [蒸笼存档](STEAMER-STATE.md) 和 [构建证据](research/cookery-steamer-state-build-2026-11-17.json)。e/f EULA=false，未启动。
-
-## 菜刀锻造（2026-11-17，前序 smithing-v1）
-
-- 接入模板＋钻石菜刀＋下界合金锭的来源升级配方；专用处理器保留玩家/第三方 custom_data，目标 CE 身份保持为下界合金菜刀，输入数据不变。
-- 新增 8 Java、2 Python；厨房 495 Java 全量通过，未改系列保留 71＋4 旧 API 记录。Python 136＋59 全量通过。608/612 配方已导入，4 pending；物品/方块/状态数量与前序相同。
-- 五插件、十组厨房 JAR 与 18 个 CE 配置包完成封装。可选锻造探针和跨版本食物组件探针已编译，未执行；原生槽位消耗、Shift、取消和客户端未验。详情见 [菜刀锻造](KITCHEN-KNIFE-SMITHING.md) 和 [构建证据](research/cookery-kitchen-knife-smithing-build-2026-11-17.json)。e/f 保留旧文件，EULA=false，未启动。
-
-## 红灯笼与稻草人保护（2026-11-17，前序 lantern-v1）
-
-- 红灯笼单状态模型、光照 14、羊毛声音、硬度/抗爆 0.3、条件掉落和来源合成已导入。新旧铁链名称转换有回归。
-- 稻草人保护从球形改为来源方盒查询与宽 0.5、高 2.375 的实体边界相交，索引覆盖小数位置跨区块边界。四项回归修复前失败、修复后通过；稻草人完整内容和配方仍未导入。
-- 厨房 487 Java 全量通过；未改系列保留 71＋4 旧 API 通过记录。Python 134＋59 全量通过。当前 1,422 物品、81 方块、23 家具、4,255 显式状态、5,599 预期内部状态、1,480 可达模型，607/612 配方已导入，5 pending。
-- 五插件、十组厨房版本 JAR、18 个 CE 配置包保留逐文件哈希。日志和范围见 [红灯笼与稻草人范围](RED-LANTERN.md) 与 [构建证据](research/cookery-red-lantern-build-2026-11-17.json)。固体碰撞、真实光照、活塞显示、玩家与客户端仍待验，e/f EULA=false，未启动。
-
-## 八仙桌（2026-11-17，前序 eight-v1）
-
-- 16 状态、四格事务、每格保护/原生放置检查、事件取消回滚、扣物顺序、组 UUID 存档和关联拆除已实现。最终权限回调后复查全部部件，玩家离线和源实体脱离世界不再继续错误操作。
-- 新增 36 Java、2 Python；厨房 483 Java 全量通过，未改系列保留 71 Java＋4 旧 API 通过记录。Python 132＋59 全量通过；五插件、十组厨房版本 JAR、18 个 CE 配置包完成封装。
-- 厨房 1,420 物品、80 方块、23 家具、4,254 显式状态、5,598 预期内部状态、1,478 可达模型；606/612 配方已导入，6 pending。预期内部状态尚未真实注册验证。
-- 四个新生命周期/回调回归在修复前失败，见 `../eight-tests-lifecycle-before.log`；修复后 `../eight-build-final.log` 全量通过。早期夹具失败及 Python/资源导出日志一并保留，见 [八仙桌](EIGHT-IMMORTALS-TABLE.md) 与 [构建证据](research/cookery-eight-immortals-table-build-2026-11-17.json)。
-- 固体碰撞和岩浆点燃未对齐；回滚失去区域/区块访问可能留部分状态，跨区清理、热重载和原生爆炸掉落待实服验证。e/f 仍为旧便当袋检查点，EULA=false，未启动。
-
-## 长凳（2026-11-17，前序 bench-v1）
-
-- 八状态源模型、单件合成和爆炸条件掉落导入；放置轴固定，仅同种同轴连接，端点按西/北为负方向处理。双手持物/空手均可坐，潜行或占用时 PASS。
-- 保护及乘坐回调前后重查玩家、方块实体身份、区域和生命周期；卸载/拆除、重入、载具重定向与失败清理有回归覆盖。
-- 新增 16 Java、2 Python；厨房 447 Java 与 Python 130＋59 全量通过；未改系列仍使用 71 Java＋4 旧 API 的上一批通过记录。五插件、十组厨房版本 JAR 与 18 个 CE 配置包已打包。
-- 厨房 1,415 物品、79 方块、23 家具、4,238 显式状态、5,582 预期内部状态、1,473 可达模型，605/612 配方导入，7 pending。没有声称内部状态已被真实服务器注册。
-- 首次专项测试的 Mockito 泛型深层桩转型失败已修正；最终日志 `../bench-build-all.log`、`../bench-python-all.log`、`../bench-content.log`。范围见 [长凳](LONG-BENCH.md)，证据见 [构建记录](research/cookery-long-bench-build-2026-11-17.json)。
-- 半高碰撞、活塞移动、岩浆点燃和客户端乘坐仍待对齐/实测。八仙桌已核对源码及 CE 放置接口，尚未加入成品包。e/f EULA=false，未启动。
-
-## 辣椒串与蘑菇串（2026-11-17，前序 hanging-v1）
-
-- 两类方块共八个状态、两条来源配方导入；主手空或持产物分两次各采 3 个，先确认状态变化后交付。完整/半串破坏及塌落分别结算 6/3 个，回调重入、替换、保护和区域变化不重复产出。辣椒串对亡灵 Mob 施加原生 2 点魔法伤害。
-- 本批新增 17 Java、3 Python（两项导出、一项轴向验收）；完整 Java 431＋71＋4、Python 128＋59 全部通过。五插件、十组厨房 JAR 和 18 个版本配置包已重建。
-- 厨房 1,410 物品、78 方块、23 家具、4,230 显式状态、1,468 可达模型，604/612 配方已导入，8 pending。axis 全组合校验修复用于稻草块验收。
-- 共用兼容层处理旧 DO_TILE_DROPS 与新版 BLOCK_DROPS；真实 1.21.1 API 专用测试仍通过。无服务器夹具中的 Registry/GameRule/MenuType 初始化、Mockito 重设副作用及旧配方断言失败已修复，失败日志保留。
-- 最终日志 `../hanging-build-all-2.log`、`../hanging-series-build.log`、`../hanging-python-all.log`、`../hanging-content.log`。范围见 [悬挂串](HANGING-STRINGS.md)，证据见 [构建记录](research/cookery-hanging-strings-build-2026-11-17.json)。
-- 选中框、塌落声效/粒子尚有差异；未运行服务器或客户端。e/f 保留便当袋检查点，EULA 为 false；Folia 历史 watchdog 仍 OPEN。
-
-## 稻草块与油块（2026-11-17，前序 storage-v1）
-
-- 稻草块按点击面定轴；原生 fallOn 替代默认伤害处理，支持 Float/Double 两种签名。活体落地不足 3 格不碎裂；其余概率为 clamp(height/30, 0, 1)，成功返还 5 稻穗/4 种子并发烟雾。保护和 EntityChangeBlockEvent 可阻止破坏，事件前后检查区域与方块身份，重入不重复产物。
-- 油块服务端摩擦 0.985、上方持续火源标签/BlockFade 保护、自然地面生成限制、wax-off 粒子与实体方块资源已接入。原版客户端滑动预测、非粘连活塞和全部生成路径仍待对齐/实测。
-- 本批新增 19 项 Java、2 项 Python；全量 Java 414＋71＋4、Python 126＋58 通过。五插件与十组厨房版本 JAR、18 个 CE 版本包完成构建。
-- 厨房包 1,400 物品、76 方块、23 家具、4,222 显式状态、1,458 可达模型；602/612 来源配方已导入、10 pending。四条新增压缩/还原配方保留 9:1 数量。
-- 日志 `../storage-block-build-all.log`、`../storage-block-python-all.log`、`../storage-block-content.log`。初始泛型 ticker 编译与 Material RegistryAccess 测试失败保留；地图色按 CE 实际名称修正为 pale_purple/yellow。范围见 [储物方块](STORAGE-BLOCKS.md)，机器证据见 [构建记录](research/cookery-storage-blocks-build-2026-11-17.json)。
-- 服务器和原版客户端未运行；e/f 仍保留便当袋 v6/v4，不含桌椅与储物方块。EULA 未获答复，Folia 历史 watchdog 保持 OPEN。
-
-## 连接桌与四件桌面物品（2026-11-17，前序 tables-v1）
-
-- 11 种桌子、每桌 8 个连接状态、64 个桌布模型接入。每次放一件、满四件返回 PASS、空手取最后一件并掉落；创造也扣物品，创造拆除返桌面物品且不返桌布。桌布同色不消耗，空手不取桌布。
-- 新增 19 项 Java（16 个控制器、2 个布局、1 个显示生命周期）及 2 项 Python 回归。厨房 Java 395、系列 71、旧 API 4，Python 124＋58，全部通过；五插件与十组厨房 JAR 构建通过。
-- 厨房 1,398 物品、74 方块、23 家具、4,218 显式状态、1,453 可达模型；598/612 来源配方导入，14 pending；18 个版本配置 ZIP 已生成。
-- 修复座椅/桌子保存坏档时旧 sidecar 可能残留的问题，保留原始损坏数据；桌面库存按不可变列表发布，渲染读者不会遍历正在修改的列表。
-- 日志 `../table-build-all.log`、`../table-python-all.log`、`../table-content.log`；前序 lambda 重载、测试重载和负零比较失败保留。说明见 [桌子检查点](TABLES.md)，机器证据见 [构建记录](research/cookery-tables-build-2026-11-17.json)。
-- 真实服务器和客户端未启动；桌面固体碰撞、水浸、火势、活塞、第三方掉落实体取消和真人操作仍待实现/验收。e/f 保留前序便当袋文件。
-
-## 椅子、凳子与坐垫（2026-11-17，前序 seating-v1）
-
-- 11 种椅子和 11 种凳子接入 CE 家具、四向放置、座位、掉落与合成；16 色坐垫使用原始模型。换色扣一张（含创造）、返还旧坐垫；空手潜行尝试入座，重复移除和回调重入不会重复返物。
-- 厨房 376、系列 71、旧 API 4 项 Java 全部通过；Python 根 122、系列 58 项通过。五插件及十组厨房 JAR 完成构建。系列未改动，沿用其已通过构建。
-- 厨房包 1,246 物品、63 方块、23 家具、4,130 状态、1,290 可达模型；587/612 配方导入，25 pending。修复子模型继承父几何时纹理解析的误报；18 个版本配置包已生成。
-- 日志：`../seating-build-all-2.log`、`../seating-python-all.log`、`../seating-content.log`。声音注册和嵌套 Mockito stubbing 的测试夹具失败保留。范围与差异见 [座椅检查点](SEATING.md)，哈希见 [机器记录](research/cookery-seating-build-2026-11-17.json)。
-- 本轮服务器/客户端未运行；e/f 隔离服保留便当袋检查点，尚未更新到座椅包。当前座椅只有交互盒，固体碰撞、水浸、燃烧、活塞和真实乘坐位置尚未完成。
-
-## 便当袋与炉具合成（2026-11-17，前序 v6）
-
-- 便当袋 24 槽、批量原生食用、满饱食度药水、果篮交换、组件合并和坏档保留已实现；特殊机器槽和旁观者不能绕过原版限制。新增 23 项 Java 回归。范围和差异见 [便当袋检查点](LUNCH-BAG.md)。
-- Forge 47.3.0 的实际标签数据核验后接入石磨和两种炉灶合成。完整厨房包 1,208 物品、63 方块、1,220 可达模型；565/612 配方已导入，47 pending。
-- 当前全量 Java 364＋71＋4、Python 118＋58，零失败/错误/跳过；五插件及十组厨房 JAR 构建通过。日志为工作区同级 `lunchbag-build-drop-fix.log`、`lunchbag-series-build.log`、`python-lunchbag-final.log`。测试夹具 RegistryAccess 初始化失败已修复并保留失败日志。
-- 新内容导出为 v4 和三组共 18 个版本配置包。1.21.1 新增进食态旧 food 适配，便当袋底材回退 paper；完整袋内预览和空/满显示未验收。原目录 c/d 保留 v2 内容，当前无新增运行结果。
-
-## 多版本构建与资源适配（2026-11-17，前序 v2）
-
-- 在 `1d283d6` 基线上，五插件公共代码改为 Paper 1.21.1 API，现代 Consumable/Dialog 单独编译、延迟加载；补齐属性、游戏规则和冷却 API 适配。新增独立 26.3 NMS 桥，十组版本专用厨房 JAR 均实际编译通过。
-- Java 为厨房 341、系列 71、真实 1.21.1 API 专用 4 项；Python 为根 113、系列 58 项，无失败/跳过。构建日志位于工作区同级 `cookery-build-all-2.log`、`cookery-versioned.log`、`series-ticker-build.log`、`python-compat-final.log`。导出检查和 18 个分版本 CE ZIP 的资源引用、CRC、文件哈希校验通过。
-- 配方导入 561/612，剩 51；石磨全部来源已接入。Deco 增加 13 种展板剪下返物、材料扣除和失败回滚；Music 增加 NOTE_OFF/延音等事件及原版声音近似持续声部；抽奖机及五类酒馆计时家具改为解析当前加载的控制器，三个回归覆盖重载、卸载和区域边界。
-- 新 CE 目标导出器生成 1.21.1、1.21.2–1.21.8、1.21.9–26.3 三组。1.21.1 的 141 个食品/饮品采用旧 food 组件，保留食用时间、效果概率和 PDC；旧版本修正 40 处铁链 ID。47 个旧版饮品的动画/声音为吃东西，不能作为原模组动画一致的证明。
-- 隔离服工具修复 Windows MAX_PATH，长模型路径真实解压回归通过；版本、Java 和端口进入安装清单。Paper 1.21.1-133 和 26.3-253 下载哈希已核验，但 `eula=false`，本轮没有服务器启动或玩家验收结果。详见 [版本说明](VERSION-COMPATIBILITY.md)。
-
-现有历史失败保持原状态，尤其 Folia CraftEngine 延迟加载 watchdog 仍 OPEN。当前修改尚未提交或推送。
-
-## 盖饭原生合成（2026-11-16，历史检查点）
+## 盖饭原生合成（2026-11-16，历史）
 
 - 固定源码的 5 条 `rice_bowl` 已导出为 CraftEngine 自定义配方；厨房包当前 532/612 imported、80 pending，配方配置 73 条，其中 5 条盖饭、221 条炒锅、20 条炉具和其余原版/合成入口。可选 Farmers Delight 米饭缺席会写入 optionalTagAbsences，不伪装成已安装依赖。
 - 盖饭 native bridge 覆盖九个保留 NMS ABI。它绕过 CraftEngine shapeless companion 对额外格的数量门槛，匹配恰好一格菜和一格熟米饭，质量扫描整个工作矩阵；原生结果槽负责消耗每个非空格，余料 delegate 保留原版余料并将米饭槽替换为一个碗。额外格不是免费保留输入。
@@ -425,5 +344,3 @@ python -X utf8 tools/run_enchantment_acceptance.py --accept-eula --root build/ac
 
 
 2026-11-17 交接增量：已从 `251ad5a` 重建并运行 Paper/Folia 五插件整合服。修复 CE 系列 ZIP 未解包、JAR 命名识别、旧资源覆盖和 Tavern 1.21.11 原料名称；使用 `--server-blocks 6000` 完整注册厨房 63 方块/5,474 内部状态（4,130 个显式外观组合不等于内部状态数，茶旗 anchor_type 包含 ceiling）。根 Python 104 项、系列 Python 54 项通过。两端包加载、生成和状态注册已有证据，但 Folia watchdog 和缺模型/纹理警告仍 OPEN，客户端/玩家流程未验收。详见 [当前交接](HANDOFF.md) 与 [本轮证据](research/series-runtime-2026-11-17.json)。
-
-本批最终分发 `build/distribution/SenLuo-1.21.1-26.3-dev-20261117-steamer-runtime-v3.zip`：54381041 字节，SHA-256 `88b6d9e6aa87fe99716d370f11a0bccea776186b6a11aa06fd2ed89add051b8c`。68 个 manifest 文件、11 个厨房 JAR 公共类一致性、18 个 CE 包逐文件哈希及 ZIP CRC 均通过。Java 共 733 次测试执行（含旧 Gson 60 项复跑），Python 197 项通过；实际测试 JAR 哈希与分发一致。见 [构建核验](research/cookery-steamer-interaction-build-2026-11-17.json)。所有本地 Java 测试服已退出，25609/25611 不再监听。

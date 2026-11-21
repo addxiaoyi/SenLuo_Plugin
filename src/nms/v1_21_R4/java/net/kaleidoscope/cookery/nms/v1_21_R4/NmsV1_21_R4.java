@@ -74,7 +74,7 @@ public final class NmsV1_21_R4 implements NmsBridge {
                 && command.getAction() == ServerboundClientCommandPacket.Action.PERFORM_RESPAWN;
     }
 
-    @Override public boolean canPlaceEightImmortalsTable(Object rawLevel, int x, int y, int z, Object rawPlayer, Object rawItem) {
+    @Override public boolean canPlaceKitchenPart(Object rawLevel, int x, int y, int z, Object rawPlayer, Object rawItem) {
         var level = (net.minecraft.world.level.Level) rawLevel;
         var pos = new net.minecraft.core.BlockPos(x, y, z);
         return !level.isOutsideBuildHeight(pos) && level.getWorldBorder().isWithinBounds(pos)

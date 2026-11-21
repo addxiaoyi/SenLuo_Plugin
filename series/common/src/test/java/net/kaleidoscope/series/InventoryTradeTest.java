@@ -1,41 +1,49 @@
 package net.kaleidoscope.series;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class InventoryTradeTest {
-    @Test void capturedHandSlotConsumesThereEvenWhenEarlierSlotsContainIdenticalItems() {
-        ItemStack earlier = stack("fish", 30, 64), held = stack("fish", 5, 64);
-        PlayerInventory inventory = inventory(earlier, held);
-        assertTrue(InventoryTrade.exchangeSlot(inventory, 1, held::isSimilar, 1, List.of(), () -> true));
-        assertEquals(30, written(inventory)[0].getAmount());
-        assertEquals(4, written(inventory)[1].getAmount());
-        assertEquals(5, held.getAmount());
-    }
-
-    @Test void capturedSlotCannotBorrowPaymentFromOtherSlotsOrCommitAfterSlotSwitch() {
-        ItemStack fish = stack("fish", 30, 64);
-        PlayerInventory inventory = inventory(fish, stack("stone", 5, 64));
-        assertFalse(InventoryTrade.exchangeSlot(inventory, 1, fish::isSimilar, 1, List.of(), () -> true));
-        assertFalse(InventoryTrade.exchangeSlot(inventory, 0, fish::isSimilar, 1, List.of(), () -> false));
+    @Test void changingTheHeldSlotInsideTheFinalCallbackAlsoAbortsTheWrite() {
+        var inventory = inventory(stack("carpet", 3, 64), stack("carpet", 2, 64));
+        int[] selected = {1}; when(inventory.getHeldItemSlot()).thenAnswer(call -> selected[0]);
+        assertFalse(InventoryTrade.exchangeHeld(inventory, item -> true, 1, List.of(), () -> { selected[0] = 0; return true; }));
         verify(inventory, never()).setStorageContents(any());
-        assertThrows(IllegalArgumentException.class, () -> InventoryTrade.exchangeSlot(inventory, -1, fish::isSimilar, 1, List.of(), () -> true));
-        assertThrows(IllegalArgumentException.class, () -> InventoryTrade.exchangeSlot(inventory, 2, fish::isSimilar, 1, List.of(), () -> true));
     }
-
-    @Test void staleFurnitureCannotCommitPaymentOrRewards() {
-        ItemStack flower = stack("flower", 1, 64);
-        PlayerInventory inventory = inventory(flower);
-        assertFalse(InventoryTrade.exchange(inventory, flower::isSimilar, 1,
-                List.of(stack("refund", 1, 64)), () -> false));
+    @Test void aHeldPaymentLeavesAnEarlierIdenticalStackUntouched() {
+        var inventory = inventory(stack("carpet", 3, 64), stack("carpet", 2, 64));
+        when(inventory.getHeldItemSlot()).thenReturn(1);
+        assertTrue(InventoryTrade.exchangeHeld(inventory, item -> item.toString().equals("carpet"), 1, List.of(), () -> true));
+        var changed = written(inventory);
+        assertEquals(3, changed[0].getAmount()); assertEquals(1, changed[1].getAmount());
+    }
+    @Test void anInsufficientHeldStackDoesNotBorrowFromOtherIdenticalStacks() {
+        var inventory = inventory(stack("carpet", 64, 64), stack("carpet", 1, 64));
+        when(inventory.getHeldItemSlot()).thenReturn(1);
+        assertFalse(InventoryTrade.exchangeHeld(inventory, item -> true, 2, List.of(), () -> true));
         verify(inventory, never()).setStorageContents(any());
-        assertEquals(1, flower.getAmount());
+    }
+    @Test void aTradeCallbackChangingTheHeldSlotCannotCommitThePlannedPayment() {
+        var inventory = inventory(stack("carpet", 3, 64), stack("carpet", 2, 64));
+        int[] selected = {1}; when(inventory.getHeldItemSlot()).thenAnswer(call -> selected[0]);
+        try (var player = new PlayerFixture(inventory)) {
+            doAnswer(call -> { selected[0] = 0; return null; }).when(player.plugins).callEvent(any());
+            assertFalse(InventoryTrade.exchangeHeld(inventory, item -> true, 1, List.of(), () -> true));
+            verify(inventory, never()).setStorageContents(any());
+        }
     }
     @Test void insufficientPaymentLeavesAllSlotsUntouched() {
         ItemStack coin = stack("coin", 2, 64);
@@ -88,6 +96,107 @@ class InventoryTradeTest {
                 coin::isSimilar, 1, List.of(stack("empty", 0, 64))));
         verify(inventory, never()).setStorageContents(any());
         assertEquals(1, coin.getAmount());
+    }
+
+    @Test void associatedStateCommitsAfterTheEventAndBeforeTheInventory() {
+        var order = new ArrayList<String>();
+        PlayerInventory inventory = inventory(stack("coin", 2, 64));
+        try (var fixture = new PlayerFixture(inventory)) {
+            doAnswer(call -> { order.add("event"); return null; }).when(fixture.plugins).callEvent(any());
+            doAnswer(call -> { order.add("inventory"); return null; }).when(inventory).setStorageContents(any());
+            assertTrue(InventoryTrade.exchange(inventory, ignored -> true, 1, List.of(), () -> {
+                order.add("state");
+                return true;
+            }));
+            assertEquals(List.of("event", "state", "inventory"), order);
+        }
+    }
+
+    @Test void rejectedAssociatedStateDoesNotTakePayment() {
+        PlayerInventory inventory = inventory(stack("coin", 2, 64));
+        assertFalse(InventoryTrade.exchange(inventory, ignored -> true, 1, List.of(), () -> false));
+        verify(inventory, never()).setStorageContents(any());
+    }
+
+    @Test void cancellationDoesNotCommitAssociatedState() {
+        PlayerInventory inventory = inventory(stack("coin", 2, 64));
+        var committed = new AtomicBoolean();
+        try (var fixture = new PlayerFixture(inventory)) {
+            doAnswer(call -> {
+                ((InventoryTradeEvent) call.getArgument(0)).setCancelled(true);
+                return null;
+            }).when(fixture.plugins).callEvent(any());
+            assertFalse(InventoryTrade.exchange(inventory, ignored -> true, 1, List.of(),
+                    () -> { committed.set(true); return true; }));
+            assertFalse(committed.get());
+            verify(inventory, never()).setStorageContents(any());
+        }
+    }
+
+    @Test void eventInventoryDriftDoesNotOverwriteTheListenersChange() {
+        ItemStack coin = stack("coin", 2, 64);
+        PlayerInventory inventory = inventory(coin);
+        var committed = new AtomicBoolean();
+        try (var fixture = new PlayerFixture(inventory)) {
+            doAnswer(call -> { coin.subtract(1); return null; }).when(fixture.plugins).callEvent(any());
+            assertFalse(InventoryTrade.exchange(inventory, ignored -> true, 1, List.of(),
+                    () -> { committed.set(true); return true; }));
+            assertFalse(committed.get());
+            assertEquals(1, coin.getAmount());
+            verify(inventory, never()).setStorageContents(any());
+        }
+    }
+
+    @Test void playerRetirementDuringTheEventLeavesPaymentAndStateAlone() {
+        PlayerInventory inventory = inventory(stack("coin", 2, 64));
+        var committed = new AtomicBoolean();
+        try (var fixture = new PlayerFixture(inventory)) {
+            doAnswer(call -> { when(fixture.player.isOnline()).thenReturn(false); return null; })
+                    .when(fixture.plugins).callEvent(any());
+            assertFalse(InventoryTrade.exchange(inventory, ignored -> true, 1, List.of(),
+                    () -> { committed.set(true); return true; }));
+            assertFalse(committed.get());
+            verify(inventory, never()).setStorageContents(any());
+        }
+    }
+
+    @Test void foreignRegionCannotReadOrMutateTheInventory() {
+        PlayerInventory inventory = inventory(stack("coin", 2, 64));
+        try (var fixture = new PlayerFixture(inventory)) {
+            fixture.bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(fixture.player)).thenReturn(false);
+            assertFalse(InventoryTrade.exchange(inventory, ignored -> true, 1, List.of()));
+            verify(inventory, never()).getStorageContents();
+            verify(inventory, never()).setStorageContents(any());
+        }
+    }
+
+    @Test void nestedPaymentIsRejectedAndAnExceptionReleasesTheGuard() {
+        PlayerInventory inventory = inventory(stack("coin", 2, 64));
+        try (var fixture = new PlayerFixture(inventory)) {
+            doAnswer(call -> {
+                assertFalse(InventoryTrade.exchange(inventory, ignored -> true, 1, List.of()));
+                return null;
+            }).when(fixture.plugins).callEvent(any());
+            assertThrows(IllegalStateException.class, () -> InventoryTrade.exchange(
+                    inventory, ignored -> true, 1, List.of(), () -> { throw new IllegalStateException("refused"); }));
+            assertTrue(InventoryTrade.exchange(inventory, ignored -> true, 1, List.of()));
+            verify(inventory).setStorageContents(any());
+        }
+    }
+
+    private static final class PlayerFixture implements AutoCloseable {
+        final Player player = mock(Player.class);
+        final PluginManager plugins = mock(PluginManager.class);
+        final MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class);
+
+        PlayerFixture(PlayerInventory inventory) {
+            when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+            when(player.isOnline()).thenReturn(true);
+            when(inventory.getHolder()).thenReturn(player);
+            bukkit.when(() -> Bukkit.isOwnedByCurrentRegion(player)).thenReturn(true);
+            bukkit.when(Bukkit::getPluginManager).thenReturn(plugins);
+        }
+        @Override public void close() { bukkit.close(); }
     }
 
     private static PlayerInventory inventory(ItemStack... contents) {

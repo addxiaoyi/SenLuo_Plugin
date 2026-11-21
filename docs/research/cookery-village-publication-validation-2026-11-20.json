@@ -1,0 +1,308 @@
+{
+  "date": "2026-11-20",
+  "scope": "unit_static_compilation_only_dormant_no_production_caller",
+  "java": {
+    "suites": 101,
+    "tests": 953,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "selectedSuites": {
+      "net.kaleidoscope.cookery.nms.VillageColdStartWindowArtifactTest": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.nms.VillagePublicationNmsArtifactTest": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.worldgen.VillageColdStartWindowOwnershipTest": {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.worldgen.VillagePublicationTransactionTest": {
+        "tests": 63,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "command": "test shadowJar acceptanceJar",
+    "exitCode": 0,
+    "log": "build/village-publication-java-1.log"
+  },
+  "pythonBaseline": {
+    "tests": 259,
+    "sourceChangeSinceRun": "none in Python sources",
+    "log": "build/ce-gate-sickle-village-python-4.log",
+    "rerunForThisJavaOnlyBatch": false
+  },
+  "staticNativeInputs": {
+    "paper": {
+      "path": "C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\build\\acceptance\\v612\\paper\\versions\\1.21.11\\paper-1.21.11.jar",
+      "sha256": "3a73f0cc4020a5eb45629a67629b14263331c68de45552f8505df8060fa8ed43",
+      "classes": [
+        {
+          "name": "net/minecraft/server/dedicated/DedicatedServer",
+          "sha256": "d4915561d13e05bf928f0621355ccc7ae87c4a859218e89733db8f4767bd800c",
+          "methods": [
+            "initServer()Z"
+          ]
+        },
+        {
+          "name": "net/minecraft/server/MinecraftServer",
+          "sha256": "69d5494e603f2f671afbc368d227d8ff037ba3f23ce7ff482f8c8ef8006dd862",
+          "methods": [
+            "<init>(Ljoptsimple/OptionSet;Lnet/minecraft/server/WorldLoader$DataLoadContext;Ljava/lang/Thread;Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;Lnet/minecraft/server/packs/repository/PackRepository;Lnet/minecraft/server/WorldStem;Ljava/net/Proxy;Lcom/mojang/datafixers/DataFixer;Lnet/minecraft/server/Services;Lnet/minecraft/server/level/progress/LevelLoadListener;)V",
+            "loadLevel(Ljava/lang/String;)V",
+            "createLevel(Lnet/minecraft/world/level/dimension/LevelStem;Lio/papermc/paper/world/PaperWorldLoader$WorldLoadingInfo;Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;Lnet/minecraft/world/level/storage/PrimaryLevelData;)V",
+            "initWorld(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/storage/PrimaryLevelData;Lnet/minecraft/world/level/levelgen/WorldOptions;)V",
+            "prepareLevel(Lnet/minecraft/server/level/ServerLevel;)V",
+            "hasStopped()Z",
+            "isRunning()Z",
+            "runServer()V",
+            "isStopped()Z",
+            "isReady()Z",
+            "getTickCount()I",
+            "getRunningThread()Ljava/lang/Thread;",
+            "isSameThread()Z",
+            "getStructureManager()Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplateManager;",
+            "registryAccess()Lnet/minecraft/core/RegistryAccess$Frozen;"
+          ]
+        },
+        {
+          "name": "io/papermc/paper/world/PaperWorldLoader",
+          "sha256": "fbfae5ba3839584d4a6b841a8fca3c92d171eae3a9b080dda8a72cb9696e4361",
+          "methods": [
+            "<init>(Lnet/minecraft/server/MinecraftServer;Ljava/lang/String;)V",
+            "loadInitialWorlds()V"
+          ]
+        },
+        {
+          "name": "org/bukkit/craftbukkit/CraftServer",
+          "sha256": "2f3feda788f7a713c00680360a8573f63f08b7ba559d0c4da3a7f846a489852f",
+          "methods": [
+            "enablePlugins(Lorg/bukkit/plugin/PluginLoadOrder;)V",
+            "createWorld(Lorg/bukkit/WorldCreator;)Lorg/bukkit/World;"
+          ]
+        },
+        {
+          "name": "net/minecraft/server/level/ServerLevel",
+          "sha256": "f1674f31fbb88e2f2768537edcb9c00bb3e74f473a9d2fbe170a95e03e8351fd",
+          "methods": [
+            "<init>(Lnet/minecraft/server/MinecraftServer;Ljava/util/concurrent/Executor;Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;Lnet/minecraft/world/level/storage/PrimaryLevelData;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/world/level/dimension/LevelStem;ZJLjava/util/List;ZLnet/minecraft/world/RandomSequences;Lorg/bukkit/World$Environment;Lorg/bukkit/generator/ChunkGenerator;Lorg/bukkit/generator/BiomeProvider;)V"
+          ]
+        }
+      ]
+    },
+    "folia": {
+      "path": "C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\build\\acceptance\\gp2\\folia\\versions\\1.21.11\\folia-1.21.11.jar",
+      "sha256": "6bfd94ffd8649cf416d247e849214667ac91759699a4c3536eef2307277c4e33",
+      "classes": [
+        {
+          "name": "net/minecraft/server/dedicated/DedicatedServer",
+          "sha256": "0c1b2033cf1a0b2922718c38544c7ca45661df615296c49d354184c104784823",
+          "methods": [
+            "initServer()Z"
+          ]
+        },
+        {
+          "name": "net/minecraft/server/MinecraftServer",
+          "sha256": "e467ce1cbb88373ea16d49a9255a1f417a6b120d18e7b87df58f2191ecb716ad",
+          "methods": [
+            "<init>(Ljoptsimple/OptionSet;Lnet/minecraft/server/WorldLoader$DataLoadContext;Ljava/lang/Thread;Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;Lnet/minecraft/server/packs/repository/PackRepository;Lnet/minecraft/server/WorldStem;Ljava/net/Proxy;Lcom/mojang/datafixers/DataFixer;Lnet/minecraft/server/Services;Lnet/minecraft/server/level/progress/LevelLoadListener;)V",
+            "loadLevel(Ljava/lang/String;)V",
+            "createLevel(Lnet/minecraft/world/level/dimension/LevelStem;Lio/papermc/paper/world/PaperWorldLoader$WorldLoadingInfo;Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;Lnet/minecraft/world/level/storage/PrimaryLevelData;)V",
+            "initWorld(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/storage/PrimaryLevelData;Lnet/minecraft/world/level/levelgen/WorldOptions;)V",
+            "prepareLevel(Lnet/minecraft/server/level/ServerLevel;)V",
+            "hasStopped()Z",
+            "isRunning()Z",
+            "runServer()V",
+            "isStopped()Z",
+            "isReady()Z",
+            "getTickCount()I",
+            "getRunningThread()Ljava/lang/Thread;",
+            "isSameThread()Z",
+            "getStructureManager()Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureTemplateManager;",
+            "registryAccess()Lnet/minecraft/core/RegistryAccess$Frozen;"
+          ]
+        },
+        {
+          "name": "io/papermc/paper/world/PaperWorldLoader",
+          "sha256": "fbfae5ba3839584d4a6b841a8fca3c92d171eae3a9b080dda8a72cb9696e4361",
+          "methods": [
+            "<init>(Lnet/minecraft/server/MinecraftServer;Ljava/lang/String;)V",
+            "loadInitialWorlds()V"
+          ]
+        },
+        {
+          "name": "org/bukkit/craftbukkit/CraftServer",
+          "sha256": "24baf033ca1cec51a0380180db5ed6d87913a711905107a7ebe25c7eb11478fc",
+          "methods": [
+            "enablePlugins(Lorg/bukkit/plugin/PluginLoadOrder;)V",
+            "createWorld(Lorg/bukkit/WorldCreator;)Lorg/bukkit/World;"
+          ]
+        },
+        {
+          "name": "net/minecraft/server/level/ServerLevel",
+          "sha256": "aa8e9eab62f9b211e46c45c6e1a52dad577427609766e978493146c5fa5a8614",
+          "methods": [
+            "<init>(Lnet/minecraft/server/MinecraftServer;Ljava/util/concurrent/Executor;Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;Lnet/minecraft/world/level/storage/PrimaryLevelData;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/world/level/dimension/LevelStem;ZJLjava/util/List;ZLnet/minecraft/world/RandomSequences;Lorg/bukkit/World$Environment;Lorg/bukkit/generator/ChunkGenerator;Lorg/bukkit/generator/BiomeProvider;)V"
+          ]
+        }
+      ]
+    },
+    "ce": {
+      "path": "C:\\Users\\Administrator\\Documents\\luoseng\\SenLuo_Plugin-continue\\build\\acceptance\\v612\\paper\\plugins\\craftengine-26.9.1.jar",
+      "sha256": "021260c87e3546730d321f4360b1744e6e33caa1d68e98ae30dcdbbdc347ae0f",
+      "classes": [
+        {
+          "name": "net/momirealms/craftengine/core/plugin/CraftEngine",
+          "sha256": "dba6ce66ba3605dee91927aeb70f370a83efc3aa992ee48beb5fb9916795104a",
+          "methods": [
+            "onPluginLoad()V",
+            "runDelayTasks(Z)V",
+            "reloadPlugin(Ljava/util/concurrent/Executor;Ljava/util/concurrent/Executor;ZZ)Ljava/util/concurrent/CompletableFuture;",
+            "reloadPlugin(Ljava/util/concurrent/Executor;Ljava/util/concurrent/Executor;ZZZZ)Ljava/util/concurrent/CompletableFuture;",
+            "onPluginEnable()V",
+            "onPluginDisable()V",
+            "isReloading()Z",
+            "isEnabling()Z",
+            "isStopping()Z",
+            "lambda$onPluginEnable$1()V"
+          ]
+        },
+        {
+          "name": "net/momirealms/craftengine/bukkit/plugin/BukkitCraftEngine",
+          "sha256": "469664f1d05ac548dbf7521609907fb512bf5c9ffcf6bff0defa513ddc357a69",
+          "methods": []
+        },
+        {
+          "name": "net/momirealms/craftengine/bukkit/plugin/PaperCraftEnginePlugin",
+          "sha256": "297049fb7d7f9f874364d6d0a906fe112003bd2a5996ba1a07ce2ac86645e6ab",
+          "methods": [
+            "onLoad()V",
+            "onEnable()V"
+          ]
+        },
+        {
+          "name": "net/momirealms/craftengine/core/pack/AbstractPackManager",
+          "sha256": "06dcb743c44c5452b3465b4d052eb7e28fbb459644caef34823d0f54f07c243f",
+          "methods": [
+            "loadResources(Ljava/util/function/Predicate;)I"
+          ]
+        },
+        {
+          "name": "net/momirealms/craftengine/core/plugin/compatibility/PluginTaskRegistry",
+          "sha256": "89dcc2c1461b63e4aa2f78072be19da08bb837213d9c12d8e3d3300626fee096",
+          "methods": [
+            "registerTask(Lnet/momirealms/craftengine/core/plugin/compatibility/PluginTask;)V",
+            "executeTasks()V"
+          ]
+        },
+        {
+          "name": "net/momirealms/craftengine/bukkit/world/BukkitWorldManager",
+          "sha256": "1327cb9271c94ab8ad4407255d064803553efb3ba8283afd4b53153f1d8071cd",
+          "methods": [
+            "initialized()Z",
+            "delayedInit()V",
+            "ensureStorageWorld(Lorg/bukkit/World;)Lnet/momirealms/craftengine/bukkit/world/BukkitWorld;",
+            "onWorldInit(Lorg/bukkit/event/world/WorldInitEvent;)V",
+            "onWorldLoad(Lorg/bukkit/event/world/WorldLoadEvent;)V",
+            "installStorageWorld(Lnet/momirealms/craftengine/bukkit/world/BukkitWorld;Lnet/momirealms/craftengine/core/world/CEWorld;)V",
+            "injectWorldGeneration(Lnet/momirealms/craftengine/bukkit/world/BukkitWorld;)V",
+            "handleChunkGenerate(Lnet/momirealms/craftengine/bukkit/world/BukkitWorld;Lnet/momirealms/craftengine/core/world/ChunkPos;Ljava/lang/Object;Lnet/momirealms/craftengine/core/world/chunk/ChunkGenerationStage;)Ljava/lang/Runnable;"
+          ]
+        },
+        {
+          "name": "net/momirealms/craftengine/core/world/chunk/ChunkGenerationStage",
+          "sha256": "9f95694f71967b87e9804001d3748f2a1aac63ce51855d648eea98c4adb2be4f",
+          "methods": [
+            "enabled()Z",
+            "<clinit>()V"
+          ]
+        }
+      ]
+    },
+    "sources": [
+      {
+        "path": "src\\main\\java\\net\\kaleidoscope\\cookery\\plugin\\KaleidoscopeCookeryPlugin.java",
+        "sha256": "9807eb75a1afdee449a169731f62b23a69eb1424fbaef565ae26bb8c84d0b04e"
+      },
+      {
+        "path": "src\\main\\resources\\plugin.yml",
+        "sha256": "66cd450238a9e04986ca7cd1b9e1cdaa90f33062fc90e78193a194c86b1d7d8c"
+      }
+    ]
+  },
+  "staticInputChecks": {
+    "lifecycleAudit": {
+      "path": "build/followups/village-publication-lifecycle-audit-3.md",
+      "sha256": "f79c647c6b3fc836bf68de3e0dc7c95e27fb48bdf90e852dc8ae50fec149cc46"
+    },
+    "nativeAbi": {
+      "path": "build/followups/village-publication-native-abi-1.json",
+      "sha256": "5dd29c83300441448141de5e9e9a28222f94140df5db6059aef6b3e37206635a"
+    },
+    "ceAfterEnableInvokeOffset": 264,
+    "ceBeforeEnableInvokeOffsetRejected": 150,
+    "ceTaskRunOffset": 23,
+    "dedicatedEnableStartupOffset": 950,
+    "dedicatedInitialWorldLoadOffset": 1201,
+    "actualServerThreadRequired": true,
+    "nativeIsSameThreadRejectedAsPhaseProof": true,
+    "ceTaskExceptionsAreSwallowed": true,
+    "classResourcePinsDoNotProveRuntimeTransformedCode": true
+  },
+  "artifacts": [
+    {
+      "path": "build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar",
+      "bytes": 1939566,
+      "sha256": "11c68822b302b4871eae4729b7b8397f6fb5bba93528f5a55f9ace5a54f163f5"
+    },
+    {
+      "path": "build/acceptance/probe/CookeryAcceptanceProbe.jar",
+      "bytes": 265380,
+      "sha256": "1edd0d2dae7fa867beb9285ac32bf0c0b22f9508054f09b2f349cd8dd88f0f35"
+    },
+    {
+      "path": "build/distribution/kitchen-sickle-1.zip",
+      "bytes": 2992042,
+      "sha256": "32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe"
+    },
+    {
+      "path": "build/distribution/village-empty-processor-1.zip",
+      "bytes": 58924,
+      "sha256": "660e567a894617b318562205b8445058c07ebd055a322014e6da1bc9e7042174"
+    }
+  ],
+  "evidenceDirectory": "build/evidence/village-publication-final-1",
+  "publication": {
+    "writeSet": 21,
+    "bound": 32,
+    "registeredObjectAndHolderIdentityPreserved": true,
+    "rollback": "reverse order, include failing write, preserve unknown external value, retain every fault",
+    "lostScope": "sticky rejection of all accessors including rollback",
+    "runtimeNativeFinalFieldWrites": "NOT_RUN"
+  },
+  "coldStartWindow": "DORMANT_PINNED_NATIVE_AND_CE_LIVE_PHASE_PREDICATE_NOT_RUN_ON_TARGET",
+  "productionCaller": "NONE",
+  "runtime": "NOT_RUN_USER_DEFERRED_SERVER_WINDOW",
+  "naturalVillageIntegration": "NOT_IMPLEMENTED",
+  "open": [
+    "native final-field and actual startup-window target runtime proof",
+    "explicit startup failure response because CE task exceptions are swallowed",
+    "production startup integration and pre-registry datapack discovery",
+    "complete CE/native reload and disable reader-writer barrier",
+    "five-biome natural generation, piece codec and CE/controller persistence",
+    "Paper/Folia real players, restart, protection and vanilla client acceptance",
+    "historical Folia watchdog root cause"
+  ],
+  "objective": "ACTIVE_NOT_COMPLETE"
+}

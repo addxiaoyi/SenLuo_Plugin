@@ -1,6 +1,7 @@
 package net.kaleidoscope.tavern;
 
 import net.kaleidoscope.series.InteractiveFurniture;
+import net.kaleidoscope.series.FurnitureTickers;
 import net.kaleidoscope.series.InventoryTrade;
 import net.kaleidoscope.series.Items;
 import net.kaleidoscope.series.SavedItems;
@@ -41,11 +42,10 @@ public final class ShakerController extends InteractiveFurniture {
             if (!Items.id(held).equals("kaleidoscope_tavern:empty_glassware")) {
                 player.sendMessage("调酒完成，手持空鸡尾酒杯取酒。"); return;
             }
-            Runnable empty = prepareContents(new ShakerContents(new ItemStack[3], null));
-            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(cocktail))) {
+            var empty = prepareCommit(new ShakerContents(new ItemStack[3], null));
+            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(cocktail), empty)) {
                 player.sendMessage("背包空间不足，鸡尾酒已保留。"); return;
             }
-            empty.run();
             return;
         }
         if (mixing) {
@@ -73,20 +73,19 @@ public final class ShakerController extends InteractiveFurniture {
         ItemStack ingredient = held.asQuantity(1);
         ItemStack[] nextSlots = slots.clone();
         nextSlots[index] = ingredient;
-        Runnable insert = prepareContents(new ShakerContents(nextSlots, null));
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, returned)) {
+        var insert = prepareCommit(new ShakerContents(nextSlots, null));
+        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, returned, insert)) {
             player.sendMessage("背包没有空位返还容器。"); return;
         }
-        insert.run();
         location().getWorld().playSound(location(), Sound.ITEM_BOTTLE_EMPTY, 0.75f, 1);
     }
 
     @Override public <T extends FurnitureController> FurnitureTicker<T> createFurnitureTicker() {
-        return net.kaleidoscope.series.FurnitureTicks.current(ShakerController.class, ShakerController::tick);
+        return FurnitureTickers.current(ShakerController.class, ShakerController::tick);
     }
 
     private void tick() {
-        if (!operational() || !mixing) return;
+        if (!operational() || isInteracting() || !mixing) return;
         ticks++;
         if (ticks % 10 == 0) location().getWorld().playSound(location(), Sound.ITEM_BOTTLE_FILL, 0.5f, 1.2f);
         if (ticks >= ShakerTiming.TIMEOUT) {
@@ -108,9 +107,9 @@ public final class ShakerController extends InteractiveFurniture {
         ShakerContents carried = tavern.shakers().contents(held);
         ShakerContents placed = new ShakerContents(slots, cocktail);
         if (!carried.empty() && !placed.empty()) { player.sendMessage("两个雪克杯都有内容，请先腾空一个。"); return; }
-        Runnable replace = prepareContents(carried);
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(tavern.shakers().pack(held, placed)))) return;
-        replace.run();
+        var replace = prepareCommit(carried);
+        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1,
+                List.of(tavern.shakers().pack(held, placed)), replace)) return;
         player.sendMessage("雪克杯内容已转装；手持右键摇动，松开停止，潜行右键方块放置。");
     }
 
@@ -119,11 +118,23 @@ public final class ShakerController extends InteractiveFurniture {
         prepareContents(new ShakerContents(slots, cocktail)).run();
     }
 
+    private java.util.function.BooleanSupplier prepareCommit(ShakerContents next) {
+        ItemStack[] expectedSlots = slots.clone();
+        ItemStack expectedCocktail = cocktail;
+        Runnable prepared = prepareContents(next);
+        return () -> {
+            if (!operational() || !furniture().isValid() || mixing || cocktail != expectedCocktail) return false;
+            for (int i = 0; i < slots.length; i++) if (slots[i] != expectedSlots[i]) return false;
+            prepared.run();
+            return true;
+        };
+    }
+
     private Runnable prepareContents(ShakerContents next) {
         ItemStack source = furniture().sourceItem() == null ? Items.create("kaleidoscope_tavern:shaker")
-                : net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(furniture().sourceItem());
+                : bukkitStack(furniture().sourceItem());
         // Serialize before payment so an oversized or invalid item cannot leave a stale furniture drop.
-        var packed = net.momirealms.craftengine.bukkit.item.BukkitItemManager.instance().wrap(tavern.shakers().pack(source, next));
+        var packed = ceItem(tavern.shakers().pack(source, next));
         return () -> {
             System.arraycopy(next.slots, 0, slots, 0, slots.length);
             cocktail = next.cocktail;
@@ -135,15 +146,23 @@ public final class ShakerController extends InteractiveFurniture {
     @Override public void onPlace(net.momirealms.craftengine.core.entity.player.Player player) { syncSource(); }
 
     @Override public void loadCustomDataFromItem(net.momirealms.craftengine.core.item.Item item) {
-        ItemStack original = net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(item);
+        ItemStack original = bukkitStack(item);
         CompoundTag root = new CompoundTag(), rejected = new CompoundTag();
         SavedItems.put(rejected, "source_item", original);
         root.put(SAVE_KEY, rejected);
         restoreSafely(root, SAVE_KEY, () -> {
             ShakerContents carried = tavern.shakers().contents(original);
-            System.arraycopy(carried.slots, 0, slots, 0, slots.length);
-            cocktail = carried.cocktail;
+            // CraftEngine reads the held item's data after the initial onLoad/onPlace source sync.
+            prepareContents(carried).run();
         });
+    }
+
+    ItemStack bukkitStack(net.momirealms.craftengine.core.item.Item item) {
+        return net.momirealms.craftengine.bukkit.util.ItemStackUtils.getBukkitStack(item);
+    }
+
+    net.momirealms.craftengine.core.item.Item ceItem(ItemStack item) {
+        return net.momirealms.craftengine.bukkit.item.BukkitItemManager.instance().wrap(item);
     }
 
     @Override public void saveCustomData(CompoundTag root) {

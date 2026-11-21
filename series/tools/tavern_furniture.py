@@ -47,6 +47,49 @@ def add_variants(items: dict, furnishings: dict, catalog: dict, assets: dict) ->
             variant["elements"][0]["item"] = display
             bottle["variants"][output.replace(":", "/")] = variant
     add_pressing_levels(items, furnishings["kaleidoscope_tavern:pressing_tub"], catalog["pressing"], assets)
+    add_sandwich_boards(furnishings)
+    add_molotov_furniture(items, furnishings)
+
+
+BOARD_STYLES = ("base", "grass", "allium", "azure_bluet", "cornflower", "orchid", "peony", "pink_petals",
+                "pitcher_plant", "poppy", "sunflower", "torchflower", "tulip", "wither_rose")
+
+
+def add_molotov_furniture(items: dict, furnishings: dict) -> None:
+    shapes = {"molotov": [(0, 0, .375, .875)],
+              "holder": [(0, -.1875, .375, 1), (0, .1875, .375, 1)],
+              "tilted_rack": [(-.1875, .125, .625, .875), (.1875, .125, .625, .875)],
+              "circular_rack": [(0, 0, 1, .125)], "cellar_cabinet": [(0, 0, 1, 1)]}
+    present = {name: furnishings.get("kaleidoscope_tavern:" + name) for name in shapes}
+    if not any(present.values()):
+        return
+    if not all(present.values()):
+        raise ValueError("All five Molotov and storage definitions must be placeable together")
+    for name, board in present.items():
+        identifier = "kaleidoscope_tavern:" + name
+        items[identifier]["behavior"]["rules"]["ground"]["rotation"] = "four"
+        board["variants"]["ground"]["hitboxes"] = [
+            {"type": "interaction", "position": f"{x},0,{z}", "width": width, "height": height}
+            for x, z, width, height in shapes[name]]
+    # The source bottle naturally uses SPEAR for up to 72000 ticks. Do not inject temporary components
+    # into live player stacks: drift or a crash must not leave a permanently modified item behind.
+    items["kaleidoscope_tavern:molotov"]["data"]["components"] = {"minecraft:consumable": {
+        "consume_seconds": 3600, "animation": "spear", "has_consume_particles": False}}
+
+
+def add_sandwich_boards(furnishings: dict) -> None:
+    present = {style: furnishings.get(f"kaleidoscope_tavern:{style}_sandwich_board") for style in BOARD_STYLES}
+    if not any(present.values()):
+        return  # Small isolated bottle/pressing fixtures do not include this separate group.
+    if not all(present.values()):
+        raise ValueError("All 14 sandwich boards must be placeable together")
+    for board in present.values():
+        ground = board["variants"]["ground"]
+        ground["hitboxes"][0].update({"height": 1.375, "width": 0.75})
+        for style in BOARD_STYLES:
+            variant = copy.deepcopy(ground)
+            variant["elements"][0]["item"] = f"kaleidoscope_tavern:{style}_sandwich_board"
+            board["variants"][style] = variant
 
 
 def add_pressing_levels(items: dict, tub: dict, recipes: list[dict], assets: dict) -> None:

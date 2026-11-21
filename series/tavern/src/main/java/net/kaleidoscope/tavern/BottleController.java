@@ -19,7 +19,7 @@ final class BottleController extends InteractiveFurniture {
 
     BottleController(Furniture furniture, TavernPlugin plugin) { super(furniture, plugin); tavern = plugin; }
     String carrier() { return furniture().id().asString(); }
-    boolean empty() { return filled == null && !blocked(); }
+    boolean empty() { return filled == null && !blocked() && !isInteracting(); }
     @Override public boolean hasContents() { return filled != null; }
     @Override public void onLoad() { tavern.bottles.add(this); if (!blocked()) refreshBottle(); }
     @Override public void onPlace(net.momirealms.craftengine.core.entity.player.Player player) { tavern.bottles.add(this); if (!blocked()) refreshBottle(); }
@@ -41,11 +41,15 @@ final class BottleController extends InteractiveFurniture {
         ItemStack held = player.getInventory().getItemInMainHand();
         if (filled != null) {
             if (!Items.id(held).equals(carrier())) { player.sendMessage("手持同类空瓶或空杯换取成品；满瓶已保存。"); return; }
-            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(filled))) {
+            ItemStack supplying = filled;
+            if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(filled), () -> {
+                if (!operational() || !furniture().isValid() || filled != supplying) return false;
+                filled = null;
+                changed();
+                return true;
+            })) {
                 player.sendMessage("背包空间不足。"); return;
             }
-            filled = null;
-            changed();
             refreshBottle();
             return;
         }
@@ -53,8 +57,12 @@ final class BottleController extends InteractiveFurniture {
         ShakerContents contents = tavern.shakers().contents(held);
         if (contents.cocktail == null) return;
         ItemStack empty = tavern.shakers().pack(held, new ShakerContents(new ItemStack[3], null));
-        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(empty))) return;
-        fill(contents.cocktail);
+        if (!InventoryTrade.exchange(player.getInventory(), held::isSimilar, 1, List.of(empty), () -> {
+            if (!operational() || !furniture().isValid() || filled != null) return false;
+            filled = contents.cocktail.clone();
+            changed();
+            return true;
+        })) return;
         refreshBottle();
     }
 

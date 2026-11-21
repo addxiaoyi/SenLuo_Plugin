@@ -70,27 +70,18 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
     private volatile AdvancementTracker advancementTracker;
     private BaoziThrowListener baoziThrows;
     private SteamerTransientBlockListener steamerTransients;
+    private volatile CeResourceReadGate sourceCropReadGate;
 
     @Override
-    public void onEnable() {
-        instance = this;
-        var cookeryCatalog = net.kaleidoscope.cookery.catalog.CookeryCatalog.bundled();
-        net.kaleidoscope.cookery.item.CookeryFoodItems.initialize(cookeryCatalog);
-        cookeryEffects = new net.kaleidoscope.cookery.effect.CookeryEffects(this);
-        placedMealConsumption = new net.kaleidoscope.cookery.item.PlacedMealConsumption(cookeryEffects);
-        cookeryConsumption = new net.kaleidoscope.cookery.item.listener.CookeryConsumeListener(this, cookeryEffects);
-        getServer().getPluginManager().registerEvents(cookeryEffects, this);
-        getServer().getPluginManager().registerEvents(cookeryConsumption, this);
-        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.effect.KitchenEffectEvents(this, cookeryEffects), this);
-        warmUpShutdownClasses();
-        saveDefaultConfig();
-        ConsoleMessages.load(this);
-        RecipeMenuConfig.load();
-        ItemIcons.generate();
-        this.antiGrief = AntiGriefLib.builder(this)
-                .ignoreOP(true)
-                .bypassPermission("kaleidoscopecookery.antigrief.bypass")
-                .build();
+    public void onLoad() {
+        // CE runs this hook before reading packs in either startup mode.
+        var engine = net.momirealms.craftengine.core.plugin.CraftEngine.instance();
+        engine.beforeEnableTaskRegistry().registerTask(
+                net.momirealms.craftengine.core.plugin.compatibility.PluginTask.create(this::registerPackTypes, getName()));
+    }
+
+    private void registerPackTypes() {
+        ItemIcons.generate(this);
         FoodRecipeManager.registerParsers();
         net.kaleidoscope.cookery.recipe.RiceBowlRecipe.register();
         net.kaleidoscope.cookery.recipe.KitchenKnifeSmithing.register();
@@ -100,6 +91,38 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         FoodGroups.registerParser();
         DishCarriers.registerParser();
         BlockTags.registerParser();
+        LootFormulas.register();
+        Conditions.register();
+        BlockBehaviors.register();
+        ItemBehaviors.register();
+        FurnitureBehaviors.register();
+    }
+
+    @Override
+    public void onEnable() {
+        instance = this;
+        var craftEngine = net.momirealms.craftengine.core.plugin.CraftEngine.instance();
+        sourceCropReadGate = new CeResourceReadGate(craftEngine.resourceOperations(),
+                () -> isEnabled() && !craftEngine.isDisabled() && !craftEngine.isStopping()
+                        && !craftEngine.isEnabling() && !craftEngine.isReloading());
+        net.kaleidoscope.cookery.nms.NativeSickleAccessProvider.registerObserver(this);
+        var cookeryCatalog = net.kaleidoscope.cookery.catalog.CookeryCatalog.bundled();
+        net.kaleidoscope.cookery.item.CookeryFoodItems.initialize(cookeryCatalog);
+        cookeryEffects = new net.kaleidoscope.cookery.effect.CookeryEffects(this);
+        placedMealConsumption = new net.kaleidoscope.cookery.item.PlacedMealConsumption(cookeryEffects);
+        cookeryConsumption = new net.kaleidoscope.cookery.item.listener.CookeryConsumeListener(this, cookeryEffects);
+        getServer().getPluginManager().registerEvents(cookeryEffects, this);
+        getServer().getPluginManager().registerEvents(cookeryConsumption, this);
+        net.kaleidoscope.cookery.worldgen.VillageLootBridge.register(this);
+        getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.effect.KitchenEffectEvents(this, cookeryEffects), this);
+        warmUpShutdownClasses();
+        saveDefaultConfig();
+        ConsoleMessages.load(this);
+        RecipeMenuConfig.load();
+        this.antiGrief = AntiGriefLib.builder(this)
+                .ignoreOP(true)
+                .bypassPermission("kaleidoscopecookery.antigrief.bypass")
+                .build();
         getServer().getPluginManager().registerEvents(new DishCarrierListener(), this);
         getServer().getPluginManager().registerEvents(new CaterpillarListener(), this);
         getServer().getPluginManager().registerEvents(new net.kaleidoscope.cookery.block.listener.OilBlockListener(), this);
@@ -123,7 +146,9 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PaddyTillListener(), this);
         getServer().getPluginManager().registerEvents(new DisplayTrackingListener(), this);
         getServer().getPluginManager().registerEvents(new LunchBagListener(), this);
-        getServer().getPluginManager().registerEvents(new CraftEngineRegistryCheckListener(this), this);
+        CraftEngineRegistryCheckListener registryCheck = new CraftEngineRegistryCheckListener(this, sourceCropReadGate);
+        getServer().getPluginManager().registerEvents(registryCheck, this);
+        registryCheck.scheduleSourceCropRebind(true);
         if (FoliaUtil.isFolia()) {
             TrashCanRespawnListener.registerFoliaPackets(this);
         } else {
@@ -131,11 +156,6 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(new AnvilTextPrompt(), this);
         registerRecipeCommand();
-        LootFormulas.register();
-        Conditions.register();
-        BlockBehaviors.register();
-        ItemBehaviors.register();
-        FurnitureBehaviors.register();
         getServer().getPluginManager().registerEvents(new AdvancementPlacementListener(), this);
         getServer().getPluginManager().registerEvents(new AdvancementGameplayListener(), this);
         setupAdvancements();
@@ -146,6 +166,8 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        CeResourceReadGate readGate = sourceCropReadGate;
+        if (readGate != null) readGate.invalidate();
         if (cookeryEffects != null) cookeryEffects.close();
         net.kaleidoscope.cookery.recipe.edit.RecipeEditService.close();
         net.kaleidoscope.cookery.recipe.RecipeLoadRecovery.close();
@@ -278,6 +300,15 @@ public final class KaleidoscopeCookeryPlugin extends JavaPlugin {
 
     public static KaleidoscopeCookeryPlugin instance() {
         return instance;
+    }
+
+    public CeResourceReadGate sourceCropReadGate() { return sourceCropReadGate; }
+
+    public static CeResourceReadGate.Guard tryEnterSourceCropResources() {
+        KaleidoscopeCookeryPlugin plugin = instance();
+        if (plugin == null || !plugin.isEnabled()) return null;
+        CeResourceReadGate gate = plugin.sourceCropReadGate();
+        return gate == null ? null : gate.tryEnter().guard();
     }
 
     public net.kaleidoscope.cookery.item.listener.CookeryConsumeListener cookeryConsumption() {

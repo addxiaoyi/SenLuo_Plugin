@@ -34,6 +34,18 @@ class PackValidationTests(unittest.TestCase):
         files = {path.split('/', 1)[1]: content for path, content in self.pack().items()}
         self.assertEqual([], validate(files)['errors'])
 
+    def test_exported_orphan_item_dependencies_are_reported_without_hiding_reachable_errors(self):
+        files = self.pack()
+        files['sample/resourcepack/assets/test/items/orphan.json'] = encoded({
+            'model': {'type': 'minecraft:model', 'model': 'test:absent'}})
+        report = validate(files)
+        self.assertEqual([], report['errors'])
+        self.assertTrue(any('models/absent.json' in warning for warning in report['asset_warnings']))
+        self.assertEqual(2, report['reachable_custom_models'])
+        report = validate({**files, **self.pack('test:missing_live')})
+        self.assertTrue(any('missing_live.png' in error for error in report['errors']))
+        self.assertFalse(any('missing_live.png' in warning for warning in report['asset_warnings']))
+
 
 if __name__ == '__main__':
     unittest.main()

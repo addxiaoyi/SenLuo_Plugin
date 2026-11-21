@@ -1,0 +1,142 @@
+{
+  "date": "2026-11-20",
+  "scope": "unit_static_and_compilation_only_no_server_activation",
+  "java": {
+    "suites": 97,
+    "tests": 877,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "selectedSuites": {
+      "net.kaleidoscope.cookery.item.behavior.SourceClassifiedSickleTest": {
+        "tests": 58,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.nms.NativeMiningDamageTrackerTest": {
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.nms.NativeMiningImplementationTest": {
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.nms.NativeSickleMiningArtifactTest": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.nms.VillagePoolNmsArtifactTest": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.plugin.CeResourceReadGateTest": {
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.worldgen.VillagePoolPlanTest": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "command": "test shadowJar acceptanceJar",
+    "exitCode": 0,
+    "log": "build/ce-gate-sickle-village-java-5.log"
+  },
+  "python": {
+    "tests": 259,
+    "frameworkResult": "OK",
+    "log": "build/ce-gate-sickle-village-python-4.log"
+  },
+  "isolatedWorldgenJava": {
+    "suites": 83,
+    "tests": 667,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "selectedSuites": {
+      "net.kaleidoscope.cookery.nms.VillagePoolNmsArtifactTest": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "net.kaleidoscope.cookery.worldgen.VillagePoolPlanTest": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "exitCode": 0,
+    "log": "../SenLuo_Plugin-worldgen/build/village-pool-preparation-java-2.log"
+  },
+  "artifacts": [
+    {
+      "path": "build/libs/KaleidoscopeCookeryPlugin-1.3.0.jar",
+      "bytes": 1875365,
+      "sha256": "b65e3b412e2c7b186123eae179cfb4a3f0a447694b146409e6bc397722d52516"
+    },
+    {
+      "path": "build/acceptance/probe/CookeryAcceptanceProbe.jar",
+      "bytes": 265380,
+      "sha256": "1edd0d2dae7fa867beb9285ac32bf0c0b22f9508054f09b2f349cd8dd88f0f35"
+    },
+    {
+      "path": "build/distribution/kitchen-sickle-1.zip",
+      "bytes": 2992042,
+      "sha256": "32ac83dcb54301ccf3e017e9a4a41f36292f4a2a94df9ab17915ca43a19e6bfe"
+    },
+    {
+      "path": "build/distribution/village-empty-processor-1.zip",
+      "bytes": 58924,
+      "sha256": "660e567a894617b318562205b8445058c07ebd055a322014e6da1bc9e7042174"
+    }
+  ],
+  "localFailureEvidence": [
+    {
+      "path": "build/evidence/ce-gate-sickle-attempt-3",
+      "tests": 864,
+      "failures": 1,
+      "cause": "artifact assertion searched outer method rather than the linked StackWalker lambda; corrected and revalidated"
+    },
+    {
+      "path": "build/evidence/ce-gate-sickle-village-attempt-4",
+      "exitCode": 1,
+      "cause": "test JVM native malloc failed allocating 2577008 bytes; hs_err_pid29076.log and replay retained; not a passing run"
+    }
+  ],
+  "testLauncher": {
+    "heapMiB": 384,
+    "parallelForks": 1,
+    "gc": "SerialGC",
+    "activeProcessors": 1,
+    "tieredStopAtLevel": 1,
+    "reservedCodeCacheMiB": 64,
+    "mockito": "supported premain agent"
+  },
+  "runtime": "NOT_RUN_USER_DEFERRED_SERVER_WINDOW",
+  "naturalVillageIntegration": "NOT_IMPLEMENTED",
+  "readGateIntegration": "DORMANT_PRIMITIVE_ONLY",
+  "processorRegistration": "DORMANT_EMPTY_PLACEHOLDER_PREINSTALL_REQUIRED",
+  "open": [
+    "complete native resource reader entry/exit and writer barrier",
+    "consistent template/processor/pool publication and rollback under proven lifecycle",
+    "native CE and datapack reload/generation drain",
+    "five-biome natural generation and native/CE/controller persistence",
+    "Paper/Folia real player, protection, restart and client acceptance",
+    "historical Folia watchdog root cause"
+  ]
+}
